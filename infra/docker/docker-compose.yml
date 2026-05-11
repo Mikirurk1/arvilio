@@ -1,0 +1,50 @@
+name: soenglish
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: soenglish-postgres
+    environment:
+      POSTGRES_DB: soenglish
+      POSTGRES_USER: soenglish
+      POSTGRES_PASSWORD: soenglish
+    ports:
+      - '5432:5432'
+    volumes:
+      - soenglish-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U soenglish -d soenglish']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: ../..
+      dockerfile: infra/docker/api.Dockerfile
+    container_name: soenglish-api
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgresql://soenglish:soenglish@postgres:5432/soenglish?schema=public
+    ports:
+      - '3000:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ../..
+      dockerfile: infra/docker/web.Dockerfile
+    container_name: soenglish-web
+    environment:
+      PORT: 4200
+      API_URL: http://api:3000/api
+      NEXT_PUBLIC_API_URL: http://localhost:3000/api
+    ports:
+      - '4200:4200'
+    depends_on:
+      - api
+
+volumes:
+  soenglish-postgres-data:

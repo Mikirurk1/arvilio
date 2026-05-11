@@ -1,0 +1,42 @@
+[
+  {
+    "id": "1",
+    "title": "Second & Third Conditionals",
+    "type": "grammar",
+    "duration": 55,
+    "xp": 30,
+    "difficulty": "medium",
+    "description": "Learn to express hypothetical situations and past regrets with conditional sentences.",
+    "locked": false
+  },
+  {
+    "id": "2",
+    "title": "Finance & Investment Terms",
+    "type": "vocabulary",
+    "duration": 55,
+    "xp": 25,
+    "difficulty": "easy",
+    "description": "15 essential words for business communication: equity, yield, portfolio, and more.",
+    "locked": false
+  },
+  {
+    "id": "3",
+    "title": "Present a Project Proposal",
+    "type": "speaking",
+    "duration": 55,
+    "xp": 40,
+    "difficulty": "hard",
+    "description": "Role-play a business meeting: pitching ideas and handling questions confidently.",
+    "locked": false
+  },
+  {
+    "id": "4",
+    "title": "Podcast Comprehension",
+    "type": "listening",
+    "duration": 55,
+    "xp": 35,
+    "difficulty": "hard",
+    "description": "Improve your listening skills through authentic podcast content.",
+    "locked": true
+  }
+]

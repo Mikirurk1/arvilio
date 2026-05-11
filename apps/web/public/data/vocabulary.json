@@ -1,0 +1,6 @@
+[
+  { "id": "1", "word": "Eloquent", "phonetic": "/ˈɛl.ə.kwənt/", "pos": "adjective", "definition": "Fluent and persuasive in speaking or writing.", "example": "She delivered an eloquent speech.", "status": "new", "category": "communication" },
+  { "id": "2", "word": "Leverage", "phonetic": "/ˈlev.ər.ɪdʒ/", "pos": "verb / noun", "definition": "Use something to maximum advantage.", "example": "We need to leverage our network.", "status": "learning", "category": "business" },
+  { "id": "3", "word": "Concise", "phonetic": "/kənˈsaɪs/", "pos": "adjective", "definition": "Clear and brief.", "example": "Please be concise in your presentation.", "status": "known", "category": "communication" },
+  { "id": "4", "word": "Ambiguous", "phonetic": "/æmˈbɪɡ.ju.əs/", "pos": "adjective", "definition": "Open to more than one interpretation.", "example": "The contract terms were ambiguous.", "status": "learning", "category": "communication" }
+]

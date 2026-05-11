@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String        @id @default(cuid())
+  email         String        @unique
+  passwordHash  String
+  displayName   String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  userWords     UserWord[]
+  progress      Progress[]
+  reviewQueue   ReviewQueue[]
+}
+
+model Word {
+  id            String        @id @default(cuid())
+  text          String        @unique
+  definition    String
+  example       String?
+  phonetic      String?
+  partOfSpeech  String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  userWords     UserWord[]
+  reviewQueue   ReviewQueue[]
+}
+
+model UserWord {
+  id             String      @id @default(cuid())
+  userId         String
+  wordId         String
+  masteryLevel   Int         @default(0)
+  firstSeenAt    DateTime?
+  lastReviewedAt DateTime?
+  nextReviewAt   DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  word           Word        @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, wordId])
+  @@index([nextReviewAt])
+}
+
+model Lesson {
+  id          String      @id @default(cuid())
+  slug        String      @unique
+  title       String
+  description String?
+  level       String
+  order       Int
+  exercises   Exercise[]
+  progress    Progress[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Exercise {
+  id          String      @id @default(cuid())
+  lessonId    String
+  prompt      String
+  kind        String
+  payload     Json
+  answer      Json
+  order       Int
+  lesson      Lesson      @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Progress {
+  id              String      @id @default(cuid())
+  userId          String
+  lessonId        String
+  completed       Boolean     @default(false)
+  score           Float?
+  completedAt     DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson          Lesson      @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+}
+
+model ReviewQueue {
+  id              String      @id @default(cuid())
+  userId          String
+  wordId          String
+  dueAt           DateTime
+  intervalDays    Int         @default(1)
+  easeFactor      Float       @default(2.5)
+  repetitions     Int         @default(0)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  word            Word        @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, wordId])
+  @@index([dueAt])
+}

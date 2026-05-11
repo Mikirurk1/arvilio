@@ -1,0 +1,200 @@
+.listPane {}
+
+.toolbar {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.searchWrap {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0 12px;
+}
+
+.searchIcon {
+  color: var(--text-tertiary);
+}
+
+.searchInput {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  padding: 10px 8px;
+  font-size: 14px;
+  outline: none;
+}
+
+.filterBlock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.filterHeading {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.chipRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.chipActive {
+  border-color: color-mix(in srgb, var(--fill-strong) 45%, var(--border));
+  background: color-mix(in srgb, var(--fill-strong) 18%, var(--surface));
+  color: var(--text-primary);
+}
+
+.toolbarMeta {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.countMuted {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+}
+
+.lessonCard {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  cursor: pointer;
+}
+
+.lessonCard:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--fill-strong) 55%, transparent);
+  outline-offset: 2px;
+}
+
+.lessonCardInner {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+}
+
+.lessonIconWrap {
+  flex-shrink: 0;
+}
+
+.lessonIconBadge {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--fill-strong) 18%, var(--surface));
+  color: var(--fill-strong);
+}
+
+.lessonMain {
+  min-width: 0;
+  flex: 1;
+}
+
+.lessonTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.lessonTitle {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.statusPill {
+  font-size: 11px;
+  border-radius: 999px;
+  padding: 3px 9px;
+  border: 1px solid var(--border);
+  text-transform: uppercase;
+}
+
+.statusPlanned { background: var(--blue-light); color: var(--blue); }
+.statusCompleted { background: var(--green-light); color: var(--green-dark); }
+.statusCancelled { background: var(--rose-light); color: var(--rose); }
+
+.lessonMetaRow {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.metaSep {
+  opacity: 0.6;
+}
+
+.lessonAside {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quickActions {
+  color: var(--text-tertiary);
+}
+
+.iconActionBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.iconActionBtn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--fill-strong) 55%, transparent);
+  outline-offset: 1px;
+}
+
+.empty {
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 13px;
+}

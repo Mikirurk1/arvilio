@@ -1,0 +1,47 @@
+// ============================================
+// SCSS змінні — доповнюють CSS-токени (tokens/theme, tokens/typography).
+// Для кольорів у компонентах переважно var(--text-*), var(--surface), …
+// ============================================
+
+// Colors (legacy / міксіни, still referenced in _base.scss bridge vars)
+$accent-color: #dc3545;
+$gray-color: #6c757d;
+$gray-light: #9ca3af;
+$white: #ffffff;
+$footer-bg: #fff;
+
+// Border Radius
+$border-radius: 8px;
+$border-radius-large: 12px;
+$border-radius-small: 6px;
+
+// Shadows
+$shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+$shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
+$shadow-large: 0 8px 24px rgba(0, 0, 0, 0.15);
+
+// Spacing
+$spacing-xs: 0.5rem;
+$spacing-sm: 1rem;
+$spacing-md: 2rem;
+$spacing-lg: 3rem;
+$spacing-xl: 4rem;
+$spacing-xxl: 5rem;
+
+// Typography — узгоджено з tokens/_typography (--font-sans / --font-display)
+$font-family-base: var(--font-sans);
+$font-family-heading: var(--font-display);
+$font-size-base: 16px;
+$line-height-base: 1.62;
+
+// Breakpoints
+$breakpoint-xs: 480px;
+$breakpoint-sm: 768px;
+$breakpoint-md: 1024px;
+$breakpoint-lg: 1200px;
+$breakpoint-xl: 1440px;
+
+// Transitions
+$transition-base: 0.3s ease;
+$transition-fast: 0.15s ease;
+$transition-slow: 0.5s ease;

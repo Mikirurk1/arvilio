@@ -1,0 +1,28 @@
+[
+  {
+    "id": "q1",
+    "type": "multiple-choice",
+    "question": "Choose the correct conditional sentence:",
+    "options": [
+      "If I would have more time, I will study harder.",
+      "If I had more time, I would study harder.",
+      "If I have more time, I would study harder.",
+      "If I had more time, I will study harder."
+    ],
+    "correct": 1,
+    "explanation": "Second conditional: if + past simple, would + infinitive."
+  },
+  {
+    "id": "q2",
+    "type": "multiple-choice",
+    "question": "What does 'eloquent' mean?",
+    "options": [
+      "Speaking very loudly",
+      "Unable to express oneself",
+      "Fluent and persuasive in speech or writing",
+      "Using confusing language"
+    ],
+    "correct": 2,
+    "explanation": "Eloquent means fluent and persuasive."
+  }
+]

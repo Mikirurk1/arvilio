@@ -1,0 +1,382 @@
+import type {
+  ProfileVocabularyEntry,
+  ProficiencyLevelId,
+  TimeZoneId,
+  UserAccountStatusId,
+  UserRoleId,
+} from '@soenglish/shared-types';
+import {
+  PROFILE_VOCABULARY_PROGRESS_EVENT,
+  PROFICIENCY_LEVEL,
+  TIME_ZONE,
+  USER_ACCOUNT_STATUS,
+  USER_ROLE,
+  VOCABULARY_WORD_STATUS_IDS,
+} from '@soenglish/shared-types';
+import type { ProfileStats } from './achievements';
+import { computeUnlockedAchievementIdsFromCounters } from './achievements';
+import { buildLinkedAccounts, type LinkedAccountLink } from './linked-accounts';
+import {
+  DEFAULT_APPEARANCE_PREFS,
+  DEFAULT_NOTIFICATION_PREFS,
+  type ProfileAppearancePrefs,
+  type ProfileNotificationPrefs,
+} from './user-preferences';
+
+export type { LinkedAccountLink } from './linked-accounts';
+
+export type UserRole = UserRoleId;
+
+/**
+ * Avatar payload: when both `url` and `objectKey` are absent, UI shows initials from `fullName`.
+ */
+export type UserAvatar = {
+  url?: string;
+  objectKey?: string;
+};
+
+/**
+ * Mock users — numeric ids only.
+ * Legacy string ids → number: student-1→1, teacher-1→2, student-2→3, student-3→4,
+ * teacher-2→5, admin-1→6, super-admin-1→7.
+ */
+export type MockUser = {
+  id: number;
+  role: UserRole;
+  fullName: string;
+  email: string;
+  avatar: UserAvatar;
+  /** References `PROFICIENCY_LEVEL` ids. */
+  proficiencyLevelId: ProficiencyLevelId;
+  telegram: string;
+  phone: string;
+  /** References `TIME_ZONE` ids; used to show scheduled times in the user’s zone. */
+  timezoneId: TimeZoneId;
+  nativeLanguage: string;
+  bio: string;
+  /** Students only — references `USER_ACCOUNT_STATUS` ids. */
+  statusId?: UserAccountStatusId;
+  /** Students only — `true` fixed schedule, `false` flexible. */
+  scheduleType?: boolean;
+  /** Assigned teacher user id; `0` = none. */
+  teacherId: number;
+  /** Calendar strip color (HEX); students only in mock. */
+  color?: string;
+  vocabulary: ProfileVocabularyEntry[];
+  stats?: ProfileStats;
+  /** Profile → Notifications; defaults from `DEFAULT_NOTIFICATION_PREFS`. */
+  notificationPrefs: ProfileNotificationPrefs;
+  /** Profile → Appearance; defaults from `DEFAULT_APPEARANCE_PREFS`. */
+  appearancePrefs: ProfileAppearancePrefs;
+  /** Google / Facebook / Telegram links for notifications & calendar (mock). */
+  linkedAccounts: LinkedAccountLink[];
+};
+
+function statsWithUnlocked(
+  counters: Omit<ProfileStats, 'unlockedAchievementIds'>,
+): ProfileStats {
+  return {
+    ...counters,
+    unlockedAchievementIds: computeUnlockedAchievementIdsFromCounters(counters),
+  };
+}
+
+export const mockUsers: MockUser[] = [
+  {
+    id: 1,
+    role: USER_ROLE.student.id,
+    fullName: 'Mykola Kovalenko',
+    email: 'mykola@example.com',
+    avatar: {},
+    proficiencyLevelId: PROFICIENCY_LEVEL.b2.id,
+    telegram: '@mykola',
+    phone: '+380 67 123 4567',
+    timezoneId: TIME_ZONE.kyiv.id,
+    nativeLanguage: 'Ukrainian',
+    bio: 'Full-stack developer learning English for professional growth and international opportunities.',
+    statusId: USER_ACCOUNT_STATUS.active.id,
+    scheduleType: true,
+    teacherId: 2,
+    color: '#3b82c4',
+    vocabulary: [
+      {
+        id: 1,
+        vocabularyId: 1,
+        statusId: VOCABULARY_WORD_STATUS_IDS.new,
+        addedAt: '2026-05-01T09:15:00.000Z',
+        events: [
+          {
+            id: 1001,
+            entryId: 1,
+            at: '2026-05-01T09:15:00.000Z',
+            typeId: PROFILE_VOCABULARY_PROGRESS_EVENT.created.id,
+            actorUserId: 2,
+            actorRoleId: USER_ROLE.teacher.id,
+            nextStatusId: VOCABULARY_WORD_STATUS_IDS.new,
+          },
+        ],
+      },
+      {
+        id: 2,
+        vocabularyId: 2,
+        lessonId: 1,
+        statusId: VOCABULARY_WORD_STATUS_IDS.repeated,
+        addedAt: '2026-04-30T10:30:00.000Z',
+        events: [
+          {
+            id: 1002,
+            entryId: 2,
+            at: '2026-04-30T10:30:00.000Z',
+            typeId: PROFILE_VOCABULARY_PROGRESS_EVENT.created.id,
+            actorUserId: 2,
+            actorRoleId: USER_ROLE.teacher.id,
+            nextStatusId: VOCABULARY_WORD_STATUS_IDS.new,
+          },
+          {
+            id: 1003,
+            entryId: 2,
+            at: '2026-05-02T12:10:00.000Z',
+            typeId: PROFILE_VOCABULARY_PROGRESS_EVENT.statusChanged.id,
+            actorUserId: 2,
+            actorRoleId: USER_ROLE.teacher.id,
+            previousStatusId: VOCABULARY_WORD_STATUS_IDS.new,
+            nextStatusId: VOCABULARY_WORD_STATUS_IDS.repeated,
+          },
+        ],
+      },
+      {
+        id: 3,
+        vocabularyId: 3,
+        statusId: VOCABULARY_WORD_STATUS_IDS.learned,
+        addedAt: '2026-04-22T08:45:00.000Z',
+        knownAt: '2026-05-03T10:40:00.000Z',
+        knownByTeacherId: 2,
+        events: [
+          {
+            id: 1004,
+            entryId: 3,
+            at: '2026-04-22T08:45:00.000Z',
+            typeId: PROFILE_VOCABULARY_PROGRESS_EVENT.created.id,
+            actorUserId: 2,
+            actorRoleId: USER_ROLE.teacher.id,
+            nextStatusId: VOCABULARY_WORD_STATUS_IDS.new,
+          },
+          {
+            id: 1005,
+            entryId: 3,
+            at: '2026-04-27T09:10:00.000Z',
+            typeId: PROFILE_VOCABULARY_PROGRESS_EVENT.statusChanged.id,
+            actorUserId: 2,
+            actorRoleId: USER_ROLE.teacher.id,
+            previousStatusId: VOCABULARY_WORD_STATUS_IDS.new,
+            nextStatusId: VOCABULARY_WORD_STATUS_IDS.repeated,
+          },
+          {
+            id: 1006,
+            entryId: 3,
+            at: '2026-05-03T10:40:00.000Z',
+            typeId: PROFILE_VOCABULARY_PROGRESS_EVENT.statusChanged.id,
+            actorUserId: 2,
+            actorRoleId: USER_ROLE.teacher.id,
+            previousStatusId: VOCABULARY_WORD_STATUS_IDS.repeated,
+            nextStatusId: VOCABULARY_WORD_STATUS_IDS.learned,
+          },
+        ],
+      },
+      {
+        id: 4,
+        vocabularyId: 4,
+        statusId: VOCABULARY_WORD_STATUS_IDS.repeated,
+        addedAt: '2026-04-29T13:10:00.000Z',
+      },
+      {
+        id: 5,
+        vocabularyId: 5,
+        lessonId: 4,
+        statusId: VOCABULARY_WORD_STATUS_IDS.new,
+        addedAt: '2026-05-04T08:55:00.000Z',
+      },
+    ],
+    stats: statsWithUnlocked({
+      wordsLearned: 847,
+      lessonsCompleted: 38,
+      streakDays: 14,
+      quizzesCompleted: 12,
+      perfectQuizCount: 0,
+      speakingSessions: 16,
+      practiceMinutesTotal: 1240,
+      lessonMinutesTotal: 2090,
+      weeklyGoalsCompleted: 2,
+    }),
+    notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS },
+    appearancePrefs: { ...DEFAULT_APPEARANCE_PREFS, theme: 'dark' },
+    linkedAccounts: buildLinkedAccounts({
+      google: { linked: true, connectedAs: 'mykola@gmail.com' },
+      telegram: { linked: true, connectedAs: '@mykola' },
+    }),
+  },
+  {
+    id: 2,
+    role: USER_ROLE.teacher.id,
+    fullName: 'Sarah Mitchell',
+    email: 'sarah@example.com',
+    avatar: {},
+    proficiencyLevelId: PROFICIENCY_LEVEL.c1.id,
+    telegram: '',
+    phone: '',
+    timezoneId: TIME_ZONE.kyiv.id,
+    nativeLanguage: '',
+    bio: '',
+    teacherId: 0,
+    vocabulary: [],
+    notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS, teacherMessages: true },
+    appearancePrefs: { ...DEFAULT_APPEARANCE_PREFS, theme: 'light' },
+    linkedAccounts: buildLinkedAccounts({
+      google: { linked: true, connectedAs: 'sarah.mitchell@example.com' },
+    }),
+  },
+  {
+    id: 3,
+    role: USER_ROLE.student.id,
+    fullName: 'Anna Vasylenko',
+    email: 'anna@example.com',
+    avatar: {},
+    proficiencyLevelId: PROFICIENCY_LEVEL.b1.id,
+    telegram: '@anna',
+    phone: '+380 93 101 2200',
+    timezoneId: TIME_ZONE.kyiv.id,
+    nativeLanguage: 'Ukrainian',
+    bio: 'Improving grammar confidence for product presentations.',
+    statusId: USER_ACCOUNT_STATUS.active.id,
+    scheduleType: false,
+    teacherId: 2,
+    color: '#16a97a',
+    vocabulary: [
+      {
+        id: 6,
+        vocabularyId: 1,
+        statusId: VOCABULARY_WORD_STATUS_IDS.repeated,
+        addedAt: '2026-05-01T07:50:00.000Z',
+      },
+      {
+        id: 7,
+        vocabularyId: 3,
+        lessonId: 14,
+        statusId: VOCABULARY_WORD_STATUS_IDS.new,
+        addedAt: '2026-05-05T09:30:00.000Z',
+      },
+    ],
+    stats: statsWithUnlocked({
+      wordsLearned: 520,
+      lessonsCompleted: 24,
+      streakDays: 9,
+      quizzesCompleted: 8,
+      perfectQuizCount: 0,
+      speakingSessions: 7,
+      practiceMinutesTotal: 760,
+      lessonMinutesTotal: 1320,
+      weeklyGoalsCompleted: 1,
+    }),
+    notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS, weeklyReport: false },
+    appearancePrefs: { ...DEFAULT_APPEARANCE_PREFS, fontSize: 'large' },
+    linkedAccounts: buildLinkedAccounts({
+      google: { linked: true, connectedAs: 'anna@example.com' },
+      facebook: { linked: true, connectedAs: 'Anna Vasylenko' },
+    }),
+  },
+  {
+    id: 4,
+    role: USER_ROLE.student.id,
+    fullName: 'Dmytro Savchenko',
+    email: 'dmytro@example.com',
+    avatar: {},
+    proficiencyLevelId: PROFICIENCY_LEVEL.a2.id,
+    telegram: '@dmytro',
+    phone: '+380 50 333 4455',
+    timezoneId: TIME_ZONE.warsaw.id,
+    nativeLanguage: 'Ukrainian',
+    bio: 'Beginner path with focus on vocabulary and listening.',
+    statusId: USER_ACCOUNT_STATUS.paused.id,
+    scheduleType: true,
+    teacherId: 5,
+    color: '#8b5cf6',
+    vocabulary: [],
+    stats: statsWithUnlocked({
+      wordsLearned: 180,
+      lessonsCompleted: 12,
+      streakDays: 3,
+      quizzesCompleted: 4,
+      perfectQuizCount: 0,
+      speakingSessions: 2,
+      practiceMinutesTotal: 340,
+      lessonMinutesTotal: 720,
+      weeklyGoalsCompleted: 0,
+    }),
+    notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS, lessonReminder: false, streakAlert: false },
+    appearancePrefs: { ...DEFAULT_APPEARANCE_PREFS },
+    linkedAccounts: buildLinkedAccounts(),
+  },
+  {
+    id: 5,
+    role: USER_ROLE.teacher.id,
+    fullName: 'Michael Brown',
+    email: 'michael@example.com',
+    avatar: {},
+    proficiencyLevelId: PROFICIENCY_LEVEL.c1.id,
+    telegram: '',
+    phone: '',
+    timezoneId: TIME_ZONE.kyiv.id,
+    nativeLanguage: '',
+    bio: '',
+    teacherId: 0,
+    vocabulary: [],
+    notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS },
+    appearancePrefs: { ...DEFAULT_APPEARANCE_PREFS },
+    linkedAccounts: buildLinkedAccounts({
+      google: { linked: true, connectedAs: 'michael@example.com' },
+      facebook: { linked: true, connectedAs: 'Michael Brown' },
+    }),
+  },
+  {
+    id: 6,
+    role: USER_ROLE.admin.id,
+    fullName: 'Admin Manager',
+    email: 'admin@example.com',
+    avatar: {},
+    proficiencyLevelId: PROFICIENCY_LEVEL.c2.id,
+    telegram: '',
+    phone: '',
+    timezoneId: TIME_ZONE.kyiv.id,
+    nativeLanguage: '',
+    bio: '',
+    teacherId: 0,
+    vocabulary: [],
+    notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS },
+    appearancePrefs: { ...DEFAULT_APPEARANCE_PREFS, theme: 'dark', fontSize: 'small' },
+    linkedAccounts: buildLinkedAccounts({
+      google: { linked: true, connectedAs: 'admin@example.com' },
+    }),
+  },
+  {
+    id: 7,
+    role: USER_ROLE.superAdmin.id,
+    fullName: 'Platform Owner',
+    email: 'owner@example.com',
+    avatar: {},
+    proficiencyLevelId: PROFICIENCY_LEVEL.c2.id,
+    telegram: '',
+    phone: '',
+    timezoneId: TIME_ZONE.kyiv.id,
+    nativeLanguage: '',
+    bio: '',
+    teacherId: 0,
+    vocabulary: [],
+    notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS },
+    appearancePrefs: { ...DEFAULT_APPEARANCE_PREFS },
+    linkedAccounts: buildLinkedAccounts({
+      google: { linked: true, connectedAs: 'owner@example.com' },
+      facebook: { linked: true, connectedAs: 'Platform Owner' },
+      telegram: { linked: true, connectedAs: '@soenglish_owner' },
+    }),
+  },
+];

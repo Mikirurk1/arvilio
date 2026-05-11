@@ -1,0 +1,69 @@
+[
+  {
+    "id": "q1",
+    "type": "multiple-choice",
+    "question": "Choose the correct conditional sentence:",
+    "options": [
+      "If I would have more time, I will study harder.",
+      "If I had more time, I would study harder.",
+      "If I have more time, I would study harder.",
+      "If I had more time, I will study harder."
+    ],
+    "correct": 1,
+    "explanation": "The second conditional uses 'if + past simple, would + infinitive' to describe hypothetical present/future situations."
+  },
+  {
+    "id": "q2",
+    "type": "multiple-choice",
+    "question": "What does 'eloquent' mean?",
+    "options": [
+      "Speaking very loudly and clearly",
+      "Unable to express oneself clearly",
+      "Fluent and persuasive in speech or writing",
+      "Using complex and confusing language"
+    ],
+    "correct": 2,
+    "explanation": "Eloquent means able to express ideas fluently and persuasively. Example: 'She gave an eloquent speech.'"
+  },
+  {
+    "id": "q3",
+    "type": "fill-in",
+    "question": "Complete the sentence: 'If they _____ (arrive) earlier, they would have seen the presentation.'",
+    "correct": "had arrived",
+    "explanation": "Third conditional: 'if + past perfect, would have + past participle' — used for imaginary past situations."
+  },
+  {
+    "id": "q4",
+    "type": "multiple-choice",
+    "question": "Which sentence uses the passive voice correctly?",
+    "options": [
+      "The report was written by the manager yesterday.",
+      "The manager was written the report yesterday.",
+      "The report has been writing by the manager.",
+      "The manager written the report yesterday."
+    ],
+    "correct": 0,
+    "explanation": "Passive voice: 'was/were + past participle'. The agent (doer) is introduced with 'by'."
+  },
+  {
+    "id": "q5",
+    "type": "multiple-choice",
+    "question": "What does 'leverage' mean in a business context?",
+    "options": [
+      "To physically lift heavy objects",
+      "To use something to maximum advantage",
+      "To borrow money from a bank",
+      "To reduce company expenses"
+    ],
+    "correct": 1,
+    "explanation": "In business, 'leverage' means to use an asset, resource, or advantage to achieve the best possible outcome."
+  },
+  {
+    "id": "q6",
+    "type": "multiple-choice",
+    "question": "Choose the most appropriate word: 'Her ___ explanation helped everyone understand the complex topic.'",
+    "options": ["ambiguous", "coherent", "nuanced", "pivotal"],
+    "correct": 1,
+    "explanation": "'Coherent' means logical and consistent, making it the best fit for an explanation that helps understanding."
+  }
+]

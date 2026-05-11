@@ -1,0 +1,12 @@
+{
+  "name": "@soenglish/api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm run build && node ../../dist/apps/api/apps/api/src/main.js",
+    "build": "tsc -p tsconfig.app.json && tsc-alias -p tsconfig.app.json",
+    "start": "node ../../dist/apps/api/apps/api/src/main.js",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit"
+  }
+}

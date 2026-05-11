@@ -1,0 +1,162 @@
+// ============================================
+// Base — поверх reset + CSS-токенів теми
+// ============================================
+
+@use './variables' as *;
+@use './mixins' as *;
+
+:root {
+  --scrollbar-width: 8px;
+  /* Міст для старих імен (якщо десь залишились у SCSS) */
+  --primary-color: var(--green);
+  --accent-color: #{$accent-color};
+  --gray-color: #{$gray-color};
+  --gray-light: #{$gray-light};
+  --text-color: var(--text-primary);
+  --white: #{$white};
+  --footer-bg: #{$footer-bg};
+  --border-radius: #{$border-radius};
+  --border-radius-large: #{$border-radius-large};
+  --shadow: #{$shadow};
+  --shadow-hover: #{$shadow-hover};
+}
+
+html {
+  height: 100%;
+  font-size: var(--fs-base);
+  scroll-behavior: smooth;
+
+  &.--scroll-lock {
+    overflow: hidden;
+
+    @media (hover: hover) and (pointer: fine) {
+      padding-right: var(--scrollbar-width);
+    }
+
+    body {
+      @media (hover: hover) and (pointer: fine) {
+        padding-right: var(--scrollbar-width);
+      }
+    }
+  }
+
+  body {
+    height: 100%;
+    margin: 0;
+    font-family: $font-family-base;
+    line-height: var(--lh-body);
+    color: var(--text-primary);
+    overflow: hidden;
+    background-color: var(--surface);
+    font-size: var(--fs-base);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Скролбар — кольори з семантичних токенів */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+* {
+  &::-webkit-scrollbar {
+    width: var(--scrollbar-width);
+    height: var(--scrollbar-width);
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 4px;
+
+    &:hover {
+      background: var(--text-tertiary);
+    }
+
+    &:active {
+      background: var(--text-secondary);
+    }
+  }
+}
+
+[data-theme='dark'] {
+  body {
+    background-color: var(--surface);
+    color: var(--text-primary);
+  }
+}
+
+main {
+  position: relative;
+  z-index: 1;
+  min-height: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.headline-1,
+.headline-2,
+.headline-3,
+.headline-4,
+.headline-5,
+.section-title,
+.hero-title,
+.cta-title,
+.testimonial-section-title,
+.managers-section__title,
+.page-hero__title {
+  font-family: $font-family-heading;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color $transition-base, opacity $transition-base;
+
+  &:hover {
+    color: inherit;
+  }
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+button {
+  @include button-reset;
+  cursor: pointer;
+  font-family: var(--font-sans);
+}
+
+input,
+textarea,
+select {
+  font-family: var(--font-sans);
+  font-size: inherit;
+}
+
+/* Native text-like controls — shared fill; excludes checkboxes, radios, file, etc. */
+input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='submit']):not([type='button']):not([type='reset']):not([type='image']):not([type='hidden']),
+textarea,
+select {
+  background-color: var(--field-bg);
+}
+

@@ -1,0 +1,4 @@
+
+> @soenglish/api@0.0.0 build
+> tsc -p tsconfig.app.json && tsc-alias -p tsconfig.app.json
+

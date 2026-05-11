@@ -1,0 +1,9 @@
+node_modules
+dist
+.nx
+.next
+materials/fluent/.next
+materials/fluent/node_modules
+*.log
+.git
+.DS_Store

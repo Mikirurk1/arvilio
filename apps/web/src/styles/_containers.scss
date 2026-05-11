@@ -1,0 +1,34 @@
+// ============================================
+// Глобальні контейнери — підключені в global.scss
+// Розмітка: className="container container--page" тощо
+// ============================================
+
+@use './mixins' as *;
+
+.container {
+  @include container;
+
+  &--page {
+    max-width: var(--container-max-page);
+  }
+
+  &--narrow {
+    max-width: var(--container-max-narrow);
+  }
+
+  &--marketing {
+    max-width: var(--container-max-marketing);
+  }
+
+  &--prose {
+    max-width: var(--container-max-prose);
+  }
+
+  &--form {
+    max-width: var(--container-max-form);
+  }
+
+  &--reading {
+    max-width: var(--container-max-reading);
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///turbopack:///[project]/apps/web/src/app/layout.module.scss"],"sourcesContent":[".shell {\n  display: flex;\n  flex-direction: column;\n  height: 100vh;\n  overflow: hidden;\n\n  .body {\n    display: flex;\n    flex: 1;\n    min-height: 0;\n    overflow: hidden;\n\n    .main {\n      flex: 1;\n      overflow-y: auto;\n      padding: 34px 38px;\n      background: var(--surface);\n      font-size: var(--fs-base);\n    }\n  }\n}\n"],"names":[],"mappings":"AAAA;;;;;;;AAME;;;;;;;AAME"}}]
+}

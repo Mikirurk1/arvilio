@@ -1,0 +1,45 @@
+/**
+ * Typography tokens — families, scale, rhythm.
+ * Components should prefer these variables over raw px where possible.
+ */
+
+:root {
+  /* Families */
+  --font-sans: 'Outfit', system-ui, sans-serif;
+  --font-display: 'Lora', Georgia, 'Times New Roman', serif;
+
+  /* Scale */
+  --fs-base: 16px;
+  --fs-page-title: 28px;
+  --fs-page-sub: 15px;
+  --fs-sm: 13px;
+  --fs-xs: 12px;
+
+  /* Line-height */
+  --lh-body: 1.62;
+  --lh-tight: 1.35;
+}
+
+[data-font-size='small'] {
+  --fs-base: 14px;
+  --fs-page-title: 26px;
+  --fs-page-sub: 14px;
+  --fs-sm: 12px;
+  --fs-xs: 11px;
+}
+
+[data-font-size='medium'] {
+  --fs-base: 16px;
+  --fs-page-title: 28px;
+  --fs-page-sub: 15px;
+  --fs-sm: 13px;
+  --fs-xs: 12px;
+}
+
+[data-font-size='large'] {
+  --fs-base: 18px;
+  --fs-page-title: 30px;
+  --fs-page-sub: 16px;
+  --fs-sm: 14px;
+  --fs-xs: 13px;
+}

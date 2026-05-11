@@ -1,0 +1,134 @@
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.nav {
+  flex: 1;
+  padding: 16px 12px;
+}
+
+.section {
+  margin-bottom: 8px;
+}
+
+.sectionTitle {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  font-weight: 500;
+  padding: 0 8px;
+  margin: 12px 0 4px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 400;
+  transition: all var(--transition);
+  margin-bottom: 2px;
+
+  &:hover {
+    background: var(--surface);
+    color: var(--ink);
+  }
+
+  &.active {
+    background: var(--ink);
+    color: white;
+
+    .icon {
+      opacity: 1;
+      filter: invert(1);
+    }
+  }
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  opacity: 0.6;
+  display: flex;
+  align-items: center;
+
+  svg { width: 18px; height: 18px; }
+}
+
+.badge {
+  margin-left: auto;
+  background: var(--rose);
+  color: white;
+  border-radius: 10px;
+  font-size: 10px;
+  padding: 1px 7px;
+  font-weight: 600;
+
+  &.badgeGreen {
+    background: var(--green);
+  }
+}
+
+.active .badge {
+  background: rgba(255,255,255,0.25);
+}
+
+.footer {
+  padding: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.levelCard {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: 14px;
+}
+
+.levelTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.levelName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.levelPct {
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+.levelBar {
+  height: 5px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.levelFill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--green);
+  transition: width 0.6s ease;
+}
+
+.levelXp {
+  font-size: 11px;
+  color: var(--ink-3);
+}

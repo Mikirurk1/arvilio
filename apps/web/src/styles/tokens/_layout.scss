@@ -1,0 +1,14 @@
+/**
+ * Контентна сітка — max-width задаються лише через .container (+ модифікатори).
+ */
+
+:root {
+  --container-padding-x: 20px;
+  --container-max-default: 1200px;
+  --container-max-page: 1920px;
+  --container-max-narrow: 760px;
+  --container-max-marketing: 1120px;
+  --container-max-prose: 720px;
+  --container-max-form: 560px;
+  --container-max-reading: 460px;
+}

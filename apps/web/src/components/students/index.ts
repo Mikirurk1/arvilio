@@ -1,0 +1,1 @@
+export { StudentSummaryCard } from './StudentSummaryCard';

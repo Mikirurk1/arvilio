@@ -1,0 +1,20 @@
+[
+  {
+    "id": "evt-1",
+    "title": "Grammar: Conditionals",
+    "type": "grammar",
+    "date": "2026-04-20",
+    "time": "10:00",
+    "teacherName": "Sarah Mitchell",
+    "studentName": "Mykola K."
+  },
+  {
+    "id": "evt-2",
+    "title": "Speaking: Project Proposal",
+    "type": "speaking",
+    "date": "2026-04-22",
+    "time": "14:00",
+    "teacherName": "Sarah Mitchell",
+    "studentName": "Mykola K."
+  }
+]

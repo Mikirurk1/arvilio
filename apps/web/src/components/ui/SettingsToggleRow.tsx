@@ -1,0 +1,58 @@
+import type { ReactNode } from 'react';
+import { Button } from './Button';
+import uiStyles from './ui.module.scss';
+
+export type SettingsToggleRowProps = {
+  label: ReactNode;
+  description?: ReactNode;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+  className?: string;
+  infoClassName?: string;
+  labelClassName?: string;
+  descriptionClassName?: string;
+  toggleClassName?: string;
+  toggleOnClassName?: string;
+  thumbClassName?: string;
+};
+
+export function SettingsToggleRow({
+  label,
+  description,
+  checked,
+  onChange,
+  className,
+  infoClassName,
+  labelClassName,
+  descriptionClassName,
+  toggleClassName,
+  toggleOnClassName,
+  thumbClassName,
+}: SettingsToggleRowProps) {
+  return (
+    <div className={[uiStyles.actionRow, className].filter(Boolean).join(' ')}>
+      <div className={[uiStyles.actionRowInfo, infoClassName].filter(Boolean).join(' ')}>
+        <div className={[uiStyles.actionRowTitle, labelClassName].filter(Boolean).join(' ')}>{label}</div>
+        {description ? (
+          <div className={[uiStyles.actionRowDescription, descriptionClassName].filter(Boolean).join(' ')}>
+            {description}
+          </div>
+        ) : null}
+      </div>
+      <Button
+        type="button"
+        className={[
+          uiStyles.switchToggle,
+          toggleClassName,
+          checked ? [uiStyles.switchToggleOn, toggleOnClassName].filter(Boolean).join(' ') : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+        aria-pressed={checked}
+        onClick={() => onChange(!checked)}
+      >
+        <div className={[uiStyles.switchThumb, thumbClassName].filter(Boolean).join(' ')} />
+      </Button>
+    </div>
+  );
+}

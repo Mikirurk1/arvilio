@@ -1,0 +1,16 @@
+// ============================================
+// Глобальний SCSS — порядок: токени → reset → змінні/mixins → типографіка → база → анімації
+// Підключення: app/globals.scss (@import цього файлу)
+// У .module.scss: @use '../styles/variables' as *; @use '../styles/mixins' as *;
+// ============================================
+
+@use './tokens/theme';
+@use './tokens/typography' as *; /* тільки :root — без конфлікту імен з headline-пресетами */
+@use './tokens/layout';
+@use './reset.scss';
+@use './variables' as *;
+@use './mixins' as *;
+@use './typography' as *; /* міксіни headline / утилітарні класи */
+@use './containers';
+@use './base';
+@use './animations';

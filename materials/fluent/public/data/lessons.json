@@ -1,0 +1,74 @@
+[
+  {
+    "id": "1",
+    "title": "Second & Third Conditionals",
+    "type": "grammar",
+    "level": "B2",
+    "duration": 55,
+    "xp": 30,
+    "difficulty": "medium",
+    "description": "Learn to express hypothetical situations and past regrets with conditional sentences.",
+    "completed": false,
+    "locked": false
+  },
+  {
+    "id": "2",
+    "title": "Finance & Investment Terms",
+    "type": "vocabulary",
+    "level": "B2",
+    "duration": 55,
+    "xp": 25,
+    "difficulty": "easy",
+    "description": "15 essential words for business communication: equity, yield, portfolio, and more.",
+    "completed": true,
+    "locked": false
+  },
+  {
+    "id": "3",
+    "title": "Present a Project Proposal",
+    "type": "speaking",
+    "level": "B2",
+    "duration": 55,
+    "xp": 40,
+    "difficulty": "hard",
+    "description": "Role-play a business meeting: pitching ideas, handling questions, and wrapping up confidently.",
+    "completed": false,
+    "locked": false
+  },
+  {
+    "id": "4",
+    "title": "Podcast Comprehension",
+    "type": "listening",
+    "level": "B2",
+    "duration": 55,
+    "xp": 35,
+    "difficulty": "hard",
+    "description": "Improve your listening skills through authentic podcast content.",
+    "completed": false,
+    "locked": true
+  },
+  {
+    "id": "5",
+    "title": "Passive Voice in Context",
+    "type": "grammar",
+    "level": "B1",
+    "duration": 55,
+    "xp": 25,
+    "difficulty": "easy",
+    "description": "Master the passive voice across all tenses with real-world examples.",
+    "completed": true,
+    "locked": false
+  },
+  {
+    "id": "6",
+    "title": "Idioms & Expressions",
+    "type": "vocabulary",
+    "level": "B2",
+    "duration": 55,
+    "xp": 30,
+    "difficulty": "medium",
+    "description": "Common English idioms used in everyday and professional conversations.",
+    "completed": false,
+    "locked": false
+  }
+]
