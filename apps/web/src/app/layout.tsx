@@ -1,8 +1,6 @@
 import './globals.scss';
 import { AppProviders } from './providers';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
-import styles from './layout.module.scss';
+import AppShell from '../components/layout/AppShell';
 
 export const metadata = {
   title: 'SoEnglish',
@@ -18,13 +16,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <AppProviders>
-          <div className={styles.shell}>
-            <Header />
-            <div className={styles.body}>
-              <Sidebar />
-              <main className={styles.main}>{children}</main>
-            </div>
-          </div>
+          <AppShell>{children}</AppShell>
         </AppProviders>
       </body>
     </html>

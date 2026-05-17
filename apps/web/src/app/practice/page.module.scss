@@ -27,6 +27,11 @@
   gap: 18px;
 }
 
+.cardWrap {
+  position: relative;
+  min-width: 0;
+}
+
 @media (max-width: 1100px) {
   .grid {
     grid-template-columns: repeat(2, 1fr);
@@ -153,9 +158,13 @@
 }
 
 .statPill {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
+  padding: 4px 10px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--surface);
@@ -163,6 +172,9 @@
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.02em;
+  pointer-events: none;
+  max-width: calc(100% - 36px);
+  white-space: nowrap;
 }
 
 .cardDesc {

@@ -3,6 +3,9 @@
 import { ActionRow, AdaptiveSelect, Button, Field, SegmentedControl, SettingsToggleRow, SurfaceCard } from '../../components/ui';
 import type { ReactNode } from 'react';
 import { Check } from 'lucide-react';
+import type { ProfileLinkedAccountDto } from '@soenglish/shared-types';
+import { TelegramConnectButton } from '../../components/profile/TelegramConnectButton';
+import { FACEBOOK_LINK_URL, GOOGLE_LINK_URL } from '../../lib/api';
 import { ProfileAchievementsPanel } from '../../components/profile/ProfileAchievementsPanel';
 import { StatisticsDashboard } from '../../components/statistics';
 import {
@@ -65,7 +68,14 @@ export function ProfileDetailsPanel({
         </div>
         <div className={styles.fieldGroup}>
           <label className={styles.label}>Phone</label>
-          <Field className={styles.input} value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
+          <Field
+            type="tel"
+            className={styles.input}
+            value={form.phone}
+            placeholder="+380 67 123 4567"
+            autoComplete="tel"
+            onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+          />
         </div>
         <div className={styles.fieldGroup}>
           <label className={styles.label}>Telegram</label>
@@ -148,14 +158,44 @@ function providerTitle(provider: LinkedAccountLink['provider']): string {
   return 'Telegram';
 }
 
-export function LinkedAccountsPanel({ links }: { links: LinkedAccountLink[] }) {
+export function profileLinksToPanel(
+  rows: ProfileLinkedAccountDto[] | undefined,
+  fallback: LinkedAccountLink[],
+): LinkedAccountLink[] {
+  if (!rows?.length) return fallback;
+  return rows.map((row) => ({
+    provider: row.provider,
+    linked: row.linked,
+    connectedAs: row.connectedAs ?? undefined,
+    calendarConnected: row.calendarConnected,
+  }));
+}
+
+export function LinkedAccountsPanel({
+  links,
+  canLink = false,
+  accountEmail,
+  onConnectionChange,
+}: {
+  links: LinkedAccountLink[];
+  canLink?: boolean;
+  accountEmail?: string;
+  onConnectionChange?: () => void;
+}) {
   return (
     <SurfaceCard className={styles.formCard}>
       <p className={styles.linkedIntro}>
-        Link Google, Facebook, or Telegram to get lesson reminders, sync events to your calendar, and receive
-        messages where you already work — connection flows will arrive in a later release.
+        Link accounts for notifications. Google must use the same email as your SoEnglish account
+        {accountEmail ? ` (${accountEmail})` : ''} and enables Calendar + Meet. When Telegram is connected,
+        site alerts (lesson reminders, teacher messages, etc.) are also sent to this chat if enabled under
+        Notifications.
       </p>
-      {links.map((link) => (
+      {links.map((link) => {
+        const isGoogle = link.provider === 'google';
+        const isFacebook = link.provider === 'facebook';
+        const isTelegram = link.provider === 'telegram';
+        const calendarReady = isGoogle && link.calendarConnected;
+        return (
         <div key={link.provider} className={styles.linkedRow}>
           <div>
             <div className={styles.linkedTitle}>{providerTitle(link.provider)}</div>
@@ -164,14 +204,54 @@ export function LinkedAccountsPanel({ links }: { links: LinkedAccountLink[] }) {
             ) : !link.linked ? (
               <div className={styles.linkedMeta}>Not connected</div>
             ) : null}
+            {isGoogle && link.linked && !calendarReady ? (
+              <div className={styles.linkedMeta}>Calendar access missing — connect again</div>
+            ) : null}
+            {calendarReady ? (
+              <div className={styles.linkedMeta}>Calendar &amp; Meet enabled</div>
+            ) : null}
           </div>
-          <span
-            className={`${styles.linkedBadge} ${link.linked ? styles.linkedBadgeOn : styles.linkedBadgeOff}`}
-          >
-            {link.linked ? 'Connected' : 'Disconnected'}
-          </span>
+          <div className={styles.linkedRowActions}>
+            {isGoogle && canLink ? (
+              <Button
+                type="button"
+                className={styles.linkedConnectBtn}
+                onClick={() => {
+                  window.location.href = GOOGLE_LINK_URL;
+                }}
+              >
+                {link.linked ? 'Reconnect Google' : 'Connect Google'}
+              </Button>
+            ) : null}
+            {isFacebook && canLink ? (
+              <Button
+                type="button"
+                className={styles.linkedConnectBtn}
+                onClick={() => {
+                  window.location.href = FACEBOOK_LINK_URL;
+                }}
+              >
+                {link.linked ? 'Reconnect Facebook' : 'Connect Facebook'}
+              </Button>
+            ) : null}
+            {isTelegram && canLink ? (
+              link.linked ? (
+                <span className={`${styles.linkedBadge} ${styles.linkedBadgeOn}`}>Connected</span>
+              ) : (
+                <TelegramConnectButton onLinked={onConnectionChange} />
+              )
+            ) : null}
+            {!canLink ? (
+              <span
+                className={`${styles.linkedBadge} ${link.linked ? styles.linkedBadgeOn : styles.linkedBadgeOff}`}
+              >
+                {link.linked ? 'Connected' : 'Disconnected'}
+              </span>
+            ) : null}
+          </div>
         </div>
-      ))}
+        );
+      })}
     </SurfaceCard>
   );
 }
@@ -185,6 +265,10 @@ export function NotificationsPanel({
 }) {
   return (
     <SurfaceCard className={styles.formCard}>
+      <p className={styles.panelHint}>
+        Email is sent when SMTP is configured. Telegram messages are sent when you connect Telegram under
+        Connections (server needs TELEGRAM_BOT_TOKEN in .env).
+      </p>
       {[
         { key: 'lessonReminder', label: 'Lesson reminders', desc: 'Get notified 30 minutes before each lesson' },
         { key: 'streakAlert', label: 'Streak alerts', desc: 'Reminder to keep your daily streak alive' },

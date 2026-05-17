@@ -1,4 +1,4 @@
-import { addMinutes } from 'date-fns';
+import { addHours, addMinutes } from 'date-fns';
 import { formatInTimeZone, toDate } from 'date-fns-tz';
 import type { ScheduledLessonDto, TimeZoneId } from '@soenglish/shared-types';
 import { getTimeZoneById, TIME_ZONE } from '@soenglish/shared-types';
@@ -6,6 +6,18 @@ import { getTimeZoneById, TIME_ZONE } from '@soenglish/shared-types';
 export function getIanaForTimeZoneId(id: TimeZoneId | undefined): string {
   const resolved = id ?? TIME_ZONE.kyiv.id;
   return getTimeZoneById(resolved)?.iana ?? 'Europe/Kyiv';
+}
+
+/** Default Start time when opening Create lesson: one hour from now in the viewer zone. */
+export function defaultCreateLessonStartTime(
+  viewerIana: string,
+  date: string,
+): { date: string; startTime: string } {
+  const instant = addHours(new Date(), 1);
+  return {
+    date,
+    startTime: formatInTimeZone(instant, viewerIana, 'HH:mm'),
+  };
 }
 
 export function lessonStartUtc(lesson: ScheduledLessonDto): Date {

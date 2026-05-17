@@ -4,7 +4,14 @@ import { Badge, SurfaceCard } from '../ui';
 import { getProficiencyLevelById, getUserAccountStatusById, USER_ACCOUNT_STATUS, type MockStudent } from '../../mocks';
 import styles from './StudentSummaryCard.module.scss';
 
-export function StudentSummaryCard({ student }: { student: MockStudent }) {
+export function StudentSummaryCard({
+  student,
+  profileId,
+}: {
+  student: MockStudent;
+  /** Backend user id (UUID) when listing from API. */
+  profileId?: string;
+}) {
   const initials = student.fullName
     .split(' ')
     .map((part) => part[0])
@@ -41,7 +48,7 @@ export function StudentSummaryCard({ student }: { student: MockStudent }) {
       </div>
 
       <div className={styles.footer}>
-        <Link href={`/students/${student.id}`} className={styles.openBtn}>
+        <Link href={`/students/${profileId ?? student.id}`} className={styles.openBtn}>
           Open profile <ArrowRight size={14} />
         </Link>
       </div>

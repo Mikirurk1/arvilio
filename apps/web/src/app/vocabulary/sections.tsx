@@ -1,10 +1,16 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
-import type { VocabularyWordStatusName } from '@soenglish/shared-types';
-import { Check, ChevronRight, PartyPopper, Play } from 'lucide-react';
+import { useState, type FormEvent, type ReactNode } from 'react';
+import { vocabularyStatusLabel, type VocabularyWordStatusName } from '@soenglish/shared-types';
+import { Check, ChevronRight, Info, PartyPopper, Play, Trash2 } from 'lucide-react';
 import { AdaptiveSelect, Badge, Button, EmptyStateCard, Field, ProgressHeader, SegmentedControl, StatTile } from '../../components/ui';
-import type { VocabularyProgressItem } from '../../mocks/domains/profile';
+import { WordCardAudioButton } from '../../features/vocabulary/WordCardAudioButton';
+import {
+  validateEnglishWordInput,
+  VOCABULARY_WORD_NOT_FOUND,
+} from '../../lib/vocabulary-word-input';
+import type { VocabularyListItem, VocabularyPlayQuestion } from '../../lib/vocabulary-ui';
+import { useVocabularyStore } from '../../stores/vocabulary-store';
 import styles from './page.module.scss';
 
 export function VocabularyModeToggle({
@@ -66,8 +72,68 @@ export function VocabularyStatsRow({
       <StatTile className={styles.statChip} interactive onClick={() => onFilter('all')} label="Total" labelClassName={styles.statLbl} value={total} valueClassName={styles.statNum} />
       <StatTile className={`${styles.statChip} ${styles.statBlue}`} interactive onClick={() => onFilter('new')} label="New" labelClassName={styles.statLbl} value={stats.new} valueClassName={styles.statNum} />
       <StatTile className={`${styles.statChip} ${styles.statAmber}`} interactive onClick={() => onFilter('repeated')} label="Repeated" labelClassName={styles.statLbl} value={stats.repeated} valueClassName={styles.statNum} />
-      <StatTile className={`${styles.statChip} ${styles.statRose}`} interactive onClick={() => onFilter('mistakes_work')} label="Mistakes work" labelClassName={styles.statLbl} value={stats.mistakesWork} valueClassName={styles.statNum} />
+      <StatTile className={`${styles.statChip} ${styles.statRose}`} interactive onClick={() => onFilter('mistakes_work')} label={vocabularyStatusLabel('mistakes_work')} labelClassName={styles.statLbl} value={stats.mistakesWork} valueClassName={styles.statNum} />
       <StatTile className={`${styles.statChip} ${styles.statGreen}`} interactive onClick={() => onFilter('learned')} label="Learned" labelClassName={styles.statLbl} value={stats.learned} valueClassName={styles.statNum} />
+    </div>
+  );
+}
+
+export function VocabularyAddWordBar({
+  onAdd,
+  disabled = false,
+}: {
+  onAdd: (text: string) => Promise<void>;
+  disabled?: boolean;
+}) {
+  const lookupWord = useVocabularyStore((s) => s.lookupWord);
+  const [text, setText] = useState('');
+  const [adding, setAdding] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmed = text.trim();
+    if (!trimmed || adding) return;
+
+    const englishError = validateEnglishWordInput(trimmed);
+    if (englishError) {
+      setError(englishError);
+      return;
+    }
+
+    setAdding(true);
+    setError(null);
+    try {
+      const result = await lookupWord(trimmed);
+      if (!result.foundInDictionary) {
+        setError(VOCABULARY_WORD_NOT_FOUND);
+        return;
+      }
+      await onAdd(trimmed);
+      setText('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add word');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  return (
+    <div className={styles.addWordCard}>
+      <form className={styles.addWordForm} onSubmit={onSubmit}>
+        <Field
+          className={styles.searchInput}
+          type="text"
+          placeholder="Add a word (English), e.g. articulate"
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+          disabled={disabled || adding}
+        />
+        <Button type="submit" disabled={disabled || adding || !text.trim()}>
+          {adding ? 'Adding…' : 'Add word'}
+        </Button>
+      </form>
+      {error ? <div className={styles.addWordError}>{error}</div> : null}
     </div>
   );
 }
@@ -76,11 +142,17 @@ export function VocabularyWordCards({
   items,
   onSetStatus,
   canSetLearned,
+  canDelete = false,
+  onDelete,
+  onOpenWordDetails,
   animationIndexOffset = 0,
 }: {
-  items: VocabularyProgressItem[];
-  onSetStatus: (entryId: number, status: VocabularyWordStatusName) => void;
+  items: VocabularyListItem[];
+  onSetStatus: (cardId: string, status: VocabularyWordStatusName) => void;
   canSetLearned: boolean;
+  canDelete?: boolean;
+  onDelete?: (cardId: string) => void;
+  onOpenWordDetails?: (wordId: string) => void;
   /** Delay index shift when a prepend slot occupies the first grid cell. */
   animationIndexOffset?: number;
 }) {
@@ -90,27 +162,59 @@ export function VocabularyWordCards({
 
   return (
     <>
-      {items.map(({ row, word, status }, i) => (
+      {items.map(({ card, display, status }, i) => (
         <div
-          key={row.id}
+          key={card.id}
           className={styles.wordCard}
           style={{ animationDelay: `${(animationIndexOffset + i) * 0.03}s` }}
         >
           <div className={styles.wcTop}>
             <div>
-              <div className={styles.wcWord}>{word.word}</div>
-              <div className={styles.wcPhonetic}>{word.phonetic}</div>
+              <div className={styles.wcWord}>{display.word}</div>
+              <div className={styles.wcPhoneticRow}>
+                {display.phonetic ? (
+                  <div className={styles.wcPhonetic}>{display.phonetic}</div>
+                ) : null}
+                <WordCardAudioButton audioUrl={display.audioUrl} className={styles.wcAudioBtn} />
+              </div>
             </div>
-            <Badge
-              className={`${styles.wcStatus} ${styles[status === 'new' ? 'blue' : status === 'repeated' ? 'amber' : status === 'mistakes_work' ? 'rose' : 'green']}`}
-              variant={status === 'new' ? 'blue' : status === 'repeated' ? 'amber' : status === 'mistakes_work' ? 'rose' : 'green'}
-            >
-              {status}
-            </Badge>
+            <div className={styles.wcTopActions}>
+              {onOpenWordDetails && display.wordId && display.wordId !== 'preview' ? (
+                <button
+                  type="button"
+                  className={styles.wcDetailsBtn}
+                  onClick={() => onOpenWordDetails(display.wordId)}
+                  aria-label="All information"
+                  title="All information"
+                >
+                  <Info size={16} aria-hidden />
+                </button>
+              ) : null}
+              {canDelete && onDelete ? (
+                <button
+                  type="button"
+                  className={styles.wcDeleteBtn}
+                  onClick={() => onDelete(card.id)}
+                  aria-label="Remove word"
+                  title="Remove word"
+                >
+                  <Trash2 size={16} aria-hidden />
+                </button>
+              ) : null}
+              <Badge
+                className={`${styles.wcStatus} ${styles[status === 'new' ? 'blue' : status === 'repeated' ? 'amber' : status === 'mistakes_work' ? 'rose' : 'green']}`}
+                variant={status === 'new' ? 'blue' : status === 'repeated' ? 'amber' : status === 'mistakes_work' ? 'rose' : 'green'}
+              >
+                {vocabularyStatusLabel(status)}
+              </Badge>
+            </div>
           </div>
-          <div className={styles.wcPos}>{word.pos}</div>
-          <div className={styles.wcDef}>{word.definition}</div>
-          <div className={styles.wcExample}>&quot;{word.example}&quot;</div>
+          <div className={styles.wcPos}>{display.pos}</div>
+          {display.origin ? <div className={styles.wcOrigin}>{display.origin}</div> : null}
+          <div className={styles.wcDef}>{display.definition}</div>
+          {display.example ? (
+            <div className={styles.wcExample}>&quot;{display.example}&quot;</div>
+          ) : null}
           {statusOptions.length > 0 ? (
             <div className={styles.wcActions}>
               {statusOptions.map((nextStatus) => (
@@ -118,9 +222,9 @@ export function VocabularyWordCards({
                   type="button"
                   key={nextStatus}
                   className={`${styles.wcBtn} ${status === nextStatus ? styles.wcBtnActive : ''}`}
-                  onClick={() => onSetStatus(row.id, nextStatus)}
+                  onClick={() => onSetStatus(card.id, nextStatus)}
                 >
-                  {nextStatus}
+                  {vocabularyStatusLabel(nextStatus)}
                 </Button>
               ))}
             </div>
@@ -143,8 +247,12 @@ export function VocabularyListSection({
   filtered,
   onSetStatus,
   canSetLearned,
+  canDelete = false,
+  onDelete,
+  onOpenWordDetails,
   prependSlot,
   totalSourceCount,
+  isLoading = false,
 }: {
   search: string;
   setSearch: (value: string) => void;
@@ -154,13 +262,17 @@ export function VocabularyListSection({
   lessonFilter: string;
   setLessonFilter: (value: string) => void;
   lessonOptions: Array<{ value: string; label: string }>;
-  filtered: VocabularyProgressItem[];
-  onSetStatus: (entryId: number, status: VocabularyWordStatusName) => void;
+  filtered: VocabularyListItem[];
+  onSetStatus: (cardId: string, status: VocabularyWordStatusName) => void;
   /** Students do not see manual status buttons (teacher only). */
   canSetLearned: boolean;
+  canDelete?: boolean;
+  onDelete?: (cardId: string) => void;
+  onOpenWordDetails?: (wordId: string) => void;
   prependSlot?: ReactNode;
   /** Full list size before search/category/status filters (for empty-state copy). */
   totalSourceCount: number;
+  isLoading?: boolean;
 }) {
   return (
     <>
@@ -197,6 +309,9 @@ export function VocabularyListSection({
           items={filtered}
           onSetStatus={onSetStatus}
           canSetLearned={canSetLearned}
+          canDelete={canDelete}
+          onDelete={onDelete}
+          onOpenWordDetails={onOpenWordDetails}
           animationIndexOffset={prependSlot ? 1 : 0}
         />
       </div>
@@ -207,8 +322,15 @@ export function VocabularyListSection({
           description="Try a different filter or clear search."
         />
       ) : null}
-      {filtered.length === 0 && totalSourceCount === 0 && !prependSlot ? (
-        <EmptyStateCard className={styles.empty} title="No words found" description="Try a different filter." />
+      {isLoading ? (
+        <EmptyStateCard className={styles.empty} title="Loading vocabulary…" description="Fetching your words." />
+      ) : null}
+      {!isLoading && filtered.length === 0 && totalSourceCount === 0 && !prependSlot ? (
+        <EmptyStateCard
+          className={styles.empty}
+          title="No words yet"
+          description="Add your first word using the form above."
+        />
       ) : null}
     </>
   );
@@ -223,41 +345,45 @@ export function VocabularyFlashcardSection({
   markStatus,
   setCardIndex,
   canSetLearned,
+  isLoading = false,
 }: {
   cardIndex: number;
   total: number;
-  currentItem?: VocabularyProgressItem;
+  currentItem?: VocabularyListItem;
   flipped: boolean;
   setFlipped: (v: boolean) => void;
   markStatus: (status: VocabularyWordStatusName) => void;
   setCardIndex: React.Dispatch<React.SetStateAction<number>>;
   canSetLearned: boolean;
+  isLoading?: boolean;
 }) {
-  const word = currentItem?.word;
+  const display = currentItem?.display;
   return (
     <div className={`container container--form ${styles.flashcardMode}`}>
       <ProgressHeader className={styles.fcProgress} barClassName={styles.fcBar} fillClassName={styles.fcBarFill} current={cardIndex + 1} total={total} />
-      {word ? (
+      {isLoading ? (
+        <EmptyStateCard className={styles.empty} title="Loading…" description="Fetching your words." />
+      ) : display ? (
         <>
           <div className={`${styles.flashcard} ${flipped ? styles.flipped : ''}`} onClick={() => setFlipped(!flipped)}>
             <div className={styles.fcFront}>
               <div className={styles.fcHint}>Click to reveal definition</div>
-              <div className={styles.fcWord}>{word.word}</div>
-              <div className={styles.fcPhonetic}>{word.phonetic}</div>
+              <div className={styles.fcWord}>{display.word}</div>
+              <div className={styles.fcPhonetic}>{display.phonetic}</div>
               <div className={styles.fcCategory}>
-                {word.category} · {word.pos}
+                {display.category} · {display.pos}
               </div>
             </div>
             <div className={styles.fcBack}>
-              <div className={styles.fcDef}>{word.definition}</div>
-              <div className={styles.fcExample}>&quot;{word.example}&quot;</div>
+              <div className={styles.fcDef}>{display.definition}</div>
+              <div className={styles.fcExample}>&quot;{display.example}&quot;</div>
             </div>
           </div>
           {flipped ? (
             <div className={styles.fcButtons}>
               <Button type="button" className={`${styles.fcBtn} ${styles.fcBtnRed}`} onClick={() => markStatus('new')}>Still learning</Button>
               <Button type="button" className={`${styles.fcBtn} ${styles.fcBtnAmber}`} onClick={() => markStatus('repeated')}>Repeated</Button>
-              <Button type="button" className={`${styles.fcBtn} ${styles.fcBtnRed}`} onClick={() => markStatus('mistakes_work')}>Mistakes work</Button>
+              <Button type="button" className={`${styles.fcBtn} ${styles.fcBtnRed}`} onClick={() => markStatus('mistakes_work')}>{vocabularyStatusLabel('mistakes_work')}</Button>
               {canSetLearned ? (
                 <Button type="button" className={`${styles.fcBtn} ${styles.fcBtnGreen}`} onClick={() => markStatus('learned')}>
                   Learned <Check size={14} />
@@ -293,6 +419,7 @@ export function VocabularyPlaySection({
   playScore,
   playPhase,
   canStart,
+  playPoolCount = 0,
   onStart,
   onSelect,
   onCheck,
@@ -305,7 +432,7 @@ export function VocabularyPlaySection({
   playLessonId: string;
   setPlayLessonId: (value: string) => void;
   playLessonOptions: Array<{ value: string; label: string }>;
-  playQuestions: Array<{ entryId: number; vocabularyId: number; word: string; phonetic: string; correct: string; options: string[] }>;
+  playQuestions: VocabularyPlayQuestion[];
   playIndex: number;
   playSelected: string | null;
   playShowExplanation: boolean;
@@ -313,6 +440,7 @@ export function VocabularyPlaySection({
   playScore: number;
   playPhase: 'setup' | 'quiz' | 'result';
   canStart: boolean;
+  playPoolCount?: number;
   onStart: () => void;
   onSelect: (option: string) => void;
   onCheck: () => void;
@@ -360,7 +488,11 @@ export function VocabularyPlaySection({
         <EmptyStateCard
           className={styles.empty}
           title="Ready to play"
-          description="By default we use words without lesson filter: new + mistakes work first, then all words if needed."
+          description={
+            !canStart && playPoolCount > 0
+              ? 'Need at least two words with translations (or definitions) in this set to build answer choices. Add another word or switch the source filter.'
+              : 'By default we use words without lesson filter: new + mistakes work first, then all words if needed.'
+          }
         />
       ) : null}
 

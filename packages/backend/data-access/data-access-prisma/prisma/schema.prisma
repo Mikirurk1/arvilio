@@ -6,102 +6,745 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id            String        @id @default(cuid())
-  email         String        @unique
-  passwordHash  String
-  displayName   String
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  userWords     UserWord[]
-  progress      Progress[]
-  reviewQueue   ReviewQueue[]
+// =====================
+// Auth and user model
+// =====================
+
+enum UserRole {
+  STUDENT
+  TEACHER
+  ADMIN
+  SUPER_ADMIN
 }
+
+enum UserAccountStatus {
+  ACTIVE
+  PAUSED
+  LEAVED
+  BLOCKED
+}
+
+enum ProficiencyLevel {
+  A1
+  A2
+  B1
+  B2
+  C1
+  C2
+}
+
+/// Catalog of supported languages (ISO 639-1 code).
+model Language {
+  id       String  @id @default(cuid())
+  code     String  @unique
+  name     String
+  isActive Boolean @default(true)
+
+  nativeUsers     User[]                    @relation("UserNativeLanguage")
+  learningLinks   StudentLearningLanguage[]
+  wordDefinitions WordDefinition[]
+}
+
+model User {
+  id               String            @id @default(cuid())
+  email            String            @unique
+  /// Optional for users registered via Google only.
+  passwordHash     String?
+  displayName      String
+  avatarUrl        String?
+  role             UserRole          @default(STUDENT)
+  status           UserAccountStatus @default(ACTIVE)
+  proficiencyLevel ProficiencyLevel?
+  /// IANA timezone identifier, e.g. "Europe/Kyiv".
+  timezone         String            @default("Europe/Kyiv")
+  /// E.164-style phone, e.g. "+380671234567".
+  phone            String?
+  /// Telegram handle, e.g. "@username".
+  telegram         String?
+  bio              String?
+  /// Native language for UI translations.
+  nativeLanguageId String?
+  nativeLanguage   Language? @relation("UserNativeLanguage", fields: [nativeLanguageId], references: [id], onDelete: SetNull)
+  /// Teacher assigned to a student. Null for non-student roles.
+  teacherId        String?
+  teacher          User?             @relation("StudentTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
+  students         User[]            @relation("StudentTeacher")
+  learningLanguages StudentLearningLanguage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  oauthAccounts OAuthAccount[]
+  refreshTokens AuthRefreshToken[]
+
+  vocabularyCards StudentWordCard[]
+  progress        Progress[]
+  reviewQueue     ReviewQueue[]
+
+  lessonsAsTeacher ScheduledLesson[] @relation("LessonTeacher")
+  lessonsAsStudent ScheduledLesson[] @relation("LessonStudent")
+
+  ownedQuizzes        Quiz[]           @relation("QuizOwner")
+  assignedQuizzes     QuizAssignment[] @relation("AssignmentStudent")
+  authoredAssignments QuizAssignment[] @relation("AssignmentAssignedBy")
+  quizAttempts        QuizAttempt[]
+
+  calendarConnection GoogleCalendarConnection?
+
+  notifyLessonReminder   Boolean @default(true)
+  notifyStreakAlert      Boolean @default(true)
+  notifyWeeklyReport     Boolean @default(true)
+  notifyNewVocab         Boolean @default(false)
+  notifyTeacherMessages  Boolean @default(true)
+
+  telegramLinkTokens     TelegramLinkToken[]
+  notificationDeliveries NotificationDelivery[]
+  messagesSent           TeacherMessage[]       @relation("MessageTeacher")
+  messagesReceived       TeacherMessage[]       @relation("MessageStudent")
+  practiceSessions       PracticeSession[]
+  dailyGoalCompletions   DailyGoalCompletion[]
+  chatConversationsCreated ChatConversation[]   @relation("ChatCreatedBy")
+  chatParticipants         ChatParticipant[]
+  chatMessagesSent           ChatMessage[]
+
+  @@index([teacherId])
+  @@index([nativeLanguageId])
+}
+
+enum PracticeSessionKind {
+  VOCABULARY
+  QUIZ
+  SPEAKING
+  GAMES
+  CHALLENGES
+  LESSON
+}
+
+enum PracticeSessionSource {
+  PRACTICE
+  LESSON
+  MANUAL
+}
+
+model PracticeSession {
+  id          String                @id @default(cuid())
+  userId      String
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind        PracticeSessionKind
+  source      PracticeSessionSource @default(PRACTICE)
+  startedAt   DateTime
+  endedAt     DateTime
+  durationSec Int
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, startedAt])
+}
+
+/// Student daily goal completion (UTC date key, one row per difficulty tier per day).
+model DailyGoalCompletion {
+  id          String   @id @default(cuid())
+  userId      String
+  dateKey     String
+  templateId  String
+  difficulty  Int
+  completedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dateKey, difficulty])
+  @@index([userId, dateKey])
+}
+
+enum NotificationKind {
+  LESSON_REMINDER
+  STREAK_ALERT
+  WEEKLY_REPORT
+  NEW_VOCAB
+  TEACHER_MESSAGE
+}
+
+model NotificationDelivery {
+  id        String           @id @default(cuid())
+  userId    String
+  kind      NotificationKind
+  dedupeKey String
+  channel   String           @default("email")
+  sentAt    DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kind, dedupeKey, channel])
+  @@index([userId, kind])
+}
+
+model TeacherMessage {
+  id        String   @id @default(cuid())
+  teacherId String
+  studentId String
+  body      String
+  createdAt DateTime @default(now())
+
+  teacher User @relation("MessageTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  student User @relation("MessageStudent", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, createdAt])
+  @@index([teacherId, createdAt])
+}
+
+/// Languages a student is learning (admin-managed only).
+model StudentLearningLanguage {
+  userId     String
+  languageId String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  language   Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([userId, languageId])
+  @@index([languageId])
+}
+
+enum OAuthProvider {
+  GOOGLE
+  FACEBOOK
+  TELEGRAM
+}
+
+/// Short-lived token for linking Telegram via bot /start (works on localhost; no Login Widget domain).
+model TelegramLinkToken {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("telegram_link_tokens")
+}
+
+model OAuthAccount {
+  id                String        @id @default(cuid())
+  userId            String
+  provider          OAuthProvider
+  providerAccountId String
+  /// Email or handle returned by the provider.
+  providerEmail     String?
+  /// Encrypted at the application layer when storing refresh tokens.
+  accessToken       String?
+  refreshToken      String?
+  expiresAt         DateTime?
+  scopes            String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model AuthRefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  /// SHA-256 hash of the refresh token. The raw token is never stored.
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  userAgent String?
+  ipAddress String?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Google Calendar connection used to create Meet links for scheduled lessons.
+model GoogleCalendarConnection {
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  /// Calendar id used when creating events. Defaults to "primary".
+  calendarId   String    @default("primary")
+  accessToken  String?
+  refreshToken String?
+  expiresAt    DateTime?
+  scopes       String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// =====================
+// Vocabulary
+// =====================
 
 model Word {
-  id            String        @id @default(cuid())
-  text          String        @unique
-  definition    String
-  example       String?
-  phonetic      String?
-  partOfSpeech  String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  userWords     UserWord[]
+  id             String   @id @default(cuid())
+  /// Original word text as provided.
+  text           String
+  /// Lowercased text used for unique lookups.
+  normalizedText String   @unique
+  definition     String
+  example        String?
+  phonetic       String?
+  partOfSpeech   String?
+  category       String?
+  audioUrl       String?
+  /// Etymology / origin line from dictionary providers.
+  origin         String?
+  synonyms       String[]
+  antonyms       String[]
+  /// Source provider, e.g. "dictionaryapi.dev" or "manual".
+  source         String?
+  /// Raw provider payload kept for re-enrichment / audit.
+  sourcePayload  Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  cards         StudentWordCard[]
   reviewQueue   ReviewQueue[]
+  quizQuestions QuizQuestion[]
+  definitions   WordDefinition[]
+
+  @@index([category])
 }
 
-model UserWord {
-  id             String      @id @default(cuid())
-  userId         String
-  wordId         String
-  masteryLevel   Int         @default(0)
-  firstSeenAt    DateTime?
-  lastReviewedAt DateTime?
-  nextReviewAt   DateTime?
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  word           Word        @relation(fields: [wordId], references: [id], onDelete: Cascade)
+/// Localized definition text for a word.
+model WordDefinition {
+  id         String   @id @default(cuid())
+  wordId     String
+  languageId String
+  /// Translated definition / meaning in this language.
+  text       String
+  /// Translated lemma (the word itself), e.g. "book" → "книга".
+  lemmaText      String?
+  /// Part of speech for this gloss (noun, adjective, …). Empty string = legacy single row.
+  partOfSpeech   String  @default("")
+  word           Word     @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  language       Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([wordId, languageId, partOfSpeech])
+  @@index([languageId])
+}
+
+enum VocabularyStatus {
+  NEW
+  REPEATED
+  MISTAKES_WORK
+  LEARNED
+}
+
+model StudentWordCard {
+  id               String           @id @default(cuid())
+  userId           String
+  wordId           String
+  /// Optional link to the lesson that introduced the word.
+  lessonId         String?
+  status           VocabularyStatus @default(NEW)
+  masteryLevel     Int              @default(0)
+  firstSeenAt      DateTime?
+  lastReviewedAt   DateTime?
+  nextReviewAt     DateTime?
+  knownAt          DateTime?
+  knownByTeacherId String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  word   Word             @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  lesson ScheduledLesson? @relation(fields: [lessonId], references: [id], onDelete: SetNull)
 
   @@unique([userId, wordId])
+  @@index([userId, status])
+  @@index([lessonId])
   @@index([nextReviewAt])
 }
 
+model ReviewQueue {
+  id           String   @id @default(cuid())
+  userId       String
+  wordId       String
+  dueAt        DateTime
+  intervalDays Int      @default(1)
+  easeFactor   Float    @default(2.5)
+  repetitions  Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  word         Word     @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, wordId])
+  @@index([dueAt])
+}
+
+// =====================
+// Curriculum lessons (catalog content)
+// =====================
+
 model Lesson {
-  id          String      @id @default(cuid())
-  slug        String      @unique
+  id          String     @id @default(cuid())
+  slug        String     @unique
   title       String
   description String?
   level       String
   order       Int
   exercises   Exercise[]
   progress    Progress[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 model Exercise {
-  id          String      @id @default(cuid())
-  lessonId    String
-  prompt      String
-  kind        String
-  payload     Json
-  answer      Json
-  order       Int
-  lesson      Lesson      @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id        String   @id @default(cuid())
+  lessonId  String
+  prompt    String
+  kind      String
+  payload   Json
+  answer    Json
+  order     Int
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Progress {
-  id              String      @id @default(cuid())
-  userId          String
-  lessonId        String
-  completed       Boolean     @default(false)
-  score           Float?
-  completedAt     DateTime?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lesson          Lesson      @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  id          String    @id @default(cuid())
+  userId      String
+  lessonId    String
+  completed   Boolean   @default(false)
+  score       Float?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson      Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@unique([userId, lessonId])
 }
 
-model ReviewQueue {
-  id              String      @id @default(cuid())
-  userId          String
-  wordId          String
-  dueAt           DateTime
-  intervalDays    Int         @default(1)
-  easeFactor      Float       @default(2.5)
-  repetitions     Int         @default(0)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  word            Word        @relation(fields: [wordId], references: [id], onDelete: Cascade)
+// =====================
+// Scheduled lessons (1:1 sessions with Meet integration)
+// =====================
 
-  @@unique([userId, wordId])
-  @@index([dueAt])
+enum LessonStatus {
+  PLANNED
+  COMPLETED
+  CANCELLED
+}
+
+enum LessonCancelReason {
+  STUDENT_ABSENT
+  STUDENT_REQUESTED_CANCEL
+  TEACHER_ABSENT
+}
+
+enum LessonRecurrence {
+  NONE
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum StudentResponseStatus {
+  NOT_SUBMITTED
+  SUBMITTED
+  NEEDS_REWORK
+  ACCEPTED
+}
+
+model ScheduledLesson {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  notes       String?
+  lessonPlan  String?
+
+  /// Wall-clock date for the lesson in `timezone` (yyyy-MM-dd).
+  date      String
+  /// Wall-clock start time (HH:mm) interpreted in `timezone`.
+  startTime String
+  endTime   String
+  duration  Int
+  timezone  String @default("Europe/Kyiv")
+
+  teacherId    String
+  studentId    String
+  status       LessonStatus        @default(PLANNED)
+  cancelReason LessonCancelReason?
+  credited     Boolean             @default(false)
+
+  recurrence LessonRecurrence @default(NONE)
+  weeklyDays Int[]
+  seriesId   String?
+
+  /// Sort order within a given day for the student/teacher.
+  order Int @default(0)
+
+  // Google Meet integration
+  googleCalendarEventId String?
+  googleMeetUrl         String?
+  googleConferenceId    String?
+  meetCreatedAt         DateTime?
+
+  // Homework / student response
+  homeworkText            String?
+  homeworkFiles           String[]
+  studentResponseText     String?
+  studentResponseFiles    String[]
+  studentResponseStatus   StudentResponseStatus @default(NOT_SUBMITTED)
+  homeworkChecked         Boolean               @default(false)
+  teacherHomeworkFeedback String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teacher     User              @relation("LessonTeacher", fields: [teacherId], references: [id], onDelete: Restrict)
+  student     User              @relation("LessonStudent", fields: [studentId], references: [id], onDelete: Restrict)
+  materials   LessonMaterial[]
+  linkedWords StudentWordCard[]
+  quizzes     Quiz[]
+
+  @@index([teacherId, date])
+  @@index([studentId, date])
+  @@index([seriesId])
+}
+
+enum MaterialKind {
+  TEXT
+  PHOTO
+  TEST
+  FILE
+  PRESENTATION
+}
+
+model LessonMaterial {
+  id        String          @id @default(cuid())
+  lessonId  String
+  kind      MaterialKind
+  text      String?
+  files     String[]
+  order     Int             @default(0)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  lesson    ScheduledLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([lessonId])
+}
+
+// =====================
+// Quizzes
+// =====================
+
+enum QuizDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum QuizSource {
+  MANUAL
+  VOCABULARY
+  LESSON
+  MIXED
+}
+
+enum QuizQuestionType {
+  MULTIPLE_CHOICE
+  FILL_IN
+}
+
+enum QuizAssignmentStatus {
+  PENDING
+  SUBMITTED
+  GRADED
+}
+
+model Quiz {
+  id         String         @id @default(cuid())
+  title      String
+  category   String
+  difficulty QuizDifficulty @default(MEDIUM)
+  source     QuizSource     @default(MANUAL)
+  ownerId    String
+  lessonId   String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  owner       User             @relation("QuizOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  lesson      ScheduledLesson? @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  questions   QuizQuestion[]
+  assignments QuizAssignment[]
+  attempts    QuizAttempt[]
+
+  @@index([ownerId])
+  @@index([lessonId])
+}
+
+model QuizQuestion {
+  id            String           @id @default(cuid())
+  quizId        String
+  order         Int              @default(0)
+  type          QuizQuestionType
+  prompt        String
+  /// Distractors + correct option for multiple-choice. Empty for fill-in.
+  options       String[]
+  /// Correct option index (for multiple-choice) serialised as string,
+  /// or the expected text for fill-in.
+  correctAnswer String
+  explanation   String?
+  /// Optional link to source word used by the generator.
+  wordId        String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  quiz    Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  word    Word?        @relation(fields: [wordId], references: [id], onDelete: SetNull)
+  answers QuizAnswer[]
+
+  @@index([quizId, order])
+}
+
+model QuizAssignment {
+  id           String               @id @default(cuid())
+  quizId       String
+  studentId    String
+  assignedById String
+  dueDate      DateTime?
+  personalNote String?
+  status       QuizAssignmentStatus @default(PENDING)
+  score        Float?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  quiz       Quiz          @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  student    User          @relation("AssignmentStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  assignedBy User          @relation("AssignmentAssignedBy", fields: [assignedById], references: [id], onDelete: Cascade)
+  attempts   QuizAttempt[]
+
+  @@unique([quizId, studentId])
+  @@index([studentId])
+  @@index([assignedById])
+}
+
+model QuizAttempt {
+  id           String    @id @default(cuid())
+  quizId       String
+  studentId    String
+  assignmentId String?
+  score        Float?
+  correctCount Int       @default(0)
+  totalCount   Int       @default(0)
+  startedAt    DateTime  @default(now())
+  finishedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  quiz       Quiz            @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  student    User            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  assignment QuizAssignment? @relation(fields: [assignmentId], references: [id], onDelete: SetNull)
+  answers    QuizAnswer[]
+
+  @@index([quizId])
+  @@index([studentId])
+}
+
+model QuizAnswer {
+  id          String   @id @default(cuid())
+  attemptId   String
+  questionId  String
+  givenAnswer String
+  isCorrect   Boolean
+  answeredAt  DateTime @default(now())
+
+  attempt  QuizAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([attemptId])
+}
+
+// =====================
+// Realtime chat
+// =====================
+
+enum ChatConversationType {
+  DIRECT
+  GROUP
+}
+
+model ChatConversation {
+  id          String               @id @default(cuid())
+  type        ChatConversationType
+  title       String?
+  /// For DIRECT: sorted pair `${minUserId}:${maxUserId}` for uniqueness.
+  directKey   String?              @unique
+  createdById String
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  createdBy    User              @relation("ChatCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  participants ChatParticipant[]
+  messages     ChatMessage[]
+
+  @@index([createdById])
+  @@index([updatedAt])
+}
+
+model ChatParticipant {
+  id             String    @id @default(cuid())
+  conversationId String
+  userId         String
+  joinedAt       DateTime  @default(now())
+  lastReadAt     DateTime?
+
+  conversation ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+model ChatMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  body           String   @default("")
+  createdAt      DateTime @default(now())
+
+  conversation ChatConversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User                    @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  attachment   ChatMessageAttachment?
+
+  @@index([conversationId, createdAt])
+}
+
+/// Chat file uploads are deleted after 24 hours (`expiresAt`).
+model ChatMessageAttachment {
+  id         String   @id @default(cuid())
+  messageId  String   @unique
+  fileName   String
+  mimeType   String
+  sizeBytes  Int
+  storageKey String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+}
+
+// =====================
+// Platform settings (super-admin)
+// =====================
+
+enum WordDictionaryProvider {
+  DICTIONARY_API_DEV
+  WIKTIONARY
+}
+
+/// Singleton row (`id` = "default") for platform-wide configuration.
+model PlatformSettings {
+  id                     String                 @id @default("default")
+  wordDictionaryProvider WordDictionaryProvider @default(DICTIONARY_API_DEV)
+  updatedAt              DateTime               @updatedAt
 }

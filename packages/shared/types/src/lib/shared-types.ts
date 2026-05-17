@@ -119,16 +119,28 @@ export type VocabularyOverviewDto = {
 
 /** Stable numeric ids + labels for per-word progress. */
 export const VOCABULARY_WORD_STATUS = {
-  new: { id: 1, name: 'new' },
-  repeated: { id: 2, name: 'repeated' },
-  mistakesWork: { id: 3, name: 'mistakes_work' },
-  learned: { id: 4, name: 'learned' },
+  new: { id: 1, name: 'new', label: 'New' },
+  repeated: { id: 2, name: 'repeated', label: 'Repeated' },
+  mistakesWork: { id: 3, name: 'mistakes_work', label: 'Review' },
+  learned: { id: 4, name: 'learned', label: 'Learned' },
 } as const;
 
 export type VocabularyWordStatusEntry =
   (typeof VOCABULARY_WORD_STATUS)[keyof typeof VOCABULARY_WORD_STATUS];
 export type VocabularyWordStatusId = VocabularyWordStatusEntry['id'];
 export type VocabularyWordStatusName = VocabularyWordStatusEntry['name'];
+
+export const VOCABULARY_WORD_STATUS_LABELS: Record<VocabularyWordStatusName, string> = {
+  new: VOCABULARY_WORD_STATUS.new.label,
+  repeated: VOCABULARY_WORD_STATUS.repeated.label,
+  mistakes_work: VOCABULARY_WORD_STATUS.mistakesWork.label,
+  learned: VOCABULARY_WORD_STATUS.learned.label,
+};
+
+export function vocabularyStatusLabel(status: VocabularyWordStatusName): string {
+  return VOCABULARY_WORD_STATUS_LABELS[status] ?? status.replace(/_/g, ' ');
+}
+
 export const VOCABULARY_WORD_STATUS_IDS = {
   new: VOCABULARY_WORD_STATUS.new.id,
   repeated: VOCABULARY_WORD_STATUS.repeated.id,
@@ -261,8 +273,547 @@ export type StudentResponseStatus =
   | 'needs_rework'
   | 'accepted';
 
+/** Public, backend-driven shape of the authenticated user. */
+export type AuthUserDto = {
+  id: string;
+  email: string;
+  displayName: string;
+  avatarUrl?: string | null;
+  role: 'student' | 'teacher' | 'admin' | 'super_admin';
+  status: 'active' | 'paused' | 'leaved' | 'blocked';
+  proficiencyLevel?: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | null;
+  timezone: string;
+  teacherId?: string | null;
+  hasPassword: boolean;
+  linkedProviders: Array<'google' | 'facebook' | 'telegram'>;
+};
+
+export type AuthSessionDto = {
+  user: AuthUserDto;
+};
+
+export type LoginRequestDto = {
+  email: string;
+  password: string;
+};
+
+/** Backend-returned summary row for the admin users list. */
+export type AdminUserSummaryDto = {
+  id: string;
+  email: string;
+  displayName: string;
+  role: 'student' | 'teacher' | 'admin' | 'super_admin';
+  status: 'active' | 'paused' | 'leaved' | 'blocked';
+  createdAt: string;
+};
+
+export type LanguageDto = {
+  id: string;
+  code: string;
+  name: string;
+};
+
+export type UpdateAdminStudentRequestDto = {
+  nativeLanguageId?: string | null;
+  learningLanguageIds?: string[];
+  /** Assign or clear the student's teacher (admin / super-admin only). */
+  teacherId?: string | null;
+};
+
+export type CreateAdminUserRequestDto = {
+  email: string;
+  role?: 'student' | 'teacher' | 'admin';
+  displayName?: string | null;
+  phone?: string | null;
+  telegram?: string | null;
+  bio?: string | null;
+  nativeLanguageId?: string | null;
+  learningLanguageIds?: string[];
+  timezone?: string | null;
+  proficiencyLevel?: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | null;
+  status?: 'active' | 'paused' | 'leaved' | 'blocked';
+  teacherId?: string | null;
+};
+
+export type CreateAdminUserResultDto = {
+  user: AuthUserDto;
+  welcomeEmailSent: boolean;
+};
+
+export type SystemMailStatusDto = {
+  configured: boolean;
+  smtpHost: string | null;
+  smtpPort: number | null;
+  mailFrom: string;
+  templatesDir: string;
+};
+
+/** Active word lookup provider (platform setting). */
+export type WordDictionaryProviderId = 'dictionary_api_dev' | 'wiktionary';
+
+export type WordDictionaryProviderInfoDto = {
+  id: WordDictionaryProviderId;
+  name: string;
+  description: string;
+  docsUrl: string;
+};
+
+export type WordDictionarySettingsDto = {
+  activeProvider: WordDictionaryProviderId;
+  providers: WordDictionaryProviderInfoDto[];
+};
+
+export type SendTestWelcomeEmailRequestDto = {
+  to: string;
+};
+
+export type SendTestEmailResultDto = {
+  sent: boolean;
+  message: string | null;
+};
+
+/** Result of lookupWord — DB hit or external preview without save. */
+export type WordLookupResultDto = {
+  foundInDb: boolean;
+  /** Dictionary provider returned an entry (false → do not add the word). */
+  foundInDictionary: boolean;
+  word: WordCardDto | null;
+  preview: WordCardDto | null;
+};
+
+/** Staff who may be assigned as a student's teacher or selected on a lesson. */
+export type AssignableTeacherDto = {
+  id: string;
+  email: string;
+  displayName: string;
+  role: 'teacher' | 'admin' | 'super_admin';
+};
+
+/** Backend-driven student row for the teacher/admin Students page. */
+export type StudentSummaryBackendDto = {
+  id: string;
+  email: string;
+  displayName: string;
+  status: 'active' | 'paused' | 'leaved' | 'blocked';
+  proficiencyLevel: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | null;
+  timezone: string;
+  teacherId: string | null;
+  teacherName: string | null;
+  avatarUrl: string | null;
+  nativeLanguageId: string | null;
+  learningLanguageIds: string[];
+  createdAt: string;
+};
+
+/** Profile → Notifications tab toggles (persisted on User). */
+export type ProfileNotificationPrefs = {
+  lessonReminder: boolean;
+  streakAlert: boolean;
+  weeklyReport: boolean;
+  newVocab: boolean;
+  teacherMessages: boolean;
+};
+
+export const DEFAULT_NOTIFICATION_PREFS: ProfileNotificationPrefs = {
+  lessonReminder: true,
+  streakAlert: true,
+  weeklyReport: true,
+  newVocab: false,
+  teacherMessages: true,
+};
+
+export type ProfileLinkedAccountDto = {
+  provider: 'google' | 'facebook' | 'telegram';
+  linked: boolean;
+  connectedAs?: string | null;
+  /** Google only: Calendar + Meet tokens stored for lesson scheduling. */
+  calendarConnected?: boolean;
+};
+
+/** Telegram Login Widget callback payload (https://core.telegram.org/widgets/login). */
+export type TelegramLoginPayloadDto = {
+  id: number;
+  first_name: string;
+  last_name?: string;
+  username?: string;
+  photo_url?: string;
+  auth_date: number;
+  hash: string;
+};
+
+export type MyProfileDto = {
+  id: string;
+  email: string;
+  displayName: string;
+  avatarUrl: string | null;
+  timezone: string;
+  proficiencyLevel: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | null;
+  phone: string | null;
+  telegram: string | null;
+  bio: string | null;
+  nativeLanguageId: string | null;
+  role: 'student' | 'teacher' | 'admin' | 'super_admin';
+  status: 'active' | 'paused' | 'leaved' | 'blocked';
+  notificationPrefs: ProfileNotificationPrefs;
+  linkedAccounts: ProfileLinkedAccountDto[];
+};
+
+export type UpdateMyProfileRequestDto = {
+  displayName?: string;
+  timezone?: string;
+  avatarUrl?: string | null;
+  proficiencyLevel?: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | null;
+  phone?: string | null;
+  telegram?: string | null;
+  bio?: string | null;
+  nativeLanguageId?: string | null;
+  notificationPrefs?: Partial<ProfileNotificationPrefs>;
+};
+
+export type SendTeacherMessageRequestDto = {
+  studentId: string;
+  body: string;
+};
+
+export type TeacherMessageDto = {
+  id: string;
+  teacherId: string;
+  studentId: string;
+  body: string;
+  createdAt: string;
+};
+
+/** Role label exposed in chat UI (super_admin is masked as admin for other users). */
+export type ChatDisplayRole = 'student' | 'teacher' | 'admin';
+
+export type ChatUserDto = {
+  id: string;
+  displayName: string;
+  displayRole: ChatDisplayRole;
+  roleLabel: string;
+  avatarUrl: string | null;
+  initials: string;
+};
+
+export type ChatConversationDto = {
+  id: string;
+  type: 'direct' | 'group';
+  title: string;
+  peer: ChatUserDto | null;
+  participants?: ChatUserDto[];
+  lastMessage: string | null;
+  lastMessageAt: string;
+  unreadCount: number;
+  updatedAt: string;
+};
+
+export type ChatAttachmentDto = {
+  id: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  /** Same-origin path, e.g. `/api/chat/attachments/:id` */
+  url: string;
+  expiresAt: string;
+  expired: boolean;
+};
+
+export type ChatMessageDto = {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  sender: ChatUserDto;
+  body: string;
+  createdAt: string;
+  isMine: boolean;
+  attachment?: ChatAttachmentDto | null;
+};
+
+export type CreateGroupConversationRequestDto = {
+  title: string;
+  memberIds: string[];
+};
+
+export type ChangePasswordRequestDto = {
+  currentPassword: string;
+  newPassword: string;
+};
+
+export type DashboardSummaryDto = {
+  role: 'student' | 'teacher' | 'admin' | 'super_admin';
+  lessonsToday: number;
+  lessonsThisWeek: number;
+  lessonsCompleted: number;
+  vocabularyCount: number;
+  reviewCount: number;
+};
+
+export type LearningStreakDto = {
+  streakDays: number;
+  activeToday: boolean;
+  year: number;
+  month: string;
+  activeDays: number[];
+};
+
+export type WordOfDayDto = {
+  wordId: string;
+  cardId: string | null;
+  text: string;
+  phonetic: string | null;
+  partOfSpeech: string | null;
+  definition: string;
+  example: string | null;
+};
+
+export type DailyGoalDto = {
+  id: string;
+  templateId: string;
+  text: string;
+  difficulty: 1 | 2 | 3 | 4;
+  done: boolean;
+  xpReward: number;
+  dateKey: string;
+};
+
+export type PracticeWeekMetricDto = {
+  id: string;
+  label: string;
+  value: string;
+};
+
+export type PracticeWeekSummaryDto = {
+  practiceMinutes: number;
+  metrics: PracticeWeekMetricDto[];
+};
+
+export type RecordPracticeSessionRequestDto = {
+  kind: 'vocabulary' | 'quiz' | 'speaking' | 'games' | 'challenges' | 'lesson';
+  startedAt: string;
+  endedAt: string;
+  source?: 'practice' | 'lesson' | 'manual';
+};
+
+export type PracticeSessionDto = {
+  id: string;
+  kind: RecordPracticeSessionRequestDto['kind'];
+  source: NonNullable<RecordPracticeSessionRequestDto['source']>;
+  startedAt: string;
+  endedAt: string;
+  durationSec: number;
+};
+
+export type WordDefinitionDto = {
+  languageId: string;
+  /** Translated definition in this language. */
+  text: string;
+  /** Translated word form (lemma) in this language. */
+  lemmaText?: string | null;
+  /** Part of speech for this gloss (empty for legacy rows). */
+  partOfSpeech?: string;
+};
+
+/** Word card (global dictionary entry) returned by the backend. */
+export type WordCardDto = {
+  id: string;
+  text: string;
+  /** Primary English definition (denormalized). */
+  definition: string;
+  definitions: WordDefinitionDto[];
+  example?: string | null;
+  phonetic?: string | null;
+  partOfSpeech?: string | null;
+  category?: string | null;
+  audioUrl?: string | null;
+  origin?: string | null;
+  synonyms: string[];
+  antonyms: string[];
+  source?: string | null;
+};
+
+/** Full word payload for details modal (from DB only). */
+export type WordDetailsDto = WordCardDto & {
+  sourcePayloadJson?: string | null;
+};
+
+export type StudentWordCardDto = {
+  id: string;
+  word: WordCardDto;
+  status: 'new' | 'repeated' | 'mistakes_work' | 'learned';
+  masteryLevel: number;
+  lessonId?: string | null;
+  firstSeenAt?: string | null;
+  lastReviewedAt?: string | null;
+  nextReviewAt?: string | null;
+  knownAt?: string | null;
+};
+
+export type CreateWordRequestDto = {
+  text: string;
+  /** Optional pre-filled fields; missing fields will be enriched server-side. */
+  definition?: string;
+  example?: string;
+  phonetic?: string;
+  partOfSpeech?: string;
+  category?: string;
+};
+
+export type CreateStudentWordCardRequestDto = {
+  text: string;
+  lessonId?: string;
+  status?: 'new' | 'repeated' | 'mistakes_work' | 'learned';
+};
+
+/** Quiz DTOs returned/expected by the backend. */
+export type QuizCardDto = {
+  id: string;
+  title: string;
+  category: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  source: 'manual' | 'vocabulary' | 'lesson' | 'mixed';
+  lessonId?: string | null;
+  questionCount: number;
+  createdAt: string;
+};
+
+export type QuizDetailDto = QuizCardDto & {
+  questions: Array<
+    QuizQuestionDto & {
+      id: string;
+      wordId?: string | null;
+    }
+  >;
+};
+
+export type GenerateQuizRequestDto = {
+  studentId?: string;
+  lessonId?: string;
+  source?: 'vocabulary' | 'lesson' | 'mixed';
+  difficulty?: 'easy' | 'medium' | 'hard';
+  questionCount?: number;
+  title?: string;
+  category?: string;
+};
+
+export type QuizAttemptSummaryDto = {
+  id: string;
+  score: number | null;
+  correctCount: number;
+  totalCount: number;
+  finishedAt: string | null;
+};
+
+export type StudentQuizCardDto = QuizCardDto & {
+  assignmentId: string;
+  attempt: QuizAttemptSummaryDto | null;
+};
+
+export type SubmitQuizAttemptRequestDto = {
+  quizId: string;
+  studentId?: string;
+  /** Staff preview — score is returned but not stored. */
+  practiceMode?: boolean;
+  answers: Array<{ questionId: string; givenAnswer: string }>;
+};
+
+export type QuizAttemptResultDto = {
+  attemptId: string | null;
+  score: number;
+  correctCount: number;
+  totalCount: number;
+  practiceMode: boolean;
+};
+
+/** Scheduled tutoring session — replaces the in-memory mock used by the web app. */
+export type ScheduledLessonBackendDto = {
+  id: string;
+  title: string;
+  description?: string | null;
+  notes?: string | null;
+  lessonPlan?: string | null;
+  date: string;
+  startTime: string;
+  endTime: string;
+  duration: number;
+  timezone: string;
+  teacherId: string;
+  studentId: string;
+  status: 'planned' | 'completed' | 'cancelled';
+  cancelReason?: 'student_absent' | 'student_requested_cancel' | 'teacher_absent' | null;
+  credited: boolean;
+  recurrence: 'none' | 'daily' | 'weekly' | 'monthly';
+  weeklyDays: number[];
+  seriesId?: string | null;
+  order: number;
+  googleMeetUrl?: string | null;
+  googleCalendarEventId?: string | null;
+  meetCreatedAt?: string | null;
+  materials: Array<{
+    id: string;
+    kind: 'text' | 'photo' | 'test' | 'file' | 'presentation';
+    text: string;
+    files: string[];
+  }>;
+  homework: {
+    text: string;
+    files: string[];
+  };
+  studentResponse: {
+    text: string;
+    files: string[];
+    status: 'not_submitted' | 'submitted' | 'needs_rework' | 'accepted';
+    homeworkChecked: boolean;
+    teacherHomeworkFeedback: string;
+  };
+  linkedWordIds: string[];
+};
+
+export type CreateScheduledLessonRequestDto = {
+  title: string;
+  description?: string;
+  date: string;
+  startTime: string;
+  endTime?: string;
+  duration?: number;
+  timezone?: string;
+  teacherId?: string;
+  studentId: string;
+  status?: 'planned' | 'completed' | 'cancelled';
+  notes?: string;
+  lessonPlan?: string;
+  recurrence?: 'none' | 'daily' | 'weekly' | 'monthly';
+  weeklyDays?: number[];
+  seriesId?: string;
+  linkedWordIds?: string[];
+  createMeetLink?: boolean;
+};
+
+export type UpdateScheduledLessonRequestDto = Partial<CreateScheduledLessonRequestDto> & {
+  cancelReason?: 'student_absent' | 'student_requested_cancel' | 'teacher_absent' | null;
+  credited?: boolean;
+  homework?: {
+    text?: string;
+    files?: string[];
+  };
+  studentResponse?: {
+    text?: string;
+    files?: string[];
+    status?: 'not_submitted' | 'submitted' | 'needs_rework' | 'accepted';
+    homeworkChecked?: boolean;
+    teacherHomeworkFeedback?: string;
+  };
+  materials?: Array<{
+    id?: string;
+    kind: 'text' | 'photo' | 'test' | 'file' | 'presentation';
+    text?: string;
+    files?: string[];
+  }>;
+};
+
 export type ScheduledLessonDto = {
   id: number;
+  /** Backend `ScheduledLesson` UUID (cuid). Stable across reloads — use for API writes. */
+  backendId?: string;
   lessonId?: number;
   title: string;
   /** Calendar date in the lesson's `timezoneId` (wall clock). */
@@ -303,9 +854,13 @@ export type ScheduledLessonDto = {
     teacherHomeworkFeedback?: string;
   };
   order: number;
+  /** Google Meet join URL when Calendar integration created the event. */
+  googleMeetUrl?: string | null;
   recurrence: LessonRecurrence;
   weeklyDays?: number[];
   seriesId?: string;
-  /** Vocabulary word ids from the global catalog linked to this lesson. */
+  /** @deprecated Mock numeric ids — use linkedWordIds (backend Word cuid). */
   linkedVocabularyIds?: number[];
+  /** Global Word ids (cuid) linked to this lesson. */
+  linkedWordIds?: string[];
 };

@@ -116,6 +116,10 @@
 .seeAll:hover { opacity: 0.7; }
 
 .lessonList { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+.lessonLink { display: block; text-decoration: none; color: inherit; }
+.emptyHint { font-size: 13px; color: var(--text-tertiary); margin: 0 0 28px; }
+.emptyLink { color: var(--green); font-weight: 500; }
+.emptyLink:hover { opacity: 0.8; }
 .lessonCard {
   background: var(--card);
   border: 1px solid var(--border);
@@ -179,8 +183,40 @@
   padding: 18px;
 }
 .goalsSubtitle { font-size: 12px; color: var(--text-tertiary); margin: 3px 0 10px; }
-.goalItem { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
-.goalItem:last-child { border-bottom: none; padding-bottom: 0; }
+.goalItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 0;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+
+  &:hover {
+    background: color-mix(in srgb, var(--surface) 60%, transparent);
+  }
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+.goalsRetry {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--green);
+  font: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
 .goalCheck {
   width: 20px;
   height: 20px;

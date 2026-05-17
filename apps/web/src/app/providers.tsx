@@ -1,66 +1,24 @@
 'use client';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useEffect } from 'react';
+import { AuthProvider } from '../lib/auth-context';
+import { ConfirmDialogHost } from '../features/confirm';
+import { ToastViewport } from '../features/notifications/ToastViewport';
+import { useUiStore, type FontSizeMode, type ThemeMode } from '../stores/ui-store';
 
-type QueryProviderProps = {
+type ProviderProps = {
   children: ReactNode;
 };
-
-export function QueryProvider({ children }: QueryProviderProps) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 60_000,
-            refetchOnWindowFocus: false,
-          },
-        },
-      }),
-  );
-
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
-}
-
-type ThemeMode = 'light' | 'dark' | 'auto';
-type FontSizeMode = 'small' | 'medium' | 'large';
-
-type AppearanceContextValue = {
-  theme: ThemeMode;
-  setTheme: (next: ThemeMode) => void;
-  fontSize: FontSizeMode;
-  setFontSize: (next: FontSizeMode) => void;
-};
-
-const THEME_KEY = 'soenglish.theme';
-const FONT_SIZE_KEY = 'soenglish.fontSize';
-
-const AppearanceContext = createContext<AppearanceContextValue | null>(null);
 
 function resolveSystemTheme(): Exclude<ThemeMode, 'auto'> {
   if (typeof window === 'undefined') return 'light';
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
-function AppearanceProvider({ children }: QueryProviderProps) {
-  const [theme, setTheme] = useState<ThemeMode>('auto');
-  const [fontSize, setFontSize] = useState<FontSizeMode>('medium');
-
-  useEffect(() => {
-    try {
-      const storedTheme = localStorage.getItem(THEME_KEY);
-      if (storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'auto') {
-        setTheme(storedTheme);
-      }
-      const storedFontSize = localStorage.getItem(FONT_SIZE_KEY);
-      if (storedFontSize === 'small' || storedFontSize === 'medium' || storedFontSize === 'large') {
-        setFontSize(storedFontSize);
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
+/** Applies theme/font-size from Zustand to the document. */
+function AppearanceSync({ children }: ProviderProps) {
+  const theme = useUiStore((state) => state.theme);
+  const fontSize = useUiStore((state) => state.fontSize);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -79,42 +37,25 @@ function AppearanceProvider({ children }: QueryProviderProps) {
     document.documentElement.setAttribute('data-font-size', fontSize);
   }, [fontSize]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(THEME_KEY, theme);
-    } catch {
-      // ignore
-    }
-  }, [theme]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(FONT_SIZE_KEY, fontSize);
-    } catch {
-      // ignore
-    }
-  }, [fontSize]);
-
-  const value = useMemo(
-    () => ({ theme, setTheme, fontSize, setFontSize }),
-    [theme, fontSize],
-  );
-
-  return <AppearanceContext.Provider value={value}>{children}</AppearanceContext.Provider>;
+  return children;
 }
 
-export function AppProviders({ children }: QueryProviderProps) {
+export function AppProviders({ children }: ProviderProps) {
   return (
-    <QueryProvider>
-      <AppearanceProvider>{children}</AppearanceProvider>
-    </QueryProvider>
+    <AuthProvider>
+      <AppearanceSync>
+        {children}
+        <ToastViewport />
+        <ConfirmDialogHost />
+      </AppearanceSync>
+    </AuthProvider>
   );
 }
 
 export function useAppearanceSettings() {
-  const context = useContext(AppearanceContext);
-  if (!context) {
-    throw new Error('useAppearanceSettings must be used within AppProviders');
-  }
-  return context;
+  const theme = useUiStore((state) => state.theme);
+  const setTheme = useUiStore((state) => state.setTheme);
+  const fontSize = useUiStore((state) => state.fontSize);
+  const setFontSize = useUiStore((state) => state.setFontSize);
+  return { theme, setTheme, fontSize, setFontSize };
 }

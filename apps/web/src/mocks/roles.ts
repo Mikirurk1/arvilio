@@ -23,7 +23,8 @@ export const roleMatrix: Record<
   | 'quiz'
   | 'calendar'
   | 'practice'
-  | 'lessons',
+  | 'lessons'
+  | 'chat',
   RoleRule
 > = {
   dashboard: {
@@ -65,6 +66,12 @@ export const roleMatrix: Record<
   lessons: {
     view: [U.student, U.teacher, U.admin, U.superAdmin],
     edit: [U.teacher, U.admin, U.superAdmin],
+    manage: [U.admin, U.superAdmin],
+    schedule: [U.teacher, U.admin, U.superAdmin],
+  },
+  chat: {
+    view: [U.student, U.teacher, U.admin, U.superAdmin],
+    edit: [U.student, U.teacher, U.admin, U.superAdmin],
     manage: [U.admin, U.superAdmin],
     schedule: [U.teacher, U.admin, U.superAdmin],
   },

@@ -5,21 +5,26 @@ import type { VocabularyWordStatusName } from '@soenglish/shared-types';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { PageHeader } from '../../components/ui';
+import { siteContent } from '../../mocks/content/site-content';
+import { canEdit, canView } from '../../lib/roles';
+import { mapAuthRoleToRoleId } from '../../lib/active-user';
+import { usePracticeSessionTracker } from '../../lib/practice-session-tracker';
+import { useAuth } from '../../lib/auth-context';
 import {
-  activeMockUser,
   buildVocabularyPlayRound,
-  canEdit,
-  canView,
-  getVocabularyForLastLesson,
-  getVocabularyForLesson,
-  mockScheduledLessons,
-  USER_ROLE,
-  joinProfileVocabulary,
-  legacyStatusToVocabularyStatusId,
-  siteContent,
-  updateProfileVocabularyStatus,
-} from '../../mocks';
+  canBuildVocabularyPlayRound,
+  mapStudentCardsToListItems,
+  type VocabularyListItem,
+  type VocabularyPlayQuestion,
+} from '../../lib/vocabulary-ui';
+import { useViewerLanguageIds } from '../../hooks/use-viewer-language-ids';
+import { confirmDialog } from '../../features/confirm';
+import { toast } from '../../features/notifications';
+import { WordDetailsModal } from '../../features/vocabulary/WordDetailsModal';
+import { useVocabularyStore } from '../../stores/vocabulary-store';
+import { useLessonsStore } from '../../stores/lessons-store';
 import {
+  VocabularyAddWordBar,
   VocabularyFlashcardSection,
   VocabularyListSection,
   VocabularyModeToggle,
@@ -38,18 +43,36 @@ function shuffle<T>(items: T[]): T[] {
 }
 
 export default function VocabularyPage() {
-  if (!canView('vocabulary', activeMockUser.role)) return null;
-  const isStudent = activeMockUser.role === USER_ROLE.student.id;
-  const canSetLearned = activeMockUser.role !== USER_ROLE.student.id;
+  const { user } = useAuth();
+  const roleId = mapAuthRoleToRoleId(user?.role);
+  if (!canView('vocabulary', roleId)) return null;
 
-  const [items, setItems] = useState(() => joinProfileVocabulary(activeMockUser.id));
-  const refreshItems = () => setItems(joinProfileVocabulary(activeMockUser.id));
+  const isStudent = user?.role === 'student';
+  const canSetLearned = canEdit('vocabulary', roleId);
+  const userId = user?.id ?? '';
+  const overview = useVocabularyStore((s) => s.overview);
+  const cardsSlice = useVocabularyStore((s) => s.cards);
+  const fetchOverview = useVocabularyStore((s) => s.fetchOverview);
+  const fetchCards = useVocabularyStore((s) => s.fetchCards);
+  const addCard = useVocabularyStore((s) => s.addCard);
+  const updateCardStatus = useVocabularyStore((s) => s.updateCardStatus);
+  const deleteCard = useVocabularyStore((s) => s.deleteCard);
+  const backendLessons = useLessonsStore((s) => s.backendLessons);
+  const fetchScheduledLessons = useLessonsStore((s) => s.fetchScheduledLessons);
 
-  const applyStatus = (entryId: number, status: VocabularyWordStatusName) => {
-    if (isStudent && status === 'learned') return;
-    updateProfileVocabularyStatus(entryId, legacyStatusToVocabularyStatusId(status));
-    refreshItems();
-  };
+  useEffect(() => {
+    void fetchOverview();
+    void fetchCards();
+    void fetchScheduledLessons();
+  }, [fetchOverview, fetchCards, fetchScheduledLessons]);
+
+  const { nativeLanguageId, englishLanguageId } = useViewerLanguageIds();
+  const [detailsWordId, setDetailsWordId] = useState<string | null>(null);
+
+  const items = useMemo(
+    () => mapStudentCardsToListItems(cardsSlice.data ?? [], nativeLanguageId, englishLanguageId),
+    [cardsSlice.data, nativeLanguageId, englishLanguageId],
+  );
 
   const [filter, setFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -60,48 +83,56 @@ export default function VocabularyPage() {
   const [search, setSearch] = useState('');
   const [playSource, setPlaySource] = useState<'random' | 'last' | 'lesson'>('random');
   const [playLessonId, setPlayLessonId] = useState('all');
-  const [playQuestions, setPlayQuestions] = useState<
-    Array<{ entryId: number; vocabularyId: number; word: string; phonetic: string; correct: string; options: string[] }>
-  >([]);
+  const [playQuestions, setPlayQuestions] = useState<VocabularyPlayQuestion[]>([]);
   const [playIndex, setPlayIndex] = useState(0);
   const [playSelected, setPlaySelected] = useState<string | null>(null);
   const [playShowExplanation, setPlayShowExplanation] = useState(false);
   const [playAnswers, setPlayAnswers] = useState<boolean[]>([]);
   const [playScore, setPlayScore] = useState(0);
   const [playPhase, setPlayPhase] = useState<'setup' | 'quiz' | 'result'>('setup');
+  usePracticeSessionTracker(user?.id, 'vocabulary', mode === 'play' && playPhase === 'quiz');
+
   const categories = useMemo(() => {
-    const unique = [...new Set(items.map(({ word }) => word.category))].sort((a, b) =>
+    const unique = [...new Set(items.map(({ display }) => display.category))].sort((a, b) =>
       a.localeCompare(b),
     );
     return ['All', ...unique];
   }, [items]);
 
+  const lessonTitleById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const lesson of backendLessons.data ?? []) {
+      map.set(lesson.id, lesson.title);
+    }
+    return map;
+  }, [backendLessons.data]);
+
   const lessonOptions = useMemo(() => {
     const lessonIdSet = new Set(
-      items.map(({ row }) => row.lessonId).filter((lessonId): lessonId is number => Boolean(lessonId)),
-    );
-    const byId = new Map(
-      mockScheduledLessons.map((lesson) => [lesson.id, lesson.title] as const),
+      items
+        .map(({ card }) => card.lessonId)
+        .filter((lessonId): lessonId is string => Boolean(lessonId)),
     );
     return [
       { value: 'all', label: 'All lessons' },
       ...Array.from(lessonIdSet)
-        .sort((a, b) => a - b)
+        .sort((a, b) => a.localeCompare(b))
         .map((lessonId) => ({
-          value: String(lessonId),
-          label: byId.get(lessonId) ?? `Lesson #${lessonId}`,
+          value: lessonId,
+          label: lessonTitleById.get(lessonId) ?? `Lesson`,
         })),
     ];
-  }, [items]);
+  }, [items, lessonTitleById]);
+
   const playLessonOptions = useMemo(() => {
-    const studentLessons = mockScheduledLessons
-      .filter((lesson) => lesson.studentId === activeMockUser.id)
+    const studentLessons = (backendLessons.data ?? [])
+      .filter((lesson) => lesson.studentId === userId)
       .sort((a, b) => b.date.localeCompare(a.date) || b.startTime.localeCompare(a.startTime));
     return studentLessons.map((lesson) => ({
-      value: String(lesson.id),
+      value: lesson.id,
       label: `${lesson.title} (${lesson.date})`,
     }));
-  }, []);
+  }, [backendLessons.data, userId]);
 
   useEffect(() => {
     if (!categories.includes(filter)) setFilter('All');
@@ -113,19 +144,36 @@ export default function VocabularyPage() {
 
   const filtered = useMemo(
     () =>
-      items.filter(({ row, word, status }) => {
-        const catOk = filter === 'All' || word.category === filter;
+      items.filter(({ card, display, status }) => {
+        const catOk = filter === 'All' || display.category === filter;
         const statusOk = statusFilter === 'all' || status === statusFilter;
-        const lessonOk =
-          lessonFilter === 'all' || String(row.lessonId ?? '') === lessonFilter;
+        const lessonOk = lessonFilter === 'all' || (card.lessonId ?? '') === lessonFilter;
         const searchOk =
           !search ||
-          word.word.toLowerCase().includes(search.toLowerCase()) ||
-          word.definition.toLowerCase().includes(search.toLowerCase());
+          display.word.toLowerCase().includes(search.toLowerCase()) ||
+          display.definition.toLowerCase().includes(search.toLowerCase()) ||
+          display.translation.toLowerCase().includes(search.toLowerCase());
         return catOk && statusOk && lessonOk && searchOk;
       }),
     [items, filter, statusFilter, lessonFilter, search],
   );
+
+  const wordsForLastLesson = useMemo((): VocabularyListItem[] => {
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const completed = (backendLessons.data ?? [])
+      .filter(
+        (lesson) =>
+          lesson.studentId === userId &&
+          lesson.status === 'completed' &&
+          lesson.date <= todayIso,
+      )
+      .sort((a, b) => b.date.localeCompare(a.date) || b.startTime.localeCompare(a.startTime));
+    for (const lesson of completed) {
+      const words = items.filter(({ card }) => card.lessonId === lesson.id);
+      if (words.length > 0) return words;
+    }
+    return [];
+  }, [backendLessons.data, items, userId]);
 
   const playPool = useMemo(() => {
     if (playSource === 'random') {
@@ -135,16 +183,34 @@ export default function VocabularyPage() {
       const fallback = priority.length > 0 ? priority : items;
       return shuffle(fallback).slice(0, 20);
     }
-    if (playSource === 'last') return getVocabularyForLastLesson(activeMockUser.id).words;
-    if (playLessonId === 'all') {
+    if (playSource === 'last') {
+      if (wordsForLastLesson.length > 0) return wordsForLastLesson;
       const priority = items.filter(
         ({ status }) => status === 'new' || status === 'mistakes_work',
       );
-      const fallback = priority.length > 0 ? priority : items;
-      return shuffle(fallback).slice(0, 20);
+      return shuffle(priority.length > 0 ? priority : items).slice(0, 20);
     }
-    return getVocabularyForLesson(activeMockUser.id, Number(playLessonId));
-  }, [playSource, playLessonId, items]);
+    if (playSource === 'lesson' && playLessonId !== 'all') {
+      const byLesson = items.filter(({ card }) => card.lessonId === playLessonId);
+      if (byLesson.length > 0) return byLesson;
+    }
+    const priority = items.filter(
+      ({ status }) => status === 'new' || status === 'mistakes_work',
+    );
+    const fallback = priority.length > 0 ? priority : items;
+    return shuffle(fallback).slice(0, 20);
+  }, [playSource, playLessonId, items, wordsForLastLesson]);
+
+  const canStartPlay = useMemo(() => canBuildVocabularyPlayRound(playPool), [playPool]);
+
+  const applyStatus = (cardId: string, status: VocabularyWordStatusName) => {
+    if (isStudent && status === 'learned') return;
+    void updateCardStatus(cardId, status);
+  };
+
+  const onAddWord = async (text: string) => {
+    await addCard({ text: text.trim() });
+  };
 
   const startPlay = () => {
     const questions = buildVocabularyPlayRound(playPool);
@@ -161,7 +227,7 @@ export default function VocabularyPage() {
   const markStatus = (status: VocabularyWordStatusName) => {
     if (!currentItem) return;
     if (isStudent && status === 'learned') return;
-    applyStatus(currentItem.row.id, status);
+    applyStatus(currentItem.card.id, status);
     setFlipped(false);
     setTimeout(() => setCardIndex((i) => Math.min(i + 1, Math.max(0, filtered.length - 1))), 300);
   };
@@ -173,6 +239,26 @@ export default function VocabularyPage() {
     learned: items.filter(({ status }) => status === 'learned').length,
   };
 
+  const totalWords = overview.data?.totalWords ?? items.length;
+  const isLoading = cardsSlice.status === 'loading' || cardsSlice.status === 'idle';
+  const loadError = cardsSlice.status === 'error' ? cardsSlice.error : null;
+  const canEditVocab = canEdit('vocabulary', roleId);
+  const canDeleteWords = canSetLearned && !isStudent && Boolean(userId);
+
+  const onDeleteWord = async (cardId: string) => {
+    if (!userId) return;
+    const ok = await confirmDialog({
+      title: 'Remove word?',
+      message: 'This word will be removed from your vocabulary list.',
+      confirmLabel: 'Remove',
+      variant: 'danger',
+    });
+    if (!ok) return;
+    void deleteCard(cardId, userId).catch((err) => {
+      toast.error(err instanceof Error ? err.message : 'Could not remove word');
+    });
+  };
+
   return (
     <div className={`${styles.page} container container--page`}>
       <PageHeader
@@ -180,20 +266,31 @@ export default function VocabularyPage() {
         textClassName={styles.pageHeaderText}
         titleClassName={styles.pageTitle}
         subtitleClassName={styles.pageSub}
-        title={`${siteContent.vocabulary.title}${canEdit('vocabulary', activeMockUser.role) ? '' : ' (read only)'}`}
-        subtitle={`${items.length} words in your library`}
+        title={`${siteContent.vocabulary.title}${canEditVocab ? '' : ' (read only)'}`}
+        subtitle={`${totalWords} words in your library`}
         actions={
           <div className={styles.headerActions}>
             <Link href="/practice" className={styles.backBtn}>
               <ArrowLeft size={14} />
               Back
             </Link>
-            <VocabularyModeToggle mode={mode} onChange={(nextMode) => { setMode(nextMode); if (nextMode === 'flashcard') { setCardIndex(0); setFlipped(false); } }} />
+            <VocabularyModeToggle
+              mode={mode}
+              onChange={(nextMode) => {
+                setMode(nextMode);
+                if (nextMode === 'flashcard') {
+                  setCardIndex(0);
+                  setFlipped(false);
+                }
+              }}
+            />
           </div>
         }
       />
 
-      <VocabularyStatsRow total={items.length} stats={stats} onFilter={setStatusFilter} />
+      {loadError ? <div className={styles.loadError}>{loadError}</div> : null}
+
+      <VocabularyStatsRow total={totalWords} stats={stats} onFilter={setStatusFilter} />
 
       {mode === 'list' && (
         <VocabularyListSection
@@ -208,9 +305,18 @@ export default function VocabularyPage() {
           filtered={filtered}
           onSetStatus={applyStatus}
           canSetLearned={canSetLearned}
+          canDelete={canDeleteWords}
+          onDelete={onDeleteWord}
           totalSourceCount={items.length}
+          isLoading={isLoading}
+          prependSlot={<VocabularyAddWordBar onAdd={onAddWord} disabled={isLoading} />}
+          onOpenWordDetails={setDetailsWordId}
         />
       )}
+
+      {detailsWordId ? (
+        <WordDetailsModal wordId={detailsWordId} onClose={() => setDetailsWordId(null)} />
+      ) : null}
 
       {mode === 'flashcard' && (
         <VocabularyFlashcardSection
@@ -222,6 +328,7 @@ export default function VocabularyPage() {
           markStatus={markStatus}
           setCardIndex={setCardIndex}
           canSetLearned={canSetLearned}
+          isLoading={isLoading}
         />
       )}
       {mode === 'play' && (
@@ -238,7 +345,8 @@ export default function VocabularyPage() {
           playAnswers={playAnswers}
           playScore={playScore}
           playPhase={playPhase}
-          canStart={playPool.length > 0}
+          canStart={canStartPlay}
+          playPoolCount={playPool.length}
           onStart={startPlay}
           onSelect={(option) => {
             if (playShowExplanation) return;
@@ -250,9 +358,8 @@ export default function VocabularyPage() {
             const isCorrect = playSelected === current.correct;
             setPlayAnswers((prev) => [...prev, isCorrect]);
             if (isCorrect) setPlayScore((prev) => prev + 1);
-            applyStatus(current.entryId, isCorrect ? 'repeated' : 'mistakes_work');
+            applyStatus(current.cardId, isCorrect ? 'repeated' : 'mistakes_work');
             setPlayShowExplanation(true);
-            refreshItems();
           }}
           onNext={() => {
             if (playIndex + 1 >= playQuestions.length) {

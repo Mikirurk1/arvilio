@@ -9,6 +9,8 @@ export type LinkedAccountLink = {
   linked: boolean;
   /** Email, handle, or display hint when connected. */
   connectedAs?: string;
+  /** Google: Calendar + Meet tokens available for lesson scheduling. */
+  calendarConnected?: boolean;
 };
 
 export function buildLinkedAccounts(

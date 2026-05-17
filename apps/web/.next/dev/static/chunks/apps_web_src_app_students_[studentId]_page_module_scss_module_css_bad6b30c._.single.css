@@ -432,6 +432,15 @@
   display: flex;
 }
 
+.page-module-scss-module__QRAcbW__errorHint {
+  color: var(--red-dark, #b42318);
+  background: #b4231814;
+  border: 1px solid #b4231833;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
 .page-module-scss-module__QRAcbW__savedHint {
   color: var(--green-dark);
   background: var(--green-light);
@@ -678,6 +687,39 @@
   .page-module-scss-module__QRAcbW__lessonWorkspace, .page-module-scss-module__QRAcbW__lessonFilters, .page-module-scss-module__QRAcbW__lessonMetaGrid {
     grid-template-columns: 1fr;
   }
+}
+
+.page-module-scss-module__QRAcbW__quizTab {
+  gap: 16px;
+  display: grid;
+}
+
+.page-module-scss-module__QRAcbW__quizTabCard {
+  padding: 0;
+  overflow: hidden;
+}
+
+.page-module-scss-module__QRAcbW__quizResultCard {
+  padding: 20px 24px;
+}
+
+.page-module-scss-module__QRAcbW__quizResultTitle {
+  color: var(--text-primary);
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.page-module-scss-module__QRAcbW__quizResultScore {
+  color: var(--text-secondary);
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+
+.page-module-scss-module__QRAcbW__quizResultHint {
+  color: var(--text-tertiary);
+  margin: 0 0 16px;
+  font-size: 13px;
 }
 
 @media (max-width: 760px) {

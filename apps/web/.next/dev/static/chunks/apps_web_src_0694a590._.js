@@ -897,13 +897,16 @@ __turbopack_context__.v({
   "goalValue": "StatisticsDashboard-module-scss-module__vB5Xea__goalValue",
   "kpiDown": "StatisticsDashboard-module-scss-module__vB5Xea__kpiDown",
   "kpiGrid": "StatisticsDashboard-module-scss-module__vB5Xea__kpiGrid",
+  "kpiInfoBtn": "StatisticsDashboard-module-scss-module__vB5Xea__kpiInfoBtn",
   "kpiTile": "StatisticsDashboard-module-scss-module__vB5Xea__kpiTile",
   "kpiUp": "StatisticsDashboard-module-scss-module__vB5Xea__kpiUp",
+  "kpiWrap": "StatisticsDashboard-module-scss-module__vB5Xea__kpiWrap",
   "rangeBtn": "StatisticsDashboard-module-scss-module__vB5Xea__rangeBtn",
   "rangeBtnActive": "StatisticsDashboard-module-scss-module__vB5Xea__rangeBtnActive",
   "rangeCard": "StatisticsDashboard-module-scss-module__vB5Xea__rangeCard",
   "rangeNote": "StatisticsDashboard-module-scss-module__vB5Xea__rangeNote",
   "rangeSwitch": "StatisticsDashboard-module-scss-module__vB5Xea__rangeSwitch",
+  "sectionInfoBtn": "StatisticsDashboard-module-scss-module__vB5Xea__sectionInfoBtn",
   "wrapper": "StatisticsDashboard-module-scss-module__vB5Xea__wrapper",
 });
 }),
@@ -931,14 +934,17 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$YAxis$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/recharts/es6/cartesian/YAxis.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$index$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/apps/web/src/mocks/index.ts [app-client] (ecmascript) <locals>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$domains$2f$statistics$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/mocks/domains/statistics.ts [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$info$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Info$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/info.js [app-client] (ecmascript) <export default as Info>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$index$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/apps/web/src/components/ui/index.ts [app-client] (ecmascript) <locals>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$SectionHeader$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/components/ui/SectionHeader.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$StatTile$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/components/ui/StatTile.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$SurfaceCard$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/components/ui/SurfaceCard.tsx [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Tooltip$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/components/ui/Tooltip.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$statistics$2f$StatisticsDashboard$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__ = __turbopack_context__.i("[project]/apps/web/src/components/statistics/StatisticsDashboard.module.scss [app-client] (css module)");
 ;
 var _s = __turbopack_context__.k.signature();
 'use client';
+;
 ;
 ;
 ;
@@ -967,6 +973,10 @@ const legendStyle = {
 function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
     _s();
     const [range, setRange] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('week');
+    const [hoveredKpiId, setHoveredKpiId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [hoveredKpiEl, setHoveredKpiEl] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [hoveredSectionId, setHoveredSectionId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [hoveredSectionEl, setHoveredSectionEl] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     const data = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
         "StatisticsDashboard.useMemo[data]": ()=>(0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$domains$2f$statistics$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getRoleStatisticsDashboard"])({
                 roleId,
@@ -985,6 +995,67 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
     const hasTimeTrend = data.timeTrend.length > 0;
     const hasVocabularyTrend = data.vocabularyTrend.some((point)=>point.added > 0 || point.known > 0);
     const hasStatusBreakdown = data.statusBreakdown.some((slice)=>slice.value > 0);
+    const kpiInfoById = {
+        1: 'Number of completed lessons within the selected period.',
+        2: 'Number of cancelled lessons within the selected period.',
+        3: 'Total hours of all lessons in the selected period.',
+        4: 'Share of completed lessons from all scheduled lessons in the selected period.',
+        5: 'Count of quiz sessions completed in the selected period.',
+        6: 'Count of vocabulary items added in the selected period.',
+        7: 'Count of speaking practice sessions in the selected period.'
+    };
+    const sectionInfo = {
+        lessonsTrend: 'Shows how many lessons happened in each bucket of the selected range.',
+        vocabularyTrend: 'Compares vocabulary items added vs moved to known across the selected range.',
+        statusMix: 'Distribution of lesson statuses: completed, planned, and cancelled.',
+        goalsDeltas: 'Goal progress and key delta indicators against the previous period.'
+    };
+    const renderSectionInfo = (id)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
+            children: [
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                    type: "button",
+                    className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$statistics$2f$StatisticsDashboard$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].sectionInfoBtn,
+                    "aria-label": "About this section",
+                    onMouseEnter: (event)=>{
+                        setHoveredSectionId(id);
+                        setHoveredSectionEl(event.currentTarget);
+                    },
+                    onMouseLeave: ()=>{
+                        setHoveredSectionId(null);
+                        setHoveredSectionEl(null);
+                    },
+                    onFocus: (event)=>{
+                        setHoveredSectionId(id);
+                        setHoveredSectionEl(event.currentTarget);
+                    },
+                    onBlur: ()=>{
+                        setHoveredSectionId(null);
+                        setHoveredSectionEl(null);
+                    },
+                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$info$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Info$3e$__["Info"], {
+                        size: 14
+                    }, void 0, false, {
+                        fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
+                        lineNumber: 108,
+                        columnNumber: 9
+                    }, this)
+                }, void 0, false, {
+                    fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
+                    lineNumber: 87,
+                    columnNumber: 7
+                }, this),
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Tooltip$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Tooltip"], {
+                    open: hoveredSectionId === id,
+                    targetEl: hoveredSectionEl,
+                    placement: "top",
+                    content: sectionInfo[id]
+                }, void 0, false, {
+                    fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
+                    lineNumber: 110,
+                    columnNumber: 7
+                }, this)
+            ]
+        }, void 0, true);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$statistics$2f$StatisticsDashboard$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].wrapper,
         children: [
@@ -1009,17 +1080,17 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                                     children: value === 'week' ? 'Week' : value === 'month' ? 'Month' : value === 'quarter' ? 'Quarter' : 'Year'
                                 }, value, false, {
                                     fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                    lineNumber: 73,
+                                    lineNumber: 127,
                                     columnNumber: 17
                                 }, void 0))
                         }, void 0, false, {
                             fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                            lineNumber: 71,
+                            lineNumber: 125,
                             columnNumber: 13
                         }, void 0)
                     }, void 0, false, {
                         fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                        lineNumber: 68,
+                        lineNumber: 122,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1030,31 +1101,82 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                         ]
                     }, void 0, true, {
                         fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                        lineNumber: 91,
+                        lineNumber: 145,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$statistics$2f$StatisticsDashboard$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].kpiGrid,
-                        children: data.kpis.map((kpi)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$StatTile$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["StatTile"], {
-                                label: kpi.label,
-                                value: kpi.value,
-                                subtext: kpi.deltaLabel,
-                                className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$statistics$2f$StatisticsDashboard$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].kpiTile,
-                                subtextClassName: kpi.trend === 'up' ? __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$statistics$2f$StatisticsDashboard$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].kpiUp : kpi.trend === 'down' ? __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$statistics$2f$StatisticsDashboard$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].kpiDown : ''
-                            }, kpi.id, false, {
+                        children: data.kpis.map((kpi)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$statistics$2f$StatisticsDashboard$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].kpiWrap,
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                        type: "button",
+                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$statistics$2f$StatisticsDashboard$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].kpiInfoBtn,
+                                        "aria-label": `About ${kpi.label}`,
+                                        onMouseEnter: (event)=>{
+                                            setHoveredKpiId(kpi.id);
+                                            setHoveredKpiEl(event.currentTarget);
+                                        },
+                                        onMouseLeave: ()=>{
+                                            setHoveredKpiId(null);
+                                            setHoveredKpiEl(null);
+                                        },
+                                        onFocus: (event)=>{
+                                            setHoveredKpiId(kpi.id);
+                                            setHoveredKpiEl(event.currentTarget);
+                                        },
+                                        onBlur: ()=>{
+                                            setHoveredKpiId(null);
+                                            setHoveredKpiEl(null);
+                                        },
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$info$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Info$3e$__["Info"], {
+                                            size: 14
+                                        }, void 0, false, {
+                                            fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
+                                            lineNumber: 172,
+                                            columnNumber: 17
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
+                                        lineNumber: 151,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$StatTile$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["StatTile"], {
+                                        label: kpi.label,
+                                        value: kpi.value,
+                                        subtext: kpi.deltaLabel,
+                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$statistics$2f$StatisticsDashboard$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].kpiTile,
+                                        subtextClassName: kpi.trend === 'up' ? __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$statistics$2f$StatisticsDashboard$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].kpiUp : kpi.trend === 'down' ? __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$statistics$2f$StatisticsDashboard$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].kpiDown : ''
+                                    }, void 0, false, {
+                                        fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
+                                        lineNumber: 174,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Tooltip$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Tooltip"], {
+                                        open: hoveredKpiId === kpi.id,
+                                        targetEl: hoveredKpiEl,
+                                        placement: "top",
+                                        content: kpiInfoById[kpi.id] ?? 'Statistics metric for selected period.'
+                                    }, void 0, false, {
+                                        fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
+                                        lineNumber: 181,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, kpi.id, true, {
                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                lineNumber: 96,
+                                lineNumber: 150,
                                 columnNumber: 13
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                        lineNumber: 94,
+                        lineNumber: 148,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                lineNumber: 67,
+                lineNumber: 121,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1064,10 +1186,11 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                         className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$statistics$2f$StatisticsDashboard$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].chartCard,
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$SectionHeader$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SectionHeader"], {
-                                title: "Lessons trend"
+                                title: "Lessons trend",
+                                action: renderSectionInfo('lessonsTrend')
                             }, void 0, false, {
                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                lineNumber: 110,
+                                lineNumber: 194,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1083,7 +1206,7 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                                                 stroke: "var(--border)"
                                             }, void 0, false, {
                                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                                lineNumber: 115,
+                                                lineNumber: 199,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$XAxis$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["XAxis"], {
@@ -1093,7 +1216,7 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                                                 axisLine: false
                                             }, void 0, false, {
                                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                                lineNumber: 116,
+                                                lineNumber: 200,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$YAxis$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["YAxis"], {
@@ -1103,7 +1226,7 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                                                 width: 30
                                             }, void 0, false, {
                                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                                lineNumber: 117,
+                                                lineNumber: 201,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Tooltip$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Tooltip"], {
@@ -1112,7 +1235,7 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                                                 itemStyle: tooltipItemStyle
                                             }, void 0, false, {
                                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                                lineNumber: 118,
+                                                lineNumber: 202,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$Line$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Line"], {
@@ -1126,46 +1249,47 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                                                 name: "Lessons"
                                             }, void 0, false, {
                                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                                lineNumber: 119,
+                                                lineNumber: 203,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                        lineNumber: 114,
+                                        lineNumber: 198,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                    lineNumber: 113,
+                                    lineNumber: 197,
                                     columnNumber: 15
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$statistics$2f$StatisticsDashboard$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].emptyChart,
                                     children: "No lesson data in selected range."
                                 }, void 0, false, {
                                     fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                    lineNumber: 123,
+                                    lineNumber: 207,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                lineNumber: 111,
+                                lineNumber: 195,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                        lineNumber: 109,
+                        lineNumber: 193,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$SurfaceCard$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SurfaceCard"], {
                         className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$statistics$2f$StatisticsDashboard$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].chartCard,
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$SectionHeader$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SectionHeader"], {
-                                title: "Vocabulary added vs known"
+                                title: "Vocabulary added vs known",
+                                action: renderSectionInfo('vocabularyTrend')
                             }, void 0, false, {
                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                lineNumber: 129,
+                                lineNumber: 213,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1181,7 +1305,7 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                                                 stroke: "var(--border)"
                                             }, void 0, false, {
                                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                                lineNumber: 134,
+                                                lineNumber: 218,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$XAxis$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["XAxis"], {
@@ -1191,7 +1315,7 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                                                 axisLine: false
                                             }, void 0, false, {
                                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                                lineNumber: 135,
+                                                lineNumber: 219,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$YAxis$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["YAxis"], {
@@ -1201,7 +1325,7 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                                                 width: 30
                                             }, void 0, false, {
                                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                                lineNumber: 136,
+                                                lineNumber: 220,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Tooltip$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Tooltip"], {
@@ -1210,14 +1334,14 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                                                 itemStyle: tooltipItemStyle
                                             }, void 0, false, {
                                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                                lineNumber: 137,
+                                                lineNumber: 221,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Legend$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Legend"], {
                                                 wrapperStyle: legendStyle
                                             }, void 0, false, {
                                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                                lineNumber: 138,
+                                                lineNumber: 222,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$Bar$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Bar"], {
@@ -1231,7 +1355,7 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                                                 ]
                                             }, void 0, false, {
                                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                                lineNumber: 139,
+                                                lineNumber: 223,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$Bar$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Bar"], {
@@ -1245,46 +1369,47 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                                                 ]
                                             }, void 0, false, {
                                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                                lineNumber: 140,
+                                                lineNumber: 224,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                        lineNumber: 133,
+                                        lineNumber: 217,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                    lineNumber: 132,
+                                    lineNumber: 216,
                                     columnNumber: 15
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$statistics$2f$StatisticsDashboard$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].emptyChart,
                                     children: "No vocabulary transitions in selected range."
                                 }, void 0, false, {
                                     fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                    lineNumber: 144,
+                                    lineNumber: 228,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                lineNumber: 130,
+                                lineNumber: 214,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                        lineNumber: 128,
+                        lineNumber: 212,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$SurfaceCard$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SurfaceCard"], {
                         className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$statistics$2f$StatisticsDashboard$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].chartCard,
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$SectionHeader$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SectionHeader"], {
-                                title: "Lesson status mix"
+                                title: "Lesson status mix",
+                                action: renderSectionInfo('statusMix')
                             }, void 0, false, {
                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                lineNumber: 150,
+                                lineNumber: 234,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1300,14 +1425,14 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                                                 itemStyle: tooltipItemStyle
                                             }, void 0, false, {
                                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                                lineNumber: 155,
+                                                lineNumber: 239,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Legend$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Legend"], {
                                                 wrapperStyle: legendStyle
                                             }, void 0, false, {
                                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                                lineNumber: 156,
+                                                lineNumber: 240,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$polar$2f$Pie$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Pie"], {
@@ -1321,51 +1446,52 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                                                         fill: PIE_COLORS[index % PIE_COLORS.length]
                                                     }, entry.id, false, {
                                                         fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                                        lineNumber: 159,
+                                                        lineNumber: 243,
                                                         columnNumber: 23
                                                     }, this))
                                             }, void 0, false, {
                                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                                lineNumber: 157,
+                                                lineNumber: 241,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                        lineNumber: 154,
+                                        lineNumber: 238,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                    lineNumber: 153,
+                                    lineNumber: 237,
                                     columnNumber: 15
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$statistics$2f$StatisticsDashboard$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].emptyChart,
                                     children: "No lesson status data in selected range."
                                 }, void 0, false, {
                                     fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                    lineNumber: 165,
+                                    lineNumber: 249,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                lineNumber: 151,
+                                lineNumber: 235,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                        lineNumber: 149,
+                        lineNumber: 233,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$SurfaceCard$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SurfaceCard"], {
                         className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$statistics$2f$StatisticsDashboard$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].chartCard,
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$SectionHeader$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SectionHeader"], {
-                                title: "Goal and deltas"
+                                title: "Goal and deltas",
+                                action: renderSectionInfo('goalsDeltas')
                             }, void 0, false, {
                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                lineNumber: 171,
+                                lineNumber: 255,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1381,7 +1507,7 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                        lineNumber: 173,
+                                        lineNumber: 257,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1394,12 +1520,12 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                                             }
                                         }, void 0, false, {
                                             fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                            lineNumber: 177,
+                                            lineNumber: 261,
                                             columnNumber: 15
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                        lineNumber: 176,
+                                        lineNumber: 260,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1410,7 +1536,7 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                        lineNumber: 179,
+                                        lineNumber: 263,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1423,7 +1549,7 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                                                         children: delta.label
                                                     }, void 0, false, {
                                                         fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                                        lineNumber: 183,
+                                                        lineNumber: 267,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1431,46 +1557,46 @@ function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }) {
                                                         children: delta.value
                                                     }, void 0, false, {
                                                         fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                                        lineNumber: 184,
+                                                        lineNumber: 268,
                                                         columnNumber: 19
                                                     }, this)
                                                 ]
                                             }, delta.id, true, {
                                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                                lineNumber: 182,
+                                                lineNumber: 266,
                                                 columnNumber: 17
                                             }, this))
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                        lineNumber: 180,
+                                        lineNumber: 264,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                                lineNumber: 172,
+                                lineNumber: 256,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                        lineNumber: 170,
+                        lineNumber: 254,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-                lineNumber: 108,
+                lineNumber: 192,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/apps/web/src/components/statistics/StatisticsDashboard.tsx",
-        lineNumber: 66,
+        lineNumber: 120,
         columnNumber: 5
     }, this);
 }
-_s(StatisticsDashboard, "PX4bNr+QcmrflY8SFy34JVcm6ZY=");
+_s(StatisticsDashboard, "bPAIxMC8fcf7HzmEdMqIC0G+7pg=");
 _c = StatisticsDashboard;
 var _c;
 __turbopack_context__.k.register(_c, "StatisticsDashboard");
@@ -2479,11 +2605,18 @@ __turbopack_context__.v({
   "addWordCard": "page-module-scss-module__wiHsxG__addWordCard",
   "addWordInner": "page-module-scss-module__wiHsxG__addWordInner",
   "amber": "page-module-scss-module__wiHsxG__amber",
+  "backBtn": "page-module-scss-module__wiHsxG__backBtn",
   "blue": "page-module-scss-module__wiHsxG__blue",
   "catActive": "page-module-scss-module__wiHsxG__catActive",
   "catBtn": "page-module-scss-module__wiHsxG__catBtn",
   "catFilters": "page-module-scss-module__wiHsxG__catFilters",
+  "checkBtn": "page-module-scss-module__wiHsxG__checkBtn",
   "empty": "page-module-scss-module__wiHsxG__empty",
+  "expCorrect": "page-module-scss-module__wiHsxG__expCorrect",
+  "expIcon": "page-module-scss-module__wiHsxG__expIcon",
+  "expText": "page-module-scss-module__wiHsxG__expText",
+  "expWrong": "page-module-scss-module__wiHsxG__expWrong",
+  "explanation": "page-module-scss-module__wiHsxG__explanation",
   "fadeIn": "page-module-scss-module__wiHsxG__fadeIn",
   "fcBack": "page-module-scss-module__wiHsxG__fcBack",
   "fcBar": "page-module-scss-module__wiHsxG__fcBar",
@@ -2509,16 +2642,45 @@ __turbopack_context__.v({
   "fcRestartBtn": "page-module-scss-module__wiHsxG__fcRestartBtn",
   "fcWord": "page-module-scss-module__wiHsxG__fcWord",
   "filters": "page-module-scss-module__wiHsxG__filters",
+  "finishActions": "page-module-scss-module__wiHsxG__finishActions",
+  "finishBtn": "page-module-scss-module__wiHsxG__finishBtn",
+  "finishModal": "page-module-scss-module__wiHsxG__finishModal",
   "flashcard": "page-module-scss-module__wiHsxG__flashcard",
   "flashcardMode": "page-module-scss-module__wiHsxG__flashcardMode",
   "green": "page-module-scss-module__wiHsxG__green",
+  "headerActions": "page-module-scss-module__wiHsxG__headerActions",
+  "lessonFilterSelect": "page-module-scss-module__wiHsxG__lessonFilterSelect",
+  "modalCancelBtn": "page-module-scss-module__wiHsxG__modalCancelBtn",
+  "modalOverlay": "page-module-scss-module__wiHsxG__modalOverlay",
+  "modalSubmitBtn": "page-module-scss-module__wiHsxG__modalSubmitBtn",
   "modeActive": "page-module-scss-module__wiHsxG__modeActive",
   "modeBtn": "page-module-scss-module__wiHsxG__modeBtn",
   "modeToggle": "page-module-scss-module__wiHsxG__modeToggle",
+  "nextBtn": "page-module-scss-module__wiHsxG__nextBtn",
   "page": "page-module-scss-module__wiHsxG__page",
   "pageHeader": "page-module-scss-module__wiHsxG__pageHeader",
   "pageSub": "page-module-scss-module__wiHsxG__pageSub",
   "pageTitle": "page-module-scss-module__wiHsxG__pageTitle",
+  "playControls": "page-module-scss-module__wiHsxG__playControls",
+  "playOptionBtn": "page-module-scss-module__wiHsxG__playOptionBtn",
+  "playOptionCorrect": "page-module-scss-module__wiHsxG__playOptionCorrect",
+  "playOptionLetter": "page-module-scss-module__wiHsxG__playOptionLetter",
+  "playOptionSelected": "page-module-scss-module__wiHsxG__playOptionSelected",
+  "playOptionWrong": "page-module-scss-module__wiHsxG__playOptionWrong",
+  "playOptionsGrid": "page-module-scss-module__wiHsxG__playOptionsGrid",
+  "playProgress": "page-module-scss-module__wiHsxG__playProgress",
+  "playQuestionCard": "page-module-scss-module__wiHsxG__playQuestionCard",
+  "playQuestionTop": "page-module-scss-module__wiHsxG__playQuestionTop",
+  "playStartBtn": "page-module-scss-module__wiHsxG__playStartBtn",
+  "playWord": "page-module-scss-module__wiHsxG__playWord",
+  "playWrap": "page-module-scss-module__wiHsxG__playWrap",
+  "qActions": "page-module-scss-module__wiHsxG__qActions",
+  "rose": "page-module-scss-module__wiHsxG__rose",
+  "scoreDot": "page-module-scss-module__wiHsxG__scoreDot",
+  "scoreDotEmpty": "page-module-scss-module__wiHsxG__scoreDotEmpty",
+  "scoreDotGreen": "page-module-scss-module__wiHsxG__scoreDotGreen",
+  "scoreDotRed": "page-module-scss-module__wiHsxG__scoreDotRed",
+  "scoreRow": "page-module-scss-module__wiHsxG__scoreRow",
   "searchInput": "page-module-scss-module__wiHsxG__searchInput",
   "slideUp": "page-module-scss-module__wiHsxG__slideUp",
   "statAmber": "page-module-scss-module__wiHsxG__statAmber",
@@ -2527,6 +2689,7 @@ __turbopack_context__.v({
   "statGreen": "page-module-scss-module__wiHsxG__statGreen",
   "statLbl": "page-module-scss-module__wiHsxG__statLbl",
   "statNum": "page-module-scss-module__wiHsxG__statNum",
+  "statRose": "page-module-scss-module__wiHsxG__statRose",
   "statsRow": "page-module-scss-module__wiHsxG__statsRow",
   "wcActions": "page-module-scss-module__wiHsxG__wcActions",
   "wcBtn": "page-module-scss-module__wiHsxG__wcBtn",
@@ -2552,16 +2715,21 @@ __turbopack_context__.s([
     ()=>VocabularyListSection,
     "VocabularyModeToggle",
     ()=>VocabularyModeToggle,
+    "VocabularyPlaySection",
+    ()=>VocabularyPlaySection,
     "VocabularyStatsRow",
     ()=>VocabularyStatsRow,
     "VocabularyWordCards",
     ()=>VocabularyWordCards
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$check$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Check$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/check.js [app-client] (ecmascript) <export default as Check>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$chevron$2d$right$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ChevronRight$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/chevron-right.js [app-client] (ecmascript) <export default as ChevronRight>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$party$2d$popper$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__PartyPopper$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/party-popper.js [app-client] (ecmascript) <export default as PartyPopper>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$play$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Play$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/play.js [app-client] (ecmascript) <export default as Play>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$index$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/apps/web/src/components/ui/index.ts [app-client] (ecmascript) <locals>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$AdaptiveSelect$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/components/ui/AdaptiveSelect.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Badge$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/components/ui/Badge.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/components/ui/Button.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$EmptyStateCard$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/components/ui/EmptyStateCard.tsx [app-client] (ecmascript)");
@@ -2570,6 +2738,8 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$compon
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$SegmentedControl$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/components/ui/SegmentedControl.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$StatTile$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/components/ui/StatTile.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__ = __turbopack_context__.i("[project]/apps/web/src/app/vocabulary/page.module.scss [app-client] (css module)");
+;
+var _s = __turbopack_context__.k.signature();
 'use client';
 ;
 ;
@@ -2645,6 +2815,17 @@ function VocabularyModeToggle({ mode, onChange }) {
                     lineNumber: 39,
                     columnNumber: 13
                 }, void 0)
+            },
+            {
+                value: 'play',
+                label: 'Play',
+                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$play$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Play$3e$__["Play"], {
+                    size: 16
+                }, void 0, false, {
+                    fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                    lineNumber: 48,
+                    columnNumber: 17
+                }, void 0)
             }
         ]
     }, void 0, false, {
@@ -2668,7 +2849,7 @@ function VocabularyStatsRow({ total, stats, onFilter }) {
                 valueClassName: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].statNum
             }, void 0, false, {
                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                lineNumber: 61,
+                lineNumber: 66,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$StatTile$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["StatTile"], {
@@ -2681,52 +2862,63 @@ function VocabularyStatsRow({ total, stats, onFilter }) {
                 valueClassName: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].statNum
             }, void 0, false, {
                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                lineNumber: 62,
+                lineNumber: 67,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$StatTile$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["StatTile"], {
                 className: `${__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].statChip} ${__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].statAmber}`,
                 interactive: true,
-                onClick: ()=>onFilter('learning'),
-                label: "Learning",
+                onClick: ()=>onFilter('repeated'),
+                label: "Repeated",
                 labelClassName: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].statLbl,
-                value: stats.learning,
+                value: stats.repeated,
                 valueClassName: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].statNum
             }, void 0, false, {
                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                lineNumber: 63,
+                lineNumber: 68,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$StatTile$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["StatTile"], {
+                className: `${__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].statChip} ${__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].statRose}`,
+                interactive: true,
+                onClick: ()=>onFilter('mistakes_work'),
+                label: "Mistakes work",
+                labelClassName: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].statLbl,
+                value: stats.mistakesWork,
+                valueClassName: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].statNum
+            }, void 0, false, {
+                fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                lineNumber: 69,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$StatTile$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["StatTile"], {
                 className: `${__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].statChip} ${__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].statGreen}`,
                 interactive: true,
-                onClick: ()=>onFilter('known'),
-                label: "Known",
+                onClick: ()=>onFilter('learned'),
+                label: "Learned",
                 labelClassName: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].statLbl,
-                value: stats.known,
+                value: stats.learned,
                 valueClassName: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].statNum
             }, void 0, false, {
                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                lineNumber: 64,
+                lineNumber: 70,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-        lineNumber: 60,
+        lineNumber: 65,
         columnNumber: 5
     }, this);
 }
 _c1 = VocabularyStatsRow;
-function VocabularyWordCards({ items, onSetStatus, canSetKnown, animationIndexOffset = 0 }) {
-    const statusOptions = canSetKnown ? [
+function VocabularyWordCards({ items, onSetStatus, canSetLearned, animationIndexOffset = 0 }) {
+    const statusOptions = canSetLearned ? [
         'new',
-        'learning',
-        'known'
-    ] : [
-        'new',
-        'learning'
-    ];
+        'repeated',
+        'mistakes_work',
+        'learned'
+    ] : [];
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
         children: items.map(({ row, word, status }, i)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].wordCard,
@@ -2744,7 +2936,7 @@ function VocabularyWordCards({ items, onSetStatus, canSetKnown, animationIndexOf
                                         children: word.word
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                                        lineNumber: 95,
+                                        lineNumber: 101,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2752,28 +2944,28 @@ function VocabularyWordCards({ items, onSetStatus, canSetKnown, animationIndexOf
                                         children: word.phonetic
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                                        lineNumber: 96,
+                                        lineNumber: 102,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                                lineNumber: 94,
+                                lineNumber: 100,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Badge$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Badge"], {
-                                className: `${__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].wcStatus} ${__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"][status === 'new' ? 'blue' : status === 'learning' ? 'amber' : 'green']}`,
-                                variant: status === 'new' ? 'blue' : status === 'learning' ? 'amber' : 'green',
+                                className: `${__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].wcStatus} ${__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"][status === 'new' ? 'blue' : status === 'repeated' ? 'amber' : status === 'mistakes_work' ? 'rose' : 'green']}`,
+                                variant: status === 'new' ? 'blue' : status === 'repeated' ? 'amber' : status === 'mistakes_work' ? 'rose' : 'green',
                                 children: status
                             }, void 0, false, {
                                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                                lineNumber: 98,
+                                lineNumber: 104,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                        lineNumber: 93,
+                        lineNumber: 99,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2781,7 +2973,7 @@ function VocabularyWordCards({ items, onSetStatus, canSetKnown, animationIndexOf
                         children: word.pos
                     }, void 0, false, {
                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                        lineNumber: 105,
+                        lineNumber: 111,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2789,7 +2981,7 @@ function VocabularyWordCards({ items, onSetStatus, canSetKnown, animationIndexOf
                         children: word.definition
                     }, void 0, false, {
                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                        lineNumber: 106,
+                        lineNumber: 112,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2801,10 +2993,10 @@ function VocabularyWordCards({ items, onSetStatus, canSetKnown, animationIndexOf
                         ]
                     }, void 0, true, {
                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                        lineNumber: 107,
+                        lineNumber: 113,
                         columnNumber: 11
                     }, this),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    statusOptions.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].wcActions,
                         children: statusOptions.map((nextStatus)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
                                 type: "button",
@@ -2813,24 +3005,24 @@ function VocabularyWordCards({ items, onSetStatus, canSetKnown, animationIndexOf
                                 children: nextStatus
                             }, nextStatus, false, {
                                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                                lineNumber: 110,
-                                columnNumber: 15
+                                lineNumber: 117,
+                                columnNumber: 17
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                        lineNumber: 108,
-                        columnNumber: 11
-                    }, this)
+                        lineNumber: 115,
+                        columnNumber: 13
+                    }, this) : null
                 ]
             }, row.id, true, {
                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                lineNumber: 88,
+                lineNumber: 94,
                 columnNumber: 9
             }, this))
     }, void 0, false);
 }
 _c2 = VocabularyWordCards;
-function VocabularyListSection({ search, setSearch, categories, filter, setFilter, filtered, onSetStatus, canSetKnown, prependSlot, totalSourceCount }) {
+function VocabularyListSection({ search, setSearch, categories, filter, setFilter, lessonFilter, setLessonFilter, lessonOptions, filtered, onSetStatus, canSetLearned, prependSlot, totalSourceCount }) {
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2843,7 +3035,24 @@ function VocabularyListSection({ search, setSearch, categories, filter, setFilte
                         onChange: (e)=>setSearch(e.target.value)
                     }, void 0, false, {
                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                        lineNumber: 154,
+                        lineNumber: 168,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$AdaptiveSelect$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AdaptiveSelect"], {
+                        className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].lessonFilterSelect,
+                        value: lessonFilter,
+                        onChange: (event)=>setLessonFilter(event.target.value),
+                        children: lessonOptions.map((option)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                value: option.value,
+                                children: option.label
+                            }, option.value, false, {
+                                fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                                lineNumber: 175,
+                                columnNumber: 13
+                            }, this))
+                    }, void 0, false, {
+                        fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                        lineNumber: 169,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$SegmentedControl$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SegmentedControl"], {
@@ -2859,13 +3068,13 @@ function VocabularyListSection({ search, setSearch, categories, filter, setFilte
                             }))
                     }, void 0, false, {
                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                        lineNumber: 155,
+                        lineNumber: 180,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                lineNumber: 153,
+                lineNumber: 167,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2875,17 +3084,17 @@ function VocabularyListSection({ search, setSearch, categories, filter, setFilte
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(VocabularyWordCards, {
                         items: filtered,
                         onSetStatus: onSetStatus,
-                        canSetKnown: canSetKnown,
+                        canSetLearned: canSetLearned,
                         animationIndexOffset: prependSlot ? 1 : 0
                     }, void 0, false, {
                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                        lineNumber: 171,
+                        lineNumber: 196,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                lineNumber: 169,
+                lineNumber: 194,
                 columnNumber: 7
             }, this),
             filtered.length === 0 && totalSourceCount > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$EmptyStateCard$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["EmptyStateCard"], {
@@ -2894,7 +3103,7 @@ function VocabularyListSection({ search, setSearch, categories, filter, setFilte
                 description: "Try a different filter or clear search."
             }, void 0, false, {
                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                lineNumber: 179,
+                lineNumber: 204,
                 columnNumber: 9
             }, this) : null,
             filtered.length === 0 && totalSourceCount === 0 && !prependSlot ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$EmptyStateCard$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["EmptyStateCard"], {
@@ -2903,14 +3112,14 @@ function VocabularyListSection({ search, setSearch, categories, filter, setFilte
                 description: "Try a different filter."
             }, void 0, false, {
                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                lineNumber: 186,
+                lineNumber: 211,
                 columnNumber: 9
             }, this) : null
         ]
     }, void 0, true);
 }
 _c3 = VocabularyListSection;
-function VocabularyFlashcardSection({ cardIndex, total, currentItem, flipped, setFlipped, markStatus, setCardIndex, canSetKnown }) {
+function VocabularyFlashcardSection({ cardIndex, total, currentItem, flipped, setFlipped, markStatus, setCardIndex, canSetLearned }) {
     const word = currentItem?.word;
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: `container container--form ${__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].flashcardMode}`,
@@ -2923,7 +3132,7 @@ function VocabularyFlashcardSection({ cardIndex, total, currentItem, flipped, se
                 total: total
             }, void 0, false, {
                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                lineNumber: 214,
+                lineNumber: 239,
                 columnNumber: 7
             }, this),
             word ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -2940,7 +3149,7 @@ function VocabularyFlashcardSection({ cardIndex, total, currentItem, flipped, se
                                         children: "Click to reveal definition"
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                                        lineNumber: 219,
+                                        lineNumber: 244,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2948,7 +3157,7 @@ function VocabularyFlashcardSection({ cardIndex, total, currentItem, flipped, se
                                         children: word.word
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                                        lineNumber: 220,
+                                        lineNumber: 245,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2956,7 +3165,7 @@ function VocabularyFlashcardSection({ cardIndex, total, currentItem, flipped, se
                                         children: word.phonetic
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                                        lineNumber: 221,
+                                        lineNumber: 246,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2968,13 +3177,13 @@ function VocabularyFlashcardSection({ cardIndex, total, currentItem, flipped, se
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                                        lineNumber: 222,
+                                        lineNumber: 247,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                                lineNumber: 218,
+                                lineNumber: 243,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2985,7 +3194,7 @@ function VocabularyFlashcardSection({ cardIndex, total, currentItem, flipped, se
                                         children: word.definition
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                                        lineNumber: 227,
+                                        lineNumber: 252,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2997,19 +3206,19 @@ function VocabularyFlashcardSection({ cardIndex, total, currentItem, flipped, se
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                                        lineNumber: 228,
+                                        lineNumber: 253,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                                lineNumber: 226,
+                                lineNumber: 251,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                        lineNumber: 217,
+                        lineNumber: 242,
                         columnNumber: 11
                     }, this),
                     flipped ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3022,42 +3231,52 @@ function VocabularyFlashcardSection({ cardIndex, total, currentItem, flipped, se
                                 children: "Still learning"
                             }, void 0, false, {
                                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                                lineNumber: 233,
+                                lineNumber: 258,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
                                 type: "button",
                                 className: `${__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].fcBtn} ${__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].fcBtnAmber}`,
-                                onClick: ()=>markStatus('learning'),
-                                children: "Almost got it"
+                                onClick: ()=>markStatus('repeated'),
+                                children: "Repeated"
                             }, void 0, false, {
                                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                                lineNumber: 234,
+                                lineNumber: 259,
                                 columnNumber: 15
                             }, this),
-                            canSetKnown ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                type: "button",
+                                className: `${__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].fcBtn} ${__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].fcBtnRed}`,
+                                onClick: ()=>markStatus('mistakes_work'),
+                                children: "Mistakes work"
+                            }, void 0, false, {
+                                fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                                lineNumber: 260,
+                                columnNumber: 15
+                            }, this),
+                            canSetLearned ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
                                 type: "button",
                                 className: `${__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].fcBtn} ${__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].fcBtnGreen}`,
-                                onClick: ()=>markStatus('known'),
+                                onClick: ()=>markStatus('learned'),
                                 children: [
-                                    "Know it! ",
+                                    "Learned ",
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$check$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Check$3e$__["Check"], {
                                         size: 14
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                                        lineNumber: 237,
-                                        columnNumber: 28
+                                        lineNumber: 263,
+                                        columnNumber: 27
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                                lineNumber: 236,
+                                lineNumber: 262,
                                 columnNumber: 17
                             }, this) : null
                         ]
                     }, void 0, true, {
                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                        lineNumber: 232,
+                        lineNumber: 257,
                         columnNumber: 13
                     }, this) : null,
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3074,7 +3293,7 @@ function VocabularyFlashcardSection({ cardIndex, total, currentItem, flipped, se
                                 children: "← Prev"
                             }, void 0, false, {
                                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                                lineNumber: 243,
+                                lineNumber: 269,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -3091,19 +3310,19 @@ function VocabularyFlashcardSection({ cardIndex, total, currentItem, flipped, se
                                         size: 14
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                                        lineNumber: 245,
+                                        lineNumber: 271,
                                         columnNumber: 20
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                                lineNumber: 244,
+                                lineNumber: 270,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                        lineNumber: 242,
+                        lineNumber: 268,
                         columnNumber: 11
                     }, this)
                 ]
@@ -3115,12 +3334,12 @@ function VocabularyFlashcardSection({ cardIndex, total, currentItem, flipped, se
                         size: 22
                     }, void 0, false, {
                         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                        lineNumber: 250,
+                        lineNumber: 276,
                         columnNumber: 100
                     }, void 0)
                 }, void 0, false, {
                     fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                    lineNumber: 250,
+                    lineNumber: 276,
                     columnNumber: 61
                 }, void 0),
                 title: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3128,7 +3347,7 @@ function VocabularyFlashcardSection({ cardIndex, total, currentItem, flipped, se
                     children: "All done!"
                 }, void 0, false, {
                     fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                    lineNumber: 250,
+                    lineNumber: 276,
                     columnNumber: 140
                 }, void 0),
                 description: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3140,28 +3359,452 @@ function VocabularyFlashcardSection({ cardIndex, total, currentItem, flipped, se
                     ]
                 }, void 0, true, {
                     fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                    lineNumber: 250,
+                    lineNumber: 276,
                     columnNumber: 210
                 }, void 0)
             }, void 0, false, {
                 fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-                lineNumber: 250,
+                lineNumber: 276,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
-        lineNumber: 213,
+        lineNumber: 238,
         columnNumber: 5
     }, this);
 }
 _c4 = VocabularyFlashcardSection;
-var _c, _c1, _c2, _c3, _c4;
+function VocabularyPlaySection({ playSource, setPlaySource, playLessonId, setPlayLessonId, playLessonOptions, playQuestions, playIndex, playSelected, playShowExplanation, playAnswers, playScore, playPhase, canStart, onStart, onSelect, onCheck, onNext, onFinish, onReset }) {
+    _s();
+    const [showFinishConfirm, setShowFinishConfirm] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const current = playQuestions[playIndex];
+    const complete = playPhase === 'result';
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+        className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].playWrap,
+        children: [
+            playPhase === 'setup' ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].playControls,
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$SegmentedControl$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SegmentedControl"], {
+                        value: playSource,
+                        onValueChange: (next)=>setPlaySource(next),
+                        ariaLabel: "Play source",
+                        className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].catFilters,
+                        optionClassName: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].catBtn,
+                        activeOptionClassName: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].catActive,
+                        options: [
+                            {
+                                value: 'random',
+                                label: 'Without lesson'
+                            },
+                            {
+                                value: 'last',
+                                label: 'Words from last lesson'
+                            },
+                            {
+                                value: 'lesson',
+                                label: 'Words by lesson'
+                            }
+                        ]
+                    }, void 0, false, {
+                        fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                        lineNumber: 330,
+                        columnNumber: 11
+                    }, this),
+                    playSource === 'lesson' ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$AdaptiveSelect$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AdaptiveSelect"], {
+                        className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].lessonFilterSelect,
+                        value: playLessonId,
+                        onChange: (e)=>setPlayLessonId(e.target.value),
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                value: "all",
+                                children: "Without lesson"
+                            }, void 0, false, {
+                                fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                                lineNumber: 345,
+                                columnNumber: 15
+                            }, this),
+                            playLessonOptions.map((option)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                    value: option.value,
+                                    children: option.label
+                                }, option.value, false, {
+                                    fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                                    lineNumber: 347,
+                                    columnNumber: 17
+                                }, this))
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                        lineNumber: 344,
+                        columnNumber: 13
+                    }, this) : null,
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                        type: "button",
+                        className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].playStartBtn,
+                        disabled: !canStart,
+                        onClick: onStart,
+                        children: "Play"
+                    }, void 0, false, {
+                        fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                        lineNumber: 353,
+                        columnNumber: 11
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                lineNumber: 329,
+                columnNumber: 9
+            }, this) : null,
+            playPhase === 'setup' ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$EmptyStateCard$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["EmptyStateCard"], {
+                className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].empty,
+                title: "Ready to play",
+                description: "By default we use words without lesson filter: new + mistakes work first, then all words if needed."
+            }, void 0, false, {
+                fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                lineNumber: 360,
+                columnNumber: 9
+            }, this) : null,
+            playPhase === 'quiz' && current ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].playQuestionCard,
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].playProgress,
+                        children: [
+                            playIndex + 1,
+                            " / ",
+                            playQuestions.length
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                        lineNumber: 369,
+                        columnNumber: 11
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].scoreRow,
+                        children: [
+                            playAnswers.map((ok, i)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: `${__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].scoreDot} ${ok ? __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].scoreDotGreen : __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].scoreDotRed}`
+                                }, i, false, {
+                                    fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                                    lineNumber: 374,
+                                    columnNumber: 15
+                                }, this)),
+                            Array.from({
+                                length: playQuestions.length - playAnswers.length
+                            }).map((_, i)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].scoreDotEmpty
+                                }, `p-empty-${i}`, false, {
+                                    fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                                    lineNumber: 377,
+                                    columnNumber: 15
+                                }, this))
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                        lineNumber: 372,
+                        columnNumber: 11
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].flashcard,
+                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].fcFront,
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].fcHint,
+                                    children: "Choose the correct translation"
+                                }, void 0, false, {
+                                    fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                                    lineNumber: 382,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].fcWord,
+                                    children: current.word
+                                }, void 0, false, {
+                                    fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                                    lineNumber: 383,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].fcPhonetic,
+                                    children: current.phonetic
+                                }, void 0, false, {
+                                    fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                                    lineNumber: 384,
+                                    columnNumber: 15
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                            lineNumber: 381,
+                            columnNumber: 13
+                        }, this)
+                    }, void 0, false, {
+                        fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                        lineNumber: 380,
+                        columnNumber: 11
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].playOptionsGrid,
+                        children: current.options.map((option, optionIndex)=>{
+                            const isCorrect = option === current.correct;
+                            const isSelected = option === playSelected;
+                            const resultClass = playShowExplanation ? isCorrect ? __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].playOptionCorrect : isSelected ? __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].playOptionWrong : '' : '';
+                            return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                type: "button",
+                                className: `${__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].playOptionBtn} ${!playShowExplanation && isSelected ? __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].playOptionSelected : ''} ${resultClass}`,
+                                disabled: playShowExplanation,
+                                onClick: ()=>onSelect(option),
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].playOptionLetter,
+                                        children: String.fromCharCode(65 + optionIndex)
+                                    }, void 0, false, {
+                                        fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                                        lineNumber: 406,
+                                        columnNumber: 19
+                                    }, this),
+                                    option
+                                ]
+                            }, `${option}-${optionIndex}`, true, {
+                                fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                                lineNumber: 399,
+                                columnNumber: 17
+                            }, this);
+                        })
+                    }, void 0, false, {
+                        fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                        lineNumber: 387,
+                        columnNumber: 11
+                    }, this),
+                    playShowExplanation ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: `${__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].explanation} ${playSelected === current.correct ? __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].expCorrect : __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].expWrong}`,
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].expIcon,
+                                children: playSelected === current.correct ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$check$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Check$3e$__["Check"], {
+                                            size: 15
+                                        }, void 0, false, {
+                                            fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                                            lineNumber: 417,
+                                            columnNumber: 21
+                                        }, this),
+                                        " Correct!"
+                                    ]
+                                }, void 0, true) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$chevron$2d$right$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ChevronRight$3e$__["ChevronRight"], {
+                                            size: 15
+                                        }, void 0, false, {
+                                            fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                                            lineNumber: 421,
+                                            columnNumber: 21
+                                        }, this),
+                                        " Not quite"
+                                    ]
+                                }, void 0, true)
+                            }, void 0, false, {
+                                fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                                lineNumber: 414,
+                                columnNumber: 15
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].expText,
+                                children: [
+                                    "Correct answer: ",
+                                    current.correct
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                                lineNumber: 425,
+                                columnNumber: 15
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                        lineNumber: 413,
+                        columnNumber: 13
+                    }, this) : null,
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].qActions,
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                type: "button",
+                                className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].finishBtn,
+                                onClick: ()=>setShowFinishConfirm(true),
+                                children: "Finish game"
+                            }, void 0, false, {
+                                fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                                lineNumber: 429,
+                                columnNumber: 13
+                            }, this),
+                            !playShowExplanation ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                type: "button",
+                                className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].checkBtn,
+                                disabled: !playSelected,
+                                onClick: onCheck,
+                                children: "Check Answer"
+                            }, void 0, false, {
+                                fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                                lineNumber: 433,
+                                columnNumber: 15
+                            }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                type: "button",
+                                className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].nextBtn,
+                                onClick: onNext,
+                                children: playIndex + 1 >= playQuestions.length ? 'See Results →' : 'Next Question →'
+                            }, void 0, false, {
+                                fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                                lineNumber: 437,
+                                columnNumber: 15
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                        lineNumber: 428,
+                        columnNumber: 11
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                lineNumber: 368,
+                columnNumber: 9
+            }, this) : null,
+            complete ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$EmptyStateCard$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["EmptyStateCard"], {
+                className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].fcComplete,
+                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].fcCompleteIcon,
+                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$party$2d$popper$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__PartyPopper$3e$__["PartyPopper"], {
+                        size: 22
+                    }, void 0, false, {
+                        fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                        lineNumber: 448,
+                        columnNumber: 56
+                    }, void 0)
+                }, void 0, false, {
+                    fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                    lineNumber: 448,
+                    columnNumber: 17
+                }, void 0),
+                title: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].fcCompleteTitle,
+                    children: "Round complete"
+                }, void 0, false, {
+                    fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                    lineNumber: 449,
+                    columnNumber: 18
+                }, void 0),
+                description: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].fcCompleteSub,
+                    children: [
+                        playScore,
+                        " / ",
+                        playQuestions.length,
+                        " correct"
+                    ]
+                }, void 0, true, {
+                    fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                    lineNumber: 450,
+                    columnNumber: 24
+                }, void 0),
+                action: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                    type: "button",
+                    className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].fcRestartBtn,
+                    onClick: onReset,
+                    children: "New round"
+                }, void 0, false, {
+                    fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                    lineNumber: 452,
+                    columnNumber: 13
+                }, void 0)
+            }, void 0, false, {
+                fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                lineNumber: 446,
+                columnNumber: 9
+            }, this) : null,
+            showFinishConfirm ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].modalOverlay,
+                onClick: ()=>setShowFinishConfirm(false),
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].finishModal,
+                    onClick: (e)=>e.stopPropagation(),
+                    children: [
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                            children: "Finish game now?"
+                        }, void 0, false, {
+                            fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                            lineNumber: 461,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                            children: "Your current progress will be saved and results will be shown immediately."
+                        }, void 0, false, {
+                            fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                            lineNumber: 462,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].finishActions,
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                    type: "button",
+                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].modalCancelBtn,
+                                    onClick: ()=>setShowFinishConfirm(false),
+                                    children: "Continue game"
+                                }, void 0, false, {
+                                    fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                                    lineNumber: 464,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                    type: "button",
+                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].modalSubmitBtn,
+                                    onClick: ()=>{
+                                        setShowFinishConfirm(false);
+                                        onFinish();
+                                    },
+                                    children: "Yes, finish"
+                                }, void 0, false, {
+                                    fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                                    lineNumber: 467,
+                                    columnNumber: 15
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                            lineNumber: 463,
+                            columnNumber: 13
+                        }, this)
+                    ]
+                }, void 0, true, {
+                    fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                    lineNumber: 460,
+                    columnNumber: 11
+                }, this)
+            }, void 0, false, {
+                fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+                lineNumber: 459,
+                columnNumber: 9
+            }, this) : null
+        ]
+    }, void 0, true, {
+        fileName: "[project]/apps/web/src/app/vocabulary/sections.tsx",
+        lineNumber: 327,
+        columnNumber: 5
+    }, this);
+}
+_s(VocabularyPlaySection, "6aCLPfAh8tW78Eg4Yp7ttWfmheY=");
+_c5 = VocabularyPlaySection;
+var _c, _c1, _c2, _c3, _c4, _c5;
 __turbopack_context__.k.register(_c, "VocabularyModeToggle");
 __turbopack_context__.k.register(_c1, "VocabularyStatsRow");
 __turbopack_context__.k.register(_c2, "VocabularyWordCards");
 __turbopack_context__.k.register(_c3, "VocabularyListSection");
 __turbopack_context__.k.register(_c4, "VocabularyFlashcardSection");
+__turbopack_context__.k.register(_c5, "VocabularyPlaySection");
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }
@@ -3202,6 +3845,7 @@ function StudentVocabularyTab({ studentUserId }) {
     const [draftDef, setDraftDef] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('');
     const [filter, setFilter] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('All');
     const [statusFilter, setStatusFilter] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('all');
+    const [lessonFilter, setLessonFilter] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('all');
     const [search, setSearch] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('');
     const categories = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
         "StudentVocabularyTab.useMemo[categories]": ()=>{
@@ -3230,24 +3874,52 @@ function StudentVocabularyTab({ studentUserId }) {
     ]);
     const filtered = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
         "StudentVocabularyTab.useMemo[filtered]": ()=>items.filter({
-                "StudentVocabularyTab.useMemo[filtered]": ({ word, status })=>{
+                "StudentVocabularyTab.useMemo[filtered]": ({ row, word, status })=>{
                     const catOk = filter === 'All' || word.category === filter;
                     const statusOk = statusFilter === 'all' || status === statusFilter;
+                    const lessonOk = lessonFilter === 'all' || String(row.lessonId ?? '') === lessonFilter;
                     const searchOk = !search || word.word.toLowerCase().includes(search.toLowerCase()) || word.definition.toLowerCase().includes(search.toLowerCase());
-                    return catOk && statusOk && searchOk;
+                    return catOk && statusOk && lessonOk && searchOk;
                 }
             }["StudentVocabularyTab.useMemo[filtered]"])
     }["StudentVocabularyTab.useMemo[filtered]"], [
         items,
         filter,
         statusFilter,
+        lessonFilter,
         search
     ]);
     const stats = {
         new: items.filter(({ status })=>status === 'new').length,
-        learning: items.filter(({ status })=>status === 'learning').length,
-        known: items.filter(({ status })=>status === 'known').length
+        repeated: items.filter(({ status })=>status === 'repeated').length,
+        mistakesWork: items.filter(({ status })=>status === 'mistakes_work').length,
+        learned: items.filter(({ status })=>status === 'learned').length
     };
+    const lessonOptions = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
+        "StudentVocabularyTab.useMemo[lessonOptions]": ()=>{
+            const unique = Array.from(new Set(items.map({
+                "StudentVocabularyTab.useMemo[lessonOptions].unique": ({ row })=>row.lessonId
+            }["StudentVocabularyTab.useMemo[lessonOptions].unique"]).filter({
+                "StudentVocabularyTab.useMemo[lessonOptions].unique": (lessonId)=>Boolean(lessonId)
+            }["StudentVocabularyTab.useMemo[lessonOptions].unique"]))).sort({
+                "StudentVocabularyTab.useMemo[lessonOptions].unique": (a, b)=>a - b
+            }["StudentVocabularyTab.useMemo[lessonOptions].unique"]);
+            return [
+                {
+                    value: 'all',
+                    label: 'All lessons'
+                },
+                ...unique.map({
+                    "StudentVocabularyTab.useMemo[lessonOptions]": (id)=>({
+                            value: String(id),
+                            label: `Lesson #${id}`
+                        })
+                }["StudentVocabularyTab.useMemo[lessonOptions]"])
+            ];
+        }
+    }["StudentVocabularyTab.useMemo[lessonOptions]"], [
+        items
+    ]);
     const onSetStatus = (entryId, status)=>{
         (0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$domains$2f$profile$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["updateProfileVocabularyStatus"])(entryId, (0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$domains$2f$vocabulary$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["legacyStatusToVocabularyStatusId"])(status));
         refresh();
@@ -3283,14 +3955,14 @@ function StudentVocabularyTab({ studentUserId }) {
                         children: "known"
                     }, void 0, false, {
                         fileName: "[project]/apps/web/src/app/students/[studentId]/StudentVocabularyTab.tsx",
-                        lineNumber: 86,
+                        lineNumber: 96,
                         columnNumber: 93
                     }, this),
                     "."
                 ]
             }, void 0, true, {
                 fileName: "[project]/apps/web/src/app/students/[studentId]/StudentVocabularyTab.tsx",
-                lineNumber: 85,
+                lineNumber: 95,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3301,7 +3973,7 @@ function StudentVocabularyTab({ studentUserId }) {
                         children: "Add word"
                     }, void 0, false, {
                         fileName: "[project]/apps/web/src/app/students/[studentId]/StudentVocabularyTab.tsx",
-                        lineNumber: 89,
+                        lineNumber: 99,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3316,7 +3988,7 @@ function StudentVocabularyTab({ studentUserId }) {
                                         children: "Word"
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/app/students/[studentId]/StudentVocabularyTab.tsx",
-                                        lineNumber: 92,
+                                        lineNumber: 102,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Field$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Field"], {
@@ -3327,13 +3999,13 @@ function StudentVocabularyTab({ studentUserId }) {
                                         onChange: (e)=>setDraftWord(e.target.value)
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/app/students/[studentId]/StudentVocabularyTab.tsx",
-                                        lineNumber: 95,
+                                        lineNumber: 105,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/apps/web/src/app/students/[studentId]/StudentVocabularyTab.tsx",
-                                lineNumber: 91,
+                                lineNumber: 101,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3345,7 +4017,7 @@ function StudentVocabularyTab({ studentUserId }) {
                                         children: "Definition (optional)"
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/app/students/[studentId]/StudentVocabularyTab.tsx",
-                                        lineNumber: 104,
+                                        lineNumber: 114,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Field$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Field"], {
@@ -3356,19 +4028,19 @@ function StudentVocabularyTab({ studentUserId }) {
                                         onChange: (e)=>setDraftDef(e.target.value)
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/app/students/[studentId]/StudentVocabularyTab.tsx",
-                                        lineNumber: 107,
+                                        lineNumber: 117,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/apps/web/src/app/students/[studentId]/StudentVocabularyTab.tsx",
-                                lineNumber: 103,
+                                lineNumber: 113,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/apps/web/src/app/students/[studentId]/StudentVocabularyTab.tsx",
-                        lineNumber: 90,
+                        lineNumber: 100,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -3379,13 +4051,13 @@ function StudentVocabularyTab({ studentUserId }) {
                         children: "Add to student vocabulary"
                     }, void 0, false, {
                         fileName: "[project]/apps/web/src/app/students/[studentId]/StudentVocabularyTab.tsx",
-                        lineNumber: 116,
+                        lineNumber: 126,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/apps/web/src/app/students/[studentId]/StudentVocabularyTab.tsx",
-                lineNumber: 88,
+                lineNumber: 98,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$sections$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["VocabularyStatsRow"], {
@@ -3394,7 +4066,7 @@ function StudentVocabularyTab({ studentUserId }) {
                 onFilter: setStatusFilter
             }, void 0, false, {
                 fileName: "[project]/apps/web/src/app/students/[studentId]/StudentVocabularyTab.tsx",
-                lineNumber: 120,
+                lineNumber: 130,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$sections$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["VocabularyListSection"], {
@@ -3403,23 +4075,26 @@ function StudentVocabularyTab({ studentUserId }) {
                 categories: categories,
                 filter: filter,
                 setFilter: setFilter,
+                lessonFilter: lessonFilter,
+                setLessonFilter: setLessonFilter,
+                lessonOptions: lessonOptions,
                 filtered: filtered,
                 onSetStatus: onSetStatus,
-                canSetKnown: true,
+                canSetLearned: true,
                 totalSourceCount: items.length
             }, void 0, false, {
                 fileName: "[project]/apps/web/src/app/students/[studentId]/StudentVocabularyTab.tsx",
-                lineNumber: 121,
+                lineNumber: 131,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/apps/web/src/app/students/[studentId]/StudentVocabularyTab.tsx",
-        lineNumber: 84,
+        lineNumber: 94,
         columnNumber: 5
     }, this);
 }
-_s(StudentVocabularyTab, "1FxsKxDVoUlUatGr9kxtUi2Z4vM=");
+_s(StudentVocabularyTab, "8BQb75Bp3jAeR+R6dIyvj4Km5vI=");
 _c = StudentVocabularyTab;
 var _c;
 __turbopack_context__.k.register(_c, "StudentVocabularyTab");
@@ -3445,11 +4120,12 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$compon
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$lib$2f$lessonTime$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/lib/lessonTime.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$features$2f$calendar$2f$adapters$2f$lessonCalendarAdapter$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/features/calendar/adapters/lessonCalendarAdapter.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$index$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/apps/web/src/mocks/index.ts [app-client] (ecmascript) <locals>");
-var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$session$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/mocks/session.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$domains$2f$achievements$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/mocks/domains/achievements.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$roles$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/mocks/roles.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$domains$2f$profile$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/mocks/domains/profile.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$domains$2f$lessons$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/mocks/domains/lessons.ts [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$session$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/mocks/session.ts [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$lib$2f$active$2d$user$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/lib/active-user.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$lib$2f$avatar$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/lib/avatar.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$students$2f5b$studentId$5d2f$sections$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/app/students/[studentId]/sections.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$students$2f5b$studentId$5d2f$StudentVocabularyTab$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/app/students/[studentId]/StudentVocabularyTab.tsx [app-client] (ecmascript)");
@@ -3484,21 +4160,23 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
+;
 function StudentDetailsPage() {
     _s();
     const params = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useParams"])();
     const rawStudentId = params?.studentId;
     const studentIdNum = rawStudentId !== undefined && rawStudentId !== '' ? Number(rawStudentId) : Number.NaN;
     const student = Number.isFinite(studentIdNum) ? (0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$domains$2f$profile$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getProfileByUserId"])(studentIdNum) : undefined;
-    if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$roles$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["canView"])('dashboard', __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$session$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["activeMockUser"].role)) return null;
-    const allowedRoles = (0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$roles$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["isTeacherAdminOrSuper"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$session$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["activeMockUser"].role);
+    const activeUser = (0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$lib$2f$active$2d$user$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useActiveUser"])();
+    if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$roles$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["canView"])('dashboard', activeUser.role)) return null;
+    const allowedRoles = (0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$roles$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["isTeacherAdminOrSuper"])(activeUser.role);
     if (!allowedRoles) {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$EmptyStateCard$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["EmptyStateCard"], {
             title: "No permission",
             description: "Students section is not available for your role."
         }, void 0, false, {
             fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
-            lineNumber: 66,
+            lineNumber: 67,
             columnNumber: 12
         }, this);
     }
@@ -3508,18 +4186,18 @@ function StudentDetailsPage() {
             description: "Check the student link and try again."
         }, void 0, false, {
             fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
-            lineNumber: 69,
+            lineNumber: 70,
             columnNumber: 12
         }, this);
     }
-    const canManage = (0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$domains$2f$profile$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["canManageProfile"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$session$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["activeMockUser"], student);
+    const canManage = (0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$domains$2f$profile$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["canManageProfile"])(activeUser, student);
     if (!canManage) {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$EmptyStateCard$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["EmptyStateCard"], {
             title: "No permission",
             description: "You cannot manage this student."
         }, void 0, false, {
             fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
-            lineNumber: 73,
+            lineNumber: 74,
             columnNumber: 12
         }, this);
     }
@@ -3545,112 +4223,112 @@ function StudentDetailsPage() {
             size: 20
         }, void 0, false, {
             fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
-            lineNumber: 93,
+            lineNumber: 94,
             columnNumber: 15
         }, this),
         'graduation-cap': /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$graduation$2d$cap$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__GraduationCap$3e$__["GraduationCap"], {
             size: 20
         }, void 0, false, {
             fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
-            lineNumber: 94,
+            lineNumber: 95,
             columnNumber: 23
         }, this),
         'calendar-check': /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$calendar$2d$check$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__CalendarCheck$3e$__["CalendarCheck"], {
             size: 20
         }, void 0, false, {
             fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
-            lineNumber: 95,
+            lineNumber: 96,
             columnNumber: 23
         }, this),
         flame: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$flame$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Flame$3e$__["Flame"], {
             size: 20
         }, void 0, false, {
             fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
-            lineNumber: 96,
+            lineNumber: 97,
             columnNumber: 12
         }, this),
         'book-open': /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$book$2d$open$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__BookOpen$3e$__["BookOpen"], {
             size: 20
         }, void 0, false, {
             fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
-            lineNumber: 97,
+            lineNumber: 98,
             columnNumber: 18
         }, this),
         brain: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$brain$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Brain$3e$__["Brain"], {
             size: 20
         }, void 0, false, {
             fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
-            lineNumber: 98,
+            lineNumber: 99,
             columnNumber: 12
         }, this),
         'messages-square': /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$message$2d$square$2d$text$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__MessageSquareText$3e$__["MessageSquareText"], {
             size: 20
         }, void 0, false, {
             fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
-            lineNumber: 99,
+            lineNumber: 100,
             columnNumber: 24
         }, this),
         mic: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$mic$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Mic$3e$__["Mic"], {
             size: 20
         }, void 0, false, {
             fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
-            lineNumber: 100,
+            lineNumber: 101,
             columnNumber: 10
         }, this),
         target: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$target$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Target$3e$__["Target"], {
             size: 20
         }, void 0, false, {
             fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
-            lineNumber: 101,
+            lineNumber: 102,
             columnNumber: 13
         }, this),
         'badge-check': /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$badge$2d$check$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__BadgeCheck$3e$__["BadgeCheck"], {
             size: 20
         }, void 0, false, {
             fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
-            lineNumber: 102,
+            lineNumber: 103,
             columnNumber: 20
         }, this),
         star: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$star$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Star$3e$__["Star"], {
             size: 20
         }, void 0, false, {
             fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
-            lineNumber: 103,
+            lineNumber: 104,
             columnNumber: 11
         }, this),
         rocket: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$rocket$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Rocket$3e$__["Rocket"], {
             size: 20
         }, void 0, false, {
             fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
-            lineNumber: 104,
+            lineNumber: 105,
             columnNumber: 13
         }, this),
         trophy: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$trophy$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Trophy$3e$__["Trophy"], {
             size: 20
         }, void 0, false, {
             fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
-            lineNumber: 105,
+            lineNumber: 106,
             columnNumber: 13
         }, this),
         crown: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$crown$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Crown$3e$__["Crown"], {
             size: 20
         }, void 0, false, {
             fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
-            lineNumber: 106,
+            lineNumber: 107,
             columnNumber: 12
         }, this),
         mountain: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$mountain$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Mountain$3e$__["Mountain"], {
             size: 20
         }, void 0, false, {
             fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
-            lineNumber: 107,
+            lineNumber: 108,
             columnNumber: 15
         }, this),
         gem: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$gem$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Gem$3e$__["Gem"], {
             size: 20
         }, void 0, false, {
             fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
-            lineNumber: 108,
+            lineNumber: 109,
             columnNumber: 10
         }, this)
     };
@@ -3667,8 +4345,7 @@ function StudentDetailsPage() {
         subtitle: pageSubtitle,
         avatar: (()=>{
             const u = __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$session$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["mockUsers"].find((row)=>row.id === studentForm.id);
-            return u?.avatar.url ? // eslint-disable-next-line @next/next/no-img-element
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
+            return u?.avatar.url ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
                 src: u.avatar.url,
                 alt: "",
                 width: 72,
@@ -3722,7 +4399,7 @@ function StudentDetailsPage() {
                     student: studentForm,
                     onChange: setStudentForm,
                     canEdit: canManage,
-                    viewerRole: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$session$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["activeMockUser"].role,
+                    viewerRole: activeUser.role,
                     saved: savedProfile,
                     onSave: ()=>{
                         const target = __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$session$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["mockUsers"].find((u)=>u.id === studentForm.id);
@@ -3749,8 +4426,8 @@ function StudentDetailsPage() {
                 value: 'statistics',
                 label: 'Statistics',
                 panel: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$students$2f5b$studentId$5d2f$sections$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["StudentStatisticsTab"], {
-                    roleId: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$session$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["activeMockUser"].role,
-                    currentUserId: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$session$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["activeMockUser"].id,
+                    roleId: activeUser.role,
+                    currentUserId: activeUser.id,
                     studentId: studentForm.userId
                 }, void 0, false, {
                     fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
@@ -3793,7 +4470,7 @@ function StudentDetailsPage() {
                             startTime: time,
                             endTime: (0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$features$2f$calendar$2f$adapters$2f$lessonCalendarAdapter$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["calculateEndTime"])(time, 55),
                             duration: 55,
-                            timezoneId: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$session$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["activeMockUser"].timezoneId,
+                            timezoneId: activeUser.timezoneId,
                             teacherId: studentForm.teacherId,
                             teacherName: studentForm.teacherName,
                             studentId: studentForm.id,
@@ -3846,13 +4523,14 @@ function StudentDetailsPage() {
         ]
     }, void 0, false, {
         fileName: "[project]/apps/web/src/app/students/[studentId]/page.tsx",
-        lineNumber: 124,
+        lineNumber: 125,
         columnNumber: 5
     }, this);
 }
-_s(StudentDetailsPage, "KBvouKiJ37rQ4a2GxSx/1Xg/cSM=", false, function() {
+_s(StudentDetailsPage, "uS0zRqzuWEg8IfvD4vsacSGG/oE=", false, function() {
     return [
-        __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useParams"]
+        __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useParams"],
+        __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$lib$2f$active$2d$user$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useActiveUser"]
     ];
 });
 _c = StudentDetailsPage;

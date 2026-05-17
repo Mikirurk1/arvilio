@@ -2,7 +2,6 @@ import type {
   LessonCancelReason,
   LessonRecurrence,
   LessonStatusId,
-  ScheduledLessonDto,
   StudentResponseStatus,
   TimeZoneId,
 } from '@soenglish/shared-types';
@@ -43,6 +42,6 @@ export type LessonFormState = {
   recurrence: LessonRecurrence;
   weeklyDays: number[];
   applyToSeries: boolean;
-  /** Global vocabulary entry ids linked to this lesson (saved on lesson). */
-  linkedVocabularyIds: number[];
+  /** Global Word ids (backend cuid) linked to this lesson. */
+  linkedWordIds: string[];
 };

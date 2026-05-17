@@ -175,10 +175,18 @@
 }
 
 .page-module-scss-module__wiHsxG__lessonFilterSelect {
+  border: 1px solid var(--border);
   min-width: 220px;
+  color: var(--text-primary);
+  background: var(--card);
+  transition: border-color var(--transition);
+  border-radius: 10px;
+  outline: none;
+  padding: 8px 14px;
+  font-size: 15px;
 }
 
-.page-module-scss-module__wiHsxG__searchInput:focus {
+.page-module-scss-module__wiHsxG__lessonFilterSelect:focus-visible, .page-module-scss-module__wiHsxG__searchInput:focus {
   border-color: var(--green);
 }
 
@@ -220,22 +228,40 @@
   display: grid;
 }
 
+.page-module-scss-module__wiHsxG__loadError {
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, #ef4444 35%, var(--border));
+  background: color-mix(in srgb, #ef4444 8%, var(--card));
+  color: #b42318;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
 .page-module-scss-module__wiHsxG__addWordCard {
-  cursor: pointer;
-  border-style: dashed;
-  border-width: 2px;
-  border-color: color-mix(in srgb, var(--green) 38%, var(--border));
-  background: color-mix(in srgb, var(--green) 6%, var(--card));
-  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  grid-column: 1 / -1;
+  padding: 16px;
+}
+
+.page-module-scss-module__wiHsxG__addWordForm {
+  flex-wrap: wrap;
   align-items: center;
-  min-height: 180px;
+  gap: 10px;
   display: flex;
 }
 
-.page-module-scss-module__wiHsxG__addWordCard:hover {
-  border-color: var(--green);
-  background: color-mix(in srgb, var(--green) 12%, var(--card));
-  box-shadow: var(--shadow-sm);
+.page-module-scss-module__wiHsxG__addWordForm .page-module-scss-module__wiHsxG__searchInput {
+  flex: 1;
+  min-width: 200px;
+}
+
+.page-module-scss-module__wiHsxG__addWordError {
+  color: #b42318;
+  margin-top: 8px;
+  font-size: 13px;
 }
 
 .page-module-scss-module__wiHsxG__addWordInner {
@@ -265,7 +291,15 @@
 .page-module-scss-module__wiHsxG__wcTop {
   justify-content: space-between;
   align-items: flex-start;
+  gap: 8px;
   margin-bottom: 4px;
+  display: flex;
+}
+
+.page-module-scss-module__wiHsxG__wcTopActions {
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
   display: flex;
 }
 
@@ -276,10 +310,34 @@
   font-weight: 600;
 }
 
+.page-module-scss-module__wiHsxG__wcPhoneticRow {
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  display: flex;
+}
+
 .page-module-scss-module__wiHsxG__wcPhonetic {
   color: var(--text-tertiary);
   font-size: 12px;
   font-style: italic;
+}
+
+.page-module-scss-module__wiHsxG__wcAudioBtn {
+  color: var(--blue);
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  flex-shrink: 0;
+  justify-content: center;
+  align-items: center;
+  padding: 2px;
+  display: inline-flex;
+}
+
+.page-module-scss-module__wiHsxG__wcAudioBtn:hover {
+  background: var(--blue-light);
 }
 
 .page-module-scss-module__wiHsxG__wcStatus {
@@ -312,6 +370,14 @@
   color: var(--green-dark);
 }
 
+.page-module-scss-module__wiHsxG__wcOrigin {
+  color: var(--text-faint);
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-style: italic;
+  line-height: 1.4;
+}
+
 .page-module-scss-module__wiHsxG__wcPos {
   color: var(--text-faint);
   margin-bottom: 8px;
@@ -333,6 +399,33 @@
   font-size: 12px;
   font-style: italic;
   line-height: 1.5;
+}
+
+.page-module-scss-module__wiHsxG__wcDetailsBtn, .page-module-scss-module__wiHsxG__wcDeleteBtn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  width: 32px;
+  height: 32px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all var(--transition);
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  display: inline-flex;
+}
+
+.page-module-scss-module__wiHsxG__wcDetailsBtn:hover {
+  color: var(--blue);
+  background: var(--blue-light);
+  border-color: #3b82c459;
+}
+
+.page-module-scss-module__wiHsxG__wcDeleteBtn:hover {
+  color: var(--rose);
+  background: var(--rose-light);
+  border-color: #dc262640;
 }
 
 .page-module-scss-module__wiHsxG__wcActions {

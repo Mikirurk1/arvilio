@@ -9,4 +9,4 @@ COPY . .
 
 EXPOSE 4200
 
-CMD ["npx", "turbo", "run", "dev", "--filter=@soenglish/web"]
+CMD ["npm", "run", "dev", "-w", "@soenglish/web"]

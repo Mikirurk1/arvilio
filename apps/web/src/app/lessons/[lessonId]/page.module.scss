@@ -274,6 +274,43 @@
   line-height: 1.35;
 }
 
+.metaSelectHost {
+  width: 100%;
+}
+
+.metaSelect {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--field-bg);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.metaSelect:hover:not(:disabled) {
+  border-color: var(--border-strong);
+}
+
+.metaSelect[aria-expanded='true'] {
+  border-color: color-mix(in srgb, var(--blue) 42%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 14%, transparent);
+}
+
+.metaSelect:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .inlineRow {
   display: flex;
   gap: 8px;

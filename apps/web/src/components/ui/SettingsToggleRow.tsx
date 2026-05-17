@@ -7,6 +7,7 @@ export type SettingsToggleRowProps = {
   description?: ReactNode;
   checked: boolean;
   onChange: (value: boolean) => void;
+  disabled?: boolean;
   className?: string;
   infoClassName?: string;
   labelClassName?: string;
@@ -21,6 +22,7 @@ export function SettingsToggleRow({
   description,
   checked,
   onChange,
+  disabled = false,
   className,
   infoClassName,
   labelClassName,
@@ -49,6 +51,7 @@ export function SettingsToggleRow({
           .filter(Boolean)
           .join(' ')}
         aria-pressed={checked}
+        disabled={disabled}
         onClick={() => onChange(!checked)}
       >
         <div className={[uiStyles.switchThumb, thumbClassName].filter(Boolean).join(' ')} />

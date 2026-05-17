@@ -2,30 +2,40 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { VocabularyWordStatusName } from '@soenglish/shared-types';
-import { Button, Field, SurfaceCard } from '../../../components/ui';
-import {
-  addProfileVocabularyEntry,
-  createVocabularyWord,
-  joinProfileVocabulary,
-  legacyStatusToVocabularyStatusId,
-  updateProfileVocabularyStatus,
-} from '../../../mocks';
+import { SurfaceCard } from '../../../components/ui';
+import { WordDetailsModal } from '../../../features/vocabulary/WordDetailsModal';
+import { useViewerLanguageIds } from '../../../hooks/use-viewer-language-ids';
+import { confirmDialog } from '../../../features/confirm';
+import { toast } from '../../../features/notifications';
+import { mapStudentCardsToListItems } from '../../../lib/vocabulary-ui';
+import { useVocabularyStore } from '../../../stores/vocabulary-store';
 import { VocabularyListSection, VocabularyStatsRow } from '../../vocabulary/sections';
 import styles from './page.module.scss';
 
-export function StudentVocabularyTab({ studentUserId }: { studentUserId: number }) {
-  const [items, setItems] = useState(() => joinProfileVocabulary(studentUserId));
-  const refresh = () => setItems(joinProfileVocabulary(studentUserId));
+export function StudentVocabularyTab({ studentId }: { studentId: string }) {
+  const cardsSlice = useVocabularyStore((s) => s.cards);
+  const fetchCards = useVocabularyStore((s) => s.fetchCards);
+  const updateCardStatus = useVocabularyStore((s) => s.updateCardStatus);
+  const deleteCard = useVocabularyStore((s) => s.deleteCard);
+  const { nativeLanguageId, englishLanguageId } = useViewerLanguageIds();
+  const [detailsWordId, setDetailsWordId] = useState<string | null>(null);
 
-  const [draftWord, setDraftWord] = useState('');
-  const [draftDef, setDraftDef] = useState('');
+  useEffect(() => {
+    void fetchCards(studentId);
+  }, [fetchCards, studentId]);
+
+  const items = useMemo(
+    () => mapStudentCardsToListItems(cardsSlice.data ?? [], nativeLanguageId, englishLanguageId),
+    [cardsSlice.data, nativeLanguageId, englishLanguageId],
+  );
 
   const [filter, setFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('all');
   const [lessonFilter, setLessonFilter] = useState('all');
   const [search, setSearch] = useState('');
+
   const categories = useMemo(() => {
-    const unique = [...new Set(items.map(({ word }) => word.category))].sort((a, b) =>
+    const unique = [...new Set(items.map(({ display }) => display.category))].sort((a, b) =>
       a.localeCompare(b),
     );
     return ['All', ...unique];
@@ -37,14 +47,14 @@ export function StudentVocabularyTab({ studentUserId }: { studentUserId: number 
 
   const filtered = useMemo(
     () =>
-      items.filter(({ row, word, status }) => {
-        const catOk = filter === 'All' || word.category === filter;
+      items.filter(({ card, display, status }) => {
+        const catOk = filter === 'All' || display.category === filter;
         const statusOk = statusFilter === 'all' || status === statusFilter;
-        const lessonOk = lessonFilter === 'all' || String(row.lessonId ?? '') === lessonFilter;
+        const lessonOk = lessonFilter === 'all' || (card.lessonId ?? '') === lessonFilter;
         const searchOk =
           !search ||
-          word.word.toLowerCase().includes(search.toLowerCase()) ||
-          word.definition.toLowerCase().includes(search.toLowerCase());
+          display.word.toLowerCase().includes(search.toLowerCase()) ||
+          display.definition.toLowerCase().includes(search.toLowerCase());
         return catOk && statusOk && lessonOk && searchOk;
       }),
     [items, filter, statusFilter, lessonFilter, search],
@@ -59,74 +69,44 @@ export function StudentVocabularyTab({ studentUserId }: { studentUserId: number 
 
   const lessonOptions = useMemo(() => {
     const unique = Array.from(
-      new Set(items.map(({ row }) => row.lessonId).filter((lessonId): lessonId is number => Boolean(lessonId))),
-    ).sort((a, b) => a - b);
-    return [{ value: 'all', label: 'All lessons' }, ...unique.map((id) => ({ value: String(id), label: `Lesson #${id}` }))];
+      new Set(
+        items
+          .map(({ card }) => card.lessonId)
+          .filter((lessonId): lessonId is string => Boolean(lessonId)),
+      ),
+    ).sort();
+    return [
+      { value: 'all', label: 'All lessons' },
+      ...unique.map((id) => ({ value: id, label: `Lesson` })),
+    ];
   }, [items]);
 
-  const onSetStatus = (entryId: number, status: VocabularyWordStatusName) => {
-    updateProfileVocabularyStatus(entryId, legacyStatusToVocabularyStatusId(status));
-    refresh();
+  const onSetStatus = (cardId: string, status: VocabularyWordStatusName) => {
+    void updateCardStatus(cardId, status, studentId);
   };
 
-  const onAddWord = () => {
-    const lemma = draftWord.trim();
-    if (!lemma) return;
-    const vid = createVocabularyWord({
-      word: lemma,
-      definition: draftDef.trim() || '—',
-      example: '',
-      phonetic: '',
-      pos: '—',
-      category: 'general',
+  const onDeleteWord = async (cardId: string) => {
+    if (!studentId) return;
+    const ok = await confirmDialog({
+      title: 'Remove word?',
+      message: 'This word will be removed from the student vocabulary.',
+      confirmLabel: 'Remove',
+      variant: 'danger',
     });
-    addProfileVocabularyEntry({
-      userId: studentUserId,
-      vocabularyId: vid,
-      status: 'new',
+    if (!ok) return;
+    void deleteCard(cardId, studentId).catch((err) => {
+      toast.error(err instanceof Error ? err.message : 'Could not remove word');
     });
-    setDraftWord('');
-    setDraftDef('');
-    refresh();
   };
+
+  const isLoading = cardsSlice.status === 'loading' || cardsSlice.status === 'idle';
 
   return (
     <SurfaceCard className={styles.tabCard}>
       <p className={styles.vocabTabIntro}>
-        Manage this student&apos;s vocabulary progress. Staff can set any status, including <strong>known</strong>.
+        Manage this student&apos;s vocabulary progress. Staff can set any status, including{' '}
+        <strong>learned</strong>.
       </p>
-      <div className={styles.studentVocabQuickAdd}>
-        <div className={styles.studentVocabQuickAddTitle}>Add word</div>
-        <div className={styles.studentVocabQuickAddGrid}>
-          <div className={styles.studentVocabQuickAddField}>
-            <label className={styles.studentVocabQuickAddLabel} htmlFor={`student-vocab-word-${studentUserId}`}>
-              Word
-            </label>
-            <Field
-              id={`student-vocab-word-${studentUserId}`}
-              className={styles.studentVocabQuickAddInput}
-              value={draftWord}
-              placeholder="e.g. articulate"
-              onChange={(e) => setDraftWord(e.target.value)}
-            />
-          </div>
-          <div className={styles.studentVocabQuickAddField}>
-            <label className={styles.studentVocabQuickAddLabel} htmlFor={`student-vocab-def-${studentUserId}`}>
-              Definition (optional)
-            </label>
-            <Field
-              id={`student-vocab-def-${studentUserId}`}
-              className={styles.studentVocabQuickAddInput}
-              value={draftDef}
-              placeholder="Short gloss"
-              onChange={(e) => setDraftDef(e.target.value)}
-            />
-          </div>
-        </div>
-        <Button type="button" className={styles.studentVocabQuickAddBtn} disabled={!draftWord.trim()} onClick={onAddWord}>
-          Add to student vocabulary
-        </Button>
-      </div>
       <VocabularyStatsRow total={items.length} stats={stats} onFilter={setStatusFilter} />
       <VocabularyListSection
         search={search}
@@ -140,8 +120,15 @@ export function StudentVocabularyTab({ studentUserId }: { studentUserId: number 
         filtered={filtered}
         onSetStatus={onSetStatus}
         canSetLearned
+        canDelete
+        onDelete={onDeleteWord}
         totalSourceCount={items.length}
+        isLoading={isLoading}
+        onOpenWordDetails={setDetailsWordId}
       />
+      {detailsWordId ? (
+        <WordDetailsModal wordId={detailsWordId} onClose={() => setDetailsWordId(null)} />
+      ) : null}
     </SurfaceCard>
   );
 }

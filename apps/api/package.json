@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "npm run build && node ../../dist/apps/api/apps/api/src/main.js",
-    "build": "tsc -p tsconfig.app.json && tsc-alias -p tsconfig.app.json",
-    "start": "node ../../dist/apps/api/apps/api/src/main.js",
+    "dev": "node scripts/dev.cjs",
+    "build": "npm run build -w @soenglish/email-templates && tsc -p tsconfig.app.json && tsc-alias -p tsconfig.app.json",
+    "start": "node --env-file=../../.env ../../dist/apps/api/apps/api/src/main.js",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.app.json --noEmit"
   }

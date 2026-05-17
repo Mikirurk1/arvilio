@@ -1,14 +1,17 @@
 'use client';
 
+import Image from 'next/image';
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ChangeEvent,
   type PointerEvent as ReactPointerEvent,
   type SetStateAction,
 } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   BadgeCheck,
   BookOpen,
@@ -34,30 +37,43 @@ import {
   AchievementsPanel,
   AppearancePanel,
   LinkedAccountsPanel,
+  profileLinksToPanel,
   NotificationsPanel,
   ProfileStatisticsPanel,
   ProfileDetailsPanel,
 } from './panels';
 import { ProfileViewShell } from '../../components/profile/ProfileViewShell';
+import type { TabsItem } from '../../components/ui';
 import {
-  activeMockUser,
   buildProfileAchievements,
   canView,
   getProficiencyLevelById,
-  getProfileStatsForUser,
+  getTimeZoneById,
   getUserAccountStatusById,
   getAppearancePrefsForUser,
   getNotificationPrefsForUser,
-  mockProfileForm,
   patchAppearancePrefsForUser,
   setNotificationPrefsForUser,
   siteContent,
   USER_ROLE,
   type ProfileFontSizeMode,
-  type ProfileNotificationPrefs,
   type ProfileThemeMode,
   type UserRoleId,
 } from '../../mocks';
+import { DEFAULT_NOTIFICATION_PREFS, type ProfileNotificationPrefs } from '@soenglish/shared-types';
+import { toast } from '../../features/notifications';
+import { useActiveUser } from '../../lib/active-user';
+import { useOptionalAuth } from '../../lib/auth-context';
+import { useProfileLiveStats } from '../../hooks/use-profile-live-stats';
+import { isMyProfileComplete } from '../../lib/profile-complete';
+import {
+  formToCompletenessInput,
+  formToUpdateInput,
+  profileToForm,
+  type ProfileFormState,
+} from '../../lib/profile-form';
+import { useAuthStore } from '../../stores/auth-store';
+import { useProfileStore } from '../../stores/profile-store';
 import { useAppearanceSettings } from '../providers';
 import { getAvatarFallbackInitials } from '../../lib/avatar';
 import styles from './page.module.scss';
@@ -72,13 +88,133 @@ type CropRect = {
   size: number;
 };
 
+type ProfileTab =
+  | 'profile'
+  | 'statistics'
+  | 'notifications'
+  | 'connections'
+  | 'appearance'
+  | 'achievements'
+  | 'account';
+
+const emptyProfileForm = (): ProfileFormState => ({
+  name: '',
+  email: '',
+  telegram: '',
+  phone: '',
+  timezoneId: 1,
+  nativeLanguageId: '',
+  proficiencyLevelId: 3,
+  bio: '',
+});
+
 export default function ProfilePage() {
-  const [tab, setTab] = useState<
-    'profile' | 'statistics' | 'notifications' | 'connections' | 'appearance' | 'achievements' | 'account'
-  >('profile');
+  const activeUser = useActiveUser();
+  const auth = useOptionalAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isAuthenticated = Boolean(auth?.user);
+  const fetchProfile = useProfileStore((s) => s.fetchProfile);
+  const profileSlice = useProfileStore((s) => s.profile);
+  const updateProfile = useProfileStore((s) => s.updateProfile);
+  const updateNotificationPrefs = useProfileStore((s) => s.updateNotificationPrefs);
+  const profileMutating = useProfileStore((s) => s.profileMutating);
+  const profileError = useProfileStore((s) => s.profileError);
+  const [tab, setTab] = useState<ProfileTab>('profile');
   const [saved, setSaved] = useState(false);
-  const [form, setForm] = useState({ ...mockProfileForm });
-  const [avatarUrl, setAvatarUrl] = useState(activeMockUser.avatar.url ?? '');
+  const [form, setForm] = useState<ProfileFormState>(emptyProfileForm);
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const hydratedProfileIdRef = useRef<string | null>(null);
+  const oauthCallbackHandledRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    void fetchProfile();
+  }, [fetchProfile]);
+
+  const connectionLinks = useMemo(
+    () =>
+      profileLinksToPanel(
+        isAuthenticated ? profileSlice.data?.linkedAccounts : undefined,
+        activeUser.linkedAccounts,
+      ),
+    [activeUser.linkedAccounts, isAuthenticated, profileSlice.data?.linkedAccounts],
+  );
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'connections') setTab('connections');
+
+    const googleLinked = searchParams.get('google_linked') === '1';
+    const googleError = searchParams.get('google_link_error');
+    const facebookLinked = searchParams.get('facebook_linked') === '1';
+    const facebookError = searchParams.get('facebook_link_error');
+    const hasOAuthCallback = googleLinked || googleError || facebookLinked || facebookError;
+    if (!hasOAuthCallback) return;
+
+    const callbackKey = searchParams.toString();
+    if (oauthCallbackHandledRef.current === callbackKey) return;
+    oauthCallbackHandledRef.current = callbackKey;
+
+    if (googleLinked) {
+      toast.success(
+        'Google connected',
+        'Calendar and Meet are enabled. You can schedule lessons now.',
+      );
+      void fetchProfile(true);
+      void useAuthStore.getState().refresh();
+    } else if (googleError) {
+      toast.error('Could not connect Google', googleError);
+    }
+
+    if (facebookLinked) {
+      toast.success('Facebook connected', 'Your Facebook account is linked to this profile.');
+      void fetchProfile(true);
+      void useAuthStore.getState().refresh();
+    } else if (facebookError) {
+      toast.error('Could not connect Facebook', facebookError);
+    }
+
+    const nextParams = new URLSearchParams(searchParams.toString());
+    nextParams.delete('google_linked');
+    nextParams.delete('google_link_error');
+    nextParams.delete('facebook_linked');
+    nextParams.delete('facebook_link_error');
+    const qs = nextParams.toString();
+    router.replace(qs ? `/profile?${qs}` : '/profile', { scroll: false });
+  }, [fetchProfile, router, searchParams]);
+
+  useEffect(() => {
+    if (profileSlice.status !== 'success' || !profileSlice.data) return;
+    if (hydratedProfileIdRef.current === profileSlice.data.id) return;
+    setForm({
+      ...profileToForm(profileSlice.data),
+      email: profileSlice.data.email || auth?.user?.email || '',
+    });
+    setAvatarUrl(profileSlice.data.avatarUrl ?? '');
+    hydratedProfileIdRef.current = profileSlice.data.id;
+  }, [auth?.user?.email, profileSlice.data, profileSlice.status]);
+
+  const profileLoading =
+    profileSlice.status === 'loading' ||
+    (profileSlice.status === 'idle' && hydratedProfileIdRef.current === null);
+
+  const handleSaveProfile = useCallback(async () => {
+    setSaved(false);
+    try {
+      await updateProfile(formToUpdateInput(form, { avatarUrl: avatarUrl || null }));
+      const updated = useProfileStore.getState().profile.data;
+      if (updated) {
+        setForm((prev) => ({
+          ...profileToForm(updated),
+          email: updated.email || prev.email || auth?.user?.email || '',
+        }));
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch {
+      // saveError in store
+    }
+  }, [auth?.user?.email, avatarUrl, form, updateProfile]);
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
   const [cropSource, setCropSource] = useState<string | null>(null);
   const [cropRect, setCropRect] = useState<CropRect>({ x: 40, y: 40, size: 180 });
@@ -87,53 +223,98 @@ export default function ProfilePage() {
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const cropImageRef = useRef<HTMLImageElement>(null);
   const dragStartRef = useRef<{ pointerX: number; pointerY: number; rect: CropRect } | null>(null);
-  const [notifications, setNotificationsState] = useState(() =>
-    getNotificationPrefsForUser(activeMockUser.id),
-  );
+  const [notifications, setNotificationsState] =
+    useState<ProfileNotificationPrefs>(DEFAULT_NOTIFICATION_PREFS);
+  const [notifSaved, setNotifSaved] = useState(false);
+  const hydratedNotifProfileIdRef = useRef<string | null>(null);
+  const savedNotifJsonRef = useRef<string | null>(null);
+  const notifDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { theme, setTheme, fontSize, setFontSize } = useAppearanceSettings();
 
   useEffect(() => {
-    setNotificationsState(getNotificationPrefsForUser(activeMockUser.id));
-    setAvatarUrl(activeMockUser.avatar.url ?? '');
-    const appearance = getAppearancePrefsForUser(activeMockUser.id);
-    setTheme(appearance.theme);
-    setFontSize(appearance.fontSize);
-  }, [activeMockUser.id, setTheme, setFontSize]);
+    if (!isAuthenticated) {
+      const mockPrefs = getNotificationPrefsForUser(activeUser.id);
+      setNotificationsState(mockPrefs);
+      savedNotifJsonRef.current = JSON.stringify(mockPrefs);
+      hydratedNotifProfileIdRef.current = null;
+      return;
+    }
+    if (profileSlice.status !== 'success' || !profileSlice.data) return;
+    if (hydratedNotifProfileIdRef.current === profileSlice.data.id) return;
+    const prefs = profileSlice.data.notificationPrefs ?? DEFAULT_NOTIFICATION_PREFS;
+    setNotificationsState(prefs);
+    savedNotifJsonRef.current = JSON.stringify(prefs);
+    hydratedNotifProfileIdRef.current = profileSlice.data.id;
+  }, [activeUser.id, isAuthenticated, profileSlice.data, profileSlice.status]);
 
   useEffect(() => {
-    activeMockUser.avatar = avatarUrl ? { ...activeMockUser.avatar, url: avatarUrl } : {};
+    const appearance = getAppearancePrefsForUser(activeUser.id);
+    setTheme(appearance.theme);
+    setFontSize(appearance.fontSize);
+  }, [activeUser.id, setTheme, setFontSize]);
+
+  useEffect(() => {
+    if (!isAuthenticated || profileSlice.status !== 'success') return;
+    if (hydratedNotifProfileIdRef.current === null) return;
+
+    const json = JSON.stringify(notifications);
+    if (json === savedNotifJsonRef.current) return;
+
+    if (notifDebounceRef.current) clearTimeout(notifDebounceRef.current);
+    notifDebounceRef.current = setTimeout(() => {
+      void (async () => {
+        try {
+          await updateNotificationPrefs(notifications);
+          savedNotifJsonRef.current = json;
+          setNotifSaved(true);
+          toast.success('Notification preferences saved');
+          setTimeout(() => setNotifSaved(false), 2500);
+        } catch {
+          toast.error('Failed to save notification preferences');
+        }
+      })();
+    }, 400);
+    return () => {
+      if (notifDebounceRef.current) clearTimeout(notifDebounceRef.current);
+    };
+  }, [notifications, isAuthenticated, profileSlice.status, updateNotificationPrefs]);
+
+  useEffect(() => {
+    activeUser.avatar = avatarUrl ? { ...activeUser.avatar, url: avatarUrl } : {};
     window.dispatchEvent(
       new CustomEvent('mock-user-avatar-updated', {
-        detail: { userId: activeMockUser.id, avatarUrl },
+        detail: { userId: activeUser.id, avatarUrl },
       }),
     );
-  }, [avatarUrl]);
+  }, [avatarUrl, activeUser]);
 
   const setNotifications = useCallback(
     (action: SetStateAction<ProfileNotificationPrefs>) => {
       setNotificationsState((prev) => {
         const next = typeof action === 'function' ? action(prev) : action;
-        setNotificationPrefsForUser(activeMockUser.id, next);
+        if (!isAuthenticated) {
+          setNotificationPrefsForUser(activeUser.id, next);
+        }
         return next;
       });
     },
-    [activeMockUser.id],
+    [activeUser.id, isAuthenticated],
   );
 
   const setThemeFromProfile = useCallback(
     (next: ProfileThemeMode) => {
       setTheme(next);
-      patchAppearancePrefsForUser(activeMockUser.id, { theme: next });
+      patchAppearancePrefsForUser(activeUser.id, { theme: next });
     },
-    [activeMockUser.id, setTheme],
+    [activeUser.id, setTheme],
   );
 
   const setFontSizeFromProfile = useCallback(
     (next: ProfileFontSizeMode) => {
       setFontSize(next);
-      patchAppearancePrefsForUser(activeMockUser.id, { fontSize: next });
+      patchAppearancePrefsForUser(activeUser.id, { fontSize: next });
     },
-    [activeMockUser.id, setFontSize],
+    [activeUser.id, setFontSize],
   );
 
   const handleAvatarFileChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
@@ -261,7 +442,13 @@ export default function ProfilePage() {
 
     setAvatarUrl(compressedDataUrl);
     setCropSource(null);
-  }, [cropRect, cropSource]);
+    try {
+      await updateProfile(formToUpdateInput(form, { avatarUrl: compressedDataUrl }));
+      setAvatarModalOpen(false);
+    } catch {
+      // profileError in store
+    }
+  }, [cropRect, cropSource, form, updateProfile]);
 
   useEffect(() => {
     if (!avatarModalOpen) return;
@@ -274,14 +461,18 @@ export default function ProfilePage() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [avatarModalOpen]);
 
-  const profileStats = getProfileStatsForUser(activeMockUser.id);
-  const profileAchievements = buildProfileAchievements(profileStats);
+  const { profileStats, loading: liveStatsLoading } = useProfileLiveStats();
+  const profileComplete = useMemo(
+    () => isMyProfileComplete(formToCompletenessInput(form, avatarUrl || profileSlice.data?.avatarUrl)),
+    [avatarUrl, form, profileSlice.data?.avatarUrl],
+  );
+  const profileAchievements = buildProfileAchievements(profileStats, { profileComplete });
 
   const heroBadges = (() => {
-    const level = getProficiencyLevelById(activeMockUser.proficiencyLevelId);
+    const level = getProficiencyLevelById(activeUser.proficiencyLevelId);
     const first = { label: level?.label ?? '—' };
-    if (activeMockUser.role === USER_ROLE.student.id && activeMockUser.statusId) {
-      const st = getUserAccountStatusById(activeMockUser.statusId);
+    if (activeUser.role === USER_ROLE.student.id && activeUser.statusId) {
+      const st = getUserAccountStatusById(activeUser.statusId);
       if (st?.name === 'active')
         return [first, { label: 'Active learner', variant: 'green' as const }];
       if (st?.name === 'paused')
@@ -298,7 +489,7 @@ export default function ProfilePage() {
       if (r === USER_ROLE.superAdmin.id) return 'Super admin';
       return 'Member';
     };
-    return [first, { label: roleLabel(activeMockUser.role), variant: 'neutral' as const }];
+    return [first, { label: roleLabel(activeUser.role), variant: 'neutral' as const }];
   })();
   const achievementIconMap = {
     sparkles: <Sparkles size={20} />,
@@ -326,7 +517,7 @@ export default function ProfilePage() {
   }));
   const recentUnlockedAchievements = allAchievements.filter((achievement) => achievement.unlocked).slice(-10);
 
-  if (!canView('profile', activeMockUser.role)) return null;
+  if (!canView('profile', activeUser.role)) return null;
 
   return (
     <>
@@ -349,7 +540,14 @@ export default function ProfilePage() {
             </button>
             <div className={styles.avatarModalPreview}>
               {avatarUrl ? (
-                <img src={avatarUrl} alt="" width={112} height={112} className={styles.avatarModalPreviewImage} />
+                <Image
+                  src={avatarUrl}
+                  alt=""
+                  width={112}
+                  height={112}
+                  className={styles.avatarModalPreviewImage}
+                  unoptimized
+                />
               ) : (
                 <span>{getAvatarFallbackInitials(form.name)}</span>
               )}
@@ -367,7 +565,15 @@ export default function ProfilePage() {
             />
             {cropSource ? (
               <div className={styles.cropWorkspace}>
-                <img ref={cropImageRef} src={cropSource} alt="" className={styles.cropImage} />
+                <Image
+                  ref={cropImageRef}
+                  src={cropSource}
+                  alt=""
+                  fill
+                  className={styles.cropImage}
+                  unoptimized
+                  sizes="360px"
+                />
                 <div
                   className={styles.cropRect}
                   style={{
@@ -418,9 +624,9 @@ export default function ProfilePage() {
           </div>
         </div>
       ) : null}
-      <ProfileViewShell
+      <ProfileViewShell<ProfileTab>
       title={siteContent.profile.title}
-      subtitle={`${siteContent.profile.subtitle} · ${activeMockUser.role}`}
+      subtitle={`${siteContent.profile.subtitle} · ${activeUser.role}`}
       avatar={
         <button
           type="button"
@@ -429,7 +635,14 @@ export default function ProfilePage() {
           aria-label="Change avatar"
         >
           {avatarUrl ? (
-            <img src={avatarUrl} alt="" width={72} height={72} className={styles.heroAvatarImage} />
+            <Image
+              src={avatarUrl}
+              alt=""
+              width={72}
+              height={72}
+              className={styles.heroAvatarImage}
+              unoptimized
+            />
           ) : (
             <span>{getAvatarFallbackInitials(form.name)}</span>
           )}
@@ -439,17 +652,27 @@ export default function ProfilePage() {
         </button>
       }
       name={form.name}
-      meta={`${getProficiencyLevelById(activeMockUser.proficiencyLevelId)?.code ?? '—'} · ${activeMockUser.role}`}
+      meta={`${getProficiencyLevelById(activeUser.proficiencyLevelId)?.code ?? '—'} · ${activeUser.role}`}
       badges={heroBadges}
       stats={[
-        { value: String(profileStats.wordsLearned), label: 'Words' },
-        { value: String(profileStats.lessonsCompleted), label: 'Lessons' },
-        { value: String(profileStats.streakDays), label: 'Streak' },
+        {
+          value: liveStatsLoading ? '…' : String(profileStats.wordsLearned),
+          label: 'Words',
+        },
+        {
+          value: liveStatsLoading ? '…' : String(profileStats.lessonsCompleted),
+          label: 'Lessons',
+        },
+        {
+          value: liveStatsLoading ? '…' : '—',
+          label: 'Streak',
+        },
       ]}
       achievements={recentUnlockedAchievements}
       tab={tab}
       onTabChange={setTab}
-      tabs={[
+      tabs={useMemo(
+        (): TabsItem<ProfileTab>[] => [
           {
             value: 'profile',
             label: 'Profile',
@@ -458,18 +681,18 @@ export default function ProfilePage() {
                 form={form}
                 setForm={setForm}
                 saved={saved}
-                viewerRole={activeMockUser.role}
-                onSave={() => {
-                  setSaved(true);
-                  setTimeout(() => setSaved(false), 2500);
-                }}
+                saving={profileMutating}
+                saveError={profileError}
+                loading={profileLoading}
+                viewerRole={activeUser.role}
+                onSave={handleSaveProfile}
               />
             ),
           },
           {
             value: 'statistics',
             label: 'Statistics',
-            panel: <ProfileStatisticsPanel roleId={activeMockUser.role} userId={activeMockUser.id} />,
+            panel: <ProfileStatisticsPanel />,
           },
           {
             value: 'notifications',
@@ -478,13 +701,26 @@ export default function ProfilePage() {
               <NotificationsPanel
                 notifications={notifications}
                 setNotifications={setNotifications}
+                saving={profileMutating}
+                saveError={profileError}
+                saved={notifSaved}
               />
             ),
           },
           {
             value: 'connections',
             label: 'Connections',
-            panel: <LinkedAccountsPanel links={activeMockUser.linkedAccounts} />,
+            panel: (
+              <LinkedAccountsPanel
+                links={connectionLinks}
+                canLink={isAuthenticated}
+                accountEmail={profileSlice.data?.email ?? auth?.user?.email}
+                onConnectionChange={() => {
+                  void fetchProfile(true);
+                  void useAuthStore.getState().refresh();
+                }}
+              />
+            ),
           },
           {
             value: 'appearance',
@@ -508,7 +744,29 @@ export default function ProfilePage() {
             label: 'Account',
             panel: <AccountPanel />,
           },
-      ]}
+        ],
+        [
+          activeUser.id,
+          auth?.user?.email,
+          connectionLinks,
+          activeUser.role,
+          allAchievements,
+          fontSize,
+          form,
+          handleSaveProfile,
+          notifications,
+          notifSaved,
+          profileComplete,
+          profileError,
+          profileLoading,
+          profileMutating,
+          saved,
+          setFontSizeFromProfile,
+          setNotifications,
+          setThemeFromProfile,
+          theme,
+        ],
+      )}
       />
     </>
   );

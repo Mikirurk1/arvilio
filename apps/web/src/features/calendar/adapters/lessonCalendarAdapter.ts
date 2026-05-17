@@ -49,7 +49,7 @@ export function toLessonFormState(lesson: ScheduledLessonDto): LessonFormState {
     recurrence: lesson.recurrence,
     weeklyDays: lesson.weeklyDays ?? [],
     applyToSeries: false,
-    linkedVocabularyIds: [...(lesson.linkedVocabularyIds ?? [])],
+    linkedWordIds: [...(lesson.linkedWordIds ?? [])],
   };
 }
 
@@ -60,6 +60,7 @@ export function fromLessonFormState(
 ): ScheduledLessonDto {
   return {
     id: existing?.id ?? newLessonId ?? Date.now(),
+    backendId: existing?.backendId,
     lessonId: existing?.lessonId,
     title: form.title,
     date: form.date,
@@ -96,8 +97,7 @@ export function fromLessonFormState(
     recurrence: form.recurrence,
     weeklyDays: form.recurrence === 'weekly' ? form.weeklyDays : [],
     seriesId: existing?.seriesId ?? (form.recurrence !== 'none' ? `series-${Date.now()}` : undefined),
-    linkedVocabularyIds:
-      form.linkedVocabularyIds.length > 0 ? [...form.linkedVocabularyIds] : undefined,
+    linkedWordIds: form.linkedWordIds.length > 0 ? [...form.linkedWordIds] : undefined,
   };
 }
 

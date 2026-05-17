@@ -16,24 +16,36 @@ import {
   Monitor,
   Save,
   UserRound,
-  Video
 } from 'lucide-react';
 import { AdaptiveSelect, Button, Field, PageHeader, SurfaceCard } from '../../../components/ui';
 import {
-  activeMockUser,
   canSchedule,
   canView,
-  getVisibleProfiles,
   siteContent,
-  syncLessonVocabularyToProfile,
   USER_ROLE,
 } from '../../../mocks';
-import { calculateEndTime } from '../../../features/calendar/adapters/lessonCalendarAdapter';
+import { useActiveUser } from '../../../lib/active-user';
+import {
+  calculateEndTime,
+  fromLessonFormState,
+  toLessonFormState,
+} from '../../../features/calendar/adapters/lessonCalendarAdapter';
 import { useScheduledLessons } from '../../../features/lesson-modal';
+import { useLessonPartyOptions } from '../../../hooks/use-lesson-party-options';
+import { useScheduledLessonPersistence } from '../../../hooks/use-scheduled-lesson-persistence';
+import { resolvePartyBackendId } from '../../../features/lesson-modal/lessonPersistence';
+import {
+  getLessonBackendId,
+  lessonIncludesViewer,
+  lessonStringId,
+} from '../../../features/lesson-modal/scheduledLessonsBackendAdapter';
+import { useViewerPartyNumericId } from '../../../hooks/use-viewer-party-numeric-id';
 import { ImagePreviewOverlay } from '../../../features/lesson-modal/ImagePreviewOverlay';
 import { LessonContentTab } from '../../../features/lesson-modal/LessonContentTab';
+import { LessonMeetButton } from '../../../components/backend/LessonMeetButton';
 import { filterSafeFiles, formatMessage, getFilePlaceholder } from '../../../features/lesson-modal/fileUtils';
 import type { MaterialKind, MaterialKindOption } from '../../../features/lesson-modal/tabTypes';
+import { toast } from '../../../features/notifications';
 import styles from './page.module.scss';
 
 function formatLongDate(isoDate: string) {
@@ -46,7 +58,9 @@ export default function LessonPage() {
   const rawLessonId = params?.lessonId;
   const lessonIdNum =
     rawLessonId !== undefined && rawLessonId !== '' ? Number(rawLessonId) : Number.NaN;
-  const role = activeMockUser.role;
+  const activeUser = useActiveUser();
+  const role = activeUser.role;
+  const viewerPartyNumericId = useViewerPartyNumericId();
   const hasAccess = canView('dashboard', role);
   const canManageLessons = canSchedule('lessons', role);
   const { lessons, setLessons } = useScheduledLessons();
@@ -62,21 +76,41 @@ export default function LessonPage() {
   const [homeworkPreviews, setHomeworkPreviews] = useState<Array<string | null>>([]);
   const [studentResponsePreviews, setStudentResponsePreviews] = useState<Array<string | null>>([]);
   const materialsFileInputRef = useRef<HTMLInputElement | null>(null);
-  const studentOptions = useMemo(() => getVisibleProfiles(role, activeMockUser.id), [role]);
+  const { studentOptions, teacherOptions } = useLessonPartyOptions();
+  const { persistUpdate } = useScheduledLessonPersistence();
 
   const lesson = useMemo(() => {
-    if (!Number.isFinite(lessonIdNum)) return null;
-    const candidate = lessons.find((item) => item.id === lessonIdNum);
-    if (!candidate) return null;
-    if (role === USER_ROLE.student.id && candidate.studentId !== activeMockUser.id) return null;
-    if (role === USER_ROLE.teacher.id && candidate.teacherId !== activeMockUser.id) return null;
-    return candidate;
-  }, [lessonIdNum, lessons, role]);
+    if (Number.isFinite(lessonIdNum)) {
+      const candidate = lessons.find((item) => item.id === lessonIdNum);
+      if (candidate) {
+        if (!lessonIncludesViewer(candidate, viewerPartyNumericId ?? activeUser.id, role)) {
+          return null;
+        }
+        return candidate;
+      }
+    }
+    if (rawLessonId) {
+      const byBackendId = lessons.find(
+        (item) => item.backendId === rawLessonId || lessonStringId(item.id) === rawLessonId,
+      );
+      if (byBackendId) {
+        if (!lessonIncludesViewer(byBackendId, viewerPartyNumericId ?? activeUser.id, role)) {
+          return null;
+        }
+        return byBackendId;
+      }
+    }
+    return null;
+  }, [lessonIdNum, lessons, rawLessonId, role, viewerPartyNumericId, activeUser.id]);
+  const loadedLessonIdRef = useRef<number | null>(null);
   useEffect(() => {
     if (!lesson) {
       setDraft(null);
+      loadedLessonIdRef.current = null;
       return;
     }
+    if (loadedLessonIdRef.current === lesson.id) return;
+    loadedLessonIdRef.current = lesson.id;
     setDraft({
       ...lesson,
       materials: lesson.materials?.map((m) => ({ ...m, files: [...(m.files ?? [])] })) ?? [],
@@ -218,37 +252,77 @@ export default function LessonPage() {
       setMaterialsFileStatus(null);
     }
   };
-  const saveAllLessonData = () => {
-    if (!canManageLessons) return;
-    const normalized = {
+  const saveAllLessonData = async () => {
+    if (!canManageLessons || !draft || !lesson) return;
+    const form = toLessonFormState({
       ...draft,
       endTime: calculateEndTime(draft.startTime, draft.duration),
-      studentResponse: {
-        text: draft.studentResponse?.text ?? '',
-        files: [...(draft.studentResponse?.files ?? [])],
-        status: draft.studentResponse?.status ?? 'not_submitted',
-        homeworkChecked: draft.studentResponse?.homeworkChecked ?? false,
-        teacherHomeworkFeedback: draft.studentResponse?.teacherHomeworkFeedback ?? '',
-      },
-    };
-    setLessons((prev) => prev.map((item) => (item.id === normalized.id ? normalized : item)));
-    syncLessonVocabularyToProfile(normalized);
+    });
+    const candidate = fromLessonFormState(form, {
+      ...draft,
+      endTime: calculateEndTime(draft.startTime, draft.duration),
+    });
+    const backendId = getLessonBackendId(lesson);
+    if (!backendId) {
+      toast.error('Could not save lesson', 'Lesson is not linked to the server yet. Refresh and try again.');
+      return;
+    }
+    try {
+      const persisted = await persistUpdate(
+        { ...candidate, backendId },
+        { ...lesson, backendId },
+      );
+      if (persisted) {
+        setLessons((prev) => prev.map((item) => (item.id === persisted.id ? persisted : item)));
+        setDraft(persisted);
+        toast.success('Lesson saved');
+        return;
+      }
+      toast.error('Could not save lesson', 'Lesson is not linked to the server yet. Refresh and try again.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to save lesson';
+      setFileError(message);
+      toast.error('Could not save lesson', message);
+    }
   };
-  const saveStudentHomework = () => {
-    if (!canStudentSubmitHomework) return;
-    const normalized = {
+  const saveStudentHomework = async () => {
+    if (!canStudentSubmitHomework || !draft || !lesson) return;
+    const form = toLessonFormState({
       ...draft,
       endTime: calculateEndTime(draft.startTime, draft.duration),
       studentResponse: {
+        ...draft.studentResponse,
         text: draft.studentResponse?.text ?? '',
         files: [...(draft.studentResponse?.files ?? [])],
-        status: draft.studentResponse?.status ?? 'submitted',
-        homeworkChecked: draft.studentResponse?.homeworkChecked ?? false,
-        teacherHomeworkFeedback: draft.studentResponse?.teacherHomeworkFeedback ?? '',
+        status: 'submitted' as const,
       },
-    };
-    setLessons((prev) => prev.map((item) => (item.id === normalized.id ? normalized : item)));
-    setDraft(normalized);
+    });
+    const candidate = fromLessonFormState(form, {
+      ...draft,
+      endTime: calculateEndTime(draft.startTime, draft.duration),
+    });
+    const backendId = getLessonBackendId(lesson);
+    if (!backendId) {
+      toast.error('Could not save response', 'Lesson is not linked to the server yet. Refresh and try again.');
+      return;
+    }
+    try {
+      const persisted = await persistUpdate(
+        { ...candidate, backendId },
+        { ...lesson, backendId },
+      );
+      if (persisted) {
+        setLessons((prev) => prev.map((item) => (item.id === persisted.id ? persisted : item)));
+        setDraft(persisted);
+        toast.success('Response submitted');
+        return;
+      }
+      toast.error('Could not save response', 'Lesson is not linked to the server yet. Refresh and try again.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to save response';
+      setFileError(message);
+      toast.error('Could not save response', message);
+    }
   };
 
   const persistLesson = () => {
@@ -368,22 +442,24 @@ export default function LessonPage() {
               </span>
               <div className={styles.metaText}>
                 <span className={styles.metaLabel}>Student</span>
-                <AdaptiveSelect
-                  className={!canManageLessons ? styles.metaValue : undefined}
-                  value={String(draft.studentId)}
-                  readOnly={!canManageLessons}
-                  onChange={(event) => {
-                    const next = studentOptions.find((item) => item.id === Number(event.target.value));
-                    if (!next) return;
-                    applyUpdate({ ...draft, studentId: next.id, studentName: next.fullName });
-                  }}
-                >
-                  {studentOptions.map((student) => (
-                    <option key={student.id} value={student.id}>
-                      {student.fullName}
-                    </option>
-                  ))}
-                </AdaptiveSelect>
+                <div className={styles.metaSelectHost}>
+                  <AdaptiveSelect
+                    className={canManageLessons ? styles.metaSelect : styles.metaValue}
+                    value={String(draft.studentId)}
+                    readOnly={!canManageLessons}
+                    onChange={(event) => {
+                      const next = studentOptions.find((item) => item.id === Number(event.target.value));
+                      if (!next) return;
+                      applyUpdate({ ...draft, studentId: next.id, studentName: next.fullName });
+                    }}
+                  >
+                    {studentOptions.map((student) => (
+                      <option key={student.id} value={student.id}>
+                        {student.fullName}
+                      </option>
+                    ))}
+                  </AdaptiveSelect>
+                </div>
               </div>
             </div>
             {canManageLessons &&
@@ -395,9 +471,11 @@ export default function LessonPage() {
                   </span>
                   <div className={styles.metaText}>
                     <span className={styles.metaLabel}>Cancel reason</span>
-                    <AdaptiveSelect
-                      value={draft.cancelReason ?? 'student_absent'}
-                      onChange={(event) =>
+                    <div className={styles.metaSelectHost}>
+                      <AdaptiveSelect
+                        className={styles.metaSelect}
+                        value={draft.cancelReason ?? 'student_absent'}
+                        onChange={(event) =>
                         applyUpdate({
                           ...draft,
                           cancelReason: event.target.value as NonNullable<typeof draft.cancelReason>,
@@ -407,7 +485,8 @@ export default function LessonPage() {
                       <option value="student_absent">Student absent</option>
                       <option value="student_requested_cancel">Student requested cancel</option>
                       <option value="teacher_absent">Teacher absent</option>
-                    </AdaptiveSelect>
+                      </AdaptiveSelect>
+                    </div>
                   </div>
                 </div>
                 <div className={styles.metaRow}>
@@ -416,13 +495,16 @@ export default function LessonPage() {
                   </span>
                   <div className={styles.metaText}>
                     <span className={styles.metaLabel}>Credited</span>
-                    <AdaptiveSelect
-                      value={draft.credited ? 'yes' : 'no'}
-                      onChange={(event) => applyUpdate({ ...draft, credited: event.target.value === 'yes' })}
-                    >
-                      <option value="yes">Yes</option>
-                      <option value="no">No</option>
-                    </AdaptiveSelect>
+                    <div className={styles.metaSelectHost}>
+                      <AdaptiveSelect
+                        className={styles.metaSelect}
+                        value={draft.credited ? 'yes' : 'no'}
+                        onChange={(event) => applyUpdate({ ...draft, credited: event.target.value === 'yes' })}
+                      >
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                      </AdaptiveSelect>
+                    </div>
                   </div>
                 </div>
               </>
@@ -430,10 +512,11 @@ export default function LessonPage() {
           </div>
 
           <div className={styles.sidebarActions}>
-            <a href="#" className={styles.meetButton} onClick={(event) => event.preventDefault()}>
-              <Video size={17} />
-              Join lesson call
-            </a>
+            <LessonMeetButton
+              lessonBackendId={getLessonBackendId(lesson) ?? null}
+              meetUrl={lesson.googleMeetUrl ?? null}
+              fallbackClassName={styles.meetButton}
+            />
             <Link href="/calendar" className={styles.calendarButton}>
               <Calendar size={17} />
               Open in Calendar
@@ -496,9 +579,12 @@ export default function LessonPage() {
                 recurrence: draft.recurrence,
                 weeklyDays: draft.weeklyDays ?? [],
                 applyToSeries: false,
-                linkedVocabularyIds: draft.linkedVocabularyIds ?? [],
+                linkedWordIds: draft.linkedWordIds ?? [],
               }}
-              lessonEntityId={lesson.id}
+              lessonBackendId={getLessonBackendId(lesson) ?? null}
+              studentBackendId={
+                resolvePartyBackendId(draft.studentId, studentOptions, teacherOptions) ?? null
+              }
               materialKinds={materialKinds}
               materialDraft={materialDraft}
               setMaterialDraft={setMaterialDraft}
@@ -521,7 +607,7 @@ export default function LessonPage() {
                   timezoneId: form.timezoneId,
                   lessonPlan: form.lessonPlan,
                   materials: form.materials,
-                  linkedVocabularyIds: form.linkedVocabularyIds,
+                  linkedWordIds: form.linkedWordIds,
                   homework: {
                     text: form.homeworkText,
                     files: form.homeworkFiles,

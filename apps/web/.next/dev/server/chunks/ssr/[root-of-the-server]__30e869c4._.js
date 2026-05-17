@@ -2704,26 +2704,11 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$shared$2f$types$
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$domains$2f$entities$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/web/src/mocks/domains/entities.ts [app-rsc] (ecmascript)");
 ;
 ;
-function parseMockRoleFromEnv() {
-    const raw = process.env.NEXT_PUBLIC_MOCK_ROLE;
-    if (raw === undefined || raw === '') return __TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$shared$2f$types$2f$src$2f$lib$2f$shared$2d$types$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["USER_ROLE"].student.id;
-    const n = Number(raw);
-    if (Number.isFinite(n) && __TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$shared$2f$types$2f$src$2f$lib$2f$shared$2d$types$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["USER_ROLE_ID_LIST"].includes(n)) {
-        return n;
-    }
-    const legacy = {
-        student: __TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$shared$2f$types$2f$src$2f$lib$2f$shared$2d$types$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["USER_ROLE"].student.id,
-        teacher: __TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$shared$2f$types$2f$src$2f$lib$2f$shared$2d$types$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["USER_ROLE"].teacher.id,
-        admin: __TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$shared$2f$types$2f$src$2f$lib$2f$shared$2d$types$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["USER_ROLE"].admin.id,
-        'super-admin': __TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$shared$2f$types$2f$src$2f$lib$2f$shared$2d$types$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["USER_ROLE"].superAdmin.id
-    };
-    return legacy[raw] ?? __TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$shared$2f$types$2f$src$2f$lib$2f$shared$2d$types$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["USER_ROLE"].teacher.id;
-}
 const rolePreference = [
     ...__TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$shared$2f$types$2f$src$2f$lib$2f$shared$2d$types$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["USER_ROLE_ID_LIST"]
 ];
 const resolveUserByRole = (role)=>__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$domains$2f$entities$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["mockUsers"].find((user)=>user.role === role);
-const activeRole = parseMockRoleFromEnv();
+const activeRole = __TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$shared$2f$types$2f$src$2f$lib$2f$shared$2d$types$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["USER_ROLE"].student.id;
 const sessionRows = rolePreference.map((role)=>{
     const user = resolveUserByRole(role);
     if (!user) return null;

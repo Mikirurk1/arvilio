@@ -13,31 +13,18 @@ export type SessionRecord = {
   role: UserRole;
 };
 
-function parseMockRoleFromEnv(): UserRole {
-  const raw = process.env.NEXT_PUBLIC_MOCK_ROLE;
-  if (raw === undefined || raw === '') return USER_ROLE.student.id;
-  const n = Number(raw);
-  if (
-    Number.isFinite(n) &&
-    (USER_ROLE_ID_LIST as readonly number[]).includes(n)
-  ) {
-    return n as UserRole;
-  }
-  const legacy: Record<string, UserRole> = {
-    student: USER_ROLE.student.id,
-    teacher: USER_ROLE.teacher.id,
-    admin: USER_ROLE.admin.id,
-    'super-admin': USER_ROLE.superAdmin.id,
-  };
-  return legacy[raw] ?? USER_ROLE.teacher.id;
-}
-
 const rolePreference: UserRole[] = [...USER_ROLE_ID_LIST];
 
 const resolveUserByRole = (role: UserRole): MockUser | undefined =>
   mockUsersEntity.find(user => user.role === role);
 
-export const activeRole: UserRole = parseMockRoleFromEnv();
+/**
+ * Default mock role used by legacy code paths that have not yet been
+ * migrated to `useActiveUser()` from `lib/active-user.ts`. Real role
+ * selection now comes from the authenticated session, not from
+ * `NEXT_PUBLIC_MOCK_ROLE` (removed).
+ */
+export const activeRole: UserRole = USER_ROLE.student.id;
 
 const sessionRows: SessionRecord[] = rolePreference
   .map(role => {

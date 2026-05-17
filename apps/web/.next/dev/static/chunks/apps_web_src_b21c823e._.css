@@ -202,7 +202,23 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 28px;
-  animation: .25s page-module-scss-module__ANyPxW__slideUp;
+}
+
+.page-module-scss-module__ANyPxW__panelHint {
+  color: var(--text-tertiary);
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.page-module-scss-module__ANyPxW__panelError {
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, #ef4444 35%, var(--border));
+  background: color-mix(in srgb, #ef4444 8%, var(--card));
+  color: #b42318;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  font-size: 13px;
 }
 
 .page-module-scss-module__ANyPxW__heroAvatarButton {

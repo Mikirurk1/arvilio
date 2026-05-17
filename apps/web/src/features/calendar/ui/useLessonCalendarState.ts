@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ScheduledLessonDto } from '@soenglish/shared-types';
 import { LESSON_STATUS } from '@soenglish/shared-types';
 import { USER_ROLE, type UserRole } from '../../../mocks';
 import { getInitialLessons } from '../services/lessonCalendarService';
+import { useLessonsStore } from '../../../stores/lessons-store';
+import { fromBackendLessons } from '../../lesson-modal/scheduledLessonsBackendAdapter';
 
 export function useLessonCalendarState(activeRole: UserRole, activeStudentId: number) {
   const today = new Date();
@@ -15,6 +17,20 @@ export function useLessonCalendarState(activeRole: UserRole, activeStudentId: nu
   const [role, setRole] = useState<UserRole>(activeRole);
   const [view, setView] = useState<'month' | 'week'>('week');
   const [selectedDate, setSelectedDate] = useState<string | null>(todayIso);
+
+  const backendLessons = useLessonsStore((s) => s.backendLessons);
+  const fetchScheduledLessons = useLessonsStore((s) => s.fetchScheduledLessons);
+  const replacedFromBackendRef = useRef(false);
+
+  useEffect(() => {
+    void fetchScheduledLessons();
+  }, [fetchScheduledLessons]);
+
+  useEffect(() => {
+    if (!backendLessons.data || replacedFromBackendRef.current) return;
+    setLessons(fromBackendLessons(backendLessons.data));
+    replacedFromBackendRef.current = true;
+  }, [backendLessons.data]);
 
   useEffect(() => {
     const autoCompletePastLessons = () => {

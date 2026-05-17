@@ -1,0 +1,367 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.modal {
+  width: min(560px, 100%);
+  max-height: min(85vh, 720px);
+  overflow: auto;
+  background: var(--card, #fff);
+  border-radius: var(--radius-md, 12px);
+  border: 1px solid var(--border, #e5e7eb);
+  box-shadow: var(--shadow-lg, 0 20px 40px rgba(0, 0, 0, 0.12));
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  position: sticky;
+  top: 0;
+  background: var(--card, #fff);
+  z-index: 1;
+}
+
+.headText {
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: 'Lora', serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+}
+
+.headSubtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-faint, #9ca3af);
+  text-transform: capitalize;
+}
+
+.closeBtn {
+  flex-shrink: 0;
+}
+
+.body {
+  padding: 16px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Hero */
+.hero {
+  padding: 16px;
+  margin-bottom: 8px;
+  background: var(--surface, #f9fafb);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius-md, 12px);
+}
+
+.heroTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.heroWord {
+  margin: 0;
+  font-family: 'Lora', serif;
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+}
+
+.heroBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.heroBadge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--blue-light, #dbeafe);
+  color: var(--blue, #3b82c4);
+}
+
+.heroBadgeMuted {
+  background: var(--border, #e5e7eb);
+  color: var(--text-secondary, #374151);
+}
+
+.heroPhonetic {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* Section blocks */
+.block {
+  margin-bottom: 12px;
+}
+
+.blockHeader {
+  margin-bottom: 6px;
+}
+
+.blockTitle {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary, #6b7280);
+}
+
+.blockSubtitle {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text-faint, #9ca3af);
+  line-height: 1.4;
+}
+
+.blockCard {
+  padding: 14px 16px;
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+}
+
+.primaryDef {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text-secondary, #374151);
+}
+
+.primaryExample {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--text-tertiary, #6b7280);
+  border-left: 2px solid var(--green, #22c55e);
+  padding-left: 10px;
+  line-height: 1.5;
+}
+
+.paragraph {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-secondary, #374151);
+}
+
+/* Translation (native language: word + definition) */
+.translationList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.translationBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border, #e5e7eb);
+
+  &:first-child {
+    padding-top: 0;
+    border-top: none;
+  }
+}
+
+.translationPos {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+  color: var(--text-secondary, #6b7280);
+}
+
+.translationPart {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.translationPartLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary, #6b7280);
+}
+
+.translationLemma {
+  margin: 0;
+  font-family: 'Lora', serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+}
+
+.translationText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-secondary, #374151);
+}
+
+/* English senses */
+.sensesWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.meaningBlock + .meaningBlock {
+  padding-top: 14px;
+  border-top: 1px solid var(--border, #e5e7eb);
+}
+
+.posLabel {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+  color: var(--blue, #3b82c4);
+  margin-bottom: 8px;
+}
+
+.senseList {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.senseItem {
+  padding-left: 4px;
+}
+
+.senseDef {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary, #374151);
+}
+
+.example {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-tertiary, #6b7280);
+  line-height: 1.45;
+}
+
+.senseMeta {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--text-faint, #9ca3af);
+  line-height: 1.4;
+}
+
+.senseMetaLabel {
+  font-weight: 600;
+}
+
+/* Pronunciation */
+.phoneticList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.phoneticRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.phoneticText {
+  font-style: italic;
+  font-size: 14px;
+  color: var(--text-tertiary, #6b7280);
+}
+
+.audioBtn {
+  display: inline-flex;
+  color: var(--blue, #3b82c4);
+}
+
+/* Related words */
+.relatedWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.chipGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chipGroupLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary, #6b7280);
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  background: var(--green-light, #dcfce7);
+  color: var(--green-dark, #166534);
+  border: 1px solid transparent;
+}
+
+.chipAntonym {
+  background: var(--rose-light, #ffe4e6);
+  color: var(--rose-dark, #be123c);
+}
+
+.hint,
+.error {
+  padding: 16px 18px;
+  font-size: 14px;
+}
+
+.error {
+  color: var(--rose-dark, #be123c);
+}

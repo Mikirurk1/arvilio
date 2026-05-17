@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import type { LessonFormState } from './types';
-import type { MockStudent, UserRole } from '../../mocks';
+import type { UserRole } from '../../mocks';
+import type { LessonPartyOption } from '../../hooks/use-lesson-party-options';
 
 export type MaterialKind = 'text' | 'photo' | 'test' | 'file' | 'presentation';
 
@@ -19,8 +20,8 @@ export type SetupTabProps = {
   canEdit: boolean;
   role: UserRole;
   form: LessonFormState;
-  students: MockStudent[];
-  teachers: Array<{ id: number; fullName: string }>;
+  students: LessonPartyOption[];
+  teachers: LessonPartyOption[];
   weekDayOptions: Array<{ value: number; label: string }>;
   onChange: (next: LessonFormState) => void;
 };

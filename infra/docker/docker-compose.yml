@@ -25,6 +25,7 @@ services:
     container_name: soenglish-api
     environment:
       PORT: 3000
+      WEB_ORIGIN: http://localhost:4200
       DATABASE_URL: postgresql://soenglish:soenglish@postgres:5432/soenglish?schema=public
     ports:
       - '3000:3000'
@@ -40,7 +41,8 @@ services:
     environment:
       PORT: 4200
       API_URL: http://api:3000/api
-      NEXT_PUBLIC_API_URL: http://localhost:3000/api
+      API_PROXY_TARGET: http://api:3000
+      NEXT_PUBLIC_API_URL: /api
     ports:
       - '4200:4200'
     depends_on:

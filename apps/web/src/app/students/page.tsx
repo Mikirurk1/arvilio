@@ -1,17 +1,30 @@
+'use client';
+
+import { useEffect } from 'react';
 import { EmptyStateCard, PageHeader } from '../../components/ui';
 import { StudentSummaryCard } from '../../components/students';
 import {
-  activeMockUser,
   canView,
-  getVisibleProfiles,
   isTeacherAdminOrSuper,
   USER_ROLE,
+  type MockStudent,
 } from '../../mocks';
+import { useActiveUser } from '../../lib/active-user';
+import { mapBackendStudentToProfile } from '../../lib/student-profile';
+import { useStudentsStore } from '../../stores/students-store';
 import styles from './page.module.scss';
 
 export default function StudentsPage() {
-  const allowedRoles = isTeacherAdminOrSuper(activeMockUser.role);
-  if (!allowedRoles || !canView('dashboard', activeMockUser.role)) {
+  const activeUser = useActiveUser();
+  const list = useStudentsStore((s) => s.list);
+  const fetchStudents = useStudentsStore((s) => s.fetchStudents);
+  const allowedRoles = isTeacherAdminOrSuper(activeUser.role);
+
+  useEffect(() => {
+    if (allowedRoles) void fetchStudents();
+  }, [allowedRoles, fetchStudents]);
+
+  if (!allowedRoles || !canView('dashboard', activeUser.role)) {
     return (
       <div className={`${styles.page} container container--page`}>
         <EmptyStateCard
@@ -22,7 +35,10 @@ export default function StudentsPage() {
     );
   }
 
-  const students = getVisibleProfiles(activeMockUser.role, activeMockUser.id);
+  const rows = list.data ?? [];
+  const students = rows.map((row) => mapBackendStudentToProfile(row));
+  const isLoading = list.status === 'loading' || list.status === 'idle';
+  const isError = list.status === 'error';
 
   return (
     <div className={`${styles.page} container container--page`}>
@@ -32,28 +48,39 @@ export default function StudentsPage() {
         subtitleClassName={styles.pageSub}
         title="Students"
         subtitle={
-          activeMockUser.role === USER_ROLE.teacher.id
+          activeUser.role === USER_ROLE.teacher.id
             ? 'Only students assigned to you'
             : 'All students and their assigned teachers'
         }
       />
 
-      {students.length === 0 ? (
+      {isLoading ? <p className={styles.pageSub}>Loading students…</p> : null}
+      {isError ? (
+        <EmptyStateCard title="Could not load students" description={list.error ?? 'Unknown error'} />
+      ) : null}
+
+      {!isLoading && !isError && students.length === 0 ? (
         <EmptyStateCard
           title="No students in this scope"
           description={
-            activeMockUser.role === USER_ROLE.teacher.id
+            activeUser.role === USER_ROLE.teacher.id
               ? 'No students are currently assigned to you.'
-              : 'No students found for current filters and visibility rules.'
+              : 'No students found.'
           }
         />
-      ) : (
+      ) : null}
+
+      {students.length > 0 ? (
         <div className={styles.grid}>
-          {students.map((student) => (
-            <StudentSummaryCard key={student.id} student={student} />
+          {rows.map((row, index) => (
+            <StudentSummaryCard
+              key={row.id}
+              student={students[index]!}
+              profileId={row.id}
+            />
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

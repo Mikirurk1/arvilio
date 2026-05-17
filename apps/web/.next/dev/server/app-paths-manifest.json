@@ -1,6 +1,16 @@
 {
+  "/(auth)/login/page": "app/(auth)/login/page.js",
+  "/admin/page": "app/admin/page.js",
+  "/calendar/page": "app/calendar/page.js",
+  "/chat/page": "app/chat/page.js",
   "/dashboard/page": "app/dashboard/page.js",
-  "/page": "app/page.js",
+  "/lessons/[lessonId]/page": "app/lessons/[lessonId]/page.js",
+  "/lessons/page": "app/lessons/page.js",
   "/practice/page": "app/practice/page.js",
-  "/practice/quiz/page": "app/practice/quiz/page.js"
+  "/practice/quiz/page": "app/practice/quiz/page.js",
+  "/practice/vocabulary/page": "app/practice/vocabulary/page.js",
+  "/profile/page": "app/profile/page.js",
+  "/students/[studentId]/page": "app/students/[studentId]/page.js",
+  "/students/page": "app/students/page.js",
+  "/system/page": "app/system/page.js"
 }

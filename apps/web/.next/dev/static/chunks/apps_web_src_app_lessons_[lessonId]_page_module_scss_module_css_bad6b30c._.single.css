@@ -269,6 +269,40 @@
   line-height: 1.35;
 }
 
+.page-module-scss-module__DZIKJW__metaSelectHost {
+  width: 100%;
+}
+
+.page-module-scss-module__DZIKJW__metaSelect {
+  border: 1px solid var(--border);
+  background: var(--field-bg);
+  width: 100%;
+  min-height: 38px;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+}
+
+.page-module-scss-module__DZIKJW__metaSelect:hover:not(:disabled) {
+  border-color: var(--border-strong);
+}
+
+.page-module-scss-module__DZIKJW__metaSelect[aria-expanded="true"] {
+  border-color: color-mix(in srgb, var(--blue) 42%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 14%, transparent);
+}
+
+.page-module-scss-module__DZIKJW__metaSelect:disabled {
+  opacity: .65;
+  cursor: not-allowed;
+}
+
 .page-module-scss-module__DZIKJW__inlineRow {
   gap: 8px;
   display: flex;

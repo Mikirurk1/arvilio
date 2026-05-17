@@ -1,0 +1,21 @@
+.wrapper {
+  display: grid;
+  gap: 16px;
+}
+
+.note {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.muted {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}

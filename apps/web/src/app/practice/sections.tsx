@@ -11,7 +11,6 @@ export type PracticeActivity = {
   tag: string;
   tagClass: keyof Pick<typeof styles, 'tagGreen' | 'tagBlue' | 'tagAmber' | 'tagMuted'>;
   stat?: string;
-  ctaLabel?: string;
   accent?: 'green' | 'blue' | 'purple' | 'amber' | 'rose';
   disabled?: boolean;
 };
@@ -39,28 +38,24 @@ export function PracticeActivitiesGrid({ activities }: { activities: ReadonlyArr
   return (
     <div className={styles.grid}>
       {activities.map((activity) => (
-        <FeatureCard
-          key={activity.title}
-          href={activity.disabled ? undefined : activity.href}
-          disabled={activity.disabled}
-          className={`${styles.card} ${accentToClass(activity.accent)} ${activity.disabled ? styles.cardDisabled : ''}`}
-          bodyClassName={styles.cardBody}
-          iconClassName={styles.cardIcon}
-          titleClassName={styles.cardTitle}
-          descriptionClassName={styles.cardDesc}
-          footerClassName={styles.cardFooter}
-          title={activity.title}
-          description={
-            <>
-              {activity.description}
-              {activity.stat ? <span className={styles.statPill}>{activity.stat}</span> : null}
-            </>
-          }
-          icon={iconById[activity.icon] ?? <BookOpen size={18} />}
-          tag={activity.tag}
-          tagVariant={activity.tagClass === 'tagGreen' ? 'green' : activity.tagClass === 'tagBlue' ? 'blue' : activity.tagClass === 'tagAmber' ? 'amber' : 'neutral'}
-          cta={<span className={styles.cta}>{activity.ctaLabel ?? (activity.disabled ? 'Coming soon' : 'Open')}</span>}
-        />
+        <div key={activity.title} className={styles.cardWrap}>
+          {activity.stat ? <span className={styles.statPill}>{activity.stat}</span> : null}
+          <FeatureCard
+            href={activity.disabled ? undefined : activity.href}
+            disabled={activity.disabled}
+            className={`${styles.card} ${accentToClass(activity.accent)} ${activity.disabled ? styles.cardDisabled : ''}`}
+            bodyClassName={styles.cardBody}
+            iconClassName={styles.cardIcon}
+            titleClassName={styles.cardTitle}
+            descriptionClassName={styles.cardDesc}
+            footerClassName={styles.cardFooter}
+            title={activity.title}
+            description={activity.description}
+            icon={iconById[activity.icon] ?? <BookOpen size={18} />}
+            tag={activity.tag}
+            tagVariant={activity.tagClass === 'tagGreen' ? 'green' : activity.tagClass === 'tagBlue' ? 'blue' : activity.tagClass === 'tagAmber' ? 'amber' : 'neutral'}
+          />
+        </div>
       ))}
     </div>
   );

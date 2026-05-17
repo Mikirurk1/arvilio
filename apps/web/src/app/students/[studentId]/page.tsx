@@ -1,23 +1,20 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import type { LessonRecurrence, ScheduledLessonDto } from '@soenglish/shared-types';
-import { LESSON_STATUS } from '@soenglish/shared-types';
+import Image from 'next/image';
+import { useEffect, useMemo, useState } from 'react';
+import type { ScheduledLessonDto } from '@soenglish/shared-types';
 import { useParams } from 'next/navigation';
 import { EmptyStateCard } from '../../../components/ui';
 import { ProfileViewShell } from '../../../components/profile/ProfileViewShell';
 import { lessonStartUtc } from '../../../lib/lessonTime';
-import { calculateEndTime, nextLessonEntityId } from '../../../features/calendar/adapters/lessonCalendarAdapter';
 import {
-  activeMockUser,
   buildProfileAchievements,
   canView,
-  canManageProfile,
   emptyProfileStats,
-  getProfileByUserId,
   getProficiencyLevelById,
   getStudentScheduledLessons,
   getUserAccountStatusById,
+  isAdminOrSuper,
   isTeacherAdminOrSuper,
   mockProfileStatsByUserId,
   mockScheduledLessons,
@@ -25,15 +22,24 @@ import {
   USER_ACCOUNT_STATUS,
   type MockStudent,
 } from '../../../mocks';
+import { useActiveUser } from '../../../lib/active-user';
+import { useOptionalAuth } from '../../../lib/auth-context';
 import { getAvatarFallbackInitials } from '../../../lib/avatar';
+import {
+  canManageBackendStudent,
+  resolveStudentProfile,
+} from '../../../lib/student-profile';
+import { useStudentsStore } from '../../../stores/students-store';
+import { useLessonPartyOptions } from '../../../hooks/use-lesson-party-options';
 import {
   StudentAchievementsTab,
   StudentLessonsTab,
   StudentProfileTab,
-  StudentScheduleTab,
   StudentStatisticsTab,
 } from './sections';
+import { TeacherMessageCompose } from './TeacherMessageCompose';
 import { StudentVocabularyTab } from './StudentVocabularyTab';
+import { StudentQuizTab } from './StudentQuizTab';
 import {
   BadgeCheck,
   BookOpen,
@@ -52,41 +58,65 @@ import {
   Target,
   Trophy,
 } from 'lucide-react';
+import styles from './page.module.scss';
+
+const EMPTY_STUDENT: MockStudent = {
+  id: 0,
+  userId: 0,
+  fullName: '',
+  proficiencyLevelId: 1,
+  email: '',
+  phone: '',
+  timezoneId: 1,
+  statusId: USER_ACCOUNT_STATUS.active.id,
+  scheduleType: true,
+  teacherId: 0,
+  teacherName: '',
+  wordsLearned: 0,
+  lessonsCompleted: 0,
+  streakDays: 0,
+};
 
 export default function StudentDetailsPage() {
   const params = useParams<{ studentId: string }>();
-  const rawStudentId = params?.studentId;
-  const studentIdNum =
-    rawStudentId !== undefined && rawStudentId !== '' ? Number(rawStudentId) : Number.NaN;
-  const student = Number.isFinite(studentIdNum) ? getProfileByUserId(studentIdNum) : undefined;
+  const studentId = params?.studentId ?? '';
+  const activeUser = useActiveUser();
+  const auth = useOptionalAuth();
+  const list = useStudentsStore((s) => s.list);
+  const fetchStudents = useStudentsStore((s) => s.fetchStudents);
+  const updateStudentAdmin = useStudentsStore((s) => s.updateStudentAdmin);
+  const { teacherOptions } = useLessonPartyOptions();
 
-  if (!canView('dashboard', activeMockUser.role)) return null;
-  const allowedRoles = isTeacherAdminOrSuper(activeMockUser.role);
-  if (!allowedRoles) {
-    return <EmptyStateCard title="No permission" description="Students section is not available for your role." />;
-  }
-  if (!student) {
-    return <EmptyStateCard title="Student not found" description="Check the student link and try again." />;
-  }
-  const canManage = canManageProfile(activeMockUser, student);
-  if (!canManage) {
-    return <EmptyStateCard title="No permission" description="You cannot manage this student." />;
-  }
+  const allowedRoles = isTeacherAdminOrSuper(activeUser.role);
+  const backendRow = list.data?.find((row) => row.id === studentId);
+  const resolved = useMemo(
+    () => resolveStudentProfile(studentId, list.data),
+    [studentId, list.data],
+  );
 
   const [tab, setTab] = useState<
-    'profile' | 'statistics' | 'lessons' | 'schedule' | 'achievements' | 'vocabulary'
+    'profile' | 'statistics' | 'lessons' | 'achievements' | 'vocabulary' | 'quiz'
   >('profile');
-  const [studentForm, setStudentForm] = useState<MockStudent>(student);
+  const [studentForm, setStudentForm] = useState<MockStudent>(EMPTY_STUDENT);
+  const [teacherBackendId, setTeacherBackendId] = useState<string | null>(null);
   const [savedProfile, setSavedProfile] = useState(false);
-  const [lessons, setLessons] = useState<ScheduledLessonDto[]>(() =>
-    [...getStudentScheduledLessons(student.id)].sort(
-      (a, b) => lessonStartUtc(a).getTime() - lessonStartUtc(b).getTime(),
-    ),
-  );
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
-  const [recurrence, setRecurrence] = useState<LessonRecurrence>('none');
-  const [comment, setComment] = useState('');
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [lessons, setLessons] = useState<ScheduledLessonDto[]>([]);
+
+  useEffect(() => {
+    if (allowedRoles) void fetchStudents();
+  }, [allowedRoles, fetchStudents]);
+
+  useEffect(() => {
+    if (!resolved?.profile) return;
+    setStudentForm(resolved.profile);
+    setTeacherBackendId(resolved.teacherBackendId);
+    setLessons(
+      [...getStudentScheduledLessons(resolved.profile.id)].sort(
+        (a, b) => lessonStartUtc(a).getTime() - lessonStartUtc(b).getTime(),
+      ),
+    );
+  }, [resolved?.profile]);
 
   const pageSubtitle = useMemo(() => 'Manage student profile, lessons and scheduling', []);
   const achievementIconMap = {
@@ -118,21 +148,78 @@ export default function StudentDetailsPage() {
     description: achievement.description,
     unlocked: achievement.unlocked,
   }));
-  const recentUnlockedAchievements = studentAchievements.filter((achievement) => achievement.unlocked).slice(-10);
+  const recentUnlockedAchievements = studentAchievements
+    .filter((achievement) => achievement.unlocked)
+    .slice(-10);
+
+  if (!canView('dashboard', activeUser.role)) return null;
+
+  if (!allowedRoles) {
+    return (
+      <EmptyStateCard
+        title="No permission"
+        description="Students section is not available for your role."
+      />
+    );
+  }
+
+  const loading = list.status === 'loading' || list.status === 'idle';
+  if (loading && !resolved) {
+    return <EmptyStateCard title="Loading student…" description="Please wait." />;
+  }
+
+  if (!resolved) {
+    return (
+      <EmptyStateCard
+        title="Student not found"
+        description="Check the student link and try again."
+      />
+    );
+  }
+
+  const canManage = canManageBackendStudent(
+    activeUser.role,
+    auth.user,
+    backendRow ?? null,
+    resolved.profile,
+  );
+
+  if (!canManage) {
+    return (
+      <EmptyStateCard title="No permission" description="You cannot manage this student." />
+    );
+  }
+
+  const avatarUrl = resolved.avatarUrl;
+  const mockAvatar = mockUsers.find((row) => row.id === studentForm.id)?.avatar.url;
 
   return (
     <ProfileViewShell
       title="Student Details"
       subtitle={pageSubtitle}
-      avatar={(() => {
-        const u = mockUsers.find((row) => row.id === studentForm.id);
-        return u?.avatar.url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={u.avatar.url} alt="" width={72} height={72} style={{ borderRadius: '50%', objectFit: 'cover' }} />
+      avatar={
+        avatarUrl ? (
+          <Image
+            src={avatarUrl}
+            alt=""
+            width={72}
+            height={72}
+            unoptimized
+            style={{ borderRadius: '50%', objectFit: 'cover' }}
+          />
+        ) : mockAvatar ? (
+          <Image
+            src={mockAvatar}
+            alt=""
+            width={72}
+            height={72}
+            unoptimized
+            style={{ borderRadius: '50%', objectFit: 'cover' }}
+          />
         ) : (
           getAvatarFallbackInitials(studentForm.fullName)
-        );
-      })()}
+        )
+      }
       name={studentForm.fullName}
       meta={`Teacher: ${studentForm.teacherName}`}
       badges={[
@@ -152,106 +239,104 @@ export default function StudentDetailsPage() {
       tab={tab}
       onTabChange={setTab}
       tabs={[
-          {
-            value: 'profile',
-            label: 'Profile',
-            panel: (
-              <StudentProfileTab
-                student={studentForm}
-                onChange={setStudentForm}
-                canEdit={canManage}
-                viewerRole={activeMockUser.role}
-                saved={savedProfile}
-                onSave={() => {
-                  const target = mockUsers.find((u) => u.id === studentForm.id);
-                  if (target) {
-                    target.fullName = studentForm.fullName;
-                    target.email = studentForm.email;
-                    target.phone = studentForm.phone;
-                    target.timezoneId = studentForm.timezoneId;
-                    target.proficiencyLevelId = studentForm.proficiencyLevelId;
-                    target.statusId = studentForm.statusId;
-                    target.scheduleType = studentForm.scheduleType;
-                    target.color = studentForm.color;
+        {
+          value: 'profile',
+          label: 'Profile',
+          panel: (
+            <div className={styles.tabStack}>
+            <StudentProfileTab
+              student={studentForm}
+              onChange={setStudentForm}
+              canEdit={canManage}
+              viewerRole={activeUser.role}
+              teacherBackendId={teacherBackendId}
+              teacherOptions={teacherOptions.map((row) => ({
+                id: row.backendId,
+                displayName: row.fullName,
+              }))}
+              onTeacherBackendIdChange={setTeacherBackendId}
+              saved={savedProfile}
+              saveError={saveError}
+              onSave={() => {
+                void (async () => {
+                  setSaveError(null);
+                  try {
+                    if (
+                      isAdminOrSuper(activeUser.role) &&
+                      resolved.backendId &&
+                      teacherBackendId !== resolved.teacherBackendId
+                    ) {
+                      await updateStudentAdmin(resolved.backendId, {
+                        teacherId: teacherBackendId,
+                      });
+                      const teacherName =
+                        teacherOptions.find((t) => t.backendId === teacherBackendId)
+                          ?.fullName ?? '—';
+                      setStudentForm((prev) => ({ ...prev, teacherName }));
+                    }
+                    const target = mockUsers.find((u) => u.id === studentForm.id);
+                    if (target) {
+                      target.fullName = studentForm.fullName;
+                      target.email = studentForm.email;
+                      target.phone = studentForm.phone;
+                      target.timezoneId = studentForm.timezoneId;
+                      target.proficiencyLevelId = studentForm.proficiencyLevelId;
+                      target.statusId = studentForm.statusId;
+                      target.scheduleType = studentForm.scheduleType;
+                      target.color = studentForm.color;
+                    }
+                    setSavedProfile(true);
+                    setTimeout(() => setSavedProfile(false), 2000);
+                  } catch (err) {
+                    setSaveError(err instanceof Error ? err.message : 'Failed to save');
                   }
-                  setSavedProfile(true);
-                  setTimeout(() => setSavedProfile(false), 2000);
-                }}
-              />
-            ),
-          },
-          {
-            value: 'statistics',
-            label: 'Statistics',
-            panel: (
-              <StudentStatisticsTab
-                roleId={activeMockUser.role}
-                currentUserId={activeMockUser.id}
-                studentId={studentForm.userId}
-              />
-            ),
-          },
-          {
-            value: 'lessons',
-            label: 'Lessons',
-            panel: <StudentLessonsTab lessons={lessons} />,
-          },
-          {
-            value: 'schedule',
-            label: 'Schedule',
-            panel: (
-              <StudentScheduleTab
-                canEdit={canManage}
-                date={date}
-                setDate={setDate}
-                time={time}
-                setTime={setTime}
-                recurrence={recurrence}
-                setRecurrence={setRecurrence}
-                comment={comment}
-                setComment={setComment}
-                onPlan={() => {
-                  const newLesson: ScheduledLessonDto = {
-                    id: nextLessonEntityId([...mockScheduledLessons, ...lessons]),
-                    title: comment.trim() ? comment.trim().slice(0, 80) : 'Scheduled lesson',
-                    date,
-                    startTime: time,
-                    endTime: calculateEndTime(time, 55),
-                    duration: 55,
-                    timezoneId: activeMockUser.timezoneId,
-                    teacherId: studentForm.teacherId,
-                    teacherName: studentForm.teacherName,
-                    studentId: studentForm.id,
-                    studentName: studentForm.fullName,
-                    statusId: LESSON_STATUS.planned.id,
-                    credited: false,
-                    notes: comment,
-                    order: 1,
-                    recurrence,
-                    weeklyDays: recurrence === 'weekly' ? [] : [],
-                  };
-                  setLessons((prev) => [...prev, newLesson]);
-                  setDate('');
-                  setTime('');
-                  setRecurrence('none');
-                  setComment('');
-                  setTab('lessons');
-                }}
-              />
-            ),
-          },
-          {
-            value: 'achievements',
-            label: 'Achievements',
-            panel: <StudentAchievementsTab achievements={studentAchievements} />,
-          },
-          {
-            value: 'vocabulary',
-            label: 'Vocabulary',
-            panel: (
-              <StudentVocabularyTab studentUserId={studentForm.userId} />
-            ),
-          },
+                })();
+              }}
+            />
+            {resolved.backendId && isTeacherAdminOrSuper(activeUser.role) ? (
+              <TeacherMessageCompose studentId={resolved.backendId} />
+            ) : null}
+            </div>
+          ),
+        },
+        {
+          value: 'statistics',
+          label: 'Statistics',
+          panel: (
+              <StudentStatisticsTab />
+          ),
+        },
+        {
+          value: 'lessons',
+          label: 'Lessons',
+          panel: <StudentLessonsTab lessons={lessons} />,
+        },
+        {
+          value: 'achievements',
+          label: 'Achievements',
+          panel: <StudentAchievementsTab achievements={studentAchievements} />,
+        },
+        {
+          value: 'vocabulary',
+          label: 'Vocabulary',
+          panel: resolved.backendId ? (
+            <StudentVocabularyTab studentId={resolved.backendId} />
+          ) : (
+            <EmptyStateCard
+              title="Vocabulary unavailable"
+              description="Link this student to a backend account first."
+            />
+          ),
+        },
+        {
+          value: 'quiz',
+          label: 'Quiz',
+          panel: resolved.backendId ? (
+            <StudentQuizTab studentId={resolved.backendId} />
+          ) : (
+            <EmptyStateCard title="Quiz unavailable" description="Link this student to a backend account first." />
+          ),
+        },
       ]}
     />
   );

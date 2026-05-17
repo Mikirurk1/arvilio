@@ -1,0 +1,292 @@
+.page {
+  padding-top: 12px;
+}
+
+.pageHeader {
+  margin-bottom: 16px;
+}
+
+.pageTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.pageSub {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  max-width: 720px;
+}
+
+.createCard,
+.listCard {
+  margin-top: 20px;
+  padding: 18px 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-primary);
+}
+
+.cardTitle {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.cardSub {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  max-width: 560px;
+}
+
+.refreshBtn {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 12px;
+
+  &:hover {
+    background: var(--blue-light);
+    color: var(--blue);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.fieldFull {
+  margin-top: 4px;
+}
+
+.fieldGroupFull {
+  grid-column: 1 / -1;
+}
+
+.langChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.langChip,
+.langChipActive {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 13px;
+  cursor: pointer;
+  background: var(--card);
+  color: var(--text-primary);
+}
+
+.langChipActive {
+  border-color: var(--blue);
+  background: var(--blue-light, #dbeafe);
+  color: var(--blue);
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.input {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 15px;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--transition);
+  background: var(--field-bg);
+  width: 100%;
+}
+
+.input:focus {
+  border-color: var(--green);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.formFooter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.submitBtn {
+  padding: 10px 24px;
+  border-radius: var(--radius-md);
+  background: var(--fill-strong);
+  color: white;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    background: var(--fill-strong-hover);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@media (max-width: 900px) {
+  .formGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 540px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.success {
+  font-size: 12px;
+  color: var(--green-dark);
+}
+
+.error {
+  font-size: 12px;
+  color: var(--rose);
+}
+
+.muted {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  color: var(--text-secondary);
+
+  th,
+  td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  tbody tr:hover {
+    background: var(--surface);
+  }
+}
+
+.role {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+}
+
+.role_student {
+  background: var(--blue-light);
+  color: var(--blue);
+  border-color: var(--blue-light);
+}
+
+.role_teacher {
+  background: var(--green-light, var(--blue-light));
+  color: var(--green-dark, var(--blue));
+  border-color: var(--green-light, var(--blue-light));
+}
+
+.role_admin {
+  background: rgba(245, 158, 11, 0.16);
+  color: #b45309;
+  border-color: rgba(245, 158, 11, 0.24);
+}
+
+.role_super_admin {
+  background: rgba(139, 92, 246, 0.18);
+  color: #6d28d9;
+  border-color: rgba(139, 92, 246, 0.28);
+}
+
+.created {
+  color: var(--text-tertiary);
+}
+
+.rowActions {
+  text-align: right;
+}
+
+.deleteBtn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--rose);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(244, 63, 94, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

@@ -1,4 +1,4 @@
-:HL["/_next/static/chunks/07d82255d19f054a.css","style"]
-:HL["/_next/static/chunks/855214052fd3e6ef.css","style"]
-:HL["/_next/static/chunks/34ceaeafd3717df8.css","style"]
-0:{"buildId":"roAa1L27VlLcTjXkv48I6","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"quiz","paramType":null,"paramKey":"quiz","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
+:HL["/_next/static/chunks/caa624ccf75b8dac.css","style"]
+:HL["/_next/static/chunks/7095b186eece5b0b.css","style"]
+:HL["/_next/static/chunks/26eb4c589fd77b38.css","style"]
+0:{"buildId":"lxbMgqcXcorCGt-DGmtLJ","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"quiz","paramType":null,"paramKey":"quiz","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}

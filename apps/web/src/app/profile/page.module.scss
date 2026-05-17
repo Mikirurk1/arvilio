@@ -58,7 +58,22 @@
 .tabBtn:hover { color: var(--text-primary); }
 .tabActive { color: var(--text-primary); border-bottom-color: var(--text-primary); }
 
-.formCard { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; animation: slideUp 0.25s ease; }
+.formCard { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; }
+.panelHint {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: var(--text-tertiary);
+  line-height: 1.45;
+}
+.panelError {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, #ef4444 35%, var(--border));
+  background: color-mix(in srgb, #ef4444 8%, var(--card));
+  color: #b42318;
+  font-size: 13px;
+}
 .heroAvatarButton {
   width: 100%;
   height: 100%;
@@ -369,6 +384,53 @@
   background: var(--surface);
   color: var(--text-tertiary);
   border: 1px solid var(--border);
+}
+.linkedRowActions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+.linkedConnectBtn {
+  white-space: nowrap;
+  font-size: 13px;
+  padding: 8px 14px;
+}
+.telegramConnectRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.telegramInfoBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-tertiary);
+  cursor: help;
+  flex-shrink: 0;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.telegramInfoBtn:hover,
+.telegramInfoBtn:focus-visible {
+  color: var(--text-primary);
+  background: var(--border);
+  outline: none;
+}
+.telegramTooltip {
+  max-width: 280px;
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: normal;
+}
+.telegramWidgetHost {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
 }
 
 @media (max-width: 720px) {

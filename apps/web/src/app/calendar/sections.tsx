@@ -3,8 +3,9 @@
 import type { ScheduledLessonDto } from '@soenglish/shared-types';
 import { useRouter } from 'next/navigation';
 import { LESSON_STATUS } from '@soenglish/shared-types';
-import { AdaptiveSelect, Button, CalendarEventCard, Field, SegmentedControl, SurfaceCard } from '../../components/ui';
-import { activeMockUser, canSchedule, USER_ROLE, type UserRole } from '../../mocks';
+import { AdaptiveSelect, Button, CalendarEventCard, SegmentedControl, SurfaceCard } from '../../components/ui';
+import { USER_ROLE, type UserRole } from '../../mocks';
+import { useActiveUser } from '../../lib/active-user';
 import {
   getIanaForTimeZoneId,
   lessonEndTimeInZone,
@@ -91,16 +92,16 @@ export function CalendarHeaderControls({
 export function SelectedDateSidebar({
   selectedDate,
   selectedLessons,
-  role,
   getLessonColor,
 }: {
   selectedDate: string | null;
   selectedLessons: ScheduledLessonDto[];
-  role: UserRole;
+  role?: UserRole;
   getLessonColor: (lesson: ScheduledLessonDto) => 'Blue' | 'Green' | 'Amber' | 'Purple';
 }) {
   const router = useRouter();
-  const viewerIana = getIanaForTimeZoneId(activeMockUser.timezoneId);
+  const activeUser = useActiveUser();
+  const viewerIana = getIanaForTimeZoneId(activeUser.timezoneId);
   return (
     <div className={styles.calSidebar}>
       <SurfaceCard className={styles.sidePanel}>

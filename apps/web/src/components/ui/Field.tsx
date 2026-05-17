@@ -1,5 +1,11 @@
 import { Children, forwardRef, isValidElement, useId } from 'react';
-import type { InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
+import type {
+  ChangeEvent,
+  InputHTMLAttributes,
+  SelectHTMLAttributes,
+  TextareaHTMLAttributes,
+} from 'react';
+import { formatTelMask } from '../../lib/tel-mask';
 import { Button } from './Button';
 
 type SharedProps = {
@@ -229,14 +235,30 @@ export const Field = forwardRef<
   void error;
   void _id;
   void _formatValue;
+
+  const isTelInput = i.type === 'tel';
+  const telOnChange = isTelInput
+    ? (event: ChangeEvent<HTMLInputElement>) => {
+        const masked = formatTelMask(event.target.value);
+        if (masked !== event.target.value) {
+          event.target.value = masked;
+        }
+        i.onChange?.(event);
+      }
+    : i.onChange;
+
   return (
     <>
       <input
         ref={ref as React.ForwardedRef<HTMLInputElement>}
         id={id}
+        type={isTelInput ? 'tel' : i.type}
+        inputMode={isTelInput ? 'tel' : i.inputMode}
+        autoComplete={isTelInput ? (i.autoComplete ?? 'tel') : i.autoComplete}
         aria-invalid={props.error ? true : undefined}
         aria-describedby={describedBy}
         {...i}
+        onChange={telOnChange}
       />
       {props.error ? <small id={errorId}>{props.error}</small> : null}
       {props.hint && !props.error ? <small id={hintId}>{props.hint}</small> : null}

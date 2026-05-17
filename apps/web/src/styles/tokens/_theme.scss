@@ -47,6 +47,28 @@
   --shadow-sm: 0 2px 8px rgba(26, 26, 46, 0.06);
   --shadow-md: 0 8px 24px rgba(26, 26, 46, 0.08);
 
+  --toast-success-bg: rgba(240, 253, 244, 0.72);
+  --toast-success-border: rgba(134, 239, 172, 0.65);
+  --toast-success-accent: #16a34a;
+  --toast-success-icon-bg: #dcfce7;
+  --toast-success-icon-fg: #166534;
+  --toast-info-bg: rgba(239, 246, 255, 0.72);
+  --toast-info-border: rgba(191, 219, 254, 0.65);
+  --toast-info-accent: #2563eb;
+  --toast-info-icon-bg: #dbeafe;
+  --toast-info-icon-fg: #1e3a8a;
+  --toast-warning-bg: rgba(255, 251, 235, 0.72);
+  --toast-warning-border: rgba(253, 230, 138, 0.65);
+  --toast-warning-accent: #f59e0b;
+  --toast-warning-icon-bg: #fef3c7;
+  --toast-warning-icon-fg: #92400e;
+  --toast-error-bg: rgba(254, 242, 242, 0.72);
+  --toast-error-border: rgba(254, 202, 202, 0.65);
+  --toast-error-accent: var(--rose);
+  --toast-error-icon-bg: #fee2e2;
+  --toast-error-icon-fg: #991b1b;
+  --toast-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 65%);
+
   color-scheme: light;
 }
 
@@ -91,6 +113,28 @@
 
   --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.35);
   --shadow-md: 0 12px 36px rgba(0, 0, 0, 0.45);
+
+  --toast-success-bg: rgba(22, 169, 122, 0.16);
+  --toast-success-border: rgba(62, 207, 158, 0.45);
+  --toast-success-accent: var(--green);
+  --toast-success-icon-bg: rgba(22, 169, 122, 0.28);
+  --toast-success-icon-fg: #b8f0dc;
+  --toast-info-bg: rgba(59, 130, 196, 0.16);
+  --toast-info-border: rgba(107, 168, 232, 0.45);
+  --toast-info-accent: var(--blue);
+  --toast-info-icon-bg: rgba(59, 130, 196, 0.28);
+  --toast-info-icon-fg: #c5dff8;
+  --toast-warning-bg: rgba(245, 156, 48, 0.14);
+  --toast-warning-border: rgba(255, 184, 77, 0.45);
+  --toast-warning-accent: var(--amber);
+  --toast-warning-icon-bg: rgba(245, 156, 48, 0.24);
+  --toast-warning-icon-fg: #ffe0b0;
+  --toast-error-bg: rgba(224, 92, 122, 0.16);
+  --toast-error-border: rgba(255, 139, 163, 0.45);
+  --toast-error-accent: var(--rose);
+  --toast-error-icon-bg: rgba(224, 92, 122, 0.28);
+  --toast-error-icon-fg: #ffc4d2;
+  --toast-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
 
   color-scheme: dark;
 }

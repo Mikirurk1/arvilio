@@ -3,21 +3,24 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { ScheduledLessonDto } from '@soenglish/shared-types';
 import { LESSON_STATUS } from '@soenglish/shared-types';
+import { canSchedule, isAdminOrSuper, USER_ROLE } from '../../mocks';
+import { useActiveUser } from '../../lib/active-user';
+import { useLessonPartyOptions } from '../../hooks/use-lesson-party-options';
+import { useScheduledLessonPersistence } from '../../hooks/use-scheduled-lesson-persistence';
+import { toLessonFormState } from '../calendar/adapters/lessonCalendarAdapter';
 import {
-  activeMockUser,
-  canSchedule,
-  getVisibleProfiles,
-  isAdminOrSuper,
-  mockUsers,
-  syncLessonVocabularyToProfile,
-  USER_ROLE,
-} from '../../mocks';
+  buildLessonCandidate,
+  isGoogleCalendarRequiredError,
+  resolvePartyBackendId,
+} from './lessonPersistence';
+import { confirmDialog } from '../confirm';
+import { toast } from '../notifications';
 import {
-  fromLessonFormState,
-  nextLessonEntityId,
-  toLessonFormState,
-} from '../calendar/adapters/lessonCalendarAdapter';
+  getLessonBackendId,
+  upsertScheduledLesson,
+} from './scheduledLessonsBackendAdapter';
 import { hasTimeConflict, isPastSlot } from '../calendar/rules/conflicts';
+import { defaultCreateLessonStartTime, getIanaForTimeZoneId } from '../../lib/lessonTime';
 import type { LessonFormState, LessonModalMode } from './types';
 import { useScheduledLessons } from './ScheduledLessonsProvider';
 
@@ -36,30 +39,44 @@ export type UseLessonEditorOptions = {
 
 export function useLessonEditor(options: UseLessonEditorOptions = {}) {
   const { onAfterDelete, onLessonCreated } = options;
-  const role = activeMockUser.role;
+  const activeUser = useActiveUser();
+  const role = activeUser.role;
   const { lessons, setLessons } = useScheduledLessons();
   const canManageLessons = canSchedule('lessons', role);
-
-  const visibleStudents = useMemo(() => getVisibleProfiles(role, activeMockUser.id), [role]);
-  const assignableTeachers = useMemo(
-    () =>
-      mockUsers
-        .filter((user) => user.role !== USER_ROLE.student.id)
-        .map((user) => ({ id: user.id, fullName: user.fullName })),
-    [],
-  );
+  const {
+    studentOptions,
+    teacherOptions,
+    defaultTeacher,
+    defaultStudent,
+    currentUserNumericId,
+  } = useLessonPartyOptions();
+  const { persistCreate, persistUpdate, persistenceErrorMessage } = useScheduledLessonPersistence();
 
   const [modalMode, setModalMode] = useState<LessonModalMode>('create');
+  const [saving, setSaving] = useState(false);
   const [editingLesson, setEditingLesson] = useState<ScheduledLessonDto | null>(null);
   const [form, setForm] = useState<LessonFormState | null>(null);
 
   const openCreateModal = useCallback(
-    (date: string, startTime = '10:00') => {
-      const defaultStudent = visibleStudents[0];
-      const defaultTeacher =
+    (date: string) => {
+      const viewerIana = getIanaForTimeZoneId(activeUser.timezoneId);
+      const { startTime } = defaultCreateLessonStartTime(viewerIana, date);
+      const teacher =
         isAdminOrSuper(role)
-          ? assignableTeachers[0]
-          : { id: activeMockUser.id, fullName: activeMockUser.fullName };
+          ? defaultTeacher
+          : defaultTeacher ?? {
+              id: currentUserNumericId ?? activeUser.id,
+              fullName: activeUser.fullName,
+              backendId: '',
+            };
+      const student =
+        role === USER_ROLE.student.id
+          ? {
+              id: currentUserNumericId ?? activeUser.id,
+              fullName: activeUser.fullName,
+              backendId: '',
+            }
+          : defaultStudent;
       setModalMode('create');
       setEditingLesson(null);
       setForm({
@@ -67,11 +84,10 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
         date,
         startTime,
         duration: 55,
-        teacherId: defaultTeacher?.id ?? activeMockUser.id,
-        teacherName: defaultTeacher?.fullName ?? activeMockUser.fullName,
-        studentId: role === USER_ROLE.student.id ? activeMockUser.id : (defaultStudent?.id ?? activeMockUser.id),
-        studentName:
-          role === USER_ROLE.student.id ? activeMockUser.fullName : (defaultStudent?.fullName ?? activeMockUser.fullName),
+        teacherId: teacher?.id ?? activeUser.id,
+        teacherName: teacher?.fullName ?? activeUser.fullName,
+        studentId: student?.id ?? activeUser.id,
+        studentName: student?.fullName ?? activeUser.fullName,
         notes: '',
         lessonPlan: '',
         materials: [],
@@ -82,16 +98,24 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
         studentResponseStatus: 'not_submitted',
         homeworkChecked: false,
         teacherHomeworkFeedback: '',
-        linkedVocabularyIds: [],
+        linkedWordIds: [],
         statusId: LESSON_STATUS.planned.id,
         credited: false,
         recurrence: 'none',
         weeklyDays: [],
         applyToSeries: false,
-        timezoneId: activeMockUser.timezoneId,
+        timezoneId: activeUser.timezoneId,
       });
     },
-    [role, visibleStudents, assignableTeachers],
+    [
+      role,
+      defaultStudent,
+      defaultTeacher,
+      currentUserNumericId,
+      activeUser.id,
+      activeUser.fullName,
+      activeUser.timezoneId,
+    ],
   );
 
   const openEditModal = useCallback((lesson: ScheduledLessonDto) => {
@@ -108,15 +132,15 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
   const tryApplyLesson = useCallback(
     (nextLesson: ScheduledLessonDto, sourceLesson?: ScheduledLessonDto): boolean => {
       if (hasTimeConflict(lessons, nextLesson, sourceLesson?.id, 'any-overlap')) {
-        window.alert('This time slot is already booked.');
+        toast.warning('Time slot unavailable', 'This time slot is already booked.');
         return false;
       }
       if (isPastSlot(nextLesson)) {
-        window.alert('You cannot schedule a lesson in the past.');
+        toast.warning('Invalid time', 'You cannot schedule a lesson in the past.');
         return false;
       }
       if (!sourceLesson) {
-        setLessons((prev) => [...prev, nextLesson]);
+        setLessons((prev) => upsertScheduledLesson(prev, nextLesson));
         onLessonCreated?.(nextLesson);
       } else {
         setLessons((prev) => prev.map((lesson) => (lesson.id === sourceLesson.id ? nextLesson : lesson)));
@@ -126,16 +150,84 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
     [lessons, setLessons, onLessonCreated],
   );
 
-  const submitModal = useCallback(() => {
-    if (!form) return;
-    const seq = nextLessonEntityId(lessons);
-    const candidate = fromLessonFormState(form, editingLesson ?? undefined, editingLesson ? undefined : seq);
+  const submitModal = useCallback(async () => {
+    if (!form || saving) return;
+    const candidate = buildLessonCandidate(form, lessons, editingLesson);
     if (!canManageLessons) candidate.statusId = LESSON_STATUS.planned.id;
+
+    if (hasTimeConflict(lessons, candidate, editingLesson?.id, 'any-overlap')) {
+      toast.warning('Time slot unavailable', 'This time slot is already booked.');
+      return;
+    }
+    if (isPastSlot(candidate)) {
+      toast.warning('Invalid time', 'You cannot schedule a lesson in the past.');
+      return;
+    }
+
+    if (canManageLessons) {
+      setSaving(true);
+      let keepModalOpenAfterSave = false;
+      try {
+        if (editingLesson) {
+          const persisted = await persistUpdate(candidate, editingLesson);
+          if (persisted) {
+            setLessons((prev) =>
+              prev.map((lesson) => (lesson.id === editingLesson.id ? persisted : lesson)),
+            );
+            setEditingLesson(persisted);
+            setForm(toLessonFormState(persisted));
+          } else if (!tryApplyLesson(candidate, editingLesson)) {
+            return;
+          }
+        } else {
+          const persisted = await persistCreate(candidate);
+          setLessons((prev) => upsertScheduledLesson(prev, persisted));
+          setEditingLesson(persisted);
+          setModalMode('edit');
+          setForm(toLessonFormState(persisted));
+          keepModalOpenAfterSave = true;
+          onLessonCreated?.(persisted);
+          if (form.recurrence === 'weekly' && form.weeklyDays.length > 0) {
+            const baseDate = new Date(form.date);
+            const clones = form.weeklyDays
+              .map((weekday, index) => {
+                if (index === 0) return null;
+                const delta =
+                  (weekday - (baseDate.getDay() === 0 ? 7 : baseDate.getDay()) + 7) % 7;
+                const nextDate = new Date(baseDate);
+                nextDate.setDate(baseDate.getDate() + delta);
+                return { ...candidate, date: toDateString(nextDate) };
+              })
+              .filter((row): row is ScheduledLessonDto => row !== null);
+
+            for (const clone of clones) {
+              if (hasTimeConflict(lessons, clone, undefined, 'any-overlap')) continue;
+              if (isPastSlot(clone)) continue;
+              const clonePersisted = await persistCreate(clone);
+              setLessons((prev) => upsertScheduledLesson(prev, clonePersisted));
+              onLessonCreated?.(clonePersisted);
+            }
+          }
+        }
+      } catch (error) {
+        const message = persistenceErrorMessage(error);
+        toast.error(
+          isGoogleCalendarRequiredError(error) ? 'Google Calendar required' : 'Could not save lesson',
+          message,
+        );
+        return;
+      } finally {
+        setSaving(false);
+      }
+      if (!keepModalOpenAfterSave) closeModal();
+      return;
+    }
+
     if (!tryApplyLesson(candidate, editingLesson ?? undefined)) return;
-    syncLessonVocabularyToProfile(candidate);
     if (!editingLesson && form.recurrence === 'weekly' && form.weeklyDays.length > 0) {
       const baseDate = new Date(form.date);
       let cloneOffset = 1;
+      const seq = candidate.id;
       form.weeklyDays.forEach((weekday, index) => {
         if (index === 0) return;
         const delta = (weekday - (baseDate.getDay() === 0 ? 7 : baseDate.getDay()) + 7) % 7;
@@ -153,7 +245,20 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
       });
     }
     closeModal();
-  }, [form, editingLesson, lessons, canManageLessons, tryApplyLesson, closeModal]);
+  }, [
+    form,
+    saving,
+    editingLesson,
+    lessons,
+    canManageLessons,
+    tryApplyLesson,
+    persistCreate,
+    persistUpdate,
+    persistenceErrorMessage,
+    setLessons,
+    onLessonCreated,
+    closeModal,
+  ]);
 
   const saveStudentResponse = useCallback(() => {
     if (!form || !editingLesson) return;
@@ -180,15 +285,15 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
     );
   }, [form, editingLesson, setLessons]);
 
-  const handleUnlinkSeries = useCallback(() => {
+  const handleUnlinkSeries = useCallback(async () => {
     if (!editingLesson?.seriesId) return;
-    if (
-      !window.confirm(
-        'Unlink this lesson from the series? Only this lesson will be detached; other series lessons stay as they are.',
-      )
-    ) {
-      return;
-    }
+    const ok = await confirmDialog({
+      title: 'Unlink from series?',
+      message:
+        'Only this lesson will be detached; other lessons in the series stay linked.',
+      confirmLabel: 'Unlink',
+    });
+    if (!ok) return;
     setLessons((prev) =>
       prev.map((lesson) =>
         lesson.id === editingLesson.id
@@ -204,22 +309,37 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
     );
   }, [editingLesson, setLessons]);
 
-  const handleDeleteLesson = useCallback(() => {
+  const handleDeleteLesson = useCallback(async () => {
     if (!editingLesson) return;
-    if (!window.confirm('Delete this lesson? This cannot be undone.')) return;
+    const ok = await confirmDialog({
+      title: 'Delete lesson?',
+      message: 'This lesson will be permanently deleted.',
+      confirmLabel: 'Delete',
+      variant: 'danger',
+    });
+    if (!ok) return;
     const id = editingLesson.id;
     setLessons((prev) => prev.filter((lesson) => lesson.id !== id));
     onAfterDelete?.(id);
     closeModal();
   }, [editingLesson, setLessons, onAfterDelete, closeModal]);
 
+  const lessonBackendId = editingLesson ? getLessonBackendId(editingLesson) ?? null : null;
+  const persistedLessonId = editingLesson?.id ?? null;
+  const studentBackendId = form
+    ? resolvePartyBackendId(form.studentId, studentOptions, teacherOptions) ?? null
+    : null;
+
   return {
     role,
     canManageLessons,
     canCreateLesson: canManageLessons,
     lessons,
-    visibleStudents,
-    assignableTeachers,
+    visibleStudents: studentOptions,
+    assignableTeachers: teacherOptions,
+    lessonBackendId,
+    persistedLessonId,
+    studentBackendId,
     modalMode,
     editingLesson,
     form,

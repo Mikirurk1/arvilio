@@ -1,0 +1,203 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  color: var(--text-primary);
+  padding: 32px 16px;
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--card);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .mark {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--blue), var(--green));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+  }
+
+  .name {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--text-primary);
+  }
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-tertiary);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 13px;
+    color: var(--text-tertiary);
+  }
+
+  input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--field-bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+    transition: border-color var(--transition), box-shadow var(--transition);
+  }
+
+  input::placeholder {
+    color: var(--text-faint);
+  }
+
+  input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px var(--blue-light);
+  }
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.primary {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background var(--transition), opacity var(--transition);
+
+  &:hover {
+    opacity: 0.92;
+  }
+
+  &:disabled {
+    background: var(--text-faint);
+    color: var(--card);
+    cursor: not-allowed;
+    opacity: 1;
+  }
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+}
+
+.googleBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color var(--transition), background var(--transition);
+
+  &:hover {
+    border-color: var(--border-strong);
+    background: var(--surface);
+  }
+}
+
+.error {
+  color: var(--rose);
+  font-size: 13px;
+  background: var(--rose-light);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+}
+
+.footer {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-tertiary);
+
+  a {
+    color: var(--blue);
+    text-decoration: none;
+    font-weight: 500;
+  }
+}
+
+.roleRow {
+  display: flex;
+  gap: 8px;
+
+  button {
+    flex: 1;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--field-bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 13px;
+    transition: border-color var(--transition), background var(--transition),
+      color var(--transition);
+
+    &[data-active='true'] {
+      border-color: var(--blue);
+      background: var(--blue-light);
+      color: var(--blue);
+    }
+  }
+}

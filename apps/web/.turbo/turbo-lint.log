@@ -2,32 +2,3 @@
 > @soenglish/web@0.0.0 lint
 > eslint .
 
-
-/Users/mikirurk/Programming/SoEnglish/apps/web/src/app/calendar/sections.tsx
-   6:53  error  'Field' is defined but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
-   7:26  error  'canSchedule' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
-  94:3   error  'role' is defined but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
-
-/Users/mikirurk/Programming/SoEnglish/apps/web/src/app/lessons/page.tsx
-  3:8   error  'Link' is defined but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
-  4:48  error  'useState' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
-
-/Users/mikirurk/Programming/SoEnglish/apps/web/src/app/students/[studentId]/page.tsx
-  122:11  warning  Unused eslint-disable directive (no problems were reported from '@next/next/no-img-element')
-
-/Users/mikirurk/Programming/SoEnglish/apps/web/src/components/layout/Header.tsx
-  124:13  warning  Unused eslint-disable directive (no problems were reported from '@next/next/no-img-element')
-
-/Users/mikirurk/Programming/SoEnglish/apps/web/src/features/lesson-modal/types.ts
-  5:3  error  'ScheduledLessonDto' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
-
-✖ 8 problems (6 errors, 2 warnings)
-  0 errors and 2 warnings potentially fixable with the `--fix` option.
-
-npm error Lifecycle script `lint` failed with error:
-npm error code 1
-npm error path /Users/mikirurk/Programming/SoEnglish/apps/web
-npm error workspace @soenglish/web@0.0.0
-npm error location /Users/mikirurk/Programming/SoEnglish/apps/web
-npm error command failed
-npm error command sh -c eslint .

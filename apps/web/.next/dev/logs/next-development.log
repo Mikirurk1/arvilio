@@ -1,2 +1,44 @@
-[00:00:00.680] Server  LOG     ✓ Ready in 491ms
-[00:01:06.082] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:00:00.899] Server  LOG     ✓ Ready in 698ms
+[00:00:01.961] Server  WARN    ⚠ Cross origin request detected from 192.168.31.62 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+[00:00:02.022] Server  ERROR   Failed to proxy http://127.0.0.1:3000/api/graphql Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.023] Server  ERROR   Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.026] Server  ERROR   Failed to proxy http://127.0.0.1:3000/api/graphql Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.026] Server  ERROR   Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.028] Server  ERROR   Failed to proxy http://127.0.0.1:3000/api/graphql Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.029] Server  ERROR   Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.032] Server  ERROR   Failed to proxy http://127.0.0.1:3000/api/graphql Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.033] Server  ERROR   Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.038] Server  ERROR   Failed to proxy http://127.0.0.1:3000/api/graphql Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.040] Server  ERROR   Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.047] Server  ERROR   Failed to proxy http://127.0.0.1:3000/api/graphql Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.048] Server  ERROR   Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.059] Server  ERROR   Failed to proxy http://127.0.0.1:3000/api/graphql Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.059] Server  ERROR   Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.061] Server  ERROR   Failed to proxy http://127.0.0.1:3000/api/graphql Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.062] Server  ERROR   Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.068] Server  ERROR   Failed to proxy http://127.0.0.1:3000/api/graphql Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.069] Server  ERROR   Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.071] Server  ERROR   Failed to proxy http://127.0.0.1:3000/api/graphql Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.072] Server  ERROR   Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.262] Server  ERROR   Failed to proxy http://127.0.0.1:3000/api/auth/me Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.263] Server  ERROR   Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.414] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:02.439] Server  ERROR   Failed to proxy http://127.0.0.1:3000/api/auth/me Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.439] Server  ERROR   Error: connect ECONNREFUSED 127.0.0.1:3000
+[00:00:02.581] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:00:03.361] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:00:17.339] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:00:21.173] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:21.363] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:00:48.148] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:03:14.818] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:03:21.633] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:03:44.923] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:03:55.741] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:06:06.069] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:06:13.664] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:07:29.835] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:07:33.460] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:07:36.415] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:07:37.669] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior

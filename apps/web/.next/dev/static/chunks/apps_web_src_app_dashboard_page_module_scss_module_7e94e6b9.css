@@ -223,6 +223,27 @@
   display: flex;
 }
 
+.page-module-scss-module__ZvOumW__lessonLink {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+}
+
+.page-module-scss-module__ZvOumW__emptyHint {
+  color: var(--text-tertiary);
+  margin: 0 0 28px;
+  font-size: 13px;
+}
+
+.page-module-scss-module__ZvOumW__emptyLink {
+  color: var(--green);
+  font-weight: 500;
+}
+
+.page-module-scss-module__ZvOumW__emptyLink:hover {
+  opacity: .8;
+}
+
 .page-module-scss-module__ZvOumW__lessonCard {
   background: var(--card);
   border: 1px solid var(--border);
@@ -411,16 +432,38 @@
 }
 
 .page-module-scss-module__ZvOumW__goalItem {
+  border: none;
   border-bottom: 1px solid var(--border);
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  color: inherit;
+  font: inherit;
+  background: none;
   align-items: center;
   gap: 10px;
   padding: 9px 0;
   display: flex;
 }
 
+.page-module-scss-module__ZvOumW__goalItem:hover {
+  background: color-mix(in srgb, var(--surface) 60%, transparent);
+}
+
 .page-module-scss-module__ZvOumW__goalItem:last-child {
   border-bottom: none;
   padding-bottom: 0;
+}
+
+.page-module-scss-module__ZvOumW__goalsRetry {
+  color: var(--green);
+  font: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  text-decoration: underline;
 }
 
 .page-module-scss-module__ZvOumW__goalCheck {

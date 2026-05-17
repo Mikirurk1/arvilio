@@ -1,13 +1,18 @@
 'use client';
 
-import Link from 'next/link';
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { ScheduledLessonDto } from '@soenglish/shared-types';
 import { LESSON_STATUS } from '@soenglish/shared-types';
 import { BookOpen, Calendar, CheckCircle2, CircleAlert, Clock, FileText, Users } from 'lucide-react';
 import { PageHeader, SurfaceCard } from '../../components/ui';
-import { activeMockUser, canView, USER_ROLE, type UserRole } from '../../mocks';
+import { canView, USER_ROLE, type UserRole } from '../../mocks';
+import { useActiveUser } from '../../lib/active-user';
+import {
+  getLessonRouteId,
+  lessonIncludesViewer,
+} from '../../features/lesson-modal/scheduledLessonsBackendAdapter';
+import { useViewerPartyNumericId } from '../../hooks/use-viewer-party-numeric-id';
 import { lessonStartUtc } from '../../lib/lessonTime';
 import { LessonModal, useLessonEditor } from '../../features/lesson-modal';
 import { LessonsListPanel } from '../../components/lessons/LessonsListPanel';
@@ -93,7 +98,9 @@ export default function LessonsPage() {
 function LessonsPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const role = activeMockUser.role;
+  const activeUser = useActiveUser();
+  const role = activeUser.role;
+  const viewerPartyNumericId = useViewerPartyNumericId();
   const hasAccess = canView('dashboard', role);
 
   const {
@@ -113,18 +120,19 @@ function LessonsPageInner() {
     handleDeleteLesson,
     visibleStudents,
     assignableTeachers,
+    lessonBackendId,
+    persistedLessonId,
+    studentBackendId,
   } = useLessonEditor();
 
   const visibleLessons = useMemo(
     () =>
       lessons
-        .filter((lesson) => {
-          if (role === USER_ROLE.student.id) return lesson.studentId === activeMockUser.id;
-          if (role === USER_ROLE.teacher.id) return lesson.teacherId === activeMockUser.id;
-          return true;
-        })
+        .filter((lesson) =>
+          lessonIncludesViewer(lesson, viewerPartyNumericId ?? activeUser.id, role),
+        )
         .sort((a, b) => toStartTimeMs(a) - toStartTimeMs(b)),
-    [lessons, role],
+    [lessons, role, viewerPartyNumericId, activeUser.id],
   );
 
   const now = Date.now();
@@ -180,12 +188,12 @@ function LessonsPageInner() {
           className={`${styles.highlightCard} ${nextLesson ? styles.highlightCardClickable : ''}`}
           role={nextLesson ? 'button' : undefined}
           tabIndex={nextLesson ? 0 : undefined}
-          onClick={() => (nextLesson ? router.push(`/lessons/${nextLesson.id}`) : undefined)}
+          onClick={() => (nextLesson ? router.push(`/lessons/${getLessonRouteId(nextLesson)}`) : undefined)}
           onKeyDown={(event) => {
             if (!nextLesson) return;
             if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault();
-              router.push(`/lessons/${nextLesson.id}`);
+              router.push(`/lessons/${getLessonRouteId(nextLesson)}`);
             }
           }}
         >
@@ -256,12 +264,14 @@ function LessonsPageInner() {
           className={`${styles.highlightCard} ${previousLesson ? styles.highlightCardClickable : ''}`}
           role={previousLesson ? 'button' : undefined}
           tabIndex={previousLesson ? 0 : undefined}
-          onClick={() => (previousLesson ? router.push(`/lessons/${previousLesson.id}`) : undefined)}
+          onClick={() =>
+            previousLesson ? router.push(`/lessons/${getLessonRouteId(previousLesson)}`) : undefined
+          }
           onKeyDown={(event) => {
             if (!previousLesson) return;
             if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault();
-              router.push(`/lessons/${previousLesson.id}`);
+              router.push(`/lessons/${getLessonRouteId(previousLesson)}`);
             }
           }}
         >
@@ -349,7 +359,9 @@ function LessonsPageInner() {
           onSaveStudentResponse={saveStudentResponse}
           students={visibleStudents}
           teachers={assignableTeachers}
-          persistedLessonId={editingLesson?.id ?? null}
+          lessonBackendId={lessonBackendId}
+          persistedLessonId={persistedLessonId}
+          studentBackendId={studentBackendId}
         />
       ) : null}
     </div>

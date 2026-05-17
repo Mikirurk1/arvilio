@@ -404,9 +404,9 @@ export function getProfileAchievementsForUserId(userId: number): ProfileAchievem
 
 export const mockProfileStats = getProfileStatsForUser(activeUser.id);
 
-export const mockProfileGoals = getDailyGoalsForUser(activeUser.id).map((g) => ({
+export const mockProfileGoals = getDailyGoalsForUser(String(activeUser.id)).map((g) => ({
   text: g.text,
-  done: g.done,
+  done: false,
 })) as ReadonlyArray<{ text: string; done: boolean }>;
 
 const activeWeekRange = getRangeBounds('week');

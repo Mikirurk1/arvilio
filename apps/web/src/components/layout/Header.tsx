@@ -1,10 +1,12 @@
 'use client';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { LESSON_STATUS } from '@soenglish/shared-types';
 import { Field } from '../ui';
 import { getAvatarFallbackInitials } from '../../lib/avatar';
-import { activeMockUser, canSchedule, isAdminOrSuper, mockScheduledLessons, USER_ROLE } from '../../mocks';
+import { canSchedule, isAdminOrSuper, mockScheduledLessons, USER_ROLE } from '../../mocks';
+import { useActiveUser } from '../../lib/active-user';
 import { formatInTimeZone } from 'date-fns-tz';
 import {
   getIanaForTimeZoneId,
@@ -16,19 +18,24 @@ import styles from './Header.module.scss';
 const PAID_LESSONS_REMAINING_PLACEHOLDER = 12;
 
 export default function Header() {
-  const [avatarUrl, setAvatarUrl] = useState(activeMockUser.avatar.url ?? '');
+  const activeUser = useActiveUser();
+  const [avatarUrl, setAvatarUrl] = useState(activeUser.avatar.url ?? '');
+
+  useEffect(() => {
+    setAvatarUrl(activeUser.avatar.url ?? '');
+  }, [activeUser.avatar.url]);
 
   useEffect(() => {
     const onAvatarUpdated = (event: Event) => {
       const customEvent = event as CustomEvent<{ userId?: number; avatarUrl?: string }>;
-      if (customEvent.detail?.userId !== activeMockUser.id) return;
+      if (customEvent.detail?.userId !== activeUser.id) return;
       setAvatarUrl(customEvent.detail?.avatarUrl ?? '');
     };
     window.addEventListener('mock-user-avatar-updated', onAvatarUpdated);
     return () => window.removeEventListener('mock-user-avatar-updated', onAvatarUpdated);
-  }, []);
+  }, [activeUser.id]);
 
-  const viewerIana = getIanaForTimeZoneId(activeMockUser.timezoneId);
+  const viewerIana = getIanaForTimeZoneId(activeUser.timezoneId);
   const todayKey = formatInTimeZone(new Date(), viewerIana, 'yyyy-MM-dd');
   const nowTs = Date.now();
   const isActiveLesson = (statusId: (typeof mockScheduledLessons)[number]['statusId']) =>
@@ -44,15 +51,15 @@ export default function Header() {
   ).length;
   const creditedLessonsCount = mockScheduledLessons.filter((lesson) => lesson.credited).length;
   const lessonsLeft = Math.max(0, PAID_LESSONS_REMAINING_PLACEHOLDER - creditedLessonsCount);
-  const myTodayCount = lessonsToday.filter((lesson) => lesson.teacherId === activeMockUser.id).length;
-  const myRemainingCount = remainingToday.filter((lesson) => lesson.teacherId === activeMockUser.id).length;
+  const myTodayCount = lessonsToday.filter((lesson) => lesson.teacherId === activeUser.id).length;
+  const myRemainingCount = remainingToday.filter((lesson) => lesson.teacherId === activeUser.id).length;
   const totalTodayCount = lessonsToday.length;
   const totalRemainingCount = remainingToday.length;
   const showTotalForAdmin =
-    isAdminOrSuper(activeMockUser.role) &&
+    isAdminOrSuper(activeUser.role) &&
     (myTodayCount !== totalTodayCount || myRemainingCount !== totalRemainingCount);
 
-  const showCreateLesson = canSchedule('lessons', activeMockUser.role);
+  const showCreateLesson = canSchedule('lessons', activeUser.role);
 
   return (
     <header className={styles.header}>
@@ -97,7 +104,7 @@ export default function Header() {
             />
             <path d="M5 6.5h6M5 9h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
           </svg>
-          {activeMockUser.role === USER_ROLE.student.id ? (
+          {activeUser.role === USER_ROLE.student.id ? (
             <>
               <span className={styles.lessonsNum}>{lessonsLeft}</span>
               <span className={styles.lessonsLbl}>lessons left</span>
@@ -121,10 +128,9 @@ export default function Header() {
         </div>
         <Link href="/profile" className={styles.avatar}>
           {avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatarUrl} alt="" width={36} height={36} />
+            <Image src={avatarUrl} alt="" width={36} height={36} unoptimized />
           ) : (
-            getAvatarFallbackInitials(activeMockUser.fullName)
+            getAvatarFallbackInitials(activeUser.fullName)
           )}
         </Link>
       </div>

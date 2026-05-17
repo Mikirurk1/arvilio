@@ -22,6 +22,14 @@
   },
   "dynamicRoutes": [
     {
+      "page": "/lessons/[lessonId]",
+      "regex": "^/lessons/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPlessonId": "nxtPlessonId"
+      },
+      "namedRegex": "^/lessons/(?<nxtPlessonId>[^/]+?)(?:/)?$"
+    },
+    {
       "page": "/students/[studentId]",
       "regex": "^/students/([^/]+?)(?:/)?$",
       "routeKeys": {
@@ -68,10 +76,34 @@
       "namedRegex": "^/dashboard(?:/)?$"
     },
     {
+      "page": "/lessons",
+      "regex": "^/lessons(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/lessons(?:/)?$"
+    },
+    {
+      "page": "/login",
+      "regex": "^/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/login(?:/)?$"
+    },
+    {
       "page": "/practice",
       "regex": "^/practice(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/practice(?:/)?$"
+    },
+    {
+      "page": "/practice/quiz",
+      "regex": "^/practice/quiz(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/practice/quiz(?:/)?$"
+    },
+    {
+      "page": "/practice/vocabulary",
+      "regex": "^/practice/vocabulary(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/practice/vocabulary(?:/)?$"
     },
     {
       "page": "/profile",
@@ -84,6 +116,12 @@
       "regex": "^/quiz(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/quiz(?:/)?$"
+    },
+    {
+      "page": "/register",
+      "regex": "^/register(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/register(?:/)?$"
     },
     {
       "page": "/students",

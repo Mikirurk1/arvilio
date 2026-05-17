@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { ScheduledLessonDto } from '@soenglish/shared-types';
 import { LESSON_STATUS } from '@soenglish/shared-types';
+import { getLessonRouteId } from '../../features/lesson-modal/scheduledLessonsBackendAdapter';
 import { BookOpen, Calendar, ChevronRight, Clock, Pencil, Search, Users, Video } from 'lucide-react';
 import { SurfaceCard } from '../ui';
 import styles from './LessonsListPanel.module.scss';
@@ -95,17 +96,19 @@ export function LessonsListPanel({
       </div>
 
       <div className={styles.list}>
-        {filteredLessons.map((lesson) => (
+        {filteredLessons.map((lesson) => {
+          const routeId = getLessonRouteId(lesson);
+          return (
           <div
-            key={lesson.id}
+            key={lesson.backendId ?? `local-${lesson.id}`}
             className={styles.lessonCard}
             role="button"
             tabIndex={0}
-            onClick={() => router.push(`/lessons/${lesson.id}`)}
+            onClick={() => router.push(`/lessons/${routeId}`)}
             onKeyDown={(event) => {
               if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault();
-                router.push(`/lessons/${lesson.id}`);
+                router.push(`/lessons/${routeId}`);
               }
             }}
           >
@@ -146,7 +149,7 @@ export function LessonsListPanel({
                   <ChevronRight size={20} className={styles.chevron} />
                 </span>
                 <Link
-                  href={`/lessons/${lesson.id}`}
+                  href={`/lessons/${routeId}`}
                   className={styles.iconActionBtn}
                   aria-label="Open lesson"
                   onClick={(event) => event.stopPropagation()}
@@ -169,7 +172,8 @@ export function LessonsListPanel({
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
         {filteredLessons.length === 0 ? <div className={styles.empty}>{emptyText}</div> : null}
       </div>
     </SurfaceCard>

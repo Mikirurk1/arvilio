@@ -57,10 +57,14 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 .env.*.local
 !.env.example
 
+# Chat uploads (ephemeral, 24h TTL)
+data/chat-uploads/
+
 # Prisma
 *.db
 *.db-journal
 prisma/migrations/dev.db*
+packages/backend/data-access/data-access-prisma/prisma/.native-language-stash.json
 
 # IDE / Editors
 .idea

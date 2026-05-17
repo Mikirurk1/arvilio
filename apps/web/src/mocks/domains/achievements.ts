@@ -292,7 +292,18 @@ const profileAchievementRules: readonly AchievementRule[] = [
     isUnlocked: (stats) =>
       stats.wordsLearned >= 1000 && stats.lessonsCompleted >= 50,
   },
+  {
+    id: 'ach_profile_complete',
+    icon: 'badge-check',
+    label: 'Profile Complete',
+    description: 'Fill in every field on your profile, including avatar and bio.',
+    isUnlocked: () => false,
+  },
 ];
+
+export type AchievementUnlockContext = {
+  profileComplete?: boolean;
+};
 
 /** Derive collected achievement ids from counters (for seeding mocks). */
 export function computeUnlockedAchievementIdsFromCounters(
@@ -305,11 +316,16 @@ export function computeUnlockedAchievementIdsFromCounters(
   return profileAchievementRules.filter((r) => r.isUnlocked(synthetic)).map((r) => r.id);
 }
 
-export function buildProfileAchievements(stats: ProfileStats): ProfileAchievement[] {
+export function buildProfileAchievements(
+  stats: ProfileStats,
+  context?: AchievementUnlockContext,
+): ProfileAchievement[] {
   return profileAchievementRules.map((rule) => ({
     icon: rule.icon,
     label: rule.label,
     description: rule.description,
-    unlocked: stats.unlockedAchievementIds.includes(rule.id),
+    unlocked:
+      stats.unlockedAchievementIds.includes(rule.id) ||
+      (rule.id === 'ach_profile_complete' && context?.profileComplete === true),
   }));
 }

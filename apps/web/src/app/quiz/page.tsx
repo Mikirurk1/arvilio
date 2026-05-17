@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { QuizQuestionDto } from '@soenglish/shared-types';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { QuizQuestionDto } from '@soenglish/shared-types';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   Award,
   BookOpen,
@@ -17,14 +18,15 @@ import {
   Play,
   Plus,
   Target,
+  Trash2,
   ThumbsUp,
   Trophy,
   UserPlus,
   X,
 } from 'lucide-react';
 import { Button, Field, PageHeader } from '../../components/ui';
+import { confirmDialog } from '../../features/confirm';
 import {
-  activeMockUser,
   assignQuizToStudents,
   canView,
   getAssignableStudentsForUser,
@@ -37,14 +39,49 @@ import {
   type MockQuizCard,
   type MockQuizStudent,
 } from '../../mocks';
+import { useActiveUser } from '../../lib/active-user';
+import { useAuth } from '../../lib/auth-context';
+import { usePracticeSessionTracker } from '../../lib/practice-session-tracker';
+import { canEdit } from '../../lib/roles';
 import { QuizProgress, QuizResultStats, QuizTopicsGrid } from './sections';
+import { GenerateQuizPanel } from '../../components/backend/GenerateQuizPanel';
+import { QuizPlaySession } from '../../features/quiz/QuizPlaySession';
+import { useQuizzesStore } from '../../stores/quizzes-store';
 import styles from './page.module.scss';
 
+type PlayState = {
+  quizId: string;
+  practice: boolean;
+};
+
+type QuizResultState = {
+  score: number;
+  correctCount: number;
+  totalCount: number;
+  practiceMode: boolean;
+};
+
 export default function QuizPage() {
-  if (!canView('quiz', activeMockUser.role)) return null;
-  const isStudentView = activeMockUser.role === USER_ROLE.student.id;
+  const searchParams = useSearchParams();
+  const activeUser = useActiveUser();
+  const { user } = useAuth();
+  const backendQuizzes = useQuizzesStore((s) => s.list);
+  const studentQuizzes = useQuizzesStore((s) => s.studentQuizzes);
+  const fetchQuizList = useQuizzesStore((s) => s.fetchList);
+  const fetchStudentQuizzes = useQuizzesStore((s) => s.fetchStudentQuizzes);
+  const fetchQuiz = useQuizzesStore((s) => s.fetchQuiz);
+  const generateQuiz = useQuizzesStore((s) => s.generateQuiz);
+  const deleteQuiz = useQuizzesStore((s) => s.deleteQuiz);
+  const generating = useQuizzesStore((s) => s.generating);
+  const [deletingQuizId, setDeletingQuizId] = useState<string | null>(null);
+  const canManageQuiz = canEdit('quiz', activeUser.role);
+  const isStudentView = activeUser.role === USER_ROLE.student.id;
+  const generatePanelRef = useRef<HTMLDivElement>(null);
+  const [play, setPlay] = useState<PlayState | null>(null);
+  const [playResult, setPlayResult] = useState<QuizResultState | null>(null);
   const [questions, setQuestions] = useState<QuizQuestionDto[]>([]);
   const [phase, setPhase] = useState<'intro' | 'quiz' | 'result'>('intro');
+  usePracticeSessionTracker(user?.id, 'quiz', phase === 'quiz' || play !== null);
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [fillAnswer, setFillAnswer] = useState('');
@@ -58,31 +95,53 @@ export default function QuizPage() {
   const [dueDate, setDueDate] = useState('');
   const [personalNote, setPersonalNote] = useState('');
   const [showStatsDrawer, setShowStatsDrawer] = useState<MockQuizCard | null>(null);
+  const [quizLoadError, setQuizLoadError] = useState<string | null>(null);
   const [students] = useState<MockQuizStudent[]>(() =>
-    getAssignableStudentsForUser(activeMockUser.id, activeMockUser.role),
+    getAssignableStudentsForUser(activeUser.id, activeUser.role),
   );
   const [quizzes, setQuizzes] = useState<MockQuizCard[]>(() =>
-    getQuizCardsForUser(activeMockUser.id, activeMockUser.role),
+    getQuizCardsForUser(activeUser.id, activeUser.role),
   );
   const latestQuiz = useMemo(
-    () => getLatestQuizForUser(activeMockUser.id, activeMockUser.role),
-    [quizzes],
+    () => getLatestQuizForUser(activeUser.id, activeUser.role),
+    [quizzes, activeUser.id, activeUser.role],
   );
+  const assignedQuizzes = studentQuizzes.data ?? [];
+  const firstIncompleteAssigned = assignedQuizzes.find((q) => !q.attempt?.finishedAt) ?? null;
+  const latestBackendQuiz = isStudentView
+    ? (firstIncompleteAssigned ?? assignedQuizzes[0] ?? null)
+    : (backendQuizzes.data?.[0] ?? null);
+  const introQuizId = latestBackendQuiz?.id ?? latestQuiz?.id ?? null;
+  const introTitle = latestBackendQuiz?.title ?? latestQuiz?.title ?? 'No available quizzes yet';
+  const introQuestionCount = latestBackendQuiz?.questionCount ?? latestQuiz?.questions ?? 0;
+  const introDurationMin = Math.max(1, Math.round(introQuestionCount * 0.75));
+
+  useEffect(() => {
+    void fetchQuizList();
+    if (isStudentView && user?.id) {
+      void fetchStudentQuizzes(user.id);
+    }
+  }, [fetchQuizList, fetchStudentQuizzes, isStudentView, user?.id]);
+
+  useEffect(() => {
+    const quizId = searchParams.get('quizId');
+    if (!quizId) return;
+    void startQuizById(quizId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when URL quizId changes
+  }, [searchParams]);
   const totalTopics = useMemo(() => new Set(quizzes.map((quiz) => quiz.category)).size, [quizzes]);
   const introTopics = useMemo(
-    () => getQuizTopicsForUser(activeMockUser.id, activeMockUser.role),
-    [quizzes],
+    () => getQuizTopicsForUser(activeUser.id, activeUser.role),
+    [quizzes, activeUser.id, activeUser.role],
   );
 
   const q = questions[current];
 
   const refreshQuizzes = () => {
-    setQuizzes(getQuizCardsForUser(activeMockUser.id, activeMockUser.role));
+    setQuizzes(getQuizCardsForUser(activeUser.id, activeUser.role));
   };
 
-  const startQuizById = (quizId: string) => {
-    const nextQuestions = getQuizQuestionsForQuizId(quizId);
-    if (nextQuestions.length === 0) return;
+  const beginQuiz = (nextQuestions: QuizQuestionDto[]) => {
     setQuestions(nextQuestions);
     setPhase('quiz');
     setCurrent(0);
@@ -91,6 +150,69 @@ export default function QuizPage() {
     setSelected(null);
     setFillAnswer('');
     setShowExp(false);
+    setQuizLoadError(null);
+  };
+
+  const startQuizById = async (quizId: string, practice = false) => {
+    setQuizLoadError(null);
+    setPlayResult(null);
+    try {
+      const detail = await fetchQuiz(quizId);
+      if (detail.questions.length > 0) {
+        setPlay({ quizId, practice: practice && canManageQuiz });
+        return;
+      }
+    } catch {
+      // Fall back to demo mocks for legacy ids.
+    }
+    const mockQuestions = getQuizQuestionsForQuizId(quizId);
+    if (mockQuestions.length > 0) {
+      beginQuiz(mockQuestions);
+      return;
+    }
+    setQuizLoadError('Quiz not found or has no questions.');
+  };
+
+  const handleDeleteQuiz = async (quizId: string) => {
+    const ok = await confirmDialog({
+      title: 'Delete quiz?',
+      message: 'This quiz will be permanently deleted.',
+      confirmLabel: 'Delete',
+      variant: 'danger',
+    });
+    if (!ok) return;
+    setDeletingQuizId(quizId);
+    try {
+      await deleteQuiz(quizId);
+      await fetchQuizList(true);
+    } catch {
+      // Store surfaces errors via list refresh failure; user can retry.
+    } finally {
+      setDeletingQuizId(null);
+    }
+  };
+
+  const handleCreateQuiz = async () => {
+    setQuizLoadError(null);
+    try {
+      await generateQuiz({
+        source: 'vocabulary',
+        difficulty: 'medium',
+        questionCount: 8,
+      });
+      generatePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch {
+      // Error is shown by GenerateQuizPanel via store.
+    }
+  };
+
+  const handleQuizDone = (outcome: QuizResultState) => {
+    setPlay(null);
+    setPlayResult(outcome);
+    setPhase('result');
+    if (isStudentView && user?.id) {
+      void fetchStudentQuizzes(user.id, true);
+    }
   };
 
   const handleAssign = () => {
@@ -100,7 +222,7 @@ export default function QuizPage() {
       studentIds: selectedStudents.map((id) => Number(id)),
       dueDate,
       personalNote,
-      assignedByUserId: activeMockUser.id,
+      assignedByUserId: activeUser.id,
     });
     refreshQuizzes();
     setShowAssignModal(false);
@@ -146,10 +268,44 @@ export default function QuizPage() {
     setShowExp(false);
     setAnswers([]);
     setScore(0);
+    setPlayResult(null);
     setPhase('intro');
   };
 
-  const pct = questions.length ? Math.round((score / questions.length) * 100) : 0;
+  const resultScore = playResult?.correctCount ?? score;
+  const resultTotal = playResult?.totalCount ?? questions.length;
+  const pct =
+    playResult?.score ??
+    (questions.length ? Math.round((score / questions.length) * 100) : 0);
+
+  if (!canView('quiz', activeUser.role)) return null;
+
+  if (play) {
+    return (
+      <div className={`${styles.page} container container--page`}>
+        <PageHeader
+          className={styles.pageHeader}
+          titleClassName={styles.pageTitle}
+          subtitleClassName={styles.pageSub}
+          title={siteContent.quiz.title}
+          subtitle={siteContent.quiz.subtitle}
+          actions={
+            <Button type="button" className={styles.backBtn} onClick={() => setPlay(null)}>
+              <ChevronRight size={14} className={styles.backBtnIcon} />
+              Back
+            </Button>
+          }
+        />
+        <QuizPlaySession
+          quizId={play.quizId}
+          studentId={play.practice ? undefined : isStudentView ? user?.id : undefined}
+          practiceMode={play.practice}
+          onCancel={() => setPlay(null)}
+          onDone={handleQuizDone}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={`${styles.page} container container--page`}>
@@ -158,7 +314,7 @@ export default function QuizPage() {
         titleClassName={styles.pageTitle}
         subtitleClassName={styles.pageSub}
         title={siteContent.quiz.title}
-        subtitle={`${siteContent.quiz.subtitle} · ${activeMockUser.role}`}
+        subtitle={`${siteContent.quiz.subtitle} · ${activeUser.role}`}
         actions={
           <Link href="/practice" className={styles.backBtn}>
             <ChevronRight size={14} className={styles.backBtnIcon} />
@@ -167,23 +323,32 @@ export default function QuizPage() {
         }
       />
 
+      {phase === 'intro' && canManageQuiz ? (
+        <div ref={generatePanelRef} className={styles.generateQuizWrap}>
+          <GenerateQuizPanel defaultSource="vocabulary" canGenerate canDelete />
+        </div>
+      ) : null}
+      {phase === 'intro' && quizLoadError ? (
+        <div className={styles.quizLoadError}>{quizLoadError}</div>
+      ) : null}
+
       {phase === 'intro' && (
         <div className={styles.intro}>
           <div className={styles.introCard}>
             <div className={styles.introIcon}><Target size={22} /></div>
-            <h2 className={styles.introTitle}>{latestQuiz?.title ?? 'No available quizzes yet'}</h2>
+            <h2 className={styles.introTitle}>{introTitle}</h2>
             <p className={styles.introDesc}>
-              {latestQuiz
-                ? `${latestQuiz.questions} estimated questions with about ${latestQuiz.duration} minutes to finish.`
-                : 'New quizzes will appear here as soon as they are created in mocks.'}
+              {introQuizId
+                ? `${introQuestionCount} questions · about ${introDurationMin} minutes.`
+                : 'Generate a quiz above, then press Play or Start Quiz.'}
             </p>
             <div className={styles.introMeta}>
               <div className={styles.introMetaItem}>
-                <span className={styles.introMetaVal}>{latestQuiz?.questions ?? 0}</span>
+                <span className={styles.introMetaVal}>{introQuestionCount}</span>
                 <span className={styles.introMetaLbl}>Questions</span>
               </div>
               <div className={styles.introMetaItem}>
-                <span className={styles.introMetaVal}>~{latestQuiz?.duration ?? 0}</span>
+                <span className={styles.introMetaVal}>~{introDurationMin}</span>
                 <span className={styles.introMetaLbl}>Minutes</span>
               </div>
               <div className={styles.introMetaItem}>
@@ -194,8 +359,8 @@ export default function QuizPage() {
             <Button
               type="button"
               className={styles.startBtn}
-              disabled={!latestQuiz}
-              onClick={() => latestQuiz && startQuizById(latestQuiz.id)}
+              disabled={!introQuizId}
+              onClick={() => introQuizId && void startQuizById(introQuizId)}
             >
               Start Quiz →
             </Button>
@@ -203,11 +368,129 @@ export default function QuizPage() {
           <QuizTopicsGrid topics={introTopics} />
           <div className={styles.manageSection}>
             <div className={styles.manageHead}>
-              <h3 className={styles.manageTitle}>Manage quizzes</h3>
-              <p className={styles.manageSub}>Create, assign and track quiz progress</p>
+              <h3 className={styles.manageTitle}>{isStudentView ? 'Your quizzes' : 'Manage quizzes'}</h3>
+              <p className={styles.manageSub}>
+                {isStudentView
+                  ? 'Complete assigned quizzes and review your scores'
+                  : 'Create, assign and track quiz progress'}
+              </p>
             </div>
             <div className={styles.manageGrid}>
-              {quizzes.map((quiz) => (
+              {isStudentView
+                ? assignedQuizzes.map((quiz) => {
+                    const completed = Boolean(quiz.attempt?.finishedAt);
+                    const score = quiz.attempt?.score;
+                    return (
+                      <div
+                        key={quiz.id}
+                        className={`${styles.quizCard} ${completed ? styles.quizCardCompleted : ''}`}
+                      >
+                        <div className={styles.quizCardHead}>
+                          <div>
+                            <div className={styles.quizCardTitleRow}>
+                              <h4 className={styles.quizCardTitle}>{quiz.title}</h4>
+                              {completed ? (
+                                <CheckCircle2 size={16} className={styles.quizDoneIcon} />
+                              ) : null}
+                            </div>
+                            <div className={styles.quizBadges}>
+                              <span className={styles.quizBadgeBlue}>{quiz.category}</span>
+                              <span
+                                className={
+                                  quiz.difficulty === 'hard'
+                                    ? styles.quizBadgeRose
+                                    : quiz.difficulty === 'medium'
+                                      ? styles.quizBadgeAmber
+                                      : styles.quizBadgeGreen
+                                }
+                              >
+                                {quiz.difficulty}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className={styles.quizMeta}>
+                          <span>
+                            <FileText size={14} /> {quiz.questionCount} questions
+                          </span>
+                        </div>
+                        {completed && score != null ? (
+                          <div className={styles.quizScoreBox}>
+                            <span>Your score</span>
+                            <strong>{score}%</strong>
+                          </div>
+                        ) : null}
+                        <div className={styles.quizActions}>
+                          <Button
+                            type="button"
+                            className={styles.quizPlayBtn}
+                            style={{ gridColumn: '1 / -1' }}
+                            onClick={() => void startQuizById(quiz.id)}
+                          >
+                            <Play size={14} />
+                            {completed ? 'Try again' : 'Start Quiz'}
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })
+                : null}
+              {isStudentView && assignedQuizzes.length === 0 && studentQuizzes.status === 'success' ? (
+                <p className={styles.manageSub}>No quizzes assigned yet. Check back after your next lesson.</p>
+              ) : null}
+              {!isStudentView
+                ? (backendQuizzes.data ?? []).map((quiz) => (
+                <div key={quiz.id} className={styles.quizCard}>
+                  <div className={styles.quizCardHead}>
+                    <div>
+                      <h4 className={styles.quizCardTitle}>{quiz.title}</h4>
+                      <div className={styles.quizBadges}>
+                        <span className={styles.quizBadgeBlue}>{quiz.category}</span>
+                        <span
+                          className={
+                            quiz.difficulty === 'hard'
+                              ? styles.quizBadgeRose
+                              : quiz.difficulty === 'medium'
+                                ? styles.quizBadgeAmber
+                                : styles.quizBadgeGreen
+                          }
+                        >
+                          {quiz.difficulty}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className={styles.quizMeta}>
+                    <span>
+                      <FileText size={14} /> {quiz.questionCount} questions
+                    </span>
+                  </div>
+                  <div className={styles.quizActions}>
+                    <Button
+                      type="button"
+                      className={styles.quizPlayBtn}
+                      onClick={() => void startQuizById(quiz.id, true)}
+                    >
+                      <Play size={14} />
+                      Start Quiz
+                    </Button>
+                    {canManageQuiz ? (
+                      <Button
+                        type="button"
+                        className={styles.quizDeleteActionBtn}
+                        disabled={deletingQuizId === quiz.id}
+                        onClick={() => void handleDeleteQuiz(quiz.id)}
+                      >
+                        <Trash2 size={14} />
+                        Delete
+                      </Button>
+                    ) : null}
+                  </div>
+                </div>
+                ))
+                : null}
+              {!isStudentView
+                ? quizzes.map((quiz) => (
                 <div key={quiz.id} className={styles.quizCard}>
                   <div className={styles.quizCardHead}>
                     <div>
@@ -299,7 +582,7 @@ export default function QuizPage() {
                       type="button"
                       className={styles.quizPlayBtn}
                       onClick={() => {
-                        startQuizById(quiz.id);
+                        void startQuizById(quiz.id);
                       }}
                       style={!isStudentView ? undefined : { gridColumn: '1 / -1' }}
                     >
@@ -308,13 +591,19 @@ export default function QuizPage() {
                     </Button>
                   </div>
                 </div>
-              ))}
+                ))
+                : null}
               {!isStudentView ? (
-                <button type="button" className={styles.createQuizCard}>
+                <button
+                  type="button"
+                  className={styles.createQuizCard}
+                  disabled={generating}
+                  onClick={() => void handleCreateQuiz()}
+                >
                   <span className={styles.createQuizIcon}>
                     <Plus size={22} />
                   </span>
-                  <span>Create New Quiz</span>
+                  <span>{generating ? 'Creating…' : 'Create New Quiz'}</span>
                 </button>
               ) : null}
             </div>
@@ -441,11 +730,11 @@ export default function QuizPage() {
             </div>
             <h2 className={styles.resultTitle}>{pct >= 80 ? 'Excellent work!' : pct >= 60 ? 'Good job!' : 'Keep practicing!'}</h2>
             <div className={styles.resultScore}>
-              {score} / {questions.length}
+              {resultScore} / {resultTotal}
             </div>
             <div className={styles.resultPct}>{pct}% correct</div>
 
-            <QuizResultStats score={score} total={questions.length} />
+            <QuizResultStats score={resultScore} total={resultTotal} />
 
             <div className={styles.resultAnswers}>
               {questions.map((question, i) => (

@@ -13,12 +13,12 @@ import {
   TIME_ZONE_ID_LIST,
   USER_ACCOUNT_STATUS_ID_LIST,
   USER_ROLE,
+  isAdminOrSuper,
   type MockStudent,
   type ProficiencyLevelId,
   type UserRole,
 } from '../../../mocks';
 import { Pipette } from 'lucide-react';
-import { StatisticsDashboard } from '../../../components/statistics';
 import styles from './page.module.scss';
 
 type HslColor = { h: number; s: number; l: number };
@@ -162,18 +162,27 @@ export function StudentProfileTab({
   onChange,
   canEdit,
   viewerRole,
+  teacherBackendId,
+  teacherOptions,
+  onTeacherBackendIdChange,
   saved = false,
+  saveError = null,
   onSave,
 }: {
   student: MockStudent;
   onChange: (next: MockStudent) => void;
   canEdit: boolean;
   viewerRole: UserRole;
+  teacherBackendId: string | null;
+  teacherOptions: Array<{ id: string; displayName: string }>;
+  onTeacherBackendIdChange: (teacherId: string | null) => void;
   saved?: boolean;
+  saveError?: string | null;
   onSave: () => void;
 }) {
   const isStudentViewer = viewerRole === USER_ROLE.student.id;
   const isTeacherViewer = viewerRole === USER_ROLE.teacher.id;
+  const canAssignTeacher = isAdminOrSuper(viewerRole);
   return (
     <SurfaceCard className={styles.tabCard}>
       <p className={styles.tabIntro}>
@@ -264,6 +273,31 @@ export function StudentProfileTab({
             </AdaptiveSelect>
           </div>
         ) : null}
+        {canAssignTeacher ? (
+          <div className={styles.fieldGroup}>
+            <label className={styles.label}>Assigned teacher</label>
+            <AdaptiveSelect
+              className={styles.input}
+              value={teacherBackendId ?? ''}
+              readOnly={!canEdit}
+              onChange={(e) =>
+                onTeacherBackendIdChange(e.target.value ? e.target.value : null)
+              }
+            >
+              <option value="">— No teacher —</option>
+              {teacherOptions.map((teacher) => (
+                <option key={teacher.id} value={teacher.id}>
+                  {teacher.displayName}
+                </option>
+              ))}
+            </AdaptiveSelect>
+          </div>
+        ) : !isStudentViewer ? (
+          <div className={styles.fieldGroup}>
+            <label className={styles.label}>Teacher</label>
+            <Field className={styles.input} value={student.teacherName || '—'} readOnly />
+          </div>
+        ) : null}
         {!isStudentViewer ? (
           <div className={styles.fieldGroup}>
             <label className={styles.label}>Schedule type</label>
@@ -290,6 +324,7 @@ export function StudentProfileTab({
         </div>
       </div>
       <div className={styles.actions}>
+        {saveError ? <span className={styles.errorHint}>{saveError}</span> : null}
         {saved ? <span className={styles.savedHint}>Saved</span> : null}
         <Button type="button" className={styles.primaryBtn} disabled={!canEdit} onClick={onSave}>
           Save student data
@@ -380,14 +415,11 @@ export function StudentAchievementsTab({
   return <ProfileAchievementsPanel achievements={achievements} />;
 }
 
-export function StudentStatisticsTab({
-  roleId,
-  currentUserId,
-  studentId,
-}: {
-  roleId: UserRole;
-  currentUserId: number;
-  studentId: number;
-}) {
-  return <StatisticsDashboard roleId={roleId} currentUserId={currentUserId} subjectStudentId={studentId} />;
+export function StudentStatisticsTab() {
+  return (
+    <EmptyStateCard
+      title="Statistics not available here"
+      description="Per-student charts and KPIs are not loaded from the server yet. Open Profile & Settings → Statistics to see your own live totals from the database."
+    />
+  );
 }

@@ -432,6 +432,15 @@
   justify-content: flex-end;
 }
 
+.errorHint {
+  font-size: 12px;
+  color: var(--red-dark, #b42318);
+  background: rgba(180, 35, 24, 0.08);
+  border: 1px solid rgba(180, 35, 24, 0.2);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
 .savedHint {
   font-size: 12px;
   color: var(--green-dark);
@@ -687,6 +696,39 @@
   .lessonMetaGrid {
     grid-template-columns: 1fr;
   }
+}
+
+.quizTab {
+  display: grid;
+  gap: 16px;
+}
+
+.quizTabCard {
+  padding: 0;
+  overflow: hidden;
+}
+
+.quizResultCard {
+  padding: 20px 24px;
+}
+
+.quizResultTitle {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.quizResultScore {
+  margin: 0 0 12px;
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+
+.quizResultHint {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--text-tertiary);
 }
 
 @media (max-width: 760px) {

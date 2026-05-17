@@ -5,20 +5,20 @@ import type { ScheduledLessonDto } from '@soenglish/shared-types';
 import { LESSON_STATUS } from '@soenglish/shared-types';
 import { Button, PageHeader } from '../../components/ui';
 import {
-  activeMockUser,
   canSchedule,
   canView,
   getProfileByUserId,
   getVisibleProfiles,
   isAdminOrSuper,
-  mockUsers,
   siteContent,
-  syncLessonVocabularyToProfile,
   USER_ROLE,
 } from '../../mocks';
+import { useActiveUser } from '../../lib/active-user';
+import { useLessonPartyOptions } from '../../hooks/use-lesson-party-options';
 import { CalendarHeaderControls, CalendarMonthNavigator, SelectedDateSidebar } from './sections';
 import { readLessonDragPayload, writeLessonDragPayload } from '../../features/calendar/dnd/dragPayload';
 import {
+  defaultCreateLessonStartTime,
   getIanaForTimeZoneId,
   lessonDateKeyInZone,
   lessonEndUtc,
@@ -30,10 +30,14 @@ import {
 } from '../../lib/lessonTime';
 import {
   calculateEndTime,
-  fromLessonFormState,
-  nextLessonEntityId,
   toLessonFormState,
 } from '../../features/calendar/adapters/lessonCalendarAdapter';
+import { buildLessonCandidate, resolvePartyBackendId } from '../../features/lesson-modal/lessonPersistence';
+import {
+  getLessonBackendId,
+  upsertScheduledLesson,
+} from '../../features/lesson-modal/scheduledLessonsBackendAdapter';
+import { useScheduledLessonPersistence } from '../../hooks/use-scheduled-lesson-persistence';
 import { hasTimeConflict, isPastSlot } from '../../features/calendar/rules/conflicts';
 import { LessonModal } from '../../features/lesson-modal';
 import { useLessonCalendarState } from '../../features/calendar/ui/useLessonCalendarState';
@@ -141,8 +145,17 @@ function buildWeekEventLayout(lessons: ScheduledLessonDto[]): Record<number, Wee
 }
 
 export default function CalendarPage() {
-  if (!canView('calendar', activeMockUser.role)) return null;
-  const viewerIana = getIanaForTimeZoneId(activeMockUser.timezoneId);
+  const activeUser = useActiveUser();
+  if (!canView('calendar', activeUser.role)) return null;
+  const viewerIana = getIanaForTimeZoneId(activeUser.timezoneId);
+  const {
+    studentOptions,
+    teacherOptions: assignableTeachers,
+    defaultTeacher,
+    defaultStudent,
+    currentUserNumericId,
+  } = useLessonPartyOptions();
+  const viewerPartyNumericId = currentUserNumericId ?? activeUser.id;
   const {
     lessons,
     setLessons,
@@ -152,7 +165,10 @@ export default function CalendarPage() {
     selectedDate,
     setSelectedDate,
     visibleLessons,
-  } = useLessonCalendarState(activeMockUser.role, activeMockUser.id);
+  } = useLessonCalendarState(activeUser.role, viewerPartyNumericId);
+  const { persistCreate, persistUpdate, persistScheduleUpdate, persistenceErrorMessage } =
+    useScheduledLessonPersistence();
+  const [savingLesson, setSavingLesson] = useState(false);
   const [audience, setAudience] = useState<'all' | 'my-students'>('all');
   const [teacherFilter, setTeacherFilter] = useState<string>('all-teachers');
   const [year, setYear] = useState(() => new Date().getFullYear());
@@ -163,7 +179,7 @@ export default function CalendarPage() {
   const canManage = canSchedule('calendar', role);
   const showAudienceToggle = isAdminOrSuper(role);
   const conflictStrategy = showAudienceToggle && audience === 'all' ? 'same-teacher-overlap' : 'any-overlap';
-  const teacherOptions = useMemo(
+  const teacherFilterOptions = useMemo(
     () =>
       Array.from(
         new Map(visibleLessons.map((lesson) => [lesson.teacherId, lesson.teacherName])).entries(),
@@ -174,8 +190,8 @@ export default function CalendarPage() {
     if (!showAudienceToggle) return visibleLessons;
     if (audience === 'my-students') {
       // Only teachers have their own teaching roster; admins are not a teacherId on lessons.
-      if (activeMockUser.role === USER_ROLE.teacher.id) {
-        return visibleLessons.filter((lesson) => lesson.teacherId === activeMockUser.id);
+      if (activeUser.role === USER_ROLE.teacher.id) {
+        return visibleLessons.filter((lesson) => lesson.teacherId === viewerPartyNumericId);
       }
       return visibleLessons;
     }
@@ -185,8 +201,8 @@ export default function CalendarPage() {
     return visibleLessons;
   }, [audience, showAudienceToggle, teacherFilter, visibleLessons]);
   const visibleStudents = useMemo(
-    () => getVisibleProfiles(role, activeMockUser.id),
-    [role],
+    () => getVisibleProfiles(role, activeUser.id),
+    [role, activeUser.id],
   );
   const studentColorById = useMemo(() => {
     const m = new Map<number, string | undefined>();
@@ -223,14 +239,6 @@ export default function CalendarPage() {
       borderLeftColor: hex,
     };
   };
-  const assignableTeachers = useMemo(
-    () =>
-      mockUsers
-        .filter((user) => user.role !== USER_ROLE.student.id)
-        .map((user) => ({ id: user.id, fullName: user.fullName })),
-    [],
-  );
-
   const lessonsOnDate = (date: string) =>
     scopedLessons.filter((lesson) => lessonDateKeyInZone(lesson, viewerIana) === date);
   const selectedLessons = selectedDate ? lessonsOnDate(selectedDate) : [];
@@ -260,8 +268,8 @@ export default function CalendarPage() {
     setYear(next.getFullYear());
     setMonth(next.getMonth());
   };
-  const startHour = 8;
-  const endHour = 20;
+  const startHour = 0;
+  const endHour = 24;
   const minutesPerDay = (endHour - startHour) * 60;
   const pxPerMinute = 1.2;
   const dayColumnHeight = minutesPerDay * pxPerMinute;
@@ -327,8 +335,24 @@ export default function CalendarPage() {
       .sort((a, b) => lessonStartUtc(a).getTime() - lessonStartUtc(b).getTime());
   };
 
-  const openCreateModal = (date: string, startTime = '10:00') => {
-    const defaultStudent = visibleStudents[0];
+  const openCreateModal = (date: string) => {
+    const { startTime } = defaultCreateLessonStartTime(viewerIana, date);
+    const teacher =
+      isAdminOrSuper(role)
+        ? defaultTeacher
+        : defaultTeacher ?? {
+            id: currentUserNumericId ?? activeUser.id,
+            fullName: activeUser.fullName,
+            backendId: '',
+          };
+    const student =
+      role === USER_ROLE.student.id
+        ? {
+            id: currentUserNumericId ?? activeUser.id,
+            fullName: activeUser.fullName,
+            backendId: '',
+          }
+        : defaultStudent;
     setModalMode('create');
     setEditingLesson(null);
     setForm({
@@ -336,10 +360,10 @@ export default function CalendarPage() {
       date,
       startTime,
       duration: 55,
-      teacherId: activeMockUser.id,
-      teacherName: activeMockUser.fullName,
-      studentId: activeMockUser.role === USER_ROLE.student.id ? activeMockUser.id : (defaultStudent?.id ?? activeMockUser.id),
-      studentName: activeMockUser.role === USER_ROLE.student.id ? activeMockUser.fullName : (defaultStudent?.fullName ?? activeMockUser.fullName),
+      teacherId: teacher?.id ?? activeUser.id,
+      teacherName: teacher?.fullName ?? activeUser.fullName,
+      studentId: student?.id ?? activeUser.id,
+      studentName: student?.fullName ?? activeUser.fullName,
       notes: '',
       lessonPlan: '',
       materials: [],
@@ -350,13 +374,13 @@ export default function CalendarPage() {
       studentResponseStatus: 'not_submitted',
       homeworkChecked: false,
       teacherHomeworkFeedback: '',
-      linkedVocabularyIds: [],
+      linkedWordIds: [],
       statusId: LESSON_STATUS.planned.id,
       credited: false,
       recurrence: 'none',
       weeklyDays: [],
       applyToSeries: false,
-      timezoneId: activeMockUser.timezoneId,
+      timezoneId: activeUser.timezoneId,
     });
   };
   const requestLesson = () => {
@@ -426,16 +450,99 @@ export default function CalendarPage() {
     setLessons((prev) => prev.map((lesson) => (lesson.id === sourceLesson.id ? nextLesson : lesson)));
   };
 
-  const submitModal = () => {
-    if (!form) return;
-    const seq = nextLessonEntityId(lessons);
-    const candidate = fromLessonFormState(form, editingLesson ?? undefined, editingLesson ? undefined : seq);
+  const submitModal = async () => {
+    if (!form || savingLesson) return;
+    const candidate = buildLessonCandidate(form, lessons, editingLesson);
     if (!canManage) candidate.statusId = LESSON_STATUS.planned.id;
+
+    if (hasTimeConflict(lessons, candidate, editingLesson?.id, conflictStrategy)) {
+      setConflictDialog({
+        open: true,
+        title: 'Time slot is busy',
+        message:
+          conflictStrategy === 'same-teacher-overlap'
+            ? 'This teacher already has a lesson in this time slot.'
+            : 'You cannot create or move a lesson to this time because another lesson already exists.',
+        candidate,
+        excludeLessonId: editingLesson?.id,
+      });
+      return;
+    }
+    if (isPastSlot(candidate)) {
+      setWarningDialog({
+        open: true,
+        title: 'Cannot schedule in the past',
+        message: 'You cannot create or move a lesson to a past date or time.',
+      });
+      return;
+    }
+
+    if (canManage) {
+      setSavingLesson(true);
+      let keepModalOpenAfterSave = false;
+      try {
+        if (editingLesson) {
+          const persisted = await persistUpdate(candidate, editingLesson);
+          if (persisted) {
+            setLessons((prev) =>
+              prev.map((lesson) => (lesson.id === editingLesson.id ? persisted : lesson)),
+            );
+            setEditingLesson(persisted);
+            setForm(toLessonFormState(persisted));
+          } else {
+            applyLessonUpdate(candidate, editingLesson);
+          }
+        } else {
+          const persisted = await persistCreate(candidate);
+          setLessons((prev) => upsertScheduledLesson(prev, persisted));
+          setEditingLesson(persisted);
+          setModalMode('edit');
+          setForm(toLessonFormState(persisted));
+          keepModalOpenAfterSave = true;
+
+          if (form.recurrence === 'weekly' && form.weeklyDays.length > 0) {
+            const baseDate = new Date(form.date);
+            const clones = form.weeklyDays
+              .map((weekday, index) => {
+                if (index === 0) return null;
+                const delta =
+                  (weekday - (baseDate.getDay() === 0 ? 7 : baseDate.getDay()) + 7) % 7;
+                const nextDate = new Date(baseDate);
+                nextDate.setDate(baseDate.getDate() + delta);
+                return { ...candidate, date: toDateString(nextDate) };
+              })
+              .filter((row): row is ScheduledLessonDto => row !== null);
+
+            for (const branch of clones) {
+              if (hasTimeConflict(lessons, branch, undefined, conflictStrategy)) continue;
+              if (isPastSlot(branch)) continue;
+              const clonePersisted = await persistCreate(branch);
+              setLessons((prev) => upsertScheduledLesson(prev, clonePersisted));
+            }
+          }
+        }
+      } catch (error) {
+        const message = persistenceErrorMessage(error);
+        const needsGoogle =
+          message.includes('sign in with Google') && message.includes('Calendar');
+        setWarningDialog({
+          open: true,
+          title: needsGoogle ? 'Google Calendar required' : 'Could not save lesson',
+          message,
+        });
+        return;
+      } finally {
+        setSavingLesson(false);
+      }
+      if (!keepModalOpenAfterSave) closeModal();
+      return;
+    }
+
     applyLessonUpdate(candidate, editingLesson ?? undefined);
-    syncLessonVocabularyToProfile(candidate);
     if (!editingLesson && form.recurrence === 'weekly' && form.weeklyDays.length > 0) {
       const baseDate = new Date(form.date);
       let cloneOffset = 1;
+      const seq = candidate.id;
       form.weeklyDays.forEach((weekday, index) => {
         if (index === 0) return;
         const delta = (weekday - (baseDate.getDay() === 0 ? 7 : baseDate.getDay()) + 7) % 7;
@@ -448,7 +555,6 @@ export default function CalendarPage() {
         };
         cloneOffset += 1;
         applyLessonUpdate(branch, undefined);
-        syncLessonVocabularyToProfile(branch);
       });
     }
     closeModal();
@@ -476,27 +582,87 @@ export default function CalendarPage() {
     );
   };
 
+  const scheduleUnchanged = (before: ScheduledLessonDto, after: ScheduledLessonDto) =>
+    before.date === after.date &&
+    before.startTime === after.startTime &&
+    before.endTime === after.endTime &&
+    before.duration === after.duration;
+
+  const buildMovedLesson = (
+    lesson: ScheduledLessonDto,
+    date: string,
+    startTime?: string,
+  ): ScheduledLessonDto => {
+    const wall =
+      startTime !== undefined
+        ? viewerSlotToLessonWall(date, startTime, lesson.duration, viewerIana, lesson.timezoneId)
+        : moveLessonToViewerCalendarDay(lesson, date, viewerIana);
+    return {
+      ...lesson,
+      date: wall.date,
+      startTime: wall.startTime,
+      endTime: wall.endTime,
+      statusId: canManage ? lesson.statusId : LESSON_STATUS.planned.id,
+    };
+  };
+
+  const persistScheduleChange = async (
+    lessonId: number,
+    before: ScheduledLessonDto,
+    next: ScheduledLessonDto,
+  ) => {
+    if (scheduleUnchanged(before, next)) return;
+
+    setLessons((prev) => prev.map((lesson) => (lesson.id === lessonId ? next : lesson)));
+
+    const backendId = getLessonBackendId(before);
+    if (!canManage || !backendId) return;
+
+    try {
+      const persisted = await persistScheduleUpdate(next, before);
+      if (persisted) {
+        setLessons((prev) => prev.map((lesson) => (lesson.id === lessonId ? persisted : lesson)));
+      }
+    } catch (error) {
+      setLessons((prev) => prev.map((lesson) => (lesson.id === lessonId ? before : lesson)));
+      setWarningDialog({
+        open: true,
+        title: 'Could not save lesson time',
+        message: persistenceErrorMessage(error),
+      });
+    }
+  };
+
   const moveLesson = (lessonId: number, date: string, startTime?: string) => {
-    setLessons((prev) =>
-      prev.map((lesson) => {
-        if (lesson.id !== lessonId) return lesson;
-        const wall =
-          startTime !== undefined
-            ? viewerSlotToLessonWall(date, startTime, lesson.duration, viewerIana, lesson.timezoneId)
-            : moveLessonToViewerCalendarDay(lesson, date, viewerIana);
-        const next: ScheduledLessonDto = {
-          ...lesson,
-          date: wall.date,
-          startTime: wall.startTime,
-          endTime: wall.endTime,
-          statusId: canManage
-            ? lesson.statusId
-            : LESSON_STATUS.planned.id,
-        };
-        if (hasTimeConflict(prev, next, lesson.id, conflictStrategy) || isPastSlot(next)) return lesson;
-        return next;
-      }),
-    );
+    const before = lessonsRef.current.find((lesson) => lesson.id === lessonId);
+    if (!before) return;
+
+    const next = buildMovedLesson(before, date, startTime);
+    if (scheduleUnchanged(before, next)) return;
+
+    if (hasTimeConflict(lessonsRef.current, next, lessonId, conflictStrategy)) {
+      setConflictDialog({
+        open: true,
+        title: 'Time slot is busy',
+        message:
+          conflictStrategy === 'same-teacher-overlap'
+            ? 'This teacher already has a lesson in this time slot.'
+            : 'Another lesson already exists for this time.',
+        candidate: next,
+        excludeLessonId: lessonId,
+      });
+      return;
+    }
+    if (isPastSlot(next)) {
+      setWarningDialog({
+        open: true,
+        title: 'Cannot move to past time',
+        message: 'You cannot move a lesson to a past date or time.',
+      });
+      return;
+    }
+
+    void persistScheduleChange(lessonId, before, next);
   };
 
   const weekStartStr = toDateString(weekDays[0]);
@@ -555,15 +721,17 @@ export default function CalendarPage() {
 
   const stopResize = () => {
     const preview = previewResizeRef.current;
-    if (preview) {
+    const snapshot = resizeState?.snapshot ?? null;
+    let persistAfterResize: { lessonId: number; before: ScheduledLessonDto; next: ScheduledLessonDto } | null =
+      null;
+
+    if (preview && snapshot) {
       setLessons((prev) =>
         prev.map((lesson) => {
           if (lesson.id !== preview.lessonId) return lesson;
           const next: ScheduledLessonDto = {
             ...lesson,
-            statusId: canManage
-              ? lesson.statusId
-              : LESSON_STATUS.planned.id,
+            statusId: canManage ? lesson.statusId : LESSON_STATUS.planned.id,
           };
           if (hasTimeConflict(prev, next, lesson.id, conflictStrategy) || isPastSlot(next)) {
             if (hasTimeConflict(prev, next, lesson.id, conflictStrategy)) {
@@ -584,12 +752,24 @@ export default function CalendarPage() {
                 message: 'Lesson duration cannot be changed into a past time slot.',
               });
             }
-            return resizeState?.snapshot ?? lesson;
+            return snapshot;
+          }
+          if (!scheduleUnchanged(snapshot, next)) {
+            persistAfterResize = { lessonId: lesson.id, before: snapshot, next };
           }
           return next;
         }),
       );
     }
+
+    if (persistAfterResize) {
+      void persistScheduleChange(
+        persistAfterResize.lessonId,
+        persistAfterResize.before,
+        persistAfterResize.next,
+      );
+    }
+
     setTimeout(() => {
       resizedRef.current = false;
       suppressDragRef.current = false;
@@ -629,7 +809,7 @@ export default function CalendarPage() {
             setAudience={setAudience}
             teacherFilter={teacherFilter}
             setTeacherFilter={setTeacherFilter}
-            teacherOptions={teacherOptions}
+            teacherOptions={teacherFilterOptions}
             role={role}
             onRequestLesson={requestLesson}
           />
@@ -820,7 +1000,7 @@ export default function CalendarPage() {
                           );
                           const hh = startHour + Math.floor(minutes / 60);
                           const mm = minutes % 60;
-                          openCreateModal(dateStr, `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`);
+                          openCreateModal(dateStr);
                         }}
                         onDragOver={(e) => {
                           e.preventDefault();
@@ -1037,9 +1217,15 @@ export default function CalendarPage() {
           onDeleteLesson={() => setConfirmDeleteOpen(true)}
           onSubmit={submitModal}
           onSaveStudentResponse={saveStudentResponse}
-          students={visibleStudents}
+          students={studentOptions}
           teachers={assignableTeachers}
+          lessonBackendId={editingLesson ? getLessonBackendId(editingLesson) ?? null : null}
           persistedLessonId={editingLesson?.id ?? null}
+          studentBackendId={
+            form
+              ? resolvePartyBackendId(form.studentId, studentOptions, assignableTeachers) ?? null
+              : null
+          }
         />
       ) : null}
       {conflictDialog?.open ? (

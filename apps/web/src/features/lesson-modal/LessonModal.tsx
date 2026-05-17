@@ -31,6 +31,8 @@ export function LessonModal({
   canDeleteLesson,
   onDeleteLesson,
   persistedLessonId = null,
+  lessonBackendId = null,
+  studentBackendId = null,
 }: {
   mode: LessonModalMode;
   canEdit: boolean;
@@ -46,8 +48,10 @@ export function LessonModal({
   onUnlinkSeries: () => void;
   canDeleteLesson: boolean;
   onDeleteLesson: () => void;
-  /** Set when editing an existing lesson so vocabulary can link to profile immediately. */
+  /** @deprecated Numeric lesson id — prefer lessonBackendId. */
   persistedLessonId?: number | null;
+  lessonBackendId?: string | null;
+  studentBackendId?: string | null;
 }) {
   const text = siteContent.calendar.lessonModal;
   const [mounted, setMounted] = useState(false);
@@ -137,7 +141,8 @@ export function LessonModal({
     { value: 'presentation', label: text.materialTypes.presentation, icon: Monitor },
   ];
   const canSaveMaterial = materialDraft.text.trim().length > 0 || materialDraft.files.length > 0;
-  const showLessonLink = Boolean(persistedLessonId);
+  const lessonPageRouteId = lessonBackendId ?? (persistedLessonId != null ? String(persistedLessonId) : null);
+  const showLessonLink = Boolean(lessonPageRouteId);
   const showConfirmButton = role !== USER_ROLE.student.id;
 
   useEffect(() => {
@@ -224,7 +229,8 @@ export function LessonModal({
                   onHomeworkFilesSelected={handleHomeworkFilesSelected}
                   onStudentResponseFilesSelected={handleStudentResponseFilesSelected}
                   onSaveStudentResponse={onSaveStudentResponse}
-                  lessonEntityId={persistedLessonId}
+                  lessonBackendId={lessonBackendId}
+                  studentBackendId={studentBackendId}
                 />,
               },
             ]}
@@ -245,7 +251,7 @@ export function LessonModal({
               : 'Changes are applied immediately after saving.'}
           </div>
           {showLessonLink ? (
-            <Link href={`/lessons/${persistedLessonId}`} className={styles.modalLessonLinkBtn} onClick={onClose}>
+            <Link href={`/lessons/${lessonPageRouteId}`} className={styles.modalLessonLinkBtn} onClick={onClose}>
               Open lesson page
             </Link>
           ) : null}

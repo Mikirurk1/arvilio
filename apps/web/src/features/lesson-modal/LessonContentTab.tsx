@@ -1,22 +1,19 @@
 'use client';
 
-import { useState } from 'react';
-import type { VocabularyWordStatusName } from '@soenglish/shared-types';
+import { useEffect, useMemo, useState } from 'react';
+import { vocabularyStatusLabel, type VocabularyWordStatusName, type WordCardDto } from '@soenglish/shared-types';
 import { LESSON_STATUS } from '@soenglish/shared-types';
-import { ClipboardCheck, File, FileText, Image, Monitor, Plus, X } from 'lucide-react';
+import { ClipboardCheck, File, FileText, Image, Info, Monitor, Plus, X } from 'lucide-react';
 import { AdaptiveSelect, Badge, Button, Field } from '../../components/ui';
 import type { LessonFormState } from './types';
 import type { LessonModalText, MaterialKind, MaterialKindOption } from './tabTypes';
-import {
-  canReviewHomework,
-  createVocabularyWord,
-  ensureLessonVocabularyForStudent,
-  getProfileVocabularyForUser,
-  getVocabularyWordById,
-  vocabularyStatusIdToLegacy,
-  type UserRole,
-  USER_ROLE,
-} from '../../mocks';
+import { canReviewHomework, type UserRole, USER_ROLE } from '../../mocks';
+import { LessonVocabularyAddPanel } from '../vocabulary/LessonVocabularyAddPanel';
+import { WordCardAudioButton } from '../vocabulary/WordCardAudioButton';
+import { WordDetailsModal } from '../vocabulary/WordDetailsModal';
+import { useViewerLanguageIds } from '../../hooks/use-viewer-language-ids';
+import { pickWordDefinition } from '../../lib/word-definitions';
+import { useVocabularyStore } from '../../stores/vocabulary-store';
 import vocabStyles from '../../app/vocabulary/page.module.scss';
 import styles from './LessonModal.module.scss';
 
@@ -48,8 +45,10 @@ type Props = {
   onSaveStudentResponse: () => void;
   /** When true, the student inline "Save" is not rendered (e.g. page uses a single save action). */
   hideStudentSaveButton?: boolean;
-  /** Persisted lesson id — when set, new words sync to the student profile immediately. */
-  lessonEntityId?: number | null;
+  /** Backend lesson UUID — links vocabulary cards to this lesson. */
+  lessonBackendId?: string | null;
+  /** Backend student user UUID for addStudentWordCard. */
+  studentBackendId?: string | null;
 };
 
 const defaultKinds: MaterialKindOption[] = [
@@ -87,7 +86,8 @@ export function LessonContentTab({
   onStudentResponseFilesSelected,
   onSaveStudentResponse,
   hideStudentSaveButton = false,
-  lessonEntityId = null,
+  lessonBackendId = null,
+  studentBackendId = null,
 }: Props) {
   const canStudentSubmitResponse =
     role === USER_ROLE.student.id &&
@@ -101,10 +101,52 @@ export function LessonContentTab({
   const canEditHomework = canEdit && role !== USER_ROLE.student.id;
   const canReview = canReviewHomework(role);
   const showHomeworkReviewBlock = canReview || (role === USER_ROLE.student.id && form.homeworkChecked);
-  const [lessonVocabLemma, setLessonVocabLemma] = useState('');
-  const [lessonVocabDef, setLessonVocabDef] = useState('');
-  /** Fresh read each render so mock profile mutations after “Add word” show updated status. */
-  const lessonProfileVocabRows = lessonEntityId ? getProfileVocabularyForUser(form.studentId) : [];
+  const fetchWordsByIds = useVocabularyStore((s) => s.fetchWordsByIds);
+  const fetchCards = useVocabularyStore((s) => s.fetchCards);
+  const studentCards = useVocabularyStore((s) => s.cards.data);
+  const [linkedWords, setLinkedWords] = useState<WordCardDto[]>([]);
+  const [detailsWordId, setDetailsWordId] = useState<string | null>(null);
+  const { nativeLanguageId, englishLanguageId } = useViewerLanguageIds();
+
+  const cardStatusByWordId = useMemo(() => {
+    const map = new Map<string, VocabularyWordStatusName>();
+    if (!studentCards || !lessonBackendId) return map;
+    for (const card of studentCards) {
+      if (card.lessonId === lessonBackendId) {
+        map.set(card.word.id, card.status);
+      }
+    }
+    return map;
+  }, [studentCards, lessonBackendId]);
+
+  useEffect(() => {
+    if (studentBackendId) {
+      void fetchCards(studentBackendId, true);
+    }
+  }, [studentBackendId, fetchCards]);
+
+  useEffect(() => {
+    const ids = form.linkedWordIds;
+    if (ids.length === 0) {
+      setLinkedWords([]);
+      return;
+    }
+    let cancelled = false;
+    void fetchWordsByIds(ids).then((words) => {
+      if (!cancelled) setLinkedWords(words);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [form.linkedWordIds, fetchWordsByIds]);
+
+  const removeLinkedWord = (wordId: string) => {
+    onChange({
+      ...form,
+      linkedWordIds: form.linkedWordIds.filter((id) => id !== wordId),
+    });
+  };
+
   return (
     <div className={styles.modalContentLayout}>
       <div className={`${styles.fieldGroup} ${styles.fieldGroupFull} ${styles.modalSectionCard} ${styles.lessonPlanCard}`}>
@@ -333,33 +375,13 @@ export function LessonContentTab({
           className={`${styles.fieldGroup} ${styles.fieldGroupFull} ${styles.modalSectionCard} ${styles.lessonVocabCard}`}
         >
           <label className={styles.fieldLabel}>Lesson vocabulary</label>
-          <p className={styles.lessonVocabHint}>
-            Adds entries to the shared dictionary and links them to this lesson and the student (status:
-            new).
-          </p>
-          {form.linkedVocabularyIds.length > 0 ? (
+          {linkedWords.length > 0 ? (
             <div className={styles.lessonVocabWordGrid}>
               <div className={vocabStyles.wordGrid}>
-                {form.linkedVocabularyIds.map((vid, i) => {
-                  const w = getVocabularyWordById(vid);
-                  if (!w) return null;
-                  const profileRow = lessonEntityId
-                    ? lessonProfileVocabRows.find(
-                        (r) => r.vocabularyId === vid && r.lessonId === lessonEntityId,
-                      )
-                    : undefined;
-                  const status: VocabularyWordStatusName = profileRow
-                    ? vocabularyStatusIdToLegacy(profileRow.statusId)
-                    : 'new';
+                {linkedWords.map((w, i) => {
+                  const status: VocabularyWordStatusName =
+                    cardStatusByWordId.get(w.id) ?? 'new';
                   const statusTone =
-                    status === 'new'
-                      ? 'blue'
-                      : status === 'repeated'
-                        ? 'amber'
-                        : status === 'mistakes_work'
-                          ? 'rose'
-                          : 'green';
-                  const badgeVariant =
                     status === 'new'
                       ? 'blue'
                       : status === 'repeated'
@@ -369,87 +391,81 @@ export function LessonContentTab({
                           : 'green';
                   return (
                     <div
-                      key={vid}
+                      key={w.id}
                       className={vocabStyles.wordCard}
                       style={{ animationDelay: `${i * 0.03}s` }}
                     >
                       <div className={vocabStyles.wcTop}>
                         <div>
-                          <div className={vocabStyles.wcWord}>{w.word}</div>
-                          <div className={vocabStyles.wcPhonetic}>{w.phonetic}</div>
+                          <div className={vocabStyles.wcWord}>{w.text}</div>
+                          <div className={vocabStyles.wcPhoneticRow}>
+                            {w.phonetic ? (
+                              <div className={vocabStyles.wcPhonetic}>{w.phonetic}</div>
+                            ) : null}
+                            <WordCardAudioButton
+                              audioUrl={w.audioUrl}
+                              className={vocabStyles.wcAudioBtn}
+                            />
+                          </div>
                         </div>
-                        <Badge
-                          className={`${vocabStyles.wcStatus} ${vocabStyles[statusTone]}`}
-                          variant={badgeVariant}
-                        >
-                          {status}
-                        </Badge>
+                        <div className={vocabStyles.wcTopActions}>
+                          <button
+                            type="button"
+                            className={vocabStyles.wcDetailsBtn}
+                            onClick={() => setDetailsWordId(w.id)}
+                            aria-label="All information"
+                            title="All information"
+                          >
+                            <Info size={16} aria-hidden />
+                          </button>
+                          <Badge
+                            className={`${vocabStyles.wcStatus} ${vocabStyles[statusTone]}`}
+                            variant={statusTone}
+                          >
+                            {vocabularyStatusLabel(status)}
+                          </Badge>
+                        </div>
                       </div>
-                      <div className={vocabStyles.wcPos}>{w.pos}</div>
-                      <div className={vocabStyles.wcDef}>{w.definition}</div>
-                      <div className={vocabStyles.wcExample}>&quot;{w.example}&quot;</div>
+                      <div className={vocabStyles.wcPos}>{w.partOfSpeech ?? '—'}</div>
+                      {w.origin ? <div className={vocabStyles.wcOrigin}>{w.origin}</div> : null}
+                      <div className={vocabStyles.wcDef}>
+                        {pickWordDefinition(
+                          w.definitions,
+                          nativeLanguageId,
+                          englishLanguageId,
+                          w.definition,
+                        )}
+                      </div>
+                      {w.example ? (
+                        <div className={vocabStyles.wcExample}>&quot;{w.example}&quot;</div>
+                      ) : null}
+                      <Button
+                        type="button"
+                        className={styles.lessonVocabAddBtn}
+                        onClick={() => removeLinkedWord(w.id)}
+                      >
+                        Remove
+                      </Button>
                     </div>
                   );
                 })}
               </div>
             </div>
           ) : null}
-          <div className={styles.lessonVocabFormGrid}>
-            <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel} htmlFor="lesson-vocab-word">
-                Word
-              </label>
-              <Field
-                id="lesson-vocab-word"
-                className={styles.fieldInput}
-                value={lessonVocabLemma}
-                placeholder="e.g. articulate"
-                onChange={(e) => setLessonVocabLemma(e.target.value)}
-              />
-            </div>
-            <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel} htmlFor="lesson-vocab-def">
-                Definition (optional)
-              </label>
-              <Field
-                id="lesson-vocab-def"
-                className={styles.fieldInput}
-                value={lessonVocabDef}
-                placeholder="Short gloss"
-                onChange={(e) => setLessonVocabDef(e.target.value)}
-              />
-            </div>
-          </div>
-          <Button
-            type="button"
-            className={styles.lessonVocabAddBtn}
-            disabled={!lessonVocabLemma.trim()}
-            onClick={() => {
-              const lemma = lessonVocabLemma.trim();
-              if (!lemma) return;
-              const vid = createVocabularyWord({
-                word: lemma,
-                definition: lessonVocabDef.trim() || '—',
-                example: '',
-                phonetic: '',
-                pos: '—',
-                category: 'general',
-              });
-              onChange({ ...form, linkedVocabularyIds: [...form.linkedVocabularyIds, vid] });
-              setLessonVocabLemma('');
-              setLessonVocabDef('');
-              if (lessonEntityId) {
-                ensureLessonVocabularyForStudent({
-                  userId: form.studentId,
-                  lessonId: lessonEntityId,
-                  vocabularyId: vid,
-                });
-              }
-            }}
-          >
-            <Plus size={14} aria-hidden />
-            Add word to lesson & student
-          </Button>
+          <LessonVocabularyAddPanel
+            linkedWordIds={form.linkedWordIds}
+            studentBackendId={studentBackendId}
+            lessonBackendId={lessonBackendId}
+            disabled={!canEditHomework}
+            onAddWordId={(wordId) =>
+              onChange({
+                ...form,
+                linkedWordIds: form.linkedWordIds.includes(wordId)
+                  ? form.linkedWordIds
+                  : [...form.linkedWordIds, wordId],
+              })
+            }
+          />
         </div>
       ) : null}
       <div className={`${styles.fieldGroup} ${styles.fieldGroupFull} ${styles.modalSectionCard} ${styles.studentResponseCard}`}>
@@ -562,6 +578,9 @@ export function LessonContentTab({
           </Button>
         ) : null}
       </div>
+      {detailsWordId ? (
+        <WordDetailsModal wordId={detailsWordId} onClose={() => setDetailsWordId(null)} />
+      ) : null}
     </div>
   );
 }

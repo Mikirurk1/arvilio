@@ -4,7 +4,14 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Button, Tooltip } from '../ui';
-import { activeMockUser, isTeacherAdminOrSuper, mockPracticeActivities } from '../../mocks';
+import {
+  isAdminOrSuperKey,
+  isSuperAdminKey,
+  isTeacherAdminOrSuperKey,
+  useActiveRoleKey,
+} from '../../lib/active-user';
+import { useChatNavBadge } from '../../hooks/use-chat-nav-badge';
+import { usePracticeNavBadge } from '../../hooks/use-practice-nav-badge';
 import styles from './Sidebar.module.scss';
 
 const STORAGE_KEY = 'soenglish.sidebarCollapsed';
@@ -23,6 +30,7 @@ const navItems = [
     items: [
       { href: '/dashboard', label: 'Dashboard', icon: 'grid' },
       { href: '/practice', label: 'Practice', icon: 'practice' },
+      { href: '/chat', label: 'Chat', icon: 'chat' },
     ] as NavItem[],
   },
   {
@@ -35,7 +43,11 @@ const navItems = [
   },
   {
     section: 'Account',
-    items: [{ href: '/profile', label: 'Profile & Settings', icon: 'profile' }] as NavItem[],
+    items: [
+      { href: '/admin', label: 'Admin', icon: 'admin' },
+      { href: '/system', label: 'System', icon: 'system' },
+      { href: '/profile', label: 'Profile & Settings', icon: 'profile' },
+    ] as NavItem[],
   },
 ];
 
@@ -45,6 +57,16 @@ const icons: Record<string, React.ReactNode> = {
       <circle cx="9" cy="9" r="6.5" stroke="currentColor" strokeWidth="1.4" />
       <circle cx="9" cy="9" r="3.2" stroke="currentColor" strokeWidth="1.4" />
       <circle cx="9" cy="9" r="1.2" fill="currentColor" />
+    </svg>
+  ),
+  chat: (
+    <svg viewBox="0 0 18 18" fill="none">
+      <path
+        d="M3 4.5h12a1.5 1.5 0 0 1 1.5 1.5v5a1.5 1.5 0 0 1-1.5 1.5H7l-3 2.5V6a1.5 1.5 0 0 1 1.5-1.5z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
     </svg>
   ),
   grid: (
@@ -145,6 +167,23 @@ const icons: Record<string, React.ReactNode> = {
       <path d="M6 6.5h6M6 9h6M6 11.5h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
     </svg>
   ),
+  admin: (
+    <svg viewBox="0 0 18 18" fill="none">
+      <path d="M9 2l5.5 2v4.2c0 3.4-2.3 6.2-5.5 7.3-3.2-1.1-5.5-3.9-5.5-7.3V4L9 2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+      <path d="M6.5 9.2l1.7 1.7L11.7 7.4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  system: (
+    <svg viewBox="0 0 18 18" fill="none">
+      <circle cx="9" cy="9" r="2.2" stroke="currentColor" strokeWidth="1.3" />
+      <path
+        d="M9 2.5v2M9 13.5v2M2.5 9h2M13.5 9h2M4.4 4.4l1.4 1.4M12.2 12.2l1.4 1.4M13.6 4.4l-1.4 1.4M5.8 12.2l-1.4 1.4"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+    </svg>
+  ),
 };
 
 function CollapseIcon({ expanded }: { expanded: boolean }) {
@@ -192,20 +231,31 @@ function findNavItem(href: string) {
 }
 
 export default function Sidebar() {
-  const practiceTotal = mockPracticeActivities.reduce((sum, activity) => {
-    if (!activity.stat) return sum;
-    const match = activity.stat.match(/\d+/);
-    return sum + (match ? Number(match[0]) : 0);
-  }, 0);
+  const practiceTotal = usePracticeNavBadge();
+  const chatUnread = useChatNavBadge();
 
-  const canSeeStudents = isTeacherAdminOrSuper(activeMockUser.role);
+  const roleKey = useActiveRoleKey();
+  const canSeeStudents = isTeacherAdminOrSuperKey(roleKey);
+  const canSeeAdmin = isAdminOrSuperKey(roleKey);
+  const canSeeSystem = isSuperAdminKey(roleKey);
   const visibleNavItems = navItems.map((section) => ({
     ...section,
     items: section.items
-      .filter((item) => (item.href === '/students' ? canSeeStudents : true))
-      .map((item) =>
-        item.href === '/practice' ? { ...item, badge: String(practiceTotal), badgeColor: 'green' as const } : item,
-      ),
+      .filter((item) => {
+        if (item.href === '/students') return canSeeStudents;
+        if (item.href === '/admin') return canSeeAdmin;
+        if (item.href === '/system') return canSeeSystem;
+        return true;
+      })
+      .map((item) => {
+        if (item.href === '/practice' && practiceTotal > 0) {
+          return { ...item, badge: String(practiceTotal), badgeColor: 'green' as const };
+        }
+        if (item.href === '/chat' && chatUnread > 0) {
+          return { ...item, badge: String(chatUnread), badgeColor: 'green' as const };
+        }
+        return item;
+      }),
   }));
 
   const pathname = usePathname();

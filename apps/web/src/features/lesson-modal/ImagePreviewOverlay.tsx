@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import styles from './LessonModal.module.scss';
 import { Button } from '../../components/ui';
 import type { LessonModalText } from './tabTypes';
@@ -25,7 +26,14 @@ export function ImagePreviewOverlay({ imagePreviewUrl, text, onClose }: Props) {
         >
           <X size={16} />
         </Button>
-        <img src={imagePreviewUrl} alt={text.imagePreviewAlt} className={styles.imagePreviewImg} />
+        <Image
+          src={imagePreviewUrl}
+          alt={text.imagePreviewAlt}
+          width={1200}
+          height={900}
+          className={styles.imagePreviewImg}
+          unoptimized
+        />
       </div>
     </div>
   );

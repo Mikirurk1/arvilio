@@ -19,6 +19,7 @@
 .backBtnIcon { transform: rotate(180deg); }
 .pageTitle { font-family: 'Lora', serif; font-size: var(--fs-page-title); font-weight: 600; color: var(--text-primary); }
 .pageSub { font-size: var(--fs-page-sub); color: var(--text-tertiary); margin-top: 4px; }
+.generateQuizWrap { margin-bottom: 28px; }
 .previewToggleBtn {
   display: inline-flex;
   align-items: center;
@@ -57,6 +58,9 @@
   border-radius: var(--radius-md);
   padding: 16px;
 }
+.quizCardCompleted {
+  border-color: color-mix(in srgb, var(--green) 35%, var(--border));
+}
 .quizCardHead { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
 .quizCardTitleRow { display: flex; align-items: center; gap: 8px; }
 .quizCardTitle { margin: 0; font-size: 17px; color: var(--text-primary); }
@@ -72,13 +76,29 @@
 .quizBadgeAmber { background: var(--amber-light); color: #9a6200; }
 .quizBadgeGreen { background: var(--green-light); color: var(--green-dark); }
 .quizBadgeRose { background: var(--rose-light); color: var(--rose); }
-.quizDrawerBtn {
+.quizDrawerBtn,
+.quizDeleteBtn {
   width: 30px;
   height: 30px;
   border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-tertiary);
+}
+.quizDeleteBtn:hover:not(:disabled) {
+  color: var(--rose);
+  border-color: rgba(220, 38, 38, 0.25);
+  background: var(--rose-light);
+}
+.quizDeleteActionBtn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+}
+.quizDeleteActionBtn:hover:not(:disabled) {
+  color: var(--rose);
+  border-color: rgba(220, 38, 38, 0.25);
+  background: var(--rose-light);
 }
 .assignmentBox { border: 1px solid var(--border); border-radius: 10px; background: var(--surface); padding: 10px; margin-bottom: 10px; }
 .assignmentTop { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-tertiary); margin-bottom: 8px; }
@@ -105,6 +125,16 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.createQuizCard:hover:not(:disabled) {
+  border-color: var(--blue);
+  color: var(--text-secondary);
+}
+.createQuizCard:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 .createQuizIcon { width: 48px; height: 48px; border-radius: 12px; background: var(--blue-light); color: var(--blue); display: flex; align-items: center; justify-content: center; }
 
@@ -249,6 +279,27 @@
 .finishModal h3 { margin: 0 0 6px; color: var(--text-primary); }
 .finishModal p { margin: 0; color: var(--text-tertiary); font-size: 14px; }
 .finishActions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+
+.loadError,
+.quizLoadError {
+  margin: 12px 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, #ef4444 35%, var(--border));
+  background: color-mix(in srgb, #ef4444 8%, var(--card));
+  color: #b42318;
+  font-size: 14px;
+}
+
+.quizPracticeBanner {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--amber) 35%, var(--border));
+  background: var(--amber-light);
+  color: #9a6200;
+  font-size: 13px;
+}
 
 @media (max-width: 980px) {
   .manageGrid { grid-template-columns: 1fr; }

@@ -221,7 +221,7 @@ function CalendarHeaderControls({ view, setView, showAudienceToggle, audience, s
     }, this);
 }
 _c = CalendarHeaderControls;
-function SelectedDateSidebar({ selectedDate, selectedLessons, role, getLessonColor }) {
+function SelectedDateSidebar({ selectedDate, selectedLessons, getLessonColor }) {
     _s();
     const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"])();
     const viewerIana = (0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$lib$2f$lessonTime$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getIanaForTimeZoneId"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$session$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["activeMockUser"].timezoneId);
@@ -239,7 +239,7 @@ function SelectedDateSidebar({ selectedDate, selectedLessons, role, getLessonCol
                     }) : 'Select a date'
                 }, void 0, false, {
                     fileName: "[project]/apps/web/src/app/calendar/sections.tsx",
-                    lineNumber: 107,
+                    lineNumber: 106,
                     columnNumber: 9
                 }, this),
                 selectedLessons.length === 0 && selectedDate ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -247,7 +247,7 @@ function SelectedDateSidebar({ selectedDate, selectedLessons, role, getLessonCol
                     children: "No lessons scheduled"
                 }, void 0, false, {
                     fileName: "[project]/apps/web/src/app/calendar/sections.tsx",
-                    lineNumber: 116,
+                    lineNumber: 115,
                     columnNumber: 57
                 }, this) : null,
                 selectedLessons.map((lesson)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$CalendarEventCard$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CalendarEventCard"], {
@@ -271,18 +271,18 @@ function SelectedDateSidebar({ selectedDate, selectedLessons, role, getLessonCol
                         onAction: ()=>router.push(`/lessons/${lesson.id}`)
                     }, lesson.id, false, {
                         fileName: "[project]/apps/web/src/app/calendar/sections.tsx",
-                        lineNumber: 118,
+                        lineNumber: 117,
                         columnNumber: 11
                     }, this))
             ]
         }, void 0, true, {
             fileName: "[project]/apps/web/src/app/calendar/sections.tsx",
-            lineNumber: 106,
+            lineNumber: 105,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/apps/web/src/app/calendar/sections.tsx",
-        lineNumber: 105,
+        lineNumber: 104,
         columnNumber: 5
     }, this);
 }
@@ -303,7 +303,7 @@ function CalendarMonthNavigator({ monthLabel, onPrev, onNext }) {
                 children: "←"
             }, void 0, false, {
                 fileName: "[project]/apps/web/src/app/calendar/sections.tsx",
-                lineNumber: 162,
+                lineNumber: 161,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -311,7 +311,7 @@ function CalendarMonthNavigator({ monthLabel, onPrev, onNext }) {
                 children: monthLabel
             }, void 0, false, {
                 fileName: "[project]/apps/web/src/app/calendar/sections.tsx",
-                lineNumber: 163,
+                lineNumber: 162,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -321,13 +321,13 @@ function CalendarMonthNavigator({ monthLabel, onPrev, onNext }) {
                 children: "→"
             }, void 0, false, {
                 fileName: "[project]/apps/web/src/app/calendar/sections.tsx",
-                lineNumber: 164,
+                lineNumber: 163,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/apps/web/src/app/calendar/sections.tsx",
-        lineNumber: 161,
+        lineNumber: 160,
         columnNumber: 5
     }, this);
 }
@@ -682,11 +682,18 @@ __turbopack_context__.v({
   "addWordCard": "page-module-scss-module__wiHsxG__addWordCard",
   "addWordInner": "page-module-scss-module__wiHsxG__addWordInner",
   "amber": "page-module-scss-module__wiHsxG__amber",
+  "backBtn": "page-module-scss-module__wiHsxG__backBtn",
   "blue": "page-module-scss-module__wiHsxG__blue",
   "catActive": "page-module-scss-module__wiHsxG__catActive",
   "catBtn": "page-module-scss-module__wiHsxG__catBtn",
   "catFilters": "page-module-scss-module__wiHsxG__catFilters",
+  "checkBtn": "page-module-scss-module__wiHsxG__checkBtn",
   "empty": "page-module-scss-module__wiHsxG__empty",
+  "expCorrect": "page-module-scss-module__wiHsxG__expCorrect",
+  "expIcon": "page-module-scss-module__wiHsxG__expIcon",
+  "expText": "page-module-scss-module__wiHsxG__expText",
+  "expWrong": "page-module-scss-module__wiHsxG__expWrong",
+  "explanation": "page-module-scss-module__wiHsxG__explanation",
   "fadeIn": "page-module-scss-module__wiHsxG__fadeIn",
   "fcBack": "page-module-scss-module__wiHsxG__fcBack",
   "fcBar": "page-module-scss-module__wiHsxG__fcBar",
@@ -712,17 +719,45 @@ __turbopack_context__.v({
   "fcRestartBtn": "page-module-scss-module__wiHsxG__fcRestartBtn",
   "fcWord": "page-module-scss-module__wiHsxG__fcWord",
   "filters": "page-module-scss-module__wiHsxG__filters",
+  "finishActions": "page-module-scss-module__wiHsxG__finishActions",
+  "finishBtn": "page-module-scss-module__wiHsxG__finishBtn",
+  "finishModal": "page-module-scss-module__wiHsxG__finishModal",
   "flashcard": "page-module-scss-module__wiHsxG__flashcard",
   "flashcardMode": "page-module-scss-module__wiHsxG__flashcardMode",
   "green": "page-module-scss-module__wiHsxG__green",
+  "headerActions": "page-module-scss-module__wiHsxG__headerActions",
   "lessonFilterSelect": "page-module-scss-module__wiHsxG__lessonFilterSelect",
+  "modalCancelBtn": "page-module-scss-module__wiHsxG__modalCancelBtn",
+  "modalOverlay": "page-module-scss-module__wiHsxG__modalOverlay",
+  "modalSubmitBtn": "page-module-scss-module__wiHsxG__modalSubmitBtn",
   "modeActive": "page-module-scss-module__wiHsxG__modeActive",
   "modeBtn": "page-module-scss-module__wiHsxG__modeBtn",
   "modeToggle": "page-module-scss-module__wiHsxG__modeToggle",
+  "nextBtn": "page-module-scss-module__wiHsxG__nextBtn",
   "page": "page-module-scss-module__wiHsxG__page",
   "pageHeader": "page-module-scss-module__wiHsxG__pageHeader",
   "pageSub": "page-module-scss-module__wiHsxG__pageSub",
   "pageTitle": "page-module-scss-module__wiHsxG__pageTitle",
+  "playControls": "page-module-scss-module__wiHsxG__playControls",
+  "playOptionBtn": "page-module-scss-module__wiHsxG__playOptionBtn",
+  "playOptionCorrect": "page-module-scss-module__wiHsxG__playOptionCorrect",
+  "playOptionLetter": "page-module-scss-module__wiHsxG__playOptionLetter",
+  "playOptionSelected": "page-module-scss-module__wiHsxG__playOptionSelected",
+  "playOptionWrong": "page-module-scss-module__wiHsxG__playOptionWrong",
+  "playOptionsGrid": "page-module-scss-module__wiHsxG__playOptionsGrid",
+  "playProgress": "page-module-scss-module__wiHsxG__playProgress",
+  "playQuestionCard": "page-module-scss-module__wiHsxG__playQuestionCard",
+  "playQuestionTop": "page-module-scss-module__wiHsxG__playQuestionTop",
+  "playStartBtn": "page-module-scss-module__wiHsxG__playStartBtn",
+  "playWord": "page-module-scss-module__wiHsxG__playWord",
+  "playWrap": "page-module-scss-module__wiHsxG__playWrap",
+  "qActions": "page-module-scss-module__wiHsxG__qActions",
+  "rose": "page-module-scss-module__wiHsxG__rose",
+  "scoreDot": "page-module-scss-module__wiHsxG__scoreDot",
+  "scoreDotEmpty": "page-module-scss-module__wiHsxG__scoreDotEmpty",
+  "scoreDotGreen": "page-module-scss-module__wiHsxG__scoreDotGreen",
+  "scoreDotRed": "page-module-scss-module__wiHsxG__scoreDotRed",
+  "scoreRow": "page-module-scss-module__wiHsxG__scoreRow",
   "searchInput": "page-module-scss-module__wiHsxG__searchInput",
   "slideUp": "page-module-scss-module__wiHsxG__slideUp",
   "statAmber": "page-module-scss-module__wiHsxG__statAmber",
@@ -731,6 +766,7 @@ __turbopack_context__.v({
   "statGreen": "page-module-scss-module__wiHsxG__statGreen",
   "statLbl": "page-module-scss-module__wiHsxG__statLbl",
   "statNum": "page-module-scss-module__wiHsxG__statNum",
+  "statRose": "page-module-scss-module__wiHsxG__statRose",
   "statsRow": "page-module-scss-module__wiHsxG__statsRow",
   "wcActions": "page-module-scss-module__wiHsxG__wcActions",
   "wcBtn": "page-module-scss-module__wiHsxG__wcBtn",
@@ -1399,8 +1435,8 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                 if (!w) return null;
                                 const profileRow = lessonEntityId ? lessonProfileVocabRows.find((r)=>r.vocabularyId === vid && r.lessonId === lessonEntityId) : undefined;
                                 const status = profileRow ? (0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$mocks$2f$domains$2f$vocabulary$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["vocabularyStatusIdToLegacy"])(profileRow.statusId) : 'new';
-                                const statusTone = status === 'new' ? 'blue' : status === 'learning' ? 'amber' : 'green';
-                                const badgeVariant = status === 'new' ? 'blue' : status === 'learning' ? 'amber' : 'green';
+                                const statusTone = status === 'new' ? 'blue' : status === 'repeated' ? 'amber' : status === 'mistakes_work' ? 'rose' : 'green';
+                                const badgeVariant = status === 'new' ? 'blue' : status === 'repeated' ? 'amber' : status === 'mistakes_work' ? 'rose' : 'green';
                                 return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$app$2f$vocabulary$2f$page$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].wordCard,
                                     style: {
@@ -1417,7 +1453,7 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                                             children: w.word
                                                         }, void 0, false, {
                                                             fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                                            lineNumber: 366,
+                                                            lineNumber: 378,
                                                             columnNumber: 27
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1425,13 +1461,13 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                                             children: w.phonetic
                                                         }, void 0, false, {
                                                             fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                                            lineNumber: 367,
+                                                            lineNumber: 379,
                                                             columnNumber: 27
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                                    lineNumber: 365,
+                                                    lineNumber: 377,
                                                     columnNumber: 25
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Badge$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Badge"], {
@@ -1440,13 +1476,13 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                                     children: status
                                                 }, void 0, false, {
                                                     fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                                    lineNumber: 369,
+                                                    lineNumber: 381,
                                                     columnNumber: 25
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                            lineNumber: 364,
+                                            lineNumber: 376,
                                             columnNumber: 23
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1454,7 +1490,7 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                             children: w.pos
                                         }, void 0, false, {
                                             fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                            lineNumber: 376,
+                                            lineNumber: 388,
                                             columnNumber: 23
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1462,7 +1498,7 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                             children: w.definition
                                         }, void 0, false, {
                                             fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                            lineNumber: 377,
+                                            lineNumber: 389,
                                             columnNumber: 23
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1474,13 +1510,13 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                            lineNumber: 378,
+                                            lineNumber: 390,
                                             columnNumber: 23
                                         }, this)
                                     ]
                                 }, vid, true, {
                                     fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                    lineNumber: 359,
+                                    lineNumber: 371,
                                     columnNumber: 21
                                 }, this);
                             })
@@ -1506,7 +1542,7 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                         children: "Word"
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                        lineNumber: 387,
+                                        lineNumber: 399,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Field$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Field"], {
@@ -1517,13 +1553,13 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                         onChange: (e)=>setLessonVocabLemma(e.target.value)
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                        lineNumber: 390,
+                                        lineNumber: 402,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                lineNumber: 386,
+                                lineNumber: 398,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1535,7 +1571,7 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                         children: "Definition (optional)"
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                        lineNumber: 399,
+                                        lineNumber: 411,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Field$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Field"], {
@@ -1546,19 +1582,19 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                         onChange: (e)=>setLessonVocabDef(e.target.value)
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                        lineNumber: 402,
+                                        lineNumber: 414,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                lineNumber: 398,
+                                lineNumber: 410,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                        lineNumber: 385,
+                        lineNumber: 397,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -1599,14 +1635,14 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                 "aria-hidden": true
                             }, void 0, false, {
                                 fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                lineNumber: 438,
+                                lineNumber: 450,
                                 columnNumber: 13
                             }, this),
                             "Add word to lesson & student"
                         ]
                     }, void 0, true, {
                         fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                        lineNumber: 411,
+                        lineNumber: 423,
                         columnNumber: 11
                     }, this)
                 ]
@@ -1623,7 +1659,7 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                         children: text.fields.studentResponse
                     }, void 0, false, {
                         fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                        lineNumber: 444,
+                        lineNumber: 456,
                         columnNumber: 9
                     }, this),
                     studentStatusPlaceholder ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Field$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Field"], {
@@ -1633,7 +1669,7 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                         formatValue: ()=>form.statusId === __TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$shared$2f$types$2f$src$2f$lib$2f$shared$2d$types$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["LESSON_STATUS"].cancelled.id ? '—' : 'Opens after the lesson is completed'
                     }, void 0, false, {
                         fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                        lineNumber: 446,
+                        lineNumber: 458,
                         columnNumber: 11
                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$AdaptiveSelect$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AdaptiveSelect"], {
                         className: __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$features$2f$lesson$2d$modal$2f$LessonModal$2e$module$2e$scss__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].fieldInput,
@@ -1649,7 +1685,7 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                 children: "Not submitted"
                             }, void 0, false, {
                                 fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                lineNumber: 468,
+                                lineNumber: 480,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -1657,7 +1693,7 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                 children: "Submitted"
                             }, void 0, false, {
                                 fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                lineNumber: 469,
+                                lineNumber: 481,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -1665,7 +1701,7 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                 children: "Reopen (needs rework)"
                             }, void 0, false, {
                                 fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                lineNumber: 470,
+                                lineNumber: 482,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -1673,13 +1709,13 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                 children: "Accepted"
                             }, void 0, false, {
                                 fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                lineNumber: 471,
+                                lineNumber: 483,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                        lineNumber: 457,
+                        lineNumber: 469,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Field$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Field"], {
@@ -1694,7 +1730,7 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                             })
                     }, void 0, false, {
                         fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                        lineNumber: 474,
+                        lineNumber: 486,
                         columnNumber: 9
                     }, this),
                     role !== __TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$shared$2f$types$2f$src$2f$lib$2f$shared$2d$types$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["USER_ROLE"].student.id || canStudentSubmitResponse ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Field$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Field"], {
@@ -1706,7 +1742,7 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                         onFilesSelected: onStudentResponseFilesSelected
                     }, void 0, false, {
                         fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                        lineNumber: 476,
+                        lineNumber: 488,
                         columnNumber: 11
                     }, this) : null,
                     form.studentResponseFiles.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1739,19 +1775,19 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                             size: 12
                                         }, void 0, false, {
                                             fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                            lineNumber: 502,
+                                            lineNumber: 514,
                                             columnNumber: 19
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                        lineNumber: 492,
+                                        lineNumber: 504,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                         children: fileName
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                        lineNumber: 504,
+                                        lineNumber: 516,
                                         columnNumber: 17
                                     }, this),
                                     !studentResponsePreviews[fileIndex] ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("em", {
@@ -1759,18 +1795,18 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                         children: getFilePlaceholder(fileName)
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                        lineNumber: 505,
+                                        lineNumber: 517,
                                         columnNumber: 56
                                     }, this) : null
                                 ]
                             }, `resp-${fileName}-${fileIndex}`, true, {
                                 fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                lineNumber: 481,
+                                lineNumber: 493,
                                 columnNumber: 15
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                        lineNumber: 479,
+                        lineNumber: 491,
                         columnNumber: 11
                     }, this) : null,
                     showHomeworkReviewBlock ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1781,7 +1817,7 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                 children: text.fields.homeworkReview
                             }, void 0, false, {
                                 fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                lineNumber: 512,
+                                lineNumber: 524,
                                 columnNumber: 13
                             }, this),
                             canReview && !form.homeworkChecked ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -1794,7 +1830,7 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                 children: text.actions.markHomeworkChecked
                             }, void 0, false, {
                                 fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                lineNumber: 514,
+                                lineNumber: 526,
                                 columnNumber: 15
                             }, this) : null,
                             form.homeworkChecked ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -1806,12 +1842,12 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                             children: text.homeworkCheckedStatus
                                         }, void 0, false, {
                                             fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                            lineNumber: 525,
+                                            lineNumber: 537,
                                             columnNumber: 19
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                        lineNumber: 524,
+                                        lineNumber: 536,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -1819,7 +1855,7 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                         children: text.fields.teacherHomeworkFeedback
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                        lineNumber: 527,
+                                        lineNumber: 539,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Field$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Field"], {
@@ -1834,7 +1870,7 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                                             })
                                     }, void 0, false, {
                                         fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                                        lineNumber: 528,
+                                        lineNumber: 540,
                                         columnNumber: 17
                                     }, this)
                                 ]
@@ -1842,7 +1878,7 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                         ]
                     }, void 0, true, {
                         fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                        lineNumber: 511,
+                        lineNumber: 523,
                         columnNumber: 11
                     }, this) : null,
                     role === __TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$shared$2f$types$2f$src$2f$lib$2f$shared$2d$types$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["USER_ROLE"].student.id && canStudentSubmitResponse && !hideStudentSaveButton ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$web$2f$src$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -1853,13 +1889,13 @@ function LessonContentTab({ text, canEdit, role, form, materialKinds = defaultKi
                         children: "Save"
                     }, void 0, false, {
                         fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                        lineNumber: 543,
+                        lineNumber: 555,
                         columnNumber: 11
                     }, this) : null
                 ]
             }, void 0, true, {
                 fileName: "[project]/apps/web/src/features/lesson-modal/LessonContentTab.tsx",
-                lineNumber: 443,
+                lineNumber: 455,
                 columnNumber: 7
             }, this)
         ]
