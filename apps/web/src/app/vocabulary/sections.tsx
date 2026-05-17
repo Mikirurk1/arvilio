@@ -1,15 +1,37 @@
 'use client';
 
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { vocabularyStatusLabel, type VocabularyWordStatusName } from '@soenglish/shared-types';
-import { Check, ChevronRight, Info, PartyPopper, Play, Trash2 } from 'lucide-react';
-import { AdaptiveSelect, Badge, Button, EmptyStateCard, Field, ProgressHeader, SegmentedControl, StatTile } from '../../components/ui';
+import {
+  vocabularyStatusLabel,
+  type VocabularyWordStatusName,
+} from '@soenglish/shared-types';
+import {
+  Check,
+  ChevronRight,
+  Info,
+  PartyPopper,
+  Play,
+  Trash2,
+} from 'lucide-react';
+import {
+  AdaptiveSelect,
+  Badge,
+  Button,
+  EmptyStateCard,
+  Field,
+  ProgressHeader,
+  SegmentedControl,
+  StatTile,
+} from '../../components/ui';
 import { WordCardAudioButton } from '../../features/vocabulary/WordCardAudioButton';
 import {
   validateEnglishWordInput,
   VOCABULARY_WORD_NOT_FOUND,
 } from '../../lib/vocabulary-word-input';
-import type { VocabularyListItem, VocabularyPlayQuestion } from '../../lib/vocabulary-ui';
+import type {
+  VocabularyListItem,
+  VocabularyPlayQuestion,
+} from '../../lib/vocabulary-ui';
 import { useVocabularyStore } from '../../stores/vocabulary-store';
 import styles from './page.module.scss';
 
@@ -24,7 +46,7 @@ export function VocabularyModeToggle({
     <SegmentedControl
       value={mode}
       onValueChange={onChange}
-      ariaLabel="Vocabulary mode"
+      ariaLabel='Vocabulary mode'
       className={styles.modeToggle}
       optionClassName={styles.modeBtn}
       activeOptionClassName={styles.modeActive}
@@ -33,8 +55,13 @@ export function VocabularyModeToggle({
           value: 'list',
           label: 'List',
           icon: (
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M2 4h12M2 8h12M2 12h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <svg width='16' height='16' viewBox='0 0 16 16' fill='none'>
+              <path
+                d='M2 4h12M2 8h12M2 12h8'
+                stroke='currentColor'
+                strokeWidth='1.5'
+                strokeLinecap='round'
+              />
             </svg>
           ),
         },
@@ -42,9 +69,21 @@ export function VocabularyModeToggle({
           value: 'flashcard',
           label: 'Flashcards',
           icon: (
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <rect x="2" y="4" width="12" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" stroke="currentColor" strokeWidth="1.5" />
+            <svg width='16' height='16' viewBox='0 0 16 16' fill='none'>
+              <rect
+                x='2'
+                y='4'
+                width='12'
+                height='9'
+                rx='1.5'
+                stroke='currentColor'
+                strokeWidth='1.5'
+              />
+              <path
+                d='M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1'
+                stroke='currentColor'
+                strokeWidth='1.5'
+              />
             </svg>
           ),
         },
@@ -64,16 +103,61 @@ export function VocabularyStatsRow({
   onFilter,
 }: {
   total: number;
-  stats: { new: number; repeated: number; mistakesWork: number; learned: number };
+  stats: {
+    new: number;
+    repeated: number;
+    mistakesWork: number;
+    learned: number;
+  };
   onFilter: (value: string) => void;
 }) {
   return (
     <div className={styles.statsRow}>
-      <StatTile className={styles.statChip} interactive onClick={() => onFilter('all')} label="Total" labelClassName={styles.statLbl} value={total} valueClassName={styles.statNum} />
-      <StatTile className={`${styles.statChip} ${styles.statBlue}`} interactive onClick={() => onFilter('new')} label="New" labelClassName={styles.statLbl} value={stats.new} valueClassName={styles.statNum} />
-      <StatTile className={`${styles.statChip} ${styles.statAmber}`} interactive onClick={() => onFilter('repeated')} label="Repeated" labelClassName={styles.statLbl} value={stats.repeated} valueClassName={styles.statNum} />
-      <StatTile className={`${styles.statChip} ${styles.statRose}`} interactive onClick={() => onFilter('mistakes_work')} label={vocabularyStatusLabel('mistakes_work')} labelClassName={styles.statLbl} value={stats.mistakesWork} valueClassName={styles.statNum} />
-      <StatTile className={`${styles.statChip} ${styles.statGreen}`} interactive onClick={() => onFilter('learned')} label="Learned" labelClassName={styles.statLbl} value={stats.learned} valueClassName={styles.statNum} />
+      <StatTile
+        className={styles.statChip}
+        interactive
+        onClick={() => onFilter('all')}
+        label='Total'
+        labelClassName={styles.statLbl}
+        value={total}
+        valueClassName={styles.statNum}
+      />
+      <StatTile
+        className={`${styles.statChip} ${styles.statBlue}`}
+        interactive
+        onClick={() => onFilter('new')}
+        label='New'
+        labelClassName={styles.statLbl}
+        value={stats.new}
+        valueClassName={styles.statNum}
+      />
+      <StatTile
+        className={`${styles.statChip} ${styles.statAmber}`}
+        interactive
+        onClick={() => onFilter('repeated')}
+        label='Repeated'
+        labelClassName={styles.statLbl}
+        value={stats.repeated}
+        valueClassName={styles.statNum}
+      />
+      <StatTile
+        className={`${styles.statChip} ${styles.statRose}`}
+        interactive
+        onClick={() => onFilter('mistakes_work')}
+        label={vocabularyStatusLabel('mistakes_work')}
+        labelClassName={styles.statLbl}
+        value={stats.mistakesWork}
+        valueClassName={styles.statNum}
+      />
+      <StatTile
+        className={`${styles.statChip} ${styles.statGreen}`}
+        interactive
+        onClick={() => onFilter('learned')}
+        label='Learned'
+        labelClassName={styles.statLbl}
+        value={stats.learned}
+        valueClassName={styles.statNum}
+      />
     </div>
   );
 }
@@ -85,7 +169,7 @@ export function VocabularyAddWordBar({
   onAdd: (text: string) => Promise<void>;
   disabled?: boolean;
 }) {
-  const lookupWord = useVocabularyStore((s) => s.lookupWord);
+  const lookupWord = useVocabularyStore(s => s.lookupWord);
   const [text, setText] = useState('');
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -123,13 +207,13 @@ export function VocabularyAddWordBar({
       <form className={styles.addWordForm} onSubmit={onSubmit}>
         <Field
           className={styles.searchInput}
-          type="text"
-          placeholder="Add a word (English), e.g. articulate"
+          type='text'
+          placeholder='Add a word (English), e.g. articulate'
           value={text}
-          onChange={(event) => setText(event.target.value)}
+          onChange={event => setText(event.target.value)}
           disabled={disabled || adding}
         />
-        <Button type="submit" disabled={disabled || adding || !text.trim()}>
+        <Button type='submit' disabled={disabled || adding || !text.trim()}>
           {adding ? 'Adding…' : 'Add word'}
         </Button>
       </form>
@@ -175,51 +259,68 @@ export function VocabularyWordCards({
                 {display.phonetic ? (
                   <div className={styles.wcPhonetic}>{display.phonetic}</div>
                 ) : null}
-                <WordCardAudioButton audioUrl={display.audioUrl} className={styles.wcAudioBtn} />
+                <WordCardAudioButton
+                  audioUrl={display.audioUrl}
+                  className={styles.wcAudioBtn}
+                />
               </div>
             </div>
             <div className={styles.wcTopActions}>
-              {onOpenWordDetails && display.wordId && display.wordId !== 'preview' ? (
+              {onOpenWordDetails &&
+              display.wordId &&
+              display.wordId !== 'preview' ? (
                 <button
-                  type="button"
+                  type='button'
                   className={styles.wcDetailsBtn}
                   onClick={() => onOpenWordDetails(display.wordId)}
-                  aria-label="All information"
-                  title="All information"
+                  aria-label='All information'
+                  title='All information'
                 >
                   <Info size={16} aria-hidden />
                 </button>
               ) : null}
               {canDelete && onDelete ? (
                 <button
-                  type="button"
+                  type='button'
                   className={styles.wcDeleteBtn}
                   onClick={() => onDelete(card.id)}
-                  aria-label="Remove word"
-                  title="Remove word"
+                  aria-label='Remove word'
+                  title='Remove word'
                 >
                   <Trash2 size={16} aria-hidden />
                 </button>
               ) : null}
               <Badge
                 className={`${styles.wcStatus} ${styles[status === 'new' ? 'blue' : status === 'repeated' ? 'amber' : status === 'mistakes_work' ? 'rose' : 'green']}`}
-                variant={status === 'new' ? 'blue' : status === 'repeated' ? 'amber' : status === 'mistakes_work' ? 'rose' : 'green'}
+                variant={
+                  status === 'new'
+                    ? 'blue'
+                    : status === 'repeated'
+                      ? 'amber'
+                      : status === 'mistakes_work'
+                        ? 'rose'
+                        : 'green'
+                }
               >
                 {vocabularyStatusLabel(status)}
               </Badge>
             </div>
           </div>
           <div className={styles.wcPos}>{display.pos}</div>
-          {display.origin ? <div className={styles.wcOrigin}>{display.origin}</div> : null}
+          {display.origin ? (
+            <div className={styles.wcOrigin}>{display.origin}</div>
+          ) : null}
           <div className={styles.wcDef}>{display.definition}</div>
           {display.example ? (
-            <div className={styles.wcExample}>&quot;{display.example}&quot;</div>
+            <div className={styles.wcExample}>
+              &quot;{display.example}&quot;
+            </div>
           ) : null}
           {statusOptions.length > 0 ? (
             <div className={styles.wcActions}>
-              {statusOptions.map((nextStatus) => (
+              {statusOptions.map(nextStatus => (
                 <Button
-                  type="button"
+                  type='button'
                   key={nextStatus}
                   className={`${styles.wcBtn} ${status === nextStatus ? styles.wcBtnActive : ''}`}
                   onClick={() => onSetStatus(card.id, nextStatus)}
@@ -277,13 +378,18 @@ export function VocabularyListSection({
   return (
     <>
       <div className={styles.filters}>
-        <Field className={styles.searchInput} placeholder="Search words..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <Field
+          className={styles.searchInput}
+          placeholder='Search words...'
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
         <AdaptiveSelect
           className={styles.lessonFilterSelect}
           value={lessonFilter}
-          onChange={(event) => setLessonFilter(event.target.value)}
+          onChange={event => setLessonFilter(event.target.value)}
         >
-          {lessonOptions.map((option) => (
+          {lessonOptions.map(option => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
@@ -292,11 +398,11 @@ export function VocabularyListSection({
         <SegmentedControl
           value={filter}
           onValueChange={setFilter}
-          ariaLabel="Vocabulary categories"
+          ariaLabel='Vocabulary categories'
           className={styles.catFilters}
           optionClassName={styles.catBtn}
           activeOptionClassName={styles.catActive}
-          options={categories.map((category) => ({
+          options={categories.map(category => ({
             value: category,
             label: category.charAt(0).toUpperCase() + category.slice(1),
           }))}
@@ -318,18 +424,25 @@ export function VocabularyListSection({
       {filtered.length === 0 && totalSourceCount > 0 ? (
         <EmptyStateCard
           className={styles.empty}
-          title="No words match filters"
-          description="Try a different filter or clear search."
+          title='No words match filters'
+          description='Try a different filter or clear search.'
         />
       ) : null}
       {isLoading ? (
-        <EmptyStateCard className={styles.empty} title="Loading vocabulary…" description="Fetching your words." />
-      ) : null}
-      {!isLoading && filtered.length === 0 && totalSourceCount === 0 && !prependSlot ? (
         <EmptyStateCard
           className={styles.empty}
-          title="No words yet"
-          description="Add your first word using the form above."
+          title='Loading vocabulary…'
+          description='Fetching your words.'
+        />
+      ) : null}
+      {!isLoading &&
+      filtered.length === 0 &&
+      totalSourceCount === 0 &&
+      !prependSlot ? (
+        <EmptyStateCard
+          className={styles.empty}
+          title='No words yet'
+          description='Add your first word using the form above.'
         />
       ) : null}
     </>
@@ -360,12 +473,25 @@ export function VocabularyFlashcardSection({
   const display = currentItem?.display;
   return (
     <div className={`container container--form ${styles.flashcardMode}`}>
-      <ProgressHeader className={styles.fcProgress} barClassName={styles.fcBar} fillClassName={styles.fcBarFill} current={cardIndex + 1} total={total} />
+      <ProgressHeader
+        className={styles.fcProgress}
+        barClassName={styles.fcBar}
+        fillClassName={styles.fcBarFill}
+        current={cardIndex + 1}
+        total={total}
+      />
       {isLoading ? (
-        <EmptyStateCard className={styles.empty} title="Loading…" description="Fetching your words." />
+        <EmptyStateCard
+          className={styles.empty}
+          title='Loading…'
+          description='Fetching your words.'
+        />
       ) : display ? (
         <>
-          <div className={`${styles.flashcard} ${flipped ? styles.flipped : ''}`} onClick={() => setFlipped(!flipped)}>
+          <div
+            className={`${styles.flashcard} ${flipped ? styles.flipped : ''}`}
+            onClick={() => setFlipped(!flipped)}
+          >
             <div className={styles.fcFront}>
               <div className={styles.fcHint}>Click to reveal definition</div>
               <div className={styles.fcWord}>{display.word}</div>
@@ -376,30 +502,85 @@ export function VocabularyFlashcardSection({
             </div>
             <div className={styles.fcBack}>
               <div className={styles.fcDef}>{display.definition}</div>
-              <div className={styles.fcExample}>&quot;{display.example}&quot;</div>
+              <div className={styles.fcExample}>
+                &quot;{display.example}&quot;
+              </div>
             </div>
           </div>
           {flipped ? (
             <div className={styles.fcButtons}>
-              <Button type="button" className={`${styles.fcBtn} ${styles.fcBtnRed}`} onClick={() => markStatus('new')}>Still learning</Button>
-              <Button type="button" className={`${styles.fcBtn} ${styles.fcBtnAmber}`} onClick={() => markStatus('repeated')}>Repeated</Button>
-              <Button type="button" className={`${styles.fcBtn} ${styles.fcBtnRed}`} onClick={() => markStatus('mistakes_work')}>{vocabularyStatusLabel('mistakes_work')}</Button>
+              <Button
+                type='button'
+                className={`${styles.fcBtn} ${styles.fcBtnRed}`}
+                onClick={() => markStatus('new')}
+              >
+                Still learning
+              </Button>
+              <Button
+                type='button'
+                className={`${styles.fcBtn} ${styles.fcBtnAmber}`}
+                onClick={() => markStatus('repeated')}
+              >
+                Repeated
+              </Button>
+              <Button
+                type='button'
+                className={`${styles.fcBtn} ${styles.fcBtnRed}`}
+                onClick={() => markStatus('mistakes_work')}
+              >
+                {vocabularyStatusLabel('mistakes_work')}
+              </Button>
               {canSetLearned ? (
-                <Button type="button" className={`${styles.fcBtn} ${styles.fcBtnGreen}`} onClick={() => markStatus('learned')}>
+                <Button
+                  type='button'
+                  className={`${styles.fcBtn} ${styles.fcBtnGreen}`}
+                  onClick={() => markStatus('learned')}
+                >
                   Learned <Check size={14} />
                 </Button>
               ) : null}
             </div>
           ) : null}
           <div className={styles.fcNav}>
-            <Button type="button" className={styles.fcNavBtn} onClick={() => { setCardIndex((i) => Math.max(0, i - 1)); setFlipped(false); }} disabled={cardIndex === 0}>← Prev</Button>
-            <Button type="button" className={styles.fcNavBtn} onClick={() => { setCardIndex((i) => Math.min(total - 1, i + 1)); setFlipped(false); }} disabled={cardIndex === total - 1}>
+            <Button
+              type='button'
+              className={styles.fcNavBtn}
+              onClick={() => {
+                setCardIndex(i => Math.max(0, i - 1));
+                setFlipped(false);
+              }}
+              disabled={cardIndex === 0}
+            >
+              ← Prev
+            </Button>
+            <Button
+              type='button'
+              className={styles.fcNavBtn}
+              onClick={() => {
+                setCardIndex(i => Math.min(total - 1, i + 1));
+                setFlipped(false);
+              }}
+              disabled={cardIndex === total - 1}
+            >
               Next <ChevronRight size={14} />
             </Button>
           </div>
         </>
       ) : (
-        <EmptyStateCard className={styles.fcComplete} icon={<div className={styles.fcCompleteIcon}><PartyPopper size={22} /></div>} title={<div className={styles.fcCompleteTitle}>All done!</div>} description={<div className={styles.fcCompleteSub}>You reviewed all {total} words. Great work!</div>} />
+        <EmptyStateCard
+          className={styles.fcComplete}
+          icon={
+            <div className={styles.fcCompleteIcon}>
+              <PartyPopper size={22} />
+            </div>
+          }
+          title={<div className={styles.fcCompleteTitle}>All done!</div>}
+          description={
+            <div className={styles.fcCompleteSub}>
+              You reviewed all {total} words. Great work!
+            </div>
+          }
+        />
       )}
     </div>
   );
@@ -457,8 +638,10 @@ export function VocabularyPlaySection({
         <div className={styles.playControls}>
           <SegmentedControl
             value={playSource}
-            onValueChange={(next) => setPlaySource(next as 'random' | 'last' | 'lesson')}
-            ariaLabel="Play source"
+            onValueChange={next =>
+              setPlaySource(next as 'random' | 'last' | 'lesson')
+            }
+            ariaLabel='Play source'
             className={styles.catFilters}
             optionClassName={styles.catBtn}
             activeOptionClassName={styles.catActive}
@@ -469,16 +652,25 @@ export function VocabularyPlaySection({
             ]}
           />
           {playSource === 'lesson' ? (
-            <AdaptiveSelect className={styles.lessonFilterSelect} value={playLessonId} onChange={(e) => setPlayLessonId(e.target.value)}>
-              <option value="all">Without lesson</option>
-              {playLessonOptions.map((option) => (
+            <AdaptiveSelect
+              className={styles.lessonFilterSelect}
+              value={playLessonId}
+              onChange={e => setPlayLessonId(e.target.value)}
+            >
+              <option value='all'>Without lesson</option>
+              {playLessonOptions.map(option => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
             </AdaptiveSelect>
           ) : null}
-          <Button type="button" className={styles.playStartBtn} disabled={!canStart} onClick={onStart}>
+          <Button
+            type='button'
+            className={styles.playStartBtn}
+            disabled={!canStart}
+            onClick={onStart}
+          >
             Play
           </Button>
         </div>
@@ -487,7 +679,7 @@ export function VocabularyPlaySection({
       {playPhase === 'setup' ? (
         <EmptyStateCard
           className={styles.empty}
-          title="Ready to play"
+          title='Ready to play'
           description={
             !canStart && playPoolCount > 0
               ? 'Need at least two words with translations (or definitions) in this set to build answer choices. Add another word or switch the source filter.'
@@ -503,15 +695,22 @@ export function VocabularyPlaySection({
           </div>
           <div className={styles.scoreRow}>
             {playAnswers.map((ok, i) => (
-              <div key={i} className={`${styles.scoreDot} ${ok ? styles.scoreDotGreen : styles.scoreDotRed}`} />
+              <div
+                key={i}
+                className={`${styles.scoreDot} ${ok ? styles.scoreDotGreen : styles.scoreDotRed}`}
+              />
             ))}
-            {Array.from({ length: playQuestions.length - playAnswers.length }).map((_, i) => (
+            {Array.from({
+              length: playQuestions.length - playAnswers.length,
+            }).map((_, i) => (
               <div key={`p-empty-${i}`} className={styles.scoreDotEmpty} />
             ))}
           </div>
           <div className={styles.flashcard}>
             <div className={styles.fcFront}>
-              <div className={styles.fcHint}>Choose the correct translation</div>
+              <div className={styles.fcHint}>
+                Choose the correct translation
+              </div>
               <div className={styles.fcWord}>{current.word}</div>
               <div className={styles.fcPhonetic}>{current.phonetic}</div>
             </div>
@@ -530,19 +729,23 @@ export function VocabularyPlaySection({
               return (
                 <Button
                   key={`${option}-${optionIndex}`}
-                  type="button"
+                  type='button'
                   className={`${styles.playOptionBtn} ${!playShowExplanation && isSelected ? styles.playOptionSelected : ''} ${resultClass}`}
                   disabled={playShowExplanation}
                   onClick={() => onSelect(option)}
                 >
-                  <span className={styles.playOptionLetter}>{String.fromCharCode(65 + optionIndex)}</span>
+                  <span className={styles.playOptionLetter}>
+                    {String.fromCharCode(65 + optionIndex)}
+                  </span>
                   {option}
                 </Button>
               );
             })}
           </div>
           {playShowExplanation ? (
-            <div className={`${styles.explanation} ${playSelected === current.correct ? styles.expCorrect : styles.expWrong}`}>
+            <div
+              className={`${styles.explanation} ${playSelected === current.correct ? styles.expCorrect : styles.expWrong}`}
+            >
               <div className={styles.expIcon}>
                 {playSelected === current.correct ? (
                   <>
@@ -554,20 +757,33 @@ export function VocabularyPlaySection({
                   </>
                 )}
               </div>
-              <div className={styles.expText}>Correct answer: {current.correct}</div>
+              <div className={styles.expText}>
+                Correct answer: {current.correct}
+              </div>
             </div>
           ) : null}
           <div className={styles.qActions}>
-            <Button type="button" className={styles.finishBtn} onClick={() => setShowFinishConfirm(true)}>
+            <Button
+              type='button'
+              className={styles.finishBtn}
+              onClick={() => setShowFinishConfirm(true)}
+            >
               Finish game
             </Button>
             {!playShowExplanation ? (
-              <Button type="button" className={styles.checkBtn} disabled={!playSelected} onClick={onCheck}>
+              <Button
+                type='button'
+                className={styles.checkBtn}
+                disabled={!playSelected}
+                onClick={onCheck}
+              >
                 Check Answer
               </Button>
             ) : (
-              <Button type="button" className={styles.nextBtn} onClick={onNext}>
-                {playIndex + 1 >= playQuestions.length ? 'See Results →' : 'Next Question →'}
+              <Button type='button' className={styles.nextBtn} onClick={onNext}>
+                {playIndex + 1 >= playQuestions.length
+                  ? 'See Results →'
+                  : 'Next Question →'}
               </Button>
             )}
           </div>
@@ -577,27 +793,52 @@ export function VocabularyPlaySection({
       {complete ? (
         <EmptyStateCard
           className={styles.fcComplete}
-          icon={<div className={styles.fcCompleteIcon}><PartyPopper size={22} /></div>}
+          icon={
+            <div className={styles.fcCompleteIcon}>
+              <PartyPopper size={22} />
+            </div>
+          }
           title={<div className={styles.fcCompleteTitle}>Round complete</div>}
-          description={<div className={styles.fcCompleteSub}>{playScore} / {playQuestions.length} correct</div>}
+          description={
+            <div className={styles.fcCompleteSub}>
+              {playScore} / {playQuestions.length} correct
+            </div>
+          }
           action={
-            <Button type="button" className={styles.fcRestartBtn} onClick={onReset}>
+            <Button
+              type='button'
+              className={styles.fcRestartBtn}
+              onClick={onReset}
+            >
               New round
             </Button>
           }
         />
       ) : null}
       {showFinishConfirm ? (
-        <div className={styles.modalOverlay} onClick={() => setShowFinishConfirm(false)}>
-          <div className={styles.finishModal} onClick={(e) => e.stopPropagation()}>
+        <div
+          className={styles.modalOverlay}
+          onClick={() => setShowFinishConfirm(false)}
+        >
+          <div
+            className={styles.finishModal}
+            onClick={e => e.stopPropagation()}
+          >
             <h3>Finish game now?</h3>
-            <p>Your current progress will be saved and results will be shown immediately.</p>
+            <p>
+              Your current progress will be saved and results will be shown
+              immediately.
+            </p>
             <div className={styles.finishActions}>
-              <Button type="button" className={styles.modalCancelBtn} onClick={() => setShowFinishConfirm(false)}>
+              <Button
+                type='button'
+                className={styles.modalCancelBtn}
+                onClick={() => setShowFinishConfirm(false)}
+              >
                 Continue game
               </Button>
               <Button
-                type="button"
+                type='button'
                 className={styles.modalSubmitBtn}
                 onClick={() => {
                   setShowFinishConfirm(false);
