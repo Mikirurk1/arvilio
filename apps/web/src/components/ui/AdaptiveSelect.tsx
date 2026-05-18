@@ -2,6 +2,7 @@
 
 import { Children, isValidElement, useEffect, useMemo, useRef, useState } from 'react';
 import type { SelectHTMLAttributes } from 'react';
+import { MOBILE_MAX_WIDTH } from '../../lib/breakpoints';
 import uiStyles from './ui.module.scss';
 
 type AdaptiveSelectProps = SelectHTMLAttributes<HTMLSelectElement> & {
@@ -43,7 +44,7 @@ export function AdaptiveSelect({
   const selectedOption = options.find((option) => option.value === selectedValue);
 
   useEffect(() => {
-    const media = window.matchMedia('(max-width: 768px)');
+    const media = window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH}px)`);
     const apply = () => setIsMobile(media.matches);
     apply();
     media.addEventListener('change', apply);

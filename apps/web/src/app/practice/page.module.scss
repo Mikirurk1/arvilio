@@ -1,3 +1,5 @@
+@use '../../styles/mixins' as *;
+
 .page {
   animation: slideUp 0.3s ease;
 }
@@ -32,15 +34,19 @@
   min-width: 0;
 }
 
-@media (max-width: 1100px) {
+@include respond-to(md) {
   .grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 760px) {
+@include respond-to(sm) {
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  .card {
+    padding: 18px 16px;
   }
 }
 
@@ -286,13 +292,13 @@
   color: var(--text-tertiary);
 }
 
-@media (max-width: 1100px) {
+@include respond-to(md) {
   .summaryGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 760px) {
+@include respond-to(sm) {
   .summaryBlock {
     margin-top: 18px;
     padding: 14px;

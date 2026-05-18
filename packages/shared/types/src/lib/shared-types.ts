@@ -786,11 +786,6 @@ export type CreateScheduledLessonRequestDto = {
   seriesId?: string;
   linkedWordIds?: string[];
   createMeetLink?: boolean;
-};
-
-export type UpdateScheduledLessonRequestDto = Partial<CreateScheduledLessonRequestDto> & {
-  cancelReason?: 'student_absent' | 'student_requested_cancel' | 'teacher_absent' | null;
-  credited?: boolean;
   homework?: {
     text?: string;
     files?: string[];
@@ -808,6 +803,11 @@ export type UpdateScheduledLessonRequestDto = Partial<CreateScheduledLessonReque
     text?: string;
     files?: string[];
   }>;
+};
+
+export type UpdateScheduledLessonRequestDto = Partial<CreateScheduledLessonRequestDto> & {
+  cancelReason?: 'student_absent' | 'student_requested_cancel' | 'teacher_absent' | null;
+  credited?: boolean;
 };
 
 export type ScheduledLessonDto = {

@@ -1,8 +1,10 @@
 'use client';
 
 import { ActionRow, AdaptiveSelect, Button, Field, SegmentedControl, SettingsToggleRow, SurfaceCard } from '../../components/ui';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import { Check } from 'lucide-react';
+import { useAuth } from '../../lib/auth-context';
 import type { ProfileLinkedAccountDto } from '@soenglish/shared-types';
 import { TelegramConnectButton } from '../../components/profile/TelegramConnectButton';
 import { FACEBOOK_LINK_URL, GOOGLE_LINK_URL } from '../../lib/api';
@@ -350,8 +352,45 @@ export function AppearancePanel({
 }
 
 export function AccountPanel() {
+  const { user, logout } = useAuth();
+  const router = useRouter();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await logout();
+      router.replace('/login');
+    } finally {
+      setLoggingOut(false);
+    }
+  };
+
   return (
     <SurfaceCard className={styles.formCard}>
+      {user ? (
+        <div className={styles.accountSession}>
+          <div className={styles.sectionLabel}>Session</div>
+          <ActionRow
+            className={styles.accountItem}
+            titleClassName={styles.accountItemTitle}
+            descriptionClassName={styles.accountItemDesc}
+            title="Log out"
+            description="End your current session on this device"
+            action={
+              <Button
+                type="button"
+                className={styles.actionBtn}
+                disabled={loggingOut}
+                onClick={() => void handleLogout()}
+              >
+                {loggingOut ? 'Logging out…' : 'Log out'}
+              </Button>
+            }
+          />
+        </div>
+      ) : null}
       <div className={styles.dangerSection}>
         <div className={styles.sectionLabel}>Account actions</div>
         <ActionRow

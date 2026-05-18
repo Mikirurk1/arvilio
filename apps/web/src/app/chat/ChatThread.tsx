@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Paperclip, Send, Smile } from 'lucide-react';
+import { ArrowLeft, Paperclip, Send, Smile } from 'lucide-react';
 import type { ChatConversationDto, ChatMessageDto } from '@soenglish/shared-types';
 import { Button, Field } from '../../components/ui';
 import { confirmDialog } from '../../features/confirm';
@@ -29,10 +29,12 @@ export function ChatThread({
   conversation,
   messages,
   loading,
+  onBack,
 }: {
   conversation: ChatConversationDto | null;
   messages: ChatMessageDto[];
   loading: boolean;
+  onBack?: () => void;
 }) {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -116,6 +118,17 @@ export function ChatThread({
   return (
     <section className={styles.thread}>
       <header className={styles.threadHead}>
+        {onBack ? (
+          <Button
+            type="button"
+            variant="ghost"
+            className={styles.backBtn}
+            aria-label="Back to conversations"
+            onClick={onBack}
+          >
+            <ArrowLeft size={20} aria-hidden />
+          </Button>
+        ) : null}
         <div className={styles.threadPeer}>
           <span className={styles.avatar} aria-hidden>
             {conversation.type === 'group' ? 'G' : (conversation.peer?.initials ?? '?')}

@@ -1,3 +1,5 @@
+@use '../../styles/mixins' as *;
+
 .page { animation: slideUp 0.3s ease; }
 
 .pageHeader { margin-bottom: 24px; }
@@ -75,6 +77,165 @@
   white-space: nowrap;
 }
 .heroBtn:hover { background: var(--green-dark); transform: translateY(-1px); }
+
+.quickActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.quickAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  transition: border-color var(--transition), transform var(--transition);
+  position: relative;
+
+  &:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-1px);
+  }
+}
+
+.quickActionIcon {
+  display: flex;
+  color: var(--green-dark);
+}
+
+.quickActionBadge {
+  margin-left: 2px;
+  min-width: 18px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--rose);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.panelHead {
+  margin-bottom: 8px;
+}
+
+.panelHint {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.compactList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.compactRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: inherit;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  &:hover .compactTitle {
+    color: var(--green-dark);
+  }
+}
+
+.compactTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.compactMeta {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.weekList {
+  list-style: none;
+  margin: 0 0 28px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.weekRow {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--transition);
+
+  &:hover {
+    border-color: var(--green);
+  }
+}
+
+.weekDate {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green-dark);
+  white-space: nowrap;
+  min-width: 72px;
+}
+
+.weekMain {
+  min-width: 0;
+}
+
+.weekTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.weekMeta {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.weekStatus {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+  color: var(--text-faint);
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+.calLessonDay {
+  background: color-mix(in srgb, var(--green-light) 85%, transparent);
+  color: var(--green-dark);
+  font-weight: 600;
+}
 
 .statsGrid {
   display: grid;
@@ -287,3 +448,73 @@
 .calToday { background: var(--green) !important; color: white !important; font-weight: 600; }
 .calLink { display: block; text-align: center; margin-top: 12px; font-size: 13px; color: var(--green); font-weight: 500; }
 .calLink:hover { text-decoration: underline; }
+
+@include respond-to(md) {
+  .heroBanner {
+    grid-template-columns: 1fr;
+    padding: 22px 24px;
+  }
+
+  .heroBtn {
+    justify-self: start;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .twoCol {
+    grid-template-columns: 1fr;
+  }
+
+  .rightCol {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+@include respond-to(sm) {
+  .pageTitle {
+    font-size: clamp(22px, 6vw, var(--fs-page-title));
+    flex-wrap: wrap;
+  }
+
+  .heroBanner {
+    padding: 18px 16px;
+  }
+
+  .heroTitle {
+    font-size: 20px;
+  }
+
+  .heroBar {
+    width: min(200px, 100%);
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .rightCol {
+    grid-template-columns: 1fr;
+  }
+
+  .vocabCard {
+    min-width: 130px;
+  }
+
+  .quickActions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .weekRow {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .weekDate {
+    min-width: 0;
+  }
+}

@@ -1,3 +1,5 @@
+@use '../../styles/mixins' as *;
+
 .page { animation: slideUp 0.3s ease; }
 .pageHeader { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
 .pageTitle { font-family: 'Lora', serif; font-size: var(--fs-page-title); font-weight: 600; color: var(--text-primary); }
@@ -36,8 +38,16 @@
   cursor: pointer;
 }
 
-.calLayout { display: grid; grid-template-columns: 1fr 280px; gap: 20px; }
+.calLayout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 20px;
+  align-items: start;
+}
 .calMain { min-width: 0; }
+.calSidebar {
+  min-width: 0;
+}
 .calNav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .calMonthTitle { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(--text-primary); }
 .navBtn {
@@ -280,9 +290,191 @@
   cursor: pointer;
 }
 
-@media (max-width: 780px) {
+@include respond-to(md) {
+  .pageHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .headerRight {
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .calLayout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .teacherFilter {
+    flex: 0 1 auto;
+    width: auto;
+    max-width: min(100%, 220px);
+    min-width: 0;
+    height: 34px;
+  }
+
   .weekView {
-    height: clamp(420px, calc(100dvh - 230px), 620px);
-    min-height: 420px;
+    height: clamp(400px, calc(100dvh - 260px), 620px);
+    min-height: 400px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .weekHeader,
+  .weekBody {
+    min-width: 600px;
+  }
+}
+
+@include respond-to(sm) {
+  .pageHeader {
+    margin-bottom: 16px;
+  }
+
+  .pageTitle {
+    font-size: clamp(22px, 6vw, var(--fs-page-title));
+  }
+
+  .headerRight {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .viewToggle,
+  .roleToggle {
+    width: 100%;
+    display: flex;
+  }
+
+  .viewBtn,
+  .roleBtn {
+    flex: 1;
+    min-height: 44px;
+    padding: 10px 8px;
+    text-align: center;
+  }
+
+  .teacherFilter {
+    width: auto;
+    max-width: 100%;
+    align-self: flex-start;
+    min-width: 0;
+    height: 36px;
+    padding: 6px 28px 6px 10px;
+    font-size: 14px;
+    line-height: 1.2;
+  }
+
+  .createLessonBtn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .calNav {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .calMonthTitle {
+    font-size: 16px;
+    text-align: center;
+    flex: 1;
+  }
+
+  .navBtn {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+
+  .monthGrid {
+    padding: 10px 6px;
+    gap: 2px;
+    border-radius: var(--radius-md);
+  }
+
+  .dayName {
+    font-size: 9px;
+    letter-spacing: 0;
+    padding: 2px 0 6px;
+  }
+
+  .dayCell {
+    padding: 4px 2px;
+    border-radius: 6px;
+  }
+
+  .dayNum {
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+
+  .dayLessons,
+  .dayGhostEvent {
+    display: none;
+  }
+
+  .dayMore {
+    font-size: 9px;
+  }
+
+  .weekView {
+    height: clamp(320px, 52dvh, 480px);
+    min-height: 320px;
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .weekHeader,
+  .weekBody {
+    min-width: 520px;
+  }
+
+  .weekDayHeader {
+    padding: 8px 2px;
+  }
+
+  .weekDayNum {
+    font-size: 14px;
+  }
+
+  .weekHour {
+    font-size: 10px;
+    padding: 4px;
+  }
+
+  .sidePanel {
+    padding: 14px;
+  }
+
+  .evtMeta {
+    flex-wrap: wrap;
+    white-space: normal;
+  }
+
+  .evtActions {
+    flex-direction: column;
+  }
+
+  .rescheduleBtn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .confirmActions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .confirmPrimary,
+  .confirmSecondary,
+  .confirmDanger {
+    width: 100%;
+    min-height: 44px;
   }
 }

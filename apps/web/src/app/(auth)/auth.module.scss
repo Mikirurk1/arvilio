@@ -24,26 +24,13 @@
 
 .brand {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  justify-content: center;
+}
 
-  .mark {
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-sm);
-    background: linear-gradient(135deg, var(--blue), var(--green));
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-  }
-
-  .name {
-    font-weight: 600;
-    font-size: 16px;
-    color: var(--text-primary);
-  }
+.brandLogo {
+  width: auto;
+  max-width: 100%;
+  height: auto;
 }
 
 .title {

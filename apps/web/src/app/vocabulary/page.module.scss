@@ -1,3 +1,5 @@
+@use '../../styles/mixins' as *;
+
 .page { animation: slideUp 0.3s ease; }
 
 .pageHeader { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
@@ -438,6 +440,66 @@
 }
 .modalSubmitBtn:hover { background: var(--fill-strong-hover); }
 
-@media (max-width: 760px) {
-  .playOptionsGrid { grid-template-columns: 1fr; }
+@include respond-to(md) {
+  .wordGrid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+}
+
+@include respond-to(sm) {
+  .pageHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .headerActions {
+    flex-wrap: wrap;
+  }
+
+  .modeToggle {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .modeBtn {
+    flex: 1;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  .statsRow {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .statChip {
+    flex-shrink: 0;
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .searchInput,
+  .lessonFilterSelect {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .wordGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .playOptionsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .playModal {
+    width: calc(100vw - 24px);
+    max-height: min(90dvh, 640px);
+  }
 }

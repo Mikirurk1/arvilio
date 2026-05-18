@@ -1,0 +1,48 @@
+%% Рис. 2 — Шари monorepo
+flowchart TB
+  subgraph Presentation["Шар представлення"]
+    Web["apps/web<br/>React, Next.js App Router,<br/>SCSS, Zustand"]
+  end
+
+  subgraph Gateway["API gateway"]
+    Api["apps/api<br/>NestJS, GraphQL, REST,<br/>Socket.IO, guards"]
+  end
+
+  subgraph Domain["Доменний шар"]
+    Auth["module-auth"]
+    Lessons["module-lessons"]
+    Vocab["module-vocabulary"]
+    Flash["module-flashcards"]
+    Prog["module-progress"]
+    Notif["module-notifications"]
+    Mail["module-mail"]
+    Chat["module-chat"]
+  end
+
+  subgraph DataAccess["Доступ до даних"]
+    PrismaPkg["data-access-prisma<br/>schema.prisma, PrismaModule"]
+  end
+
+  subgraph Shared["Спільні контракти"]
+    Types["packages/shared/types<br/>DTO, enums"]
+  end
+
+  Web --> Api
+  Api --> Auth
+  Api --> Lessons
+  Api --> Vocab
+  Api --> Flash
+  Api --> Prog
+  Api --> Notif
+  Api --> Mail
+  Api --> Chat
+  Auth --> PrismaPkg
+  Lessons --> PrismaPkg
+  Vocab --> PrismaPkg
+  Flash --> PrismaPkg
+  Prog --> PrismaPkg
+  Notif --> PrismaPkg
+  Chat --> PrismaPkg
+  Web -.-> Types
+  Api -.-> Types
+  Domain -.-> Types

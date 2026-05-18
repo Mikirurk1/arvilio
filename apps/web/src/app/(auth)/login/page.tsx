@@ -4,6 +4,7 @@ import { FormEvent, Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../../lib/auth-context';
+import { BrandLogo } from '../../../components/brand/BrandLogo';
 import styles from '../auth.module.scss';
 
 export default function LoginPage() {
@@ -50,8 +51,7 @@ function LoginPageInner() {
     <div className={styles.shell}>
       <div className={styles.card}>
         <div className={styles.brand}>
-          <div className={styles.mark}>S</div>
-          <div className={styles.name}>SoEnglish</div>
+          <BrandLogo size="lg" className={styles.brandLogo} />
         </div>
         <div>
           <h1 className={styles.title}>Sign in</h1>

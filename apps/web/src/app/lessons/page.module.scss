@@ -1,3 +1,5 @@
+@use '../../styles/mixins' as *;
+
 .page {
   animation: slideUp 0.3s ease;
 }
@@ -764,7 +766,7 @@ button.btnPrimary {
   color: var(--text-tertiary);
 }
 
-@media (max-width: 1080px) {
+@include respond-to(md) {
   .highlightsGrid {
     grid-template-columns: 1fr;
   }
@@ -776,9 +778,13 @@ button.btnPrimary {
   .quickStats {
     grid-template-columns: 1fr;
   }
+
+  .workspace {
+    gap: 14px;
+  }
 }
 
-@media (max-width: 520px) {
+@include respond-to(sm) {
   .chipRow {
     gap: 5px;
   }

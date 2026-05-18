@@ -19,6 +19,42 @@ import {
 } from './scheduledLessonsBackendAdapter';
 import type { LessonPartyOption } from '../../hooks/use-lesson-party-options';
 
+function mapLessonContentFields(lesson: ScheduledLessonDto) {
+  return {
+    materials: (lesson.materials ?? []).map((material) => ({
+      kind: material.kind,
+      text: material.text ?? '',
+      files: material.files ?? [],
+    })),
+    homework: {
+      text: lesson.homework?.text ?? '',
+      files: lesson.homework?.files ?? [],
+    },
+    studentResponse: {
+      text: lesson.studentResponse?.text ?? '',
+      files: lesson.studentResponse?.files ?? [],
+      status: lesson.studentResponse?.status ?? 'not_submitted',
+      homeworkChecked: lesson.studentResponse?.homeworkChecked ?? false,
+      teacherHomeworkFeedback: lesson.studentResponse?.teacherHomeworkFeedback ?? '',
+    },
+  };
+}
+
+function mapLessonContentFieldsForCreate(
+  lesson: ScheduledLessonDto,
+): Partial<ReturnType<typeof mapLessonContentFields>> {
+  if (!lessonHasPersistableContent(lesson)) return {};
+  return mapLessonContentFields(lesson);
+}
+
+export function lessonHasPersistableContent(lesson: ScheduledLessonDto): boolean {
+  if (lesson.lessonPlan?.trim()) return true;
+  if ((lesson.materials?.length ?? 0) > 0) return true;
+  if (lesson.homework?.text?.trim()) return true;
+  if ((lesson.homework?.files?.length ?? 0) > 0) return true;
+  return false;
+}
+
 export function resolvePartyBackendId(
   numericId: number,
   studentOptions: LessonPartyOption[],
@@ -56,6 +92,7 @@ export function toCreateScheduledLessonBody(
     weeklyDays: lesson.weeklyDays,
     seriesId: lesson.seriesId,
     linkedWordIds: lesson.linkedWordIds?.length ? [...lesson.linkedWordIds] : undefined,
+    ...mapLessonContentFieldsForCreate(lesson),
   };
 }
 
@@ -79,26 +116,7 @@ export function toUpdateScheduledLessonBody(
     weeklyDays: lesson.weeklyDays,
     seriesId: lesson.seriesId,
     linkedWordIds: lesson.linkedWordIds?.length ? [...lesson.linkedWordIds] : undefined,
-    ...(includeLessonContent
-      ? {
-          materials: (lesson.materials ?? []).map((material) => ({
-            kind: material.kind,
-            text: material.text ?? '',
-            files: material.files ?? [],
-          })),
-          homework: {
-            text: lesson.homework?.text ?? '',
-            files: lesson.homework?.files ?? [],
-          },
-          studentResponse: {
-            text: lesson.studentResponse?.text ?? '',
-            files: lesson.studentResponse?.files ?? [],
-            status: lesson.studentResponse?.status ?? 'not_submitted',
-            homeworkChecked: lesson.studentResponse?.homeworkChecked ?? false,
-            teacherHomeworkFeedback: lesson.studentResponse?.teacherHomeworkFeedback ?? '',
-          },
-        }
-      : {}),
+    ...(includeLessonContent ? mapLessonContentFields(lesson) : {}),
   };
 }
 

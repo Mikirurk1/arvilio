@@ -4,6 +4,14 @@
 
 :root {
   --container-padding-x: 20px;
+  --container-padding-x-mobile: 16px;
+  --main-padding-x: 38px;
+  --main-padding-y: 34px;
+  --main-padding-x-tablet: 20px;
+  --main-padding-y-tablet: 24px;
+  --main-padding-x-mobile: 16px;
+  --main-padding-y-mobile: 20px;
+  --nav-drawer-width: min(300px, 88vw);
   --container-max-default: 1200px;
   --container-max-page: 1920px;
   --container-max-narrow: 760px;

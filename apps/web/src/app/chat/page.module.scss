@@ -1,8 +1,11 @@
+@use '../../styles/mixins' as *;
+
 .page {
   display: flex;
-  height: calc(100vh - var(--header-h, 64px) - 48px);
+  height: calc(100vh - var(--header-h, 64px) - var(--main-padding-y) - var(--main-padding-y));
+  height: calc(100dvh - var(--header-h, 64px) - var(--main-padding-y) - var(--main-padding-y));
   min-height: 480px;
-  margin: -24px;
+  margin: calc(-1 * var(--main-padding-y)) calc(-1 * var(--main-padding-x));
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -215,9 +218,20 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   padding: 16px 24px;
   border-bottom: 1px solid var(--border);
   background: var(--card);
+}
+
+.backBtn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
 }
 
 .threadPeer {
@@ -515,4 +529,54 @@
 .smallBtn {
   font-size: 13px;
   padding: 6px 12px;
+}
+
+@include respond-to(md) {
+  .page {
+    margin: calc(-1 * var(--main-padding-y-tablet)) calc(-1 * var(--main-padding-x-tablet));
+  }
+
+  .inbox {
+    width: 280px;
+  }
+}
+
+@include respond-to(sm) {
+  .page {
+    margin: calc(-1 * var(--main-padding-y-mobile)) calc(-1 * var(--main-padding-x-mobile));
+    min-height: calc(
+      100dvh - var(--header-h, 64px) - var(--main-padding-y-mobile) - var(--main-padding-y-mobile)
+    );
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .inbox {
+    width: 100%;
+    border-right: none;
+  }
+
+  .threadHead {
+    padding: 12px 14px;
+  }
+
+  .threadPeerName {
+    font-size: 15px;
+  }
+
+  .composer {
+    padding: 10px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .composerField {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  .messages {
+    padding: 12px 14px;
+  }
 }

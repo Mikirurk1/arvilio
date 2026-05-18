@@ -26,7 +26,7 @@
   display: grid;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 768px) {
   .page-module-scss-module__gKsTqG__pageHeader {
     margin-bottom: 16px;
   }

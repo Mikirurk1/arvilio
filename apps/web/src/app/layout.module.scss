@@ -1,7 +1,10 @@
+@use '../styles/mixins' as *;
+
 .shell {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 
   .body {
@@ -12,10 +15,23 @@
 
     .main {
       flex: 1;
+      min-width: 0;
       overflow-y: auto;
-      padding: 34px 38px;
+      padding: var(--main-padding-y) var(--main-padding-x);
       background: var(--surface);
       font-size: var(--fs-base);
     }
+  }
+}
+
+@include respond-to(md) {
+  .shell .body .main {
+    padding: var(--main-padding-y-tablet) var(--main-padding-x-tablet);
+  }
+}
+
+@include respond-to(sm) {
+  .shell .body .main {
+    padding: var(--main-padding-y-mobile) var(--main-padding-x-mobile);
   }
 }

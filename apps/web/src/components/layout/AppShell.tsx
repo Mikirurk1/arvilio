@@ -1,17 +1,26 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import { AuthGate } from './AuthGate';
+import { MobileNavDrawer } from './MobileNavDrawer';
+import { ShellNavProvider, useShellNav } from './shell-nav-context';
 import styles from '../../app/layout.module.scss';
 
 const NAKED_ROUTES = ['/login'];
 
-export default function AppShell({ children }: { children: ReactNode }) {
+function AppShellInner({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const isNaked = NAKED_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
+  const { closeMobileNav } = useShellNav();
+  const isNaked = NAKED_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
+
+  useEffect(() => {
+    closeMobileNav();
+  }, [pathname, closeMobileNav]);
 
   if (isNaked) {
     return <AuthGate>{children}</AuthGate>;
@@ -25,7 +34,16 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <Sidebar />
           <main className={styles.main}>{children}</main>
         </div>
+        <MobileNavDrawer />
       </div>
     </AuthGate>
+  );
+}
+
+export default function AppShell({ children }: { children: ReactNode }) {
+  return (
+    <ShellNavProvider>
+      <AppShellInner>{children}</AppShellInner>
+    </ShellNavProvider>
   );
 }

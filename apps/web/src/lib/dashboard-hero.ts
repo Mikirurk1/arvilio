@@ -82,6 +82,74 @@ export function pickTodayLessons(
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
 }
 
+function addDaysToDateKey(dateKey: string, days: number): string {
+  const [y, m, d] = dateKey.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + days);
+  return todayDateKey(dt);
+}
+
+/** Lessons after today through the next 7 days (excludes today and cancelled). */
+export function pickUpcomingWeekLessons(
+  lessons: ScheduledLessonBackendDto[],
+  today = todayDateKey(),
+  limit = 5,
+): ScheduledLessonBackendDto[] {
+  const end = addDaysToDateKey(today, 7);
+  return lessons
+    .filter((l) => l.status !== 'cancelled' && l.date > today && l.date <= end)
+    .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime))
+    .slice(0, limit);
+}
+
+export function pickPendingHomeworkLessons(
+  lessons: ScheduledLessonBackendDto[],
+  limit = 5,
+): ScheduledLessonBackendDto[] {
+  return lessons
+    .filter(
+      (l) =>
+        l.status !== 'cancelled' &&
+        l.studentResponse?.status === 'submitted' &&
+        !l.studentResponse.homeworkChecked,
+    )
+    .sort((a, b) => b.date.localeCompare(a.date) || b.startTime.localeCompare(a.startTime))
+    .slice(0, limit);
+}
+
+export function lessonCountByDate(
+  lessons: ScheduledLessonBackendDto[],
+  year: number,
+  monthIndex0: number,
+): Record<number, number> {
+  const month = String(monthIndex0 + 1).padStart(2, '0');
+  const prefix = `${year}-${month}-`;
+  const counts: Record<number, number> = {};
+  for (const lesson of lessons) {
+    if (!lesson.date.startsWith(prefix) || lesson.status === 'cancelled') continue;
+    const day = Number(lesson.date.slice(8, 10));
+    if (!Number.isFinite(day)) continue;
+    counts[day] = (counts[day] ?? 0) + 1;
+  }
+  return counts;
+}
+
+export function formatLessonTime12h(startTime: string): string {
+  return formatLessonTime(startTime);
+}
+
+export function formatShortWeekdayDate(dateKey: string, now = new Date()): string {
+  const today = todayDateKey(now);
+  if (dateKey === today) return 'Today';
+  const tomorrow = addDaysToDateKey(today, 1);
+  if (dateKey === tomorrow) return 'Tomorrow';
+  const [y, m, d] = dateKey.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  return new Intl.DateTimeFormat(undefined, { weekday: 'short', month: 'short', day: 'numeric' }).format(
+    dt,
+  );
+}
+
 export function resolveDashboardHero(
   input: {
     isStudent: boolean;

@@ -13,6 +13,7 @@ import {
   isGoogleCalendarRequiredError,
   resolvePartyBackendId,
 } from './lessonPersistence';
+import { syncLessonFormChange } from './lesson-form-sync';
 import { confirmDialog } from '../confirm';
 import { toast } from '../notifications';
 import {
@@ -128,6 +129,13 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
     setForm(null);
     setEditingLesson(null);
   }, []);
+
+  const updateForm = useCallback(
+    (next: LessonFormState) => {
+      syncLessonFormChange(next, editingLesson, setForm, setLessons, setEditingLesson);
+    },
+    [editingLesson, setLessons],
+  );
 
   const tryApplyLesson = useCallback(
     (nextLesson: ScheduledLessonDto, sourceLesson?: ScheduledLessonDto): boolean => {
@@ -343,7 +351,7 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
     modalMode,
     editingLesson,
     form,
-    setForm,
+    setForm: updateForm,
     openCreateModal,
     openEditModal,
     closeModal,

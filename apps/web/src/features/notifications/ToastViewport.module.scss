@@ -1,3 +1,5 @@
+@use '../../styles/mixins' as *;
+
 .viewport {
   position: fixed;
   top: 16px;
@@ -10,7 +12,7 @@
   pointer-events: none;
 }
 
-@media (max-width: 640px) {
+@include respond-to(sm) {
   .viewport {
     top: 12px;
     right: 12px;

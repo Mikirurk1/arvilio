@@ -1,14 +1,28 @@
-# Скріншоти для курсової SoEnglish
+# Скріншоти та діаграми для курсової SoEnglish
 
-Збережіть файли в цю папку (імена — рекомендовані). У Word замініть маркер **[ВСТАВИТИ РИС. N]** відповідним зображенням.
+У Word замініть маркер **[ВСТАВИТИ РИС. N]** відповідним зображенням.
+
+## Діаграми (вже згенеровані з Mermaid)
+
+```bash
+node docs/coursework/diagrams/render-diagrams.mjs
+```
+
+Джерела: `docs/coursework/diagrams/*.mmd`. Після змін у `.mmd` перезапустіть команду.
+
+| Рис. | Файл | Статус |
+|------|------|--------|
+| 1 | `01-architecture.png` | ✅ з `diagrams/01-architecture.mmd` |
+| 2 | `02-layers.png` | ✅ з `diagrams/02-layers.mmd` |
+| 3 | `03-use-case.png` | ✅ з `diagrams/03-use-case.mmd` |
+| 4 | `04-monorepo-tree.png` | ✅ з `diagrams/04-monorepo-tree.mmd` |
+| 5 | `05-erd.png` | ✅ з `diagrams/05-erd-core.mmd` |
+| 20 | `20-erd-full.png` | ✅ з `diagrams/20-erd-full.mmd` |
+
+## Скріншоти (зняти вручну з застосунку)
 
 | Рис. | Файл (рекоменд.) | Що зняти |
 |------|------------------|----------|
-| 1 | `01-architecture.png` | Діаграма: Browser → Next.js :4200 → Nest :3000 → PostgreSQL (можна з wiki `architecture.md` або draw.io) |
-| 2 | `02-layers.png` | Блок-схема шарів monorepo |
-| 3 | `03-use-case.png` | UML use case: Student / Teacher / Admin |
-| 4 | `04-monorepo-tree.png` | VS Code: дерево `apps/`, `packages/backend/` |
-| 5 | `05-erd.png` | Prisma Studio або ERD усіх моделей |
 | 6 | `06-schema-prisma.png` | Код `schema.prisma` (User, ScheduledLesson, Word) |
 | 7 | `07-graphql-dashboard.png` | GraphQL Playground, query `dashboardSummary` |
 | 8 | `08-api-dev-log.png` | Термінал: `Application is running on: http://localhost:3000/api` |
@@ -23,7 +37,6 @@
 | 17 | `17-postman-login.png` | Postman: POST login / me |
 | 18 | `18-chat-sent.png` | Успішно надіслане повідомлення в чаті |
 | 19 | `19-toast-error.png` | Toast помилки (опційно) |
-| 20 | `20-erd-full.png` | Повна ER-діаграма (додаток) |
 | 21 | `21-sidebar-roles.png` | Два скріни sidebar: student vs teacher |
 
 ## LAN / чат

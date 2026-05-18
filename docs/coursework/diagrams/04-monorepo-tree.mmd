@@ -1,0 +1,28 @@
+%% Рис. 4 — Структура monorepo (apps / packages/backend)
+flowchart TB
+  tree["<pre style='text-align:left;font-family:Menlo,Consolas,monospace;font-size:13px;line-height:1.45'>
+<b>SOENGLISH</b>
+├── <b>apps/</b>
+│   ├── <b>web/</b>          … Next.js, App Router, UI
+│   │   └── src/app, components, features, stores
+│   └── <b>api/</b>          … NestJS, GraphQL, REST
+│       └── src/graphql, domain resolvers
+└── <b>packages/</b>
+    ├── <b>backend/</b>
+    │   ├── <b>modules/</b>
+    │   │   ├── module-auth
+    │   │   ├── module-lessons
+    │   │   ├── module-vocabulary
+    │   │   ├── module-flashcards
+    │   │   ├── module-chat
+    │   │   ├── module-notifications
+    │   │   └── …
+    │   └── <b>data-access/</b>
+    │       └── data-access-prisma
+    │           └── prisma/schema.prisma
+    └── <b>shared/types/</b>   … DTO, shared contracts
+</pre>"]
+
+  classDef treeNode fill:#f8fafc,stroke:#64748b,stroke-width:1px,color:#0f172a
+
+  class tree treeNode

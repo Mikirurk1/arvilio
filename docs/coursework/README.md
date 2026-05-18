@@ -10,13 +10,14 @@
 | [dependencies.json](./dependencies.json) | Автозбір npm-залежностей |
 | [coursework-data.mjs](./coursework-data.mjs) | Таблиці FR/NFR, рисунки, фрагменти коду |
 | [coursework-expanded.mjs](./coursework-expanded.mjs) | Розширений текст: технології, хуки, функціонал (~50 ст.) |
-| [screenshots/README.md](./screenshots/README.md) | Які скріншоти вставити в звіт |
+| [screenshots/README.md](./screenshots/README.md) | Діаграми + які скріншоти зняти вручну |
+| [diagrams/README.md](./diagrams/README.md) | Mermaid-джерела рис. 1, 2, 3, 5, 20 |
 
 ## Перед здачею
 
 1. Відредагуйте `title-meta.json` (ПІБ, група, викладач).
 2. Запустіть `npm run coursework:generate`.
-3. Вставте скріншоти в Word за маркерами **[ВСТАВИТИ РИС. N]** (див. `screenshots/README.md`).
+3. Вставте рисунки в Word за маркерами **[ВСТАВИТИ РИС. N]**: діаграми 1, 2, 3, 5, 20 — уже в `screenshots/*.png` (регенерація: `node docs/coursework/diagrams/render-diagrams.mjs`); решта — скріншоти з браузера (див. `screenshots/README.md`).
 4. У Word: **правий клік по змісту → Оновити поле → Оновити всю таблицю** (номери сторінок і заголовки).
 5. Нумерація сторінок у колонтитулі (зміст починається зі стор. 2; титулка без номера).
 6. Перевірте нумерацію рисунків і таблиць.

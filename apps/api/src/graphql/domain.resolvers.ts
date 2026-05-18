@@ -376,6 +376,9 @@ export class LessonsResolver {
       weeklyDays: input.weeklyDays,
       seriesId: input.seriesId,
       linkedWordIds: input.linkedWordIds,
+      materials: mapLessonMaterialsInput(input.materials),
+      homework: mapLessonHomeworkInput(input.homework),
+      studentResponse: mapStudentResponseInput(input.studentResponse),
     });
   }
 

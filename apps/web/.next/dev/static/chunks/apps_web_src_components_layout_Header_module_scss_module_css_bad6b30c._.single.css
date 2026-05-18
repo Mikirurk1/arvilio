@@ -9,6 +9,27 @@
   display: flex;
 }
 
+.Header-module-scss-module__6CwoLq__menuBtn {
+  width: 44px;
+  height: 44px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-radius: 10px;
+  flex-shrink: 0;
+  justify-content: center;
+  align-items: center;
+  margin-left: -8px;
+  margin-right: 4px;
+  display: flex;
+}
+
+.Header-module-scss-module__6CwoLq__menuBtn:hover {
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
 .Header-module-scss-module__6CwoLq__logoArea {
   width: var(--sidebar-w);
   border-right: 1px solid var(--border);
@@ -19,45 +40,6 @@
   gap: 10px;
   padding: 0 20px;
   display: flex;
-}
-
-.Header-module-scss-module__6CwoLq__logoTextBlock {
-  min-width: 0;
-}
-
-html[data-sidebar-collapsed="true"] .Header-module-scss-module__6CwoLq__logoTextBlock {
-  display: none;
-}
-
-.Header-module-scss-module__6CwoLq__logoMark {
-  background: var(--fill-strong);
-  border-radius: 10px;
-  flex-shrink: 0;
-  justify-content: center;
-  align-items: center;
-  width: 34px;
-  height: 34px;
-  display: flex;
-}
-
-.Header-module-scss-module__6CwoLq__logoMark svg {
-  width: 18px;
-  height: 18px;
-}
-
-.Header-module-scss-module__6CwoLq__logoName {
-  color: var(--text-primary);
-  font-family: Lora, serif;
-  font-size: 19px;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.Header-module-scss-module__6CwoLq__logoTag {
-  color: var(--text-tertiary);
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  font-size: 11px;
 }
 
 .Header-module-scss-module__6CwoLq__mid {
@@ -178,6 +160,57 @@ html[data-sidebar-collapsed="true"] .Header-module-scss-module__6CwoLq__logoText
 
 .Header-module-scss-module__6CwoLq__avatar:hover {
   opacity: .85;
+}
+
+@media (max-width: 1024px) {
+  .Header-module-scss-module__6CwoLq__logoArea {
+    width: 72px;
+    padding: 0 12px;
+  }
+
+  .Header-module-scss-module__6CwoLq__mid {
+    padding: 0 16px;
+  }
+
+  .Header-module-scss-module__6CwoLq__searchBox {
+    width: min(240px, 100%);
+  }
+
+  .Header-module-scss-module__6CwoLq__right {
+    gap: 8px;
+    padding-right: 16px;
+  }
+
+  .Header-module-scss-module__6CwoLq__lessonsLbl, .Header-module-scss-module__6CwoLq__lessonsPlanned {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .Header-module-scss-module__6CwoLq__logoArea {
+    border-right: none;
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    padding: 0 12px;
+  }
+
+  .Header-module-scss-module__6CwoLq__mid {
+    display: none;
+  }
+
+  .Header-module-scss-module__6CwoLq__right {
+    gap: 8px;
+    padding-right: 12px;
+  }
+
+  .Header-module-scss-module__6CwoLq__headerCreateLesson {
+    display: none;
+  }
+
+  .Header-module-scss-module__6CwoLq__lessonsBadge {
+    padding: 5px 10px;
+  }
 }
 
 /*# sourceMappingURL=apps_web_src_components_layout_Header_module_scss_module_css_bad6b30c._.single.css.map*/

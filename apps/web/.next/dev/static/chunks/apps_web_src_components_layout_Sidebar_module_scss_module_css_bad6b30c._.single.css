@@ -222,4 +222,20 @@
   color: var(--green-dark);
 }
 
+.Sidebar-module-scss-module__j_pN4a__itemDrawer {
+  min-height: 44px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.Sidebar-module-scss-module__j_pN4a__drawerNav .Sidebar-module-scss-module__j_pN4a__sectionTitle {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .Sidebar-module-scss-module__j_pN4a__sidebar {
+    display: none;
+  }
+}
+
 /*# sourceMappingURL=apps_web_src_components_layout_Sidebar_module_scss_module_css_bad6b30c._.single.css.map*/

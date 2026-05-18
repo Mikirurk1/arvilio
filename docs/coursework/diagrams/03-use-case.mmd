@@ -1,0 +1,50 @@
+%% Рис. 3 — Діаграма випадків використання
+flowchart TB
+  Student((Учень<br/>Student))
+  Teacher((Викладач<br/>Teacher))
+  Admin((Адмін<br/>Admin))
+
+  subgraph SoEnglish["Система SoEnglish"]
+    direction TB
+  UC_Dash[Перегляд dashboard]
+  UC_LessonAtt[Відвідування уроку / Meet]
+  UC_Vocab[Словник і практика]
+  UC_Quiz[Проходження quiz]
+  UC_HW[Здача homework]
+  UC_Chat[Чат з викладачем]
+  UC_Profile[Профіль і налаштування]
+
+  UC_Schedule[Планування уроків]
+  UC_Materials[Матеріали уроку]
+  UC_ReviewHW[Перевірка homework]
+  UC_AssignQuiz[Призначення quiz]
+  UC_Students[Список учнів]
+
+  UC_CreateUser[Створення учнів]
+  UC_AdminUsers[Керування користувачами]
+  UC_Platform[Налаштування платформи]
+  end
+
+  Student --> UC_Dash
+  Student --> UC_LessonAtt
+  Student --> UC_Vocab
+  Student --> UC_Quiz
+  Student --> UC_HW
+  Student --> UC_Chat
+  Student --> UC_Profile
+
+  Teacher --> UC_Dash
+  Teacher --> UC_Schedule
+  Teacher --> UC_Materials
+  Teacher --> UC_ReviewHW
+  Teacher --> UC_AssignQuiz
+  Teacher --> UC_Students
+  Teacher --> UC_Chat
+  Teacher --> UC_Profile
+
+  Admin --> UC_Dash
+  Admin --> UC_CreateUser
+  Admin --> UC_AdminUsers
+  Admin --> UC_Students
+  Admin --> UC_Schedule
+  Admin --> UC_Platform

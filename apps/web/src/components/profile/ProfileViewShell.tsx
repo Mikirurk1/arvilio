@@ -104,6 +104,7 @@ export function ProfileViewShell<T extends string>({
         listClassName={styles.tabsRow}
         triggerClassName={styles.tabBtn}
         activeTriggerClassName={styles.tabActive}
+        panelClassName={styles.tabPanel}
         items={tabs}
       />
     </div>

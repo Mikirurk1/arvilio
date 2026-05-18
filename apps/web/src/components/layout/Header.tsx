@@ -2,23 +2,29 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { Menu } from 'lucide-react';
 import { LESSON_STATUS } from '@soenglish/shared-types';
-import { Field } from '../ui';
+import { Button, Field } from '../ui';
 import { getAvatarFallbackInitials } from '../../lib/avatar';
 import { canSchedule, isAdminOrSuper, mockScheduledLessons, USER_ROLE } from '../../mocks';
 import { useActiveUser } from '../../lib/active-user';
+import { useBreakpoint } from '../../hooks/use-breakpoint';
 import { formatInTimeZone } from 'date-fns-tz';
 import {
   getIanaForTimeZoneId,
   lessonDateKeyInZone,
   lessonStartUtc,
 } from '../../lib/lessonTime';
+import { useShellNav } from './shell-nav-context';
+import { BrandLogo } from '../brand/BrandLogo';
 import styles from './Header.module.scss';
 
 const PAID_LESSONS_REMAINING_PLACEHOLDER = 12;
 
 export default function Header() {
   const activeUser = useActiveUser();
+  const { isMobile, isTablet } = useBreakpoint();
+  const { openMobileNav } = useShellNav();
   const [avatarUrl, setAvatarUrl] = useState(activeUser.avatar.url ?? '');
 
   useEffect(() => {
@@ -60,42 +66,43 @@ export default function Header() {
     (myTodayCount !== totalTodayCount || myRemainingCount !== totalRemainingCount);
 
   const showCreateLesson = canSchedule('lessons', activeUser.role);
+  const compactBadge = isMobile || isTablet;
 
   return (
     <header className={styles.header}>
       <div className={styles.logoArea}>
-        <div className={styles.logoMark}>
-          <svg viewBox="0 0 18 18" fill="none">
-            <path d="M3 4h12M3 9h8M3 14h10" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
-            <circle cx="14" cy="13.5" r="2.5" fill="#16a97a" />
-          </svg>
-        </div>
-        <div className={styles.logoTextBlock}>
-          <div className={styles.logoName}>SoEnglish</div>
-          <div className={styles.logoTag}>English Platform</div>
-        </div>
+        {isMobile ? (
+          <Button
+            type="button"
+            className={styles.menuBtn}
+            onClick={openMobileNav}
+            aria-label="Open navigation menu"
+          >
+            <Menu size={22} aria-hidden />
+          </Button>
+        ) : null}
+        <BrandLogo hideTextOnCollapse />
       </div>
 
-      <div className={styles.mid}>
-        <div className={styles.searchBox}>
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-            <circle cx="6.5" cy="6.5" r="4.5" stroke="#b4b4cc" strokeWidth="1.3" />
-            <path d="M10 10l3 3" stroke="#b4b4cc" strokeWidth="1.3" strokeLinecap="round" />
-          </svg>
-          <Field type="text" placeholder="Search lessons, words, topics..." />
+      {!isMobile ? (
+        <div className={styles.mid}>
+          <div className={styles.searchBox}>
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden>
+              <circle cx="6.5" cy="6.5" r="4.5" stroke="#b4b4cc" strokeWidth="1.3" />
+              <path d="M10 10l3 3" stroke="#b4b4cc" strokeWidth="1.3" strokeLinecap="round" />
+            </svg>
+            <Field type="text" placeholder="Search lessons, words, topics..." />
+          </div>
         </div>
-      </div>
+      ) : null}
 
       <div className={styles.right}>
-        {showCreateLesson ? (
+        {showCreateLesson && !isMobile ? (
           <Link href="/lessons?create=1" className={styles.headerCreateLesson}>
-            Create lesson
+            {isTablet ? 'Create' : 'Create lesson'}
           </Link>
         ) : null}
-        <div
-          className={styles.lessonsBadge}
-          title="Today lessons statistics"
-        >
+        <div className={styles.lessonsBadge} title="Today lessons statistics">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
             <path
               d="M4 3.5h8a1 1 0 011 1v8a1 1 0 01-1 1H4a1 1 0 01-1-1v-8a1 1 0 011-1z"
@@ -107,9 +114,15 @@ export default function Header() {
           {activeUser.role === USER_ROLE.student.id ? (
             <>
               <span className={styles.lessonsNum}>{lessonsLeft}</span>
-              <span className={styles.lessonsLbl}>lessons left</span>
-              <span className={styles.lessonsPlanned}>· {plannedLessonsCount} planned</span>
+              {!compactBadge ? (
+                <>
+                  <span className={styles.lessonsLbl}>lessons left</span>
+                  <span className={styles.lessonsPlanned}>· {plannedLessonsCount} planned</span>
+                </>
+              ) : null}
             </>
+          ) : compactBadge ? (
+            <span className={styles.lessonsNum}>{myTodayCount}</span>
           ) : (
             <>
               <span className={styles.lessonsLbl}>

@@ -683,7 +683,7 @@
   display: flex;
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 1024px) {
   .page-module-scss-module__QRAcbW__lessonWorkspace, .page-module-scss-module__QRAcbW__lessonFilters, .page-module-scss-module__QRAcbW__lessonMetaGrid {
     grid-template-columns: 1fr;
   }
@@ -722,7 +722,7 @@
   font-size: 13px;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 768px) {
   .page-module-scss-module__QRAcbW__tabCard {
     padding: 18px;
   }

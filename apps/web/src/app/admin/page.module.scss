@@ -1,3 +1,5 @@
+@use '../../styles/mixins' as *;
+
 .page {
   padding-top: 12px;
 }
@@ -173,15 +175,20 @@
   }
 }
 
-@media (max-width: 900px) {
+@include respond-to(md) {
   .formGrid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 540px) {
+@include respond-to(sm) {
   .formGrid {
     grid-template-columns: 1fr;
+  }
+
+  .tableWrap {
+    margin: 0 calc(-1 * var(--main-padding-x-mobile));
+    padding: 0 var(--main-padding-x-mobile);
   }
 }
 

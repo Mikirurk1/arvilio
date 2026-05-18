@@ -1,6 +1,6 @@
 ---
 tags: [concept, frontend]
-updated: 2026-05-16
+updated: 2026-05-18
 ---
 
 # Web application
@@ -17,7 +17,7 @@ Next.js App Router client at `apps/web` (dev port **4200**).
 | `/dashboard` | Role-scoped home — live GraphQL data (see below) |
 | `/practice`, `/practice/vocabulary`, `/practice/quiz` | Practice hub |
 | `/lessons`, `/lessons/[lessonId]` | Lesson lists/detail |
-| `/calendar` | Schedule board |
+| `/calendar` | Schedule board — month/week grid; sidebar stacks below calendar on tablet/mobile; week view horizontal scroll |
 | `/vocabulary` | Word cards |
 | `/quiz` | Quizzes |
 | `/students`, `/students/[studentId]` | Staff student list + profile (teacher+); route id is **backend UUID** |
@@ -27,6 +27,7 @@ Next.js App Router client at `apps/web` (dev port **4200**).
 ## Auth & layout
 
 - `AppShell` + `AuthGate` — unauthenticated users → `/login`
+- **Responsive shell:** mobile drawer nav (`MobileNavDrawer`), tablet collapsed sidebar rail, responsive main padding — see [[concepts/ui-design-system#Responsive layout]]
 - **No** `middleware.ts` role checks — [[concepts/auth-rbac#Known gaps]]
 - `auth-context.tsx` — session from `GET /api/auth/me`
 - `active-user.ts` — maps API user → numeric role for `canView` etc.
@@ -47,6 +48,10 @@ Next.js App Router client at `apps/web` (dev port **4200**).
 |-------|--------|---------|-----------------|
 | Stat tiles | `dashboardSummary` | ✓ | ✓ |
 | Hero banner | `lib/dashboard-hero.ts` — lesson today → vocab review → `/practice` | ✓ | lessons or practice CTA |
+| Quick actions | Calendar, Practice, Vocabulary, Chat (+ Students / New lesson for staff) | ✓ | same |
+| Coming up this week | `pickUpcomingWeekLessons` from scheduled lessons | ✓ | ✓ |
+| Right column (staff) | Homework to review, My students, Lessons this month glance | — | ✓ |
+| Stat tiles (staff) | Students count, lessons today, homework pending | — | ✓ |
 | Subtitle | `learningStreak` + locale date | ✓ | date only |
 | Today's lessons | `scheduledLessons` (today, max 4) | ✓ | ✓ |
 | Review words | `studentVocabulary` (`new` / `repeated` / `mistakes_work`) | ✓ | hidden |
@@ -71,12 +76,14 @@ Ported from `materials/addax_assessment/.../features/notifications` (Redux → Z
 - Mounted in `app/providers.tsx` (global)
 - Variant colors use `--toast-*` tokens in `styles/tokens/_theme.scss` (light + `[data-theme='dark']`)
 
-## Lesson detail save (`/lessons/[lessonId]`)
+## Lesson content (modal + `/lessons/[lessonId]`)
 
-- Save builds payload via `fromLessonFormState` + `toUpdateScheduledLessonBody({ includeLessonContent: true })` (materials, homework, student response always sent).
+- **Create:** `toCreateScheduledLessonBody` sends `lessonPlan` + content when non-empty; GraphQL `createScheduledLesson` and REST create apply `materials`/`homework`; `persistCreate` may follow with `PATCH` when content was present.
+- **Update:** `toUpdateScheduledLessonBody({ includeLessonContent: true })` — materials, homework, student response (schedule-only updates use `includeLessonContent: false`).
+- **Modal → list:** `syncLessonFormChange` (`lesson-form-sync.ts`) upserts the open lesson into `ScheduledLessonsProvider` on every content-tab edit so `/lessons/[id]` sees materials before the next explicit save.
 - `mergeLessonDisplayNames` keeps the saved candidate content over empty API echoes.
 - `ScheduledLessonsProvider` merges refetched lessons into local state (not one-time replace only).
-- Draft init runs once per `lesson.id` so a successful save is not overwritten by a stale `lesson` reference.
+- Lesson page draft init runs once per `lesson.id` so a successful save is not overwritten by a stale `lesson` reference.
 
 ## Practice session tracking
 
@@ -85,6 +92,8 @@ Prisma `PracticeSession` (kind, source, `startedAt`/`endedAt`, `durationSec`). G
 Vocabulary **Play** and quiz runs use `usePracticeSessionTracker` → `practice-store.recordSession` (min 30s client-side). `/practice` **Practice this week** loads `practiceWeekSummary` from API.
 
 Profile **Notifications** tab = five email preference toggles persisted via `myProfile` / `updateMyProfile` (`notificationPrefs`). Debounced auto-save when logged in; mock prefs only without auth. See [[concepts/profile-notifications]] — not the toast UI.
+
+Profile **Account** tab — **Session** row: **Log out** calls `POST /api/auth/logout` via `useAuth().logout()` and redirects to `/login` (shown only when `auth.user` is set).
 
 ## Feature modules
 

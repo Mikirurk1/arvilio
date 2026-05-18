@@ -1,3 +1,5 @@
+@use '../../../styles/mixins' as *;
+
 .page {
   animation: slideUp 0.3s ease;
 }
@@ -684,7 +686,7 @@
   color: var(--text-primary);
 }
 
-@media (max-width: 1080px) {
+@include respond-to(md) {
   .lessonWorkspace {
     grid-template-columns: 1fr;
   }
@@ -731,7 +733,7 @@
   color: var(--text-tertiary);
 }
 
-@media (max-width: 760px) {
+@include respond-to(sm) {
   .tabCard {
     padding: 18px;
   }

@@ -679,6 +679,12 @@
   border-color: var(--fill-strong);
 }
 
+.page-module-scss-module__ANyPxW__accountSession {
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+  padding-bottom: 8px;
+}
+
 .page-module-scss-module__ANyPxW__accountItem {
   border-bottom: 1px solid var(--border);
   justify-content: space-between;
@@ -837,8 +843,91 @@
   display: flex;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
+  .page-module-scss-module__ANyPxW__formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-module-scss-module__ANyPxW__formCard {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    padding: 16px;
+    overflow-x: hidden;
+  }
+
+  .page-module-scss-module__ANyPxW__formGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .page-module-scss-module__ANyPxW__fieldGroup {
+    min-width: 0;
+  }
+
+  .page-module-scss-module__ANyPxW__input, .page-module-scss-module__ANyPxW__textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .page-module-scss-module__ANyPxW__formFooter {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .page-module-scss-module__ANyPxW__saveBtn {
+    width: 100%;
+  }
+
+  .page-module-scss-module__ANyPxW__toggleRow {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .page-module-scss-module__ANyPxW__themeGrid, .page-module-scss-module__ANyPxW__fontSizeRow {
+    flex-wrap: wrap;
+  }
+
+  .page-module-scss-module__ANyPxW__accountItem {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .page-module-scss-module__ANyPxW__actionBtn {
+    text-align: center;
+    width: 100%;
+  }
+
+  .page-module-scss-module__ANyPxW__linkedRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .page-module-scss-module__ANyPxW__linkedRowActions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .page-module-scss-module__ANyPxW__linkedConnectBtn {
+    white-space: normal;
+    text-align: center;
+    width: 100%;
+  }
+
+  .page-module-scss-module__ANyPxW__telegramConnectRow {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
   .page-module-scss-module__ANyPxW__avatarModal {
+    width: calc(100vw - 24px);
     padding: 16px;
   }
 }

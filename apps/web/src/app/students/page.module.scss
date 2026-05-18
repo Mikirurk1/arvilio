@@ -1,3 +1,5 @@
+@use '../../styles/mixins' as *;
+
 .page {
   animation: slideUp 0.3s ease;
 }
@@ -25,7 +27,7 @@
   gap: 16px;
 }
 
-@media (max-width: 760px) {
+@include respond-to(sm) {
   .pageHeader {
     margin-bottom: 16px;
   }

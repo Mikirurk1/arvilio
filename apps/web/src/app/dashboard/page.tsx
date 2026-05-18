@@ -2,13 +2,15 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo } from 'react';
-import { BookOpen, CheckCircle2, Clock3, Hand } from 'lucide-react';
+import { BookOpen, CheckCircle2, Clock3, Hand, Users } from 'lucide-react';
 import { DashboardLessonCard, PageHeader, SectionHeader, StatTile } from '../../components/ui';
 import { canView, siteContent } from '../../mocks';
-import { useActiveUser, useActiveRoleKey } from '../../lib/active-user';
+import { isTeacherAdminOrSuperKey, useActiveUser, useActiveRoleKey } from '../../lib/active-user';
 import {
   formatDashboardSubtitle,
+  pickPendingHomeworkLessons,
   pickTodayLessons,
+  pickUpcomingWeekLessons,
   resolveDashboardHero,
   vocabStatusClass,
   vocabStatusLabel,
@@ -16,7 +18,15 @@ import {
 import { useDashboardStore } from '../../stores/dashboard-store';
 import { useLessonsStore } from '../../stores/lessons-store';
 import { useVocabularyStore } from '../../stores/vocabulary-store';
+import {
+  DashboardQuickActions,
+  TeacherHomeworkPanel,
+  TeacherScheduleGlancePanel,
+  TeacherStudentsPanel,
+  WeekLessonsList,
+} from './dashboard-widgets';
 import { DailyGoalsCard, StreakCalendarCard, WordOfDayCard } from './sections';
+import { useStudentsStore } from '../../stores/students-store';
 import styles from './page.module.scss';
 
 const REVIEW_STATUSES = new Set(['new', 'repeated', 'mistakes_work']);
@@ -27,8 +37,9 @@ function statusLabel(status: string): string {
 
 export default function DashboardPage() {
   const activeUser = useActiveUser();
-  const role = useActiveRoleKey();
-  const isStudent = role === 'student';
+  const roleKey = useActiveRoleKey();
+  const isStudent = roleKey === 'student';
+  const isStaff = isTeacherAdminOrSuperKey(roleKey);
 
   const summary = useDashboardStore((s) => s.summary);
   const streak = useDashboardStore((s) => s.streak);
@@ -37,10 +48,16 @@ export default function DashboardPage() {
   const backendLessons = useLessonsStore((s) => s.backendLessons);
   const vocabCards = useVocabularyStore((s) => s.cards);
   const vocabOverview = useVocabularyStore((s) => s.overview);
+  const studentsList = useStudentsStore((s) => s.list);
+  const fetchStudents = useStudentsStore((s) => s.fetchStudents);
 
   useEffect(() => {
     void fetchDashboard(isStudent);
   }, [fetchDashboard, isStudent]);
+
+  useEffect(() => {
+    if (isStaff) void fetchStudents();
+  }, [isStaff, fetchStudents]);
 
   if (!canView('dashboard', activeUser.role)) return null;
 
@@ -48,9 +65,21 @@ export default function DashboardPage() {
   const isLoading = summary.status === 'loading' || summary.status === 'idle';
   const isError = summary.status === 'error';
 
+  const lessonRows = backendLessons.data ?? [];
+
   const todayLessons = useMemo(
-    () => pickTodayLessons(backendLessons.data ?? []).slice(0, 4),
-    [backendLessons.data],
+    () => pickTodayLessons(lessonRows).slice(0, 4),
+    [lessonRows],
+  );
+
+  const weekLessons = useMemo(
+    () => pickUpcomingWeekLessons(lessonRows),
+    [lessonRows],
+  );
+
+  const pendingHomeworkCount = useMemo(
+    () => pickPendingHomeworkLessons(lessonRows, 99).length,
+    [lessonRows],
   );
 
   const reviewWords = useMemo(() => {
@@ -64,11 +93,11 @@ export default function DashboardPage() {
     () =>
       resolveDashboardHero({
         isStudent,
-        lessons: backendLessons.data ?? [],
+        lessons: lessonRows,
         summary: liveSummary,
         overview: vocabOverview.data ?? null,
       }),
-    [isStudent, backendLessons.data, liveSummary, vocabOverview.data],
+    [isStudent, lessonRows, liveSummary, vocabOverview.data],
   );
 
   const subtitle = formatDashboardSubtitle(streak.data);
@@ -119,7 +148,11 @@ export default function DashboardPage() {
         </Link>
       </div>
 
+      <DashboardQuickActions />
+
       <div className={styles.statsGrid}>
+        {isStudent ? (
+        <>
         <StatTile
           className={styles.stat}
           icon={
@@ -162,6 +195,57 @@ export default function DashboardPage() {
           subtext={isError ? 'Backend offline' : 'All-time, from backend'}
           subtextClassName={styles.statSub}
         />
+        </>
+        ) : (
+          <>
+            <StatTile
+              className={styles.stat}
+              icon={
+                <div className={`${styles.statIcon} ${styles.amber}`}>
+                  <Users size={16} />
+                </div>
+              }
+              label="Students"
+              labelClassName={styles.statLabel}
+              value={
+                studentsList.data ? String(studentsList.data.length) : isLoading ? '…' : '—'
+              }
+              valueClassName={styles.statValue}
+              subtext="On your roster"
+              subtextClassName={styles.statSub}
+            />
+            <StatTile
+              className={styles.stat}
+              icon={
+                <div className={`${styles.statIcon} ${styles.green}`}>
+                  <Clock3 size={16} />
+                </div>
+              }
+              label="Lessons today"
+              labelClassName={styles.statLabel}
+              value={liveSummary ? String(liveSummary.lessonsToday) : '—'}
+              valueClassName={styles.statValue}
+              subtext={
+                isLoading ? 'Loading…' : liveSummary ? `${liveSummary.lessonsThisWeek} this week` : '—'
+              }
+              subtextClassName={styles.statSub}
+            />
+            <StatTile
+              className={styles.stat}
+              icon={
+                <div className={`${styles.statIcon} ${styles.blue}`}>
+                  <CheckCircle2 size={16} />
+                </div>
+              }
+              label="Homework to review"
+              labelClassName={styles.statLabel}
+              value={String(pendingHomeworkCount)}
+              valueClassName={styles.statValue}
+              subtext={pendingHomeworkCount > 0 ? 'Submitted, awaiting check' : 'All caught up'}
+              subtextClassName={styles.statSub}
+            />
+          </>
+        )}
       </div>
 
       <div className={styles.twoCol}>
@@ -210,6 +294,12 @@ export default function DashboardPage() {
             )}
           </div>
 
+          <WeekLessonsList
+            lessons={weekLessons}
+            students={studentsList.data ?? undefined}
+            showStudentNames={isStaff}
+          />
+
           {isStudent ? (
             <>
               <SectionHeader
@@ -246,9 +336,19 @@ export default function DashboardPage() {
         </div>
 
         <div className={styles.rightCol}>
-          <DailyGoalsCard />
-          <WordOfDayCard />
-          <StreakCalendarCard />
+          {isStaff ? (
+            <>
+              <TeacherHomeworkPanel lessons={lessonRows} students={studentsList.data ?? undefined} />
+              <TeacherStudentsPanel />
+              <TeacherScheduleGlancePanel lessons={lessonRows} />
+            </>
+          ) : (
+            <>
+              <DailyGoalsCard />
+              <WordOfDayCard />
+              <StreakCalendarCard />
+            </>
+          )}
         </div>
       </div>
     </div>

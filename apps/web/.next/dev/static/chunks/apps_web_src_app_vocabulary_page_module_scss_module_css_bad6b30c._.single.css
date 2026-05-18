@@ -936,9 +936,62 @@
   background: var(--fill-strong-hover);
 }
 
-@media (max-width: 760px) {
-  .page-module-scss-module__wiHsxG__playOptionsGrid {
+@media (max-width: 1024px) {
+  .page-module-scss-module__wiHsxG__wordGrid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .page-module-scss-module__wiHsxG__pageHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .page-module-scss-module__wiHsxG__headerActions {
+    flex-wrap: wrap;
+  }
+
+  .page-module-scss-module__wiHsxG__modeToggle {
+    justify-content: stretch;
+    width: 100%;
+  }
+
+  .page-module-scss-module__wiHsxG__modeBtn {
+    flex: 1;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  .page-module-scss-module__wiHsxG__statsRow {
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+    overflow-x: auto;
+  }
+
+  .page-module-scss-module__wiHsxG__statChip {
+    flex-shrink: 0;
+  }
+
+  .page-module-scss-module__wiHsxG__filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-module-scss-module__wiHsxG__searchInput, .page-module-scss-module__wiHsxG__lessonFilterSelect {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .page-module-scss-module__wiHsxG__wordGrid, .page-module-scss-module__wiHsxG__playOptionsGrid {
     grid-template-columns: 1fr;
+  }
+
+  .page-module-scss-module__wiHsxG__playModal {
+    width: calc(100vw - 24px);
+    max-height: min(90dvh, 640px);
   }
 }
 

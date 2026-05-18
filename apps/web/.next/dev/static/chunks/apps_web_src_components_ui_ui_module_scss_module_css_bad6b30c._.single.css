@@ -210,6 +210,8 @@
 
 .ui-module-scss-module__zUuJUW__tabsRoot {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .ui-module-scss-module__zUuJUW__tabsList {
@@ -230,6 +232,8 @@
 }
 
 .ui-module-scss-module__zUuJUW__tabsPanel {
+  min-width: 0;
+  max-width: 100%;
   margin-top: 14px;
 }
 
@@ -475,10 +479,13 @@
 
 .ui-module-scss-module__zUuJUW__adaptiveSelectWrap .ui-module-scss-module__zUuJUW__adaptiveSelectTrigger {
   background: var(--surface);
+  box-sizing: border-box;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
   width: 100%;
+  min-height: 34px;
+  padding: 6px 10px;
   display: inline-flex;
 }
 

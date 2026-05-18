@@ -293,6 +293,14 @@ export class LessonsService {
       await this.applyMeetToLesson(lesson.id, teacherId, meet);
     }
 
+    if (
+      body.materials !== undefined ||
+      body.homework !== undefined ||
+      body.studentResponse !== undefined
+    ) {
+      await this.applyLessonContentFields(lesson.id, body);
+    }
+
     const full = await this.fetchLesson(lesson.id);
     if (!full) throw new NotFoundException('Lesson disappeared after creation');
     return this.toDto(full);
@@ -382,6 +390,48 @@ export class LessonsService {
     });
   }
 
+  private async applyLessonContentFields(
+    lessonId: string,
+    body: Pick<UpdateScheduledLessonRequestDto, 'materials' | 'homework' | 'studentResponse'>,
+  ): Promise<void> {
+    const updates: Record<string, unknown> = {};
+    if (body.homework !== undefined) {
+      if (body.homework.text !== undefined) updates['homeworkText'] = body.homework.text;
+      if (body.homework.files !== undefined) updates['homeworkFiles'] = body.homework.files;
+    }
+    if (body.studentResponse !== undefined) {
+      if (body.studentResponse.text !== undefined)
+        updates['studentResponseText'] = body.studentResponse.text;
+      if (body.studentResponse.files !== undefined)
+        updates['studentResponseFiles'] = body.studentResponse.files;
+      if (body.studentResponse.status !== undefined)
+        updates['studentResponseStatus'] = studentResponseStatusFromDto(body.studentResponse.status);
+      if (body.studentResponse.homeworkChecked !== undefined)
+        updates['homeworkChecked'] = body.studentResponse.homeworkChecked;
+      if (body.studentResponse.teacherHomeworkFeedback !== undefined)
+        updates['teacherHomeworkFeedback'] = body.studentResponse.teacherHomeworkFeedback;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      await this.prisma.scheduledLesson.update({ where: { id: lessonId }, data: updates });
+    }
+
+    if (body.materials !== undefined) {
+      await this.prisma.lessonMaterial.deleteMany({ where: { lessonId } });
+      if (body.materials.length > 0) {
+        await this.prisma.lessonMaterial.createMany({
+          data: body.materials.map((material, index) => ({
+            lessonId,
+            kind: materialKindFromDto(material.kind),
+            text: material.text ?? null,
+            files: material.files ?? [],
+            order: index,
+          })),
+        });
+      }
+    }
+  }
+
   async update(
     lessonId: string,
     actorUserId: string,
@@ -408,40 +458,9 @@ export class LessonsService {
     }
     if (body.credited !== undefined) updates['credited'] = body.credited;
 
-    if (body.homework !== undefined) {
-      if (body.homework.text !== undefined) updates['homeworkText'] = body.homework.text;
-      if (body.homework.files !== undefined) updates['homeworkFiles'] = body.homework.files;
-    }
-    if (body.studentResponse !== undefined) {
-      if (body.studentResponse.text !== undefined)
-        updates['studentResponseText'] = body.studentResponse.text;
-      if (body.studentResponse.files !== undefined)
-        updates['studentResponseFiles'] = body.studentResponse.files;
-      if (body.studentResponse.status !== undefined)
-        updates['studentResponseStatus'] = studentResponseStatusFromDto(body.studentResponse.status);
-      if (body.studentResponse.homeworkChecked !== undefined)
-        updates['homeworkChecked'] = body.studentResponse.homeworkChecked;
-      if (body.studentResponse.teacherHomeworkFeedback !== undefined)
-        updates['teacherHomeworkFeedback'] = body.studentResponse.teacherHomeworkFeedback;
-    }
-
     await this.prisma.scheduledLesson.update({ where: { id: lessonId }, data: updates });
 
-    // Replace materials atomically when the client sends the array (including empty).
-    if (body.materials !== undefined) {
-      await this.prisma.lessonMaterial.deleteMany({ where: { lessonId } });
-      if (body.materials.length > 0) {
-        await this.prisma.lessonMaterial.createMany({
-          data: body.materials.map((material, index) => ({
-            lessonId,
-            kind: materialKindFromDto(material.kind),
-            text: material.text ?? null,
-            files: material.files ?? [],
-            order: index,
-          })),
-        });
-      }
-    }
+    await this.applyLessonContentFields(lessonId, body);
 
     if (body.linkedWordIds) {
       await this.prisma.studentWordCard.updateMany({

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { MessageSquarePlus, Users } from 'lucide-react';
+import { useBreakpoint } from '../../hooks/use-breakpoint';
 import { canView } from '../../mocks';
 import { mapAuthRoleToRoleId } from '../../lib/active-user';
 import { isAdminOrSuperKey, useActiveRoleKey } from '../../lib/active-user';
@@ -16,6 +17,7 @@ import { NewDirectModal } from './NewDirectModal';
 import styles from './page.module.scss';
 
 export default function ChatPage() {
+  const { isMobile } = useBreakpoint();
   const { user } = useAuth();
   const roleId = mapAuthRoleToRoleId(user?.role);
   const roleKey = useActiveRoleKey();
@@ -55,6 +57,13 @@ export default function ChatPage() {
     void markRead(conversationId);
   };
 
+  const handleBack = () => {
+    setActiveConversation(null);
+  };
+
+  const showInbox = !isMobile || !activeConversationId;
+  const showThread = !isMobile || Boolean(activeConversationId);
+
   const handleOpenDirect = async (peerUserId: string) => {
     const conversation = await openDirect(peerUserId);
     setShowNewDirect(false);
@@ -90,17 +99,22 @@ export default function ChatPage() {
 
   return (
     <div className={styles.page}>
-      <ChatInbox
-        conversations={conversations}
-        activeId={activeConversationId}
-        onSelect={handleSelect}
-        headerExtra={headerExtra}
-      />
-      <ChatThread
-        conversation={activeConversation}
-        messages={messages.data ?? []}
-        loading={messages.status === 'loading' || messages.status === 'idle'}
-      />
+      {showInbox ? (
+        <ChatInbox
+          conversations={conversations}
+          activeId={activeConversationId}
+          onSelect={handleSelect}
+          headerExtra={headerExtra}
+        />
+      ) : null}
+      {showThread ? (
+        <ChatThread
+          conversation={activeConversation}
+          messages={messages.data ?? []}
+          loading={messages.status === 'loading' || messages.status === 'idle'}
+          onBack={isMobile && activeConversationId ? handleBack : undefined}
+        />
+      ) : null}
       {showNewDirect ? (
         <NewDirectModal
           contacts={contacts.data ?? []}

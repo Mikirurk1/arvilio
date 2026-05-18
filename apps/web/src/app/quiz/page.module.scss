@@ -1,3 +1,5 @@
+@use '../../styles/mixins' as *;
+
 .page {
   animation: slideUp 0.3s ease;
 }
@@ -301,6 +303,36 @@
   font-size: 13px;
 }
 
-@media (max-width: 980px) {
-  .manageGrid { grid-template-columns: 1fr; }
+@include respond-to(md) {
+  .manageGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@include respond-to(sm) {
+  .introCard {
+    padding: 24px 18px;
+  }
+
+  .introMeta {
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .manageGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .quizActions {
+    grid-template-columns: 1fr;
+  }
+
+  .qActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .qActions button {
+    width: 100%;
+  }
 }

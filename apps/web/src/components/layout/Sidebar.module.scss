@@ -1,3 +1,5 @@
+@use '../../styles/mixins' as *;
+
 .sidebar {
   width: var(--sidebar-w);
   background: var(--card);
@@ -221,4 +223,20 @@
 .flyoutBadgeGreen {
   background: var(--green-light);
   color: var(--green-dark);
+}
+
+.itemDrawer {
+  min-height: 44px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.drawerNav .sectionTitle {
+  display: block;
+}
+
+@include respond-to(sm) {
+  .sidebar {
+    display: none;
+  }
 }

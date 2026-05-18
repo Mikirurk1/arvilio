@@ -8,6 +8,7 @@ import {
   getLessonBackendId,
 } from '../features/lesson-modal/scheduledLessonsBackendAdapter';
 import {
+  lessonHasPersistableContent,
   mergeLessonDisplayNames,
   persistenceErrorMessage,
   resolvePartyBackendId,
@@ -43,9 +44,18 @@ export function useScheduledLessonPersistence() {
         throw new Error('Select a valid student and teacher.');
       }
       const created = await createScheduledLesson(body);
-      return adaptPersisted(created, candidate);
+      let result = adaptPersisted(created, candidate);
+      const backendId = getLessonBackendId(result);
+      if (backendId && lessonHasPersistableContent(candidate)) {
+        const updated = await updateScheduledLesson(
+          backendId,
+          toUpdateScheduledLessonBody({ ...candidate, backendId }),
+        );
+        result = adaptPersisted(updated, candidate);
+      }
+      return result;
     },
-    [adaptPersisted, createScheduledLesson, resolvePartyId],
+    [adaptPersisted, createScheduledLesson, resolvePartyId, updateScheduledLesson],
   );
 
   const persistUpdate = useCallback(

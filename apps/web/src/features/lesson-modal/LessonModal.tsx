@@ -5,13 +5,22 @@ import Link from 'next/link';
 import { createPortal } from 'react-dom';
 import { Button, Tabs } from '../../components/ui';
 import type { LessonFormState, LessonModalMode } from './types';
-import { siteContent, USER_ROLE, type MockStudent, type UserRole } from '../../mocks';
+import {
+  siteContent,
+  USER_ROLE,
+  type MockStudent,
+  type UserRole,
+} from '../../mocks';
 import styles from './LessonModal.module.scss';
 import { ImagePreviewOverlay } from './ImagePreviewOverlay';
 import { LessonContentTab } from './LessonContentTab';
 import { LessonModalHeader } from './LessonModalHeader';
 import { LessonSetupTab } from './LessonSetupTab';
-import { filterSafeFiles, formatMessage, getFilePlaceholder } from './fileUtils';
+import {
+  filterSafeFiles,
+  formatMessage,
+  getFilePlaceholder,
+} from './fileUtils';
 import type { MaterialKind, MaterialKindOption } from './tabTypes';
 import { ClipboardCheck, File, FileText, Image, Monitor } from 'lucide-react';
 
@@ -57,7 +66,9 @@ export function LessonModal({
   const [mounted, setMounted] = useState(false);
   const [tab, setTab] = useState<'setup' | 'content'>('setup');
   const [fileError, setFileError] = useState<string | null>(null);
-  const [materialsFileStatus, setMaterialsFileStatus] = useState<string | null>(null);
+  const [materialsFileStatus, setMaterialsFileStatus] = useState<string | null>(
+    null,
+  );
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const materialsFileInputRef = useRef<HTMLInputElement | null>(null);
   const [materialDraft, setMaterialDraft] = useState<{
@@ -69,10 +80,18 @@ export function LessonModal({
     text: '',
     files: [],
   });
-  const [materialDraftPreviews, setMaterialDraftPreviews] = useState<Array<string | null>>([]);
-  const [savedMaterialPreviews, setSavedMaterialPreviews] = useState<Record<string, Array<string | null>>>({});
-  const [homeworkPreviews, setHomeworkPreviews] = useState<Array<string | null>>([]);
-  const [studentResponsePreviews, setStudentResponsePreviews] = useState<Array<string | null>>([]);
+  const [materialDraftPreviews, setMaterialDraftPreviews] = useState<
+    Array<string | null>
+  >([]);
+  const [savedMaterialPreviews, setSavedMaterialPreviews] = useState<
+    Record<string, Array<string | null>>
+  >({});
+  const [homeworkPreviews, setHomeworkPreviews] = useState<
+    Array<string | null>
+  >([]);
+  const [studentResponsePreviews, setStudentResponsePreviews] = useState<
+    Array<string | null>
+  >([]);
   const weekDayOptions = [
     { value: 1, label: text.weekDays.mon },
     { value: 2, label: text.weekDays.tue },
@@ -87,9 +106,12 @@ export function LessonModal({
     if (safe.length > 0) {
       onChange({
         ...form,
-        homeworkFiles: [...form.homeworkFiles, ...safe.map((item) => item.name)],
+        homeworkFiles: [...form.homeworkFiles, ...safe.map(item => item.name)],
       });
-      setHomeworkPreviews((prev) => [...prev, ...safe.map((item) => item.previewUrl)]);
+      setHomeworkPreviews(prev => [
+        ...prev,
+        ...safe.map(item => item.previewUrl),
+      ]);
     }
     setFileError(
       rejected.length > 0
@@ -105,9 +127,15 @@ export function LessonModal({
     if (safe.length > 0) {
       onChange({
         ...form,
-        studentResponseFiles: [...form.studentResponseFiles, ...safe.map((item) => item.name)],
+        studentResponseFiles: [
+          ...form.studentResponseFiles,
+          ...safe.map(item => item.name),
+        ],
       });
-      setStudentResponsePreviews((prev) => [...prev, ...safe.map((item) => item.previewUrl)]);
+      setStudentResponsePreviews(prev => [
+        ...prev,
+        ...safe.map(item => item.previewUrl),
+      ]);
     }
     setFileError(
       rejected.length > 0
@@ -121,14 +149,22 @@ export function LessonModal({
   const handleMaterialsFilesSelected = (files: FileList | null) => {
     const { safe, rejected, maxFileSizeMb } = filterSafeFiles(files);
     if (safe.length > 0) {
-      setMaterialDraft((prev) => ({
+      setMaterialDraft(prev => ({
         ...prev,
-        files: [...prev.files, ...safe.map((item) => item.name)],
+        files: [...prev.files, ...safe.map(item => item.name)],
       }));
-      setMaterialDraftPreviews((prev) => [...prev, ...safe.map((item) => item.previewUrl)]);
+      setMaterialDraftPreviews(prev => [
+        ...prev,
+        ...safe.map(item => item.previewUrl),
+      ]);
     }
     if (rejected.length > 0) {
-      setMaterialsFileStatus(formatMessage(text.messages.rejectedFiles, { files: rejected.join(', '), max: maxFileSizeMb }));
+      setMaterialsFileStatus(
+        formatMessage(text.messages.rejectedFiles, {
+          files: rejected.join(', '),
+          max: maxFileSizeMb,
+        }),
+      );
     } else {
       setMaterialsFileStatus(null);
     }
@@ -138,10 +174,17 @@ export function LessonModal({
     { value: 'photo', label: text.materialTypes.photo, icon: Image },
     { value: 'test', label: text.materialTypes.test, icon: ClipboardCheck },
     { value: 'file', label: text.materialTypes.file, icon: File },
-    { value: 'presentation', label: text.materialTypes.presentation, icon: Monitor },
+    {
+      value: 'presentation',
+      label: text.materialTypes.presentation,
+      icon: Monitor,
+    },
   ];
-  const canSaveMaterial = materialDraft.text.trim().length > 0 || materialDraft.files.length > 0;
-  const lessonPageRouteId = lessonBackendId ?? (persistedLessonId != null ? String(persistedLessonId) : null);
+  const canSaveMaterial =
+    materialDraft.text.trim().length > 0 || materialDraft.files.length > 0;
+  const lessonPageRouteId =
+    lessonBackendId ??
+    (persistedLessonId != null ? String(persistedLessonId) : null);
   const showLessonLink = Boolean(lessonPageRouteId);
   const showConfirmButton = role !== USER_ROLE.student.id;
 
@@ -162,7 +205,7 @@ export function LessonModal({
 
   return createPortal(
     <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div className={styles.modal} onClick={e => e.stopPropagation()}>
         <LessonModalHeader
           mode={mode}
           role={role}
@@ -203,44 +246,52 @@ export function LessonModal({
               {
                 value: 'content',
                 label: text.sections.content,
-                panel: <LessonContentTab
-                  text={text}
-                  canEdit={canEdit}
-                  role={role}
-                  form={form}
-                  materialKinds={materialKinds}
-                  materialDraft={materialDraft}
-                  setMaterialDraft={setMaterialDraft}
-                  materialDraftPreviews={materialDraftPreviews}
-                  setMaterialDraftPreviews={setMaterialDraftPreviews}
-                  savedMaterialPreviews={savedMaterialPreviews}
-                  setSavedMaterialPreviews={setSavedMaterialPreviews}
-                  homeworkPreviews={homeworkPreviews}
-                  setHomeworkPreviews={setHomeworkPreviews}
-                  studentResponsePreviews={studentResponsePreviews}
-                  setStudentResponsePreviews={setStudentResponsePreviews}
-                  materialsFileStatus={materialsFileStatus}
-                  canSaveMaterial={canSaveMaterial}
-                  materialsFileInputRef={materialsFileInputRef}
-                  getFilePlaceholder={getFilePlaceholder}
-                  setImagePreviewUrl={setImagePreviewUrl}
-                  onChange={onChange}
-                  onMaterialsFilesSelected={handleMaterialsFilesSelected}
-                  onHomeworkFilesSelected={handleHomeworkFilesSelected}
-                  onStudentResponseFilesSelected={handleStudentResponseFilesSelected}
-                  onSaveStudentResponse={onSaveStudentResponse}
-                  lessonBackendId={lessonBackendId}
-                  studentBackendId={studentBackendId}
-                />,
+                panel: (
+                  <LessonContentTab
+                    text={text}
+                    canEdit={canEdit}
+                    role={role}
+                    form={form}
+                    materialKinds={materialKinds}
+                    materialDraft={materialDraft}
+                    setMaterialDraft={setMaterialDraft}
+                    materialDraftPreviews={materialDraftPreviews}
+                    setMaterialDraftPreviews={setMaterialDraftPreviews}
+                    savedMaterialPreviews={savedMaterialPreviews}
+                    setSavedMaterialPreviews={setSavedMaterialPreviews}
+                    homeworkPreviews={homeworkPreviews}
+                    setHomeworkPreviews={setHomeworkPreviews}
+                    studentResponsePreviews={studentResponsePreviews}
+                    setStudentResponsePreviews={setStudentResponsePreviews}
+                    materialsFileStatus={materialsFileStatus}
+                    canSaveMaterial={canSaveMaterial}
+                    materialsFileInputRef={materialsFileInputRef}
+                    getFilePlaceholder={getFilePlaceholder}
+                    setImagePreviewUrl={setImagePreviewUrl}
+                    onChange={onChange}
+                    onMaterialsFilesSelected={handleMaterialsFilesSelected}
+                    onHomeworkFilesSelected={handleHomeworkFilesSelected}
+                    onStudentResponseFilesSelected={
+                      handleStudentResponseFilesSelected
+                    }
+                    onSaveStudentResponse={onSaveStudentResponse}
+                    lessonBackendId={lessonBackendId}
+                    studentBackendId={studentBackendId}
+                  />
+                ),
               },
             ]}
           />
-          {fileError ? <div className={styles.fileError}>{fileError}</div> : null}
+          {fileError ? (
+            <div className={styles.fileError}>{fileError}</div>
+          ) : null}
         </div>
         <div
           className={[
             styles.modalActions,
-            showLessonLink && showConfirmButton ? styles.modalActionsWithLink : styles.modalActionsSingle,
+            showLessonLink && showConfirmButton
+              ? styles.modalActionsWithLink
+              : styles.modalActionsSingle,
           ]
             .filter(Boolean)
             .join(' ')}
@@ -251,18 +302,33 @@ export function LessonModal({
               : 'Changes are applied immediately after saving.'}
           </div>
           {showLessonLink ? (
-            <Link href={`/lessons/${lessonPageRouteId}`} className={styles.modalLessonLinkBtn} onClick={onClose}>
+            <Link
+              href={`/lessons/${lessonPageRouteId}`}
+              className={styles.modalLessonLinkBtn}
+              onClick={onClose}
+            >
               Open lesson page
             </Link>
           ) : null}
           {showConfirmButton ? (
-            <Button type="button" className={styles.modalConfirmBtn} onClick={onSubmit} disabled={!canEdit}>
-              {mode === 'create' ? text.actions.saveLesson : text.actions.updateLesson}
+            <Button
+              type='button'
+              className={styles.modalConfirmBtn}
+              onClick={onSubmit}
+              disabled={!canEdit}
+            >
+              {mode === 'create'
+                ? text.actions.saveLesson
+                : text.actions.updateLesson}
             </Button>
           ) : null}
         </div>
       </div>
-      <ImagePreviewOverlay imagePreviewUrl={imagePreviewUrl} text={text} onClose={() => setImagePreviewUrl(null)} />
+      <ImagePreviewOverlay
+        imagePreviewUrl={imagePreviewUrl}
+        text={text}
+        onClose={() => setImagePreviewUrl(null)}
+      />
     </div>,
     document.body,
   );

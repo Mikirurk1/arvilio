@@ -1,0 +1,62 @@
+%% Рис. 5 — ER-діаграма (основні сутності курсової)
+erDiagram
+  User ||--o{ ScheduledLesson : "teaches"
+  User ||--o{ ScheduledLesson : "attends"
+  User ||--o{ StudentWordCard : "owns"
+  User }o--|| Language : "nativeLanguage"
+  User ||--o{ OAuthAccount : "has"
+  User ||--o| GoogleCalendarConnection : "calendar"
+
+  ScheduledLesson ||--|{ LessonMaterial : "materials"
+  ScheduledLesson ||--o{ StudentWordCard : "introduces"
+  ScheduledLesson ||--o{ Quiz : "optional"
+
+  Word ||--|{ StudentWordCard : "card"
+  Word ||--|{ WordDefinition : "definitions"
+  Language ||--|{ WordDefinition : "locale"
+
+  User {
+    string id PK
+    string email UK
+    enum role
+    string displayName
+    string teacherId FK
+  }
+
+  ScheduledLesson {
+    string id PK
+    string teacherId FK
+    string studentId FK
+    string date
+    string startTime
+    enum status
+    string lessonPlan
+    string homeworkText
+  }
+
+  LessonMaterial {
+    string id PK
+    string lessonId FK
+    enum kind
+    string text
+  }
+
+  Word {
+    string id PK
+    string normalizedText UK
+    string definition
+  }
+
+  StudentWordCard {
+    string id PK
+    string userId FK
+    string wordId FK
+    string lessonId FK
+    enum status
+  }
+
+  Language {
+    string id PK
+    string code UK
+    string name
+  }

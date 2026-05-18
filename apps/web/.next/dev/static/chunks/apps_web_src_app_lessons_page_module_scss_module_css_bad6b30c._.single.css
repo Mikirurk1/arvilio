@@ -735,7 +735,7 @@ button.page-module-scss-module__2jQJSq__btnPrimary {
   font-size: 14px;
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 1024px) {
   .page-module-scss-module__2jQJSq__highlightsGrid {
     grid-template-columns: 1fr;
   }
@@ -747,9 +747,13 @@ button.page-module-scss-module__2jQJSq__btnPrimary {
   .page-module-scss-module__2jQJSq__quickStats {
     grid-template-columns: 1fr;
   }
+
+  .page-module-scss-module__2jQJSq__workspace {
+    gap: 14px;
+  }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 768px) {
   .page-module-scss-module__2jQJSq__chipRow {
     gap: 5px;
   }

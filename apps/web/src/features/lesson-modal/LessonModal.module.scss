@@ -1,3 +1,5 @@
+@use '../../styles/mixins' as *;
+
 .modalOverlay { position: fixed; inset: 0; background: rgba(26, 26, 46, 0.45); display: flex; align-items: center; justify-content: center; z-index: 2200; }
 .modal {
   background: var(--card);
@@ -637,11 +639,12 @@
   box-shadow: 0 12px 20px rgba(22, 169, 122, 0.28);
 }
 
-@media (max-width: 560px) {
+@include respond-to(sm) {
   .materialActionsRow {
     flex-direction: column;
     align-items: stretch;
   }
+
   .materialActionsRow > button {
     width: 100%;
   }
@@ -661,10 +664,25 @@
   color: var(--green-dark);
 }
 
-@media (max-width: 780px) {
+@include respond-to(sm) {
+  .modalOverlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal {
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 100dvh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    margin: 0;
+  }
+}
+
+@include respond-to(md) {
   .modal {
     width: calc(100vw - 16px);
-    max-height: calc(100vh - 16px);
+    max-height: calc(100dvh - 16px);
   }
   .modalHeader {
     padding: 16px 16px 10px;

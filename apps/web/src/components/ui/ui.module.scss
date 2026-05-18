@@ -211,6 +211,8 @@
 
 .tabsRoot {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .tabsList {
@@ -232,6 +234,8 @@
 
 .tabsPanel {
   margin-top: 14px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .segmentedRoot {
@@ -480,7 +484,10 @@
   justify-content: space-between;
   gap: 10px;
   width: 100%;
+  min-height: 34px;
+  padding: 6px 10px;
   background: var(--surface);
+  box-sizing: border-box;
 }
 
 .adaptiveSelectValue {

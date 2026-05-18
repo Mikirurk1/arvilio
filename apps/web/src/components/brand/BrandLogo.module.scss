@@ -1,0 +1,94 @@
+@use '../../styles/mixins' as *;
+
+.root {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.mark {
+  width: 34px;
+  height: 34px;
+  background: var(--fill-strong);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.icon {
+  color: #fff;
+}
+
+.iconAccent {
+  stroke: var(--green);
+}
+
+.text {
+  min-width: 0;
+}
+
+.name {
+  font-family: 'Lora', serif;
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.tag {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sm .mark {
+  width: 30px;
+  height: 30px;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.sm .name {
+  font-size: 17px;
+}
+
+.lg .mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+
+  svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+.lg .name {
+  font-size: 24px;
+}
+
+.lg .tag {
+  font-size: 12px;
+}
+
+:global(html[data-sidebar-collapsed='true']) .hideTextOnCollapse .text {
+  display: none;
+}
+
+@include respond-to(md) {
+  .hideTextOnCollapse .text {
+    display: none;
+  }
+}

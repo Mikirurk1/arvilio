@@ -1,3 +1,5 @@
+@use '../../styles/mixins' as *;
+
 .header {
   display: flex;
   align-items: center;
@@ -6,6 +8,27 @@
   border-bottom: 1px solid var(--border);
   z-index: 100;
   flex-shrink: 0;
+}
+
+.menuBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-right: 4px;
+  margin-left: -8px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover {
+    background: var(--surface);
+    color: var(--text-primary);
+  }
 }
 
 .logoArea {
@@ -18,45 +41,6 @@
   height: 100%;
   flex-shrink: 0;
   transition: width var(--transition);
-}
-
-.logoTextBlock {
-  min-width: 0;
-}
-
-:global(html[data-sidebar-collapsed='true']) .logoTextBlock {
-  display: none;
-}
-
-.logoMark {
-  width: 34px;
-  height: 34px;
-  background: var(--fill-strong);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.logoMark svg {
-  width: 18px;
-  height: 18px;
-}
-
-.logoName {
-  font-family: 'Lora', serif;
-  font-size: 19px;
-  font-weight: 600;
-  color: var(--text-primary);
-  line-height: 1.2;
-}
-
-.logoTag {
-  font-size: 11px;
-  color: var(--text-tertiary);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .mid {
@@ -179,4 +163,56 @@
 
 .avatar:hover {
   opacity: 0.85;
+}
+
+@include respond-to(md) {
+  .logoArea {
+    width: 72px;
+    padding: 0 12px;
+  }
+
+  .mid {
+    padding: 0 16px;
+  }
+
+  .searchBox {
+    width: min(240px, 100%);
+  }
+
+  .right {
+    gap: 8px;
+    padding-right: 16px;
+  }
+
+  .lessonsLbl,
+  .lessonsPlanned {
+    display: none;
+  }
+}
+
+@include respond-to(sm) {
+  .logoArea {
+    width: auto;
+    flex: 1;
+    min-width: 0;
+    padding: 0 12px;
+    border-right: none;
+  }
+
+  .mid {
+    display: none;
+  }
+
+  .right {
+    padding-right: 12px;
+    gap: 8px;
+  }
+
+  .headerCreateLesson {
+    display: none;
+  }
+
+  .lessonsBadge {
+    padding: 5px 10px;
+  }
 }

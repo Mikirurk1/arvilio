@@ -2,10 +2,11 @@
 > @soenglish/web@0.0.0 typecheck
 > tsc -p tsconfig.json --noEmit
 
-src/app/calendar/page.tsx(767,28): error TS2339: Property 'lessonId' does not exist on type 'never'.
-src/app/calendar/page.tsx(768,28): error TS2339: Property 'before' does not exist on type 'never'.
-src/app/calendar/page.tsx(769,28): error TS2339: Property 'next' does not exist on type 'never'.
-src/app/calendar/page.tsx(1220,11): error TS2322: Type 'LessonPartyOption[]' is not assignable to type 'ProfileViewModel[]'.
+.next/types/validator.ts(107,39): error TS2307: Cannot find module '../../src/app/page.js' or its corresponding type declarations.
+src/app/calendar/page.tsx(774,28): error TS2339: Property 'lessonId' does not exist on type 'never'.
+src/app/calendar/page.tsx(775,28): error TS2339: Property 'before' does not exist on type 'never'.
+src/app/calendar/page.tsx(776,28): error TS2339: Property 'next' does not exist on type 'never'.
+src/app/calendar/page.tsx(1227,11): error TS2322: Type 'LessonPartyOption[]' is not assignable to type 'ProfileViewModel[]'.
   Type 'LessonPartyOption' is missing the following properties from type 'ProfileViewModel': userId, proficiencyLevelId, email, phone, and 8 more.
 src/app/lessons/page.tsx(360,11): error TS2322: Type 'LessonPartyOption[]' is not assignable to type 'ProfileViewModel[]'.
   Type 'LessonPartyOption' is missing the following properties from type 'ProfileViewModel': userId, proficiencyLevelId, email, phone, and 8 more.
@@ -19,18 +20,16 @@ src/app/profile/page.tsx(704,17): error TS2322: Type '{ notifications: ProfileNo
   Property 'saving' does not exist on type 'IntrinsicAttributes & { notifications: NotificationsState; setNotifications: Dispatch<SetStateAction<NotificationsState>>; }'.
 src/app/students/[studentId]/page.tsx(93,44): error TS2345: Argument of type 'StudentSummaryBackendDto[] | null' is not assignable to parameter of type 'StudentSummaryBackendDto[] | undefined'.
   Type 'null' is not assignable to type 'StudentSummaryBackendDto[] | undefined'.
-src/features/lesson-modal/LessonModal.tsx(196,21): error TS2322: Type 'ProfileViewModel[]' is not assignable to type 'LessonPartyOption[]'.
+src/features/lesson-modal/LessonModal.tsx(239,21): error TS2322: Type 'ProfileViewModel[]' is not assignable to type 'LessonPartyOption[]'.
   Property 'backendId' is missing in type 'ProfileViewModel' but required in type 'LessonPartyOption'.
-src/features/lesson-modal/LessonModal.tsx(197,21): error TS2322: Type '{ id: number; fullName: string; }[]' is not assignable to type 'LessonPartyOption[]'.
+src/features/lesson-modal/LessonModal.tsx(240,21): error TS2322: Type '{ id: number; fullName: string; }[]' is not assignable to type 'LessonPartyOption[]'.
   Property 'backendId' is missing in type '{ id: number; fullName: string; }' but required in type 'LessonPartyOption'.
-src/hooks/use-chat-nav-badge.ts(18,26): error TS2345: Argument of type 'ChatConversationDto[] | null' is not assignable to parameter of type 'ChatConversationDto[] | undefined'.
-  Type 'null' is not assignable to type 'ChatConversationDto[] | undefined'.
 src/hooks/use-profile-live-stats.ts(45,37): error TS2345: Argument of type 'ScheduledLessonBackendDto[] | null' is not assignable to parameter of type 'ScheduledLessonBackendDto[] | undefined'.
   Type 'null' is not assignable to type 'ScheduledLessonBackendDto[] | undefined'.
 src/hooks/use-profile-live-stats.ts(51,29): error TS2345: Argument of type 'DashboardSummaryDto | null' is not assignable to parameter of type 'DashboardSummaryDto | undefined'.
   Type 'null' is not assignable to type 'DashboardSummaryDto | undefined'.
 npm error Lifecycle script `typecheck` failed with error:
-npm error code 2
+npm error code 1
 npm error path /Users/mikirurk/Programming/SoEnglish/apps/web
 npm error workspace @soenglish/web@0.0.0
 npm error location /Users/mikirurk/Programming/SoEnglish/apps/web

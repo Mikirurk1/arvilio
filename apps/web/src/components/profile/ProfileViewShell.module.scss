@@ -1,5 +1,8 @@
 .page {
   animation: slideUp 0.3s ease;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .pageHeader {
@@ -209,13 +212,21 @@
 
 .tabsRow {
   display: flex;
+  flex-wrap: nowrap;
   gap: 0;
   margin-bottom: 16px;
   border-bottom: 1px solid var(--border);
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .tabBtn {
-  padding: 10px 20px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: 10px 16px;
   border: none;
   border-radius: 0;
   background: transparent;
@@ -228,6 +239,12 @@
   transition: all var(--transition);
 }
 
+.tabPanel {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 .tabBtn:hover {
   color: var(--text-primary);
 }
@@ -236,4 +253,11 @@
   color: var(--text-primary);
   border-bottom-color: var(--text-primary);
   pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .tabBtn {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
 }

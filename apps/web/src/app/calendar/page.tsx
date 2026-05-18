@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ScheduledLessonDto } from '@soenglish/shared-types';
 import { LESSON_STATUS } from '@soenglish/shared-types';
 import { Button, PageHeader } from '../../components/ui';
@@ -33,6 +33,7 @@ import {
   toLessonFormState,
 } from '../../features/calendar/adapters/lessonCalendarAdapter';
 import { buildLessonCandidate, resolvePartyBackendId } from '../../features/lesson-modal/lessonPersistence';
+import { syncLessonFormChange } from '../../features/lesson-modal/lesson-form-sync';
 import {
   getLessonBackendId,
   upsertScheduledLesson,
@@ -176,6 +177,12 @@ export default function CalendarPage() {
   const [modalMode, setModalMode] = useState<LessonModalMode>('create');
   const [editingLesson, setEditingLesson] = useState<ScheduledLessonDto | null>(null);
   const [form, setForm] = useState<LessonFormState | null>(null);
+  const updateForm = useCallback(
+    (next: LessonFormState) => {
+      syncLessonFormChange(next, editingLesson, setForm, setLessons, setEditingLesson);
+    },
+    [editingLesson, setLessons],
+  );
   const canManage = canSchedule('calendar', role);
   const showAudienceToggle = isAdminOrSuper(role);
   const conflictStrategy = showAudienceToggle && audience === 'all' ? 'same-teacher-overlap' : 'any-overlap';
@@ -1209,7 +1216,7 @@ export default function CalendarPage() {
           canEdit={canManage}
           role={role}
           form={form}
-          onChange={setForm}
+          onChange={updateForm}
           onClose={closeModal}
           canUnlinkSeries={modalMode === 'edit' && role === USER_ROLE.teacher.id && Boolean(editingLesson?.seriesId)}
           onUnlinkSeries={() => setConfirmUnlinkOpen(true)}
