@@ -8,7 +8,7 @@ export const BREAKPOINTS = {
   xl: 1440,
 } as const;
 
-/** max-width media query for mobile (matches AdaptiveSelect) */
+/** max-width media query for mobile (matches Field select mode) */
 export const MOBILE_MAX_WIDTH = BREAKPOINTS.sm - 1;
 
 /** max-width for tablet-only range */

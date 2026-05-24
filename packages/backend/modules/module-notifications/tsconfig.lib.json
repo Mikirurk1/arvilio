@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "../../../../dist/packages/backend/modules/module-notifications",
+    "outDir": "../../../../dist/packages/backend/modules/notifications",
     "declaration": true,
     "types": ["node"],
     "target": "es2021",

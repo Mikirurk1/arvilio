@@ -111,10 +111,16 @@ Profile **Account** tab — **Session** row: **Log out** calls `POST /api/auth/l
 - **Detail:** `apps/web/src/app/students/[studentId]/page.tsx` resolves the student via `lib/student-profile.ts` (`resolveStudentProfile`) from the same store — **not** `getProfileByUserId` mock lookup.
 - Legacy numeric mock URLs (`/students/3`) still work if that id exists in mock seed.
 - **Vocabulary tab** passes `resolved.backendId` (UUID) to `StudentVocabularyTab` / GraphQL `studentVocabulary`.
-- Profile/lessons/stats tabs still use mock overlays where not migrated; saving profile on API-created students only mutates mock if a matching mock user exists.
-- **Profile → Statistics:** `ProfileLiveStatistics` — real data only (`dashboardSummary`, `vocabularyOverview` for students, `scheduledLessons` for lesson hours). No mock `StatisticsDashboard` / fake 3.7h.
-- **Profile hero** Words/Lessons from same live stats; Streak shows `—` until backend exposes it.
-- **Student detail → Statistics:** placeholder (no per-student analytics API yet).
+- Profile form save still mutates mock user row when present; **native language** is a field in `StudentProfileTab` (`tabCard` grid), saved with **Save student data** via `updateStudentLanguages`.
+- **Profile → Statistics:** `StatisticsDashboard` with **live** lessons/cards (`buildLiveStatisticsDashboard`) — KPI grid + Recharts (lessons trend, vocabulary added vs known bar chart from `firstSeenAt`/`knownAt`, status pie, goals). Not mock-only tiles.
+- **Student detail → Statistics:** same `StatisticsDashboard` fed by `useStudentLiveStats`; hero chat → `/chat?peer={studentUserId}`; vocabulary add on student tab.
+- **Student hero stats:** Words / Lessons / Streak (live streak not wired yet — shows `—` when 0). Chat icon sits inline next to the name (`ProfileViewShell` `heroActions`), not absolutely over the avatar.
+
+## Header search
+
+- `components/layout/HeaderSearch.tsx` — desktop header (`Header` mid column); queries lessons, students (staff), vocabulary cards from Zustand stores.
+- Dropdown navigates on click; Enter opens first match or `/vocabulary?q=…`.
+- Vocabulary page reads `?q=` into the list search field.
 
 ## Related
 

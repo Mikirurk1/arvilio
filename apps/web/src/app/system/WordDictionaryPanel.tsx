@@ -8,7 +8,7 @@ import {
   UPDATE_WORD_DICTIONARY_PROVIDER,
   WORD_DICTIONARY_SETTINGS,
 } from '../../graphql/operations';
-import type { WordDictionaryProviderId, WordDictionarySettingsDto } from '@soenglish/shared-types';
+import type { WordDictionaryProviderId, WordDictionarySettingsDto } from '@pkg/types';
 import { ApiError } from '../../lib/api';
 import styles from './page.module.scss';
 

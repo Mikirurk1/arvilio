@@ -5,7 +5,7 @@ import { devtools } from 'zustand/middleware';
 import type {
   StudentSummaryBackendDto,
   UpdateAdminStudentRequestDto,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 import { STUDENTS_LIST, UPDATE_STUDENT_LANGUAGES } from '../graphql/operations';
 import { graphqlRequest } from '../lib/graphql-client';
 import {

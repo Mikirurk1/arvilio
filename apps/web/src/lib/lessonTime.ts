@@ -1,11 +1,50 @@
 import { addHours, addMinutes } from 'date-fns';
 import { formatInTimeZone, toDate } from 'date-fns-tz';
-import type { ScheduledLessonDto, TimeZoneId } from '@soenglish/shared-types';
-import { getTimeZoneById, TIME_ZONE } from '@soenglish/shared-types';
+import type { ScheduledLessonDto, TimeZoneId } from '@pkg/types';
+import { formatTimeZoneOptionLabel, getTimeZoneById, TIME_ZONE } from '@pkg/types';
+
+const IANA_TO_TIME_ZONE_ID: Record<string, TimeZoneId> = Object.values(TIME_ZONE).reduce(
+  (acc, zone) => {
+    acc[zone.iana] = zone.id;
+    return acc;
+  },
+  {} as Record<string, TimeZoneId>,
+);
 
 export function getIanaForTimeZoneId(id: TimeZoneId | undefined): string {
   const resolved = id ?? TIME_ZONE.kyiv.id;
   return getTimeZoneById(resolved)?.iana ?? 'Europe/Kyiv';
+}
+
+export function ianaToTimeZoneId(iana: string | null | undefined): TimeZoneId {
+  const normalized = iana?.trim();
+  if (!normalized) return TIME_ZONE.kyiv.id;
+  return IANA_TO_TIME_ZONE_ID[normalized] ?? TIME_ZONE.kyiv.id;
+}
+
+export function getTimeZoneLabelFromIana(iana: string): string {
+  const entry = Object.values(TIME_ZONE).find((zone) => zone.iana === iana);
+  return entry ? formatTimeZoneOptionLabel(entry) : iana.replace(/_/g, ' ');
+}
+
+export type LessonWallClock = {
+  date: string;
+  startTime: string;
+  duration: number;
+  timezoneId: TimeZoneId;
+};
+
+export function formatLessonWallClockInZone(
+  wall: LessonWallClock,
+  targetIana: string,
+): { dateLabel: string; timeRange: string } {
+  const sourceIana = getIanaForTimeZoneId(wall.timezoneId);
+  const start = toDate(`${wall.date}T${wall.startTime}:00`, { timeZone: sourceIana });
+  const end = addMinutes(start, wall.duration);
+  return {
+    dateLabel: formatInTimeZone(start, targetIana, 'EEE, d MMM yyyy'),
+    timeRange: `${formatInTimeZone(start, targetIana, 'HH:mm')}–${formatInTimeZone(end, targetIana, 'HH:mm')}`,
+  };
 }
 
 /** Default Start time when opening Create lesson: one hour from now in the viewer zone. */

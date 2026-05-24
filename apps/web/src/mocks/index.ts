@@ -19,7 +19,7 @@ export {
   type UserAccountStatusId,
   type UserRoleEntry,
   type UserRoleId,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 export * from './session';
 export * from './roles';
 export * from './content/site-content';

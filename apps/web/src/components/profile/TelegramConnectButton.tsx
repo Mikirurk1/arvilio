@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Info } from 'lucide-react';
-import type { TelegramLoginPayloadDto } from '@soenglish/shared-types';
+import type { TelegramLoginPayloadDto } from '@pkg/types';
 import { apiClient, ApiError } from '../../lib/api';
 import { toast } from '../../features/notifications';
+import { Button } from '../ui';
 import { Tooltip } from '../ui/Tooltip';
 import styles from '../../app/profile/page.module.scss';
 
@@ -222,9 +223,10 @@ export function TelegramConnectButton({ onLinked }: Props) {
   if (config.botLinkFlow) {
     return (
       <div className={styles.telegramConnectRow}>
-        <button
+        <Button
           ref={infoRef}
           type="button"
+          variant="ghost"
           className={styles.telegramInfoBtn}
           aria-label="Інструкція підключення Telegram"
           onMouseEnter={() => setInfoOpen(true)}
@@ -233,7 +235,7 @@ export function TelegramConnectButton({ onLinked }: Props) {
           onBlur={() => setInfoOpen(false)}
         >
           <Info size={14} aria-hidden />
-        </button>
+        </Button>
         <Tooltip
           open={infoOpen}
           targetEl={infoRef.current}
@@ -241,14 +243,14 @@ export function TelegramConnectButton({ onLinked }: Props) {
           className={styles.telegramTooltip}
           content={TELEGRAM_CONNECT_TOOLTIP}
         />
-        <button
+        <Button
           type="button"
           className={styles.linkedConnectBtn}
           disabled={botLinkBusy}
           onClick={() => void (botLink ? openTelegram(botLink) : startBotLink())}
         >
           {botLink ? 'Open Telegram again' : 'Connect via Telegram'}
-        </button>
+        </Button>
       </div>
     );
   }

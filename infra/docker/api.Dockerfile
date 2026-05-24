@@ -11,4 +11,4 @@ RUN npm run prisma:generate
 
 EXPOSE 3000
 
-CMD ["npm", "run", "dev", "-w", "@soenglish/api"]
+CMD ["npm", "run", "dev", "-w", "@app/api"]

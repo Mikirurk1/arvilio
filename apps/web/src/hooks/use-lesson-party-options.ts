@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { AssignableTeacherDto } from '@soenglish/shared-types';
+import type { AssignableTeacherDto } from '@pkg/types';
 import { partyNumericId } from '../features/lesson-modal/scheduledLessonsBackendAdapter';
 import { ASSIGNABLE_TEACHERS } from '../graphql/operations';
 import { graphqlRequest } from '../lib/graphql-client';
@@ -9,7 +9,14 @@ import { useOptionalAuth } from '../lib/auth-context';
 import { useViewerPartyNumericId } from './use-viewer-party-numeric-id';
 import { useStudentsStore } from '../stores/students-store';
 
-export type LessonPartyOption = { id: number; fullName: string; backendId: string };
+export type LessonPartyOption = {
+  id: number;
+  fullName: string;
+  backendId: string;
+  timezoneIana: string;
+  /** `true` = fixed schedule (recurrence allowed). */
+  scheduleType: boolean;
+};
 
 export function useLessonPartyOptions() {
   const auth = useOptionalAuth();
@@ -48,6 +55,8 @@ export function useLessonPartyOptions() {
       id: partyNumericId(row.id),
       fullName: row.displayName,
       backendId: row.id,
+      timezoneIana: row.timezone,
+      scheduleType: row.scheduleType ?? true,
     }));
   }, [studentsSlice.data]);
 
@@ -57,6 +66,8 @@ export function useLessonPartyOptions() {
         id: partyNumericId(row.id),
         fullName: row.displayName,
         backendId: row.id,
+        timezoneIana: row.timezone,
+        scheduleType: true,
       })),
     [teachers],
   );
@@ -65,6 +76,14 @@ export function useLessonPartyOptions() {
     const map = new Map<number, string>();
     for (const option of [...studentOptions, ...teacherOptions]) {
       map.set(option.id, option.fullName);
+    }
+    return map;
+  }, [studentOptions, teacherOptions]);
+
+  const timezoneIanaByPartyId = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const option of [...studentOptions, ...teacherOptions]) {
+      map.set(option.id, option.timezoneIana);
     }
     return map;
   }, [studentOptions, teacherOptions]);
@@ -92,6 +111,7 @@ export function useLessonPartyOptions() {
     defaultStudent,
     currentUserNumericId,
     nameByNumericId,
+    timezoneIanaByPartyId,
     loading,
   };
 }

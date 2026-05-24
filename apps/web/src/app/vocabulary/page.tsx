@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { VocabularyWordStatusName } from '@soenglish/shared-types';
+import { useSearchParams } from 'next/navigation';
+import type { VocabularyWordStatusName } from '@pkg/types';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { PageHeader } from '../../components/ui';
@@ -14,6 +15,8 @@ import {
   buildVocabularyPlayRound,
   canBuildVocabularyPlayRound,
   mapStudentCardsToListItems,
+  vocabularyItemMatchesSearch,
+  wordMatchesPosFilter,
   type VocabularyListItem,
   type VocabularyPlayQuestion,
 } from '../../lib/vocabulary-ui';
@@ -25,6 +28,7 @@ import { useVocabularyStore } from '../../stores/vocabulary-store';
 import { useLessonsStore } from '../../stores/lessons-store';
 import {
   VocabularyAddWordBar,
+  VocabularyFiltersBar,
   VocabularyFlashcardSection,
   VocabularyListSection,
   VocabularyModeToggle,
@@ -43,6 +47,7 @@ function shuffle<T>(items: T[]): T[] {
 }
 
 export default function VocabularyPage() {
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const roleId = mapAuthRoleToRoleId(user?.role);
   if (!canView('vocabulary', roleId)) return null;
@@ -81,6 +86,11 @@ export default function VocabularyPage() {
   const [cardIndex, setCardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [search, setSearch] = useState('');
+  const urlQuery = searchParams.get('q')?.trim() ?? '';
+
+  useEffect(() => {
+    if (urlQuery) setSearch(urlQuery);
+  }, [urlQuery]);
   const [playSource, setPlaySource] = useState<'random' | 'last' | 'lesson'>('random');
   const [playLessonId, setPlayLessonId] = useState('all');
   const [playQuestions, setPlayQuestions] = useState<VocabularyPlayQuestion[]>([]);
@@ -92,11 +102,15 @@ export default function VocabularyPage() {
   const [playPhase, setPlayPhase] = useState<'setup' | 'quiz' | 'result'>('setup');
   usePracticeSessionTracker(user?.id, 'vocabulary', mode === 'play' && playPhase === 'quiz');
 
-  const categories = useMemo(() => {
-    const unique = [...new Set(items.map(({ display }) => display.category))].sort((a, b) =>
-      a.localeCompare(b),
-    );
-    return ['All', ...unique];
+  const posFilters = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const { display } of items) {
+      for (const pos of display.partsOfSpeech) {
+        const key = pos.toLowerCase();
+        if (!seen.has(key)) seen.set(key, pos);
+      }
+    }
+    return ['All', ...[...seen.values()].sort((a, b) => a.localeCompare(b))];
   }, [items]);
 
   const lessonTitleById = useMemo(() => {
@@ -135,8 +149,14 @@ export default function VocabularyPage() {
   }, [backendLessons.data, userId]);
 
   useEffect(() => {
-    if (!categories.includes(filter)) setFilter('All');
-  }, [categories, filter]);
+    if (!posFilters.includes(filter)) setFilter('All');
+  }, [posFilters, filter]);
+
+  useEffect(() => {
+    if (mode !== 'flashcard') return;
+    setCardIndex(0);
+    setFlipped(false);
+  }, [filter, lessonFilter, search, statusFilter, mode]);
 
   useEffect(() => {
     if (!lessonOptions.some((option) => option.value === lessonFilter)) setLessonFilter('all');
@@ -145,17 +165,19 @@ export default function VocabularyPage() {
   const filtered = useMemo(
     () =>
       items.filter(({ card, display, status }) => {
-        const catOk = filter === 'All' || display.category === filter;
+        const catOk = wordMatchesPosFilter(display.partsOfSpeech, filter);
         const statusOk = statusFilter === 'all' || status === statusFilter;
         const lessonOk = lessonFilter === 'all' || (card.lessonId ?? '') === lessonFilter;
-        const searchOk =
-          !search ||
-          display.word.toLowerCase().includes(search.toLowerCase()) ||
-          display.definition.toLowerCase().includes(search.toLowerCase()) ||
-          display.translation.toLowerCase().includes(search.toLowerCase());
+        const searchOk = vocabularyItemMatchesSearch(
+          { card, display, status },
+          search,
+          filter,
+          nativeLanguageId,
+          englishLanguageId,
+        );
         return catOk && statusOk && lessonOk && searchOk;
       }),
-    [items, filter, statusFilter, lessonFilter, search],
+    [items, filter, statusFilter, lessonFilter, search, nativeLanguageId, englishLanguageId],
   );
 
   const wordsForLastLesson = useMemo((): VocabularyListItem[] => {
@@ -226,7 +248,7 @@ export default function VocabularyPage() {
   const currentItem = filtered[cardIndex];
   const markStatus = (status: VocabularyWordStatusName) => {
     if (!currentItem) return;
-    if (isStudent && status === 'learned') return;
+    if (isStudent && (status === 'learned' || status === 'mistakes_work')) return;
     applyStatus(currentItem.card.id, status);
     setFlipped(false);
     setTimeout(() => setCardIndex((i) => Math.min(i + 1, Math.max(0, filtered.length - 1))), 300);
@@ -268,12 +290,14 @@ export default function VocabularyPage() {
         subtitleClassName={styles.pageSub}
         title={`${siteContent.vocabulary.title}${canEditVocab ? '' : ' (read only)'}`}
         subtitle={`${totalWords} words in your library`}
+        back={
+          <Link href="/practice" className={styles.backBtn}>
+            <ArrowLeft size={14} />
+            Back
+          </Link>
+        }
         actions={
           <div className={styles.headerActions}>
-            <Link href="/practice" className={styles.backBtn}>
-              <ArrowLeft size={14} />
-              Back
-            </Link>
             <VocabularyModeToggle
               mode={mode}
               onChange={(nextMode) => {
@@ -296,13 +320,15 @@ export default function VocabularyPage() {
         <VocabularyListSection
           search={search}
           setSearch={setSearch}
-          categories={categories}
-          filter={filter}
-          setFilter={setFilter}
+          posFilters={posFilters}
+          posFilter={filter}
+          setPosFilter={setFilter}
           lessonFilter={lessonFilter}
           setLessonFilter={setLessonFilter}
           lessonOptions={lessonOptions}
           filtered={filtered}
+          nativeLanguageId={nativeLanguageId}
+          englishLanguageId={englishLanguageId}
           onSetStatus={applyStatus}
           canSetLearned={canSetLearned}
           canDelete={canDeleteWords}
@@ -319,17 +345,44 @@ export default function VocabularyPage() {
       ) : null}
 
       {mode === 'flashcard' && (
-        <VocabularyFlashcardSection
-          cardIndex={cardIndex}
-          total={filtered.length}
-          currentItem={currentItem}
-          flipped={flipped}
-          setFlipped={setFlipped}
-          markStatus={markStatus}
-          setCardIndex={setCardIndex}
-          canSetLearned={canSetLearned}
-          isLoading={isLoading}
-        />
+        <>
+          <VocabularyFiltersBar
+            search={search}
+            setSearch={setSearch}
+            posFilters={posFilters}
+            filter={filter}
+            setFilter={setFilter}
+            lessonFilter={lessonFilter}
+            setLessonFilter={setLessonFilter}
+            lessonOptions={lessonOptions}
+          />
+          <VocabularyFlashcardSection
+            cardIndex={cardIndex}
+            total={filtered.length}
+            currentItem={currentItem}
+            flipped={flipped}
+            setFlipped={setFlipped}
+            markStatus={markStatus}
+            setCardIndex={setCardIndex}
+            canSetLearned={canSetLearned}
+            isStudent={isStudent}
+            posFilter={filter}
+            nativeLanguageId={nativeLanguageId}
+            englishLanguageId={englishLanguageId}
+            lessonTitle={
+              currentItem?.card.lessonId
+                ? lessonTitleById.get(currentItem.card.lessonId)
+                : undefined
+            }
+            onOpenWordDetails={setDetailsWordId}
+            onRestart={() => {
+              setCardIndex(0);
+              setFlipped(false);
+            }}
+            isLoading={isLoading}
+            emptyAfterFilters={items.length > 0 && filtered.length === 0}
+          />
+        </>
       )}
       {mode === 'play' && (
         <VocabularyPlaySection

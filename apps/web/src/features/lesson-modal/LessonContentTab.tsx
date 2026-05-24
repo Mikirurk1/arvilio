@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { vocabularyStatusLabel, type VocabularyWordStatusName, type WordCardDto } from '@soenglish/shared-types';
-import { LESSON_STATUS } from '@soenglish/shared-types';
+import { vocabularyStatusLabel, type VocabularyWordStatusName, type WordCardDto } from '@pkg/types';
+import { LESSON_STATUS } from '@pkg/types';
 import { ClipboardCheck, File, FileText, Image, Info, Monitor, Plus, X } from 'lucide-react';
-import { AdaptiveSelect, Badge, Button, Field } from '../../components/ui';
+import { Badge, Button, Field } from '../../components/ui';
 import type { LessonFormState } from './types';
 import type { LessonModalText, MaterialKind, MaterialKindOption } from './tabTypes';
 import { canReviewHomework, type UserRole, USER_ROLE } from '../../mocks';
@@ -15,7 +15,29 @@ import { useViewerLanguageIds } from '../../hooks/use-viewer-language-ids';
 import { pickWordDefinition } from '../../lib/word-definitions';
 import { useVocabularyStore } from '../../stores/vocabulary-store';
 import vocabStyles from '../../app/vocabulary/page.module.scss';
+import {
+  lessonFileDisplayName,
+  lessonFilePreviewUrl,
+} from '../../lib/lesson-file-links';
+import { movePendingLessonFiles } from '../../lib/lesson-pending-files';
+import { isImageFileName, openLessonAttachment } from './fileUtils';
+import { LessonFileChipImage } from './LessonFileChipImage';
 import styles from './LessonModal.module.scss';
+
+function fileChipClasses(preview: string | null | undefined, fileName: string): string {
+  return [
+    styles.fileChip,
+    preview && isImageFileName(fileName) ? styles.fileChipImage : '',
+    preview ? styles.fileChipClickable : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
+function fileChipImagePreview(preview: string | null | undefined, fileName: string) {
+  if (!preview || !isImageFileName(fileName)) return null;
+  return <LessonFileChipImage src={preview} alt={fileName} />;
+}
 
 type Props = {
   text: LessonModalText;
@@ -99,6 +121,9 @@ export function LessonContentTab({
     form.studentResponseText.trim().length > 0 || form.studentResponseFiles.length > 0;
   const canEditMaterials = canEdit && role !== USER_ROLE.student.id;
   const canEditHomework = canEdit && role !== USER_ROLE.student.id;
+  const canViewLessonVocabulary =
+    canEditHomework || (role === USER_ROLE.student.id && Boolean(lessonBackendId));
+  const canAddLessonVocabulary = canViewLessonVocabulary && Boolean(studentBackendId);
   const canReview = canReviewHomework(role);
   const showHomeworkReviewBlock = canReview || (role === USER_ROLE.student.id && form.homeworkChecked);
   const fetchWordsByIds = useVocabularyStore((s) => s.fetchWordsByIds);
@@ -120,10 +145,12 @@ export function LessonContentTab({
   }, [studentCards, lessonBackendId]);
 
   useEffect(() => {
-    if (studentBackendId) {
-      void fetchCards(studentBackendId, true);
-    }
-  }, [studentBackendId, fetchCards]);
+    if (!studentBackendId) return;
+    void fetchCards(
+      role === USER_ROLE.student.id ? undefined : studentBackendId,
+      true,
+    );
+  }, [studentBackendId, fetchCards, role]);
 
   useEffect(() => {
     const ids = form.linkedWordIds;
@@ -210,17 +237,27 @@ export function LessonContentTab({
                 {materialsFileStatus ? <div className={styles.materialsFileStatus}>{materialsFileStatus}</div> : null}
                 {materialDraft.files.length > 0 ? (
                   <div className={styles.fileGrid}>
-                    {materialDraft.files.map((fileName, fileIndex) => (
+                    {materialDraft.files.map((fileName, fileIndex) => {
+                      const preview = materialDraftPreviews[fileIndex];
+                      return (
                       <div
                         key={`draft-${fileName}-${fileIndex}`}
-                        className={`${styles.fileChip} ${materialDraftPreviews[fileIndex] ? styles.fileChipImage : ''}`}
-                        style={materialDraftPreviews[fileIndex] ? { backgroundImage: `url(${materialDraftPreviews[fileIndex]})` } : undefined}
+                        className={fileChipClasses(preview, fileName)}
+                        role={preview ? 'button' : undefined}
+                        tabIndex={preview ? 0 : -1}
+                        onClick={() => openLessonAttachment(fileName, preview, setImagePreviewUrl)}
+                        onKeyDown={(event) => {
+                          if (event.key !== 'Enter' && event.key !== ' ') return;
+                          openLessonAttachment(fileName, preview, setImagePreviewUrl);
+                        }}
                       >
+                        {fileChipImagePreview(preview, fileName)}
                         <Button
                           type="button"
                           className={styles.fileChipRemove}
                           aria-label={text.aria.removeFile}
-                          onClick={() => {
+                          onClick={(event) => {
+                            event.stopPropagation();
                             setMaterialDraft((prev) => ({ ...prev, files: prev.files.filter((_, idx) => idx !== fileIndex) }));
                             setMaterialDraftPreviews((prev) => prev.filter((_, idx) => idx !== fileIndex));
                           }}
@@ -228,9 +265,10 @@ export function LessonContentTab({
                           <X size={12} />
                         </Button>
                         <span>{fileName}</span>
-                        {!materialDraftPreviews[fileIndex] ? <em className={styles.fileChipType}>{getFilePlaceholder(fileName)}</em> : null}
+                        {!preview ? <em className={styles.fileChipType}>{getFilePlaceholder(fileName)}</em> : null}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : null}
                 <div className={styles.materialActionsRow}>
@@ -250,6 +288,13 @@ export function LessonContentTab({
                     onClick={() => {
                       if (!canSaveMaterial) return;
                       const newMaterialId = `mat-${Date.now()}`;
+                      movePendingLessonFiles(
+                        'material',
+                        'draft',
+                        'material',
+                        newMaterialId,
+                        materialDraft.files,
+                      );
                       onChange({
                         ...form,
                         materials: [
@@ -301,27 +346,33 @@ export function LessonContentTab({
                     {material.text ? <div className={styles.savedMaterialText}>{material.text}</div> : null}
                     {material.files.length > 0 ? (
                       <div className={styles.fileGrid}>
-                        {material.files.map((fileName, fileIndex) => (
+                        {material.files.map((fileRef, fileIndex) => {
+                          const displayName = lessonFileDisplayName(
+                            fileRef,
+                            material.fileLinks,
+                            fileIndex,
+                          );
+                          const preview =
+                            savedMaterialPreviews[material.id]?.[fileIndex] ??
+                            lessonFilePreviewUrl(fileRef, material.fileLinks, fileIndex);
+                          return (
                           <div
-                            key={`${material.id}-${fileName}-${fileIndex}`}
-                            className={`${styles.fileChip} ${savedMaterialPreviews[material.id]?.[fileIndex] ? styles.fileChipImage : ''}`}
-                            style={savedMaterialPreviews[material.id]?.[fileIndex] ? { backgroundImage: `url(${savedMaterialPreviews[material.id][fileIndex]})` } : undefined}
-                            role={savedMaterialPreviews[material.id]?.[fileIndex] ? 'button' : undefined}
-                            tabIndex={savedMaterialPreviews[material.id]?.[fileIndex] ? 0 : -1}
-                            onClick={() => {
-                              const preview = savedMaterialPreviews[material.id]?.[fileIndex];
-                              if (preview) setImagePreviewUrl(preview);
-                            }}
+                            key={`${material.id}-${fileRef}-${fileIndex}`}
+                            className={fileChipClasses(preview, displayName)}
+                            role={preview ? 'button' : undefined}
+                            tabIndex={preview ? 0 : -1}
+                            onClick={() => openLessonAttachment(displayName, preview, setImagePreviewUrl)}
                             onKeyDown={(event) => {
                               if (event.key !== 'Enter' && event.key !== ' ') return;
-                              const preview = savedMaterialPreviews[material.id]?.[fileIndex];
-                              if (preview) setImagePreviewUrl(preview);
+                              openLessonAttachment(displayName, preview, setImagePreviewUrl);
                             }}
                           >
-                            <span>{fileName}</span>
-                            {!savedMaterialPreviews[material.id]?.[fileIndex] ? <em className={styles.fileChipType}>{getFilePlaceholder(fileName)}</em> : null}
+                            {fileChipImagePreview(preview, displayName)}
+                            <span>{displayName}</span>
+                            {!preview ? <em className={styles.fileChipType}>{getFilePlaceholder(displayName)}</em> : null}
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : null}
                   </div>
@@ -338,18 +389,28 @@ export function LessonContentTab({
         ) : null}
         {form.homeworkFiles.length > 0 ? (
           <div className={styles.fileGrid}>
-            {form.homeworkFiles.map((fileName, fileIndex) => (
+            {form.homeworkFiles.map((fileRef, fileIndex) => {
+              const displayName = lessonFileDisplayName(
+                fileRef,
+                form.homeworkFileLinks,
+                fileIndex,
+              );
+              const preview =
+                homeworkPreviews[fileIndex] ??
+                lessonFilePreviewUrl(fileRef, form.homeworkFileLinks, fileIndex);
+              return (
               <div
-                key={`hw-${fileName}-${fileIndex}`}
-                className={`${styles.fileChip} ${homeworkPreviews[fileIndex] ? styles.fileChipImage : ''}`}
-                style={homeworkPreviews[fileIndex] ? { backgroundImage: `url(${homeworkPreviews[fileIndex]})` } : undefined}
-                role={homeworkPreviews[fileIndex] ? 'button' : undefined}
-                tabIndex={homeworkPreviews[fileIndex] ? 0 : -1}
-                onClick={() => {
-                  const preview = homeworkPreviews[fileIndex];
-                  if (preview) setImagePreviewUrl(preview);
+                key={`hw-${fileRef}-${fileIndex}`}
+                className={fileChipClasses(preview, displayName)}
+                role={preview ? 'button' : undefined}
+                tabIndex={preview ? 0 : -1}
+                onClick={() => openLessonAttachment(displayName, preview, setImagePreviewUrl)}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Enter' && event.key !== ' ') return;
+                  openLessonAttachment(displayName, preview, setImagePreviewUrl);
                 }}
               >
+                {fileChipImagePreview(preview, displayName)}
                 <Button
                   type="button"
                   className={styles.fileChipRemove}
@@ -362,22 +423,23 @@ export function LessonContentTab({
                 >
                   <X size={12} />
                 </Button>
-                <span>{fileName}</span>
-                {!homeworkPreviews[fileIndex] ? <em className={styles.fileChipType}>{getFilePlaceholder(fileName)}</em> : null}
+                <span>{displayName}</span>
+                {!preview ? <em className={styles.fileChipType}>{getFilePlaceholder(displayName)}</em> : null}
               </div>
-            ))}
+              );
+            })}
           </div>
         ) : null}
         </div>
       </div>
-      {canEditHomework ? (
+      {canViewLessonVocabulary ? (
         <div
           className={`${styles.fieldGroup} ${styles.fieldGroupFull} ${styles.modalSectionCard} ${styles.lessonVocabCard}`}
         >
           <label className={styles.fieldLabel}>Lesson vocabulary</label>
           {linkedWords.length > 0 ? (
             <div className={styles.lessonVocabWordGrid}>
-              <div className={vocabStyles.wordGrid}>
+              <div className={`${vocabStyles.wordGrid} ${styles.lessonVocabWordGridList}`}>
                 {linkedWords.map((w, i) => {
                   const status: VocabularyWordStatusName =
                     cardStatusByWordId.get(w.id) ?? 'new';
@@ -409,15 +471,16 @@ export function LessonContentTab({
                           </div>
                         </div>
                         <div className={vocabStyles.wcTopActions}>
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
                             className={vocabStyles.wcDetailsBtn}
                             onClick={() => setDetailsWordId(w.id)}
                             aria-label="All information"
                             title="All information"
                           >
                             <Info size={16} aria-hidden />
-                          </button>
+                          </Button>
                           <Badge
                             className={`${vocabStyles.wcStatus} ${vocabStyles[statusTone]}`}
                             variant={statusTone}
@@ -439,13 +502,15 @@ export function LessonContentTab({
                       {w.example ? (
                         <div className={vocabStyles.wcExample}>&quot;{w.example}&quot;</div>
                       ) : null}
-                      <Button
-                        type="button"
-                        className={styles.lessonVocabAddBtn}
-                        onClick={() => removeLinkedWord(w.id)}
-                      >
-                        Remove
-                      </Button>
+                      {canEditHomework ? (
+                        <Button
+                          type="button"
+                          className={styles.lessonVocabAddBtn}
+                          onClick={() => removeLinkedWord(w.id)}
+                        >
+                          Remove
+                        </Button>
+                      ) : null}
                     </div>
                   );
                 })}
@@ -456,7 +521,7 @@ export function LessonContentTab({
             linkedWordIds={form.linkedWordIds}
             studentBackendId={studentBackendId}
             lessonBackendId={lessonBackendId}
-            disabled={!canEditHomework}
+            disabled={!canAddLessonVocabulary}
             onAddWordId={(wordId) =>
               onChange({
                 ...form,
@@ -482,7 +547,7 @@ export function LessonContentTab({
             }
           />
         ) : (
-          <AdaptiveSelect
+          <Field as="select"
             className={styles.fieldInput}
             value={form.studentResponseStatus}
             readOnly={!canEditStudentResponse}
@@ -497,7 +562,7 @@ export function LessonContentTab({
             <option value="submitted">Submitted</option>
             <option value="needs_rework">Reopen (needs rework)</option>
             <option value="accepted">Accepted</option>
-          </AdaptiveSelect>
+          </Field>
         )}
         <Field as="textarea" className={styles.fieldInput} rows={4} value={form.studentResponseText} readOnly={!canEditStudentResponse} onChange={(e) => onChange({ ...form, studentResponseText: e.target.value })} />
         {role !== USER_ROLE.student.id || canStudentSubmitResponse ? (
@@ -505,18 +570,28 @@ export function LessonContentTab({
         ) : null}
         {form.studentResponseFiles.length > 0 ? (
           <div className={styles.fileGrid}>
-            {form.studentResponseFiles.map((fileName, fileIndex) => (
+            {form.studentResponseFiles.map((fileRef, fileIndex) => {
+              const displayName = lessonFileDisplayName(
+                fileRef,
+                form.studentResponseFileLinks,
+                fileIndex,
+              );
+              const preview =
+                studentResponsePreviews[fileIndex] ??
+                lessonFilePreviewUrl(fileRef, form.studentResponseFileLinks, fileIndex);
+              return (
               <div
-                key={`resp-${fileName}-${fileIndex}`}
-                className={`${styles.fileChip} ${studentResponsePreviews[fileIndex] ? styles.fileChipImage : ''}`}
-                style={studentResponsePreviews[fileIndex] ? { backgroundImage: `url(${studentResponsePreviews[fileIndex]})` } : undefined}
-                role={studentResponsePreviews[fileIndex] ? 'button' : undefined}
-                tabIndex={studentResponsePreviews[fileIndex] ? 0 : -1}
-                onClick={() => {
-                  const preview = studentResponsePreviews[fileIndex];
-                  if (preview) setImagePreviewUrl(preview);
+                key={`resp-${fileRef}-${fileIndex}`}
+                className={fileChipClasses(preview, displayName)}
+                role={preview ? 'button' : undefined}
+                tabIndex={preview ? 0 : -1}
+                onClick={() => openLessonAttachment(displayName, preview, setImagePreviewUrl)}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Enter' && event.key !== ' ') return;
+                  openLessonAttachment(displayName, preview, setImagePreviewUrl);
                 }}
               >
+                {fileChipImagePreview(preview, displayName)}
                 <Button
                   type="button"
                   className={styles.fileChipRemove}
@@ -529,10 +604,11 @@ export function LessonContentTab({
                 >
                   <X size={12} />
                 </Button>
-                <span>{fileName}</span>
-                {!studentResponsePreviews[fileIndex] ? <em className={styles.fileChipType}>{getFilePlaceholder(fileName)}</em> : null}
+                <span>{displayName}</span>
+                {!preview ? <em className={styles.fileChipType}>{getFilePlaceholder(displayName)}</em> : null}
               </div>
-            ))}
+              );
+            })}
           </div>
         ) : null}
         {showHomeworkReviewBlock ? (

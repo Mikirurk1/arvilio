@@ -1,5 +1,5 @@
 {
-  "name": "@soenglish/feature-progress",
+  "name": "@fe/progress",
   "version": "0.0.0",
   "private": true,
   "type": "module",

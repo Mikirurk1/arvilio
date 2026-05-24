@@ -1,15 +1,19 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { VocabularyWordStatusName } from '@soenglish/shared-types';
+import type { VocabularyWordStatusName } from '@pkg/types';
 import { SurfaceCard } from '../../../components/ui';
 import { WordDetailsModal } from '../../../features/vocabulary/WordDetailsModal';
 import { useViewerLanguageIds } from '../../../hooks/use-viewer-language-ids';
 import { confirmDialog } from '../../../features/confirm';
 import { toast } from '../../../features/notifications';
-import { mapStudentCardsToListItems } from '../../../lib/vocabulary-ui';
+import {
+  mapStudentCardsToListItems,
+  vocabularyItemMatchesSearch,
+  wordMatchesPosFilter,
+} from '../../../lib/vocabulary-ui';
 import { useVocabularyStore } from '../../../stores/vocabulary-store';
-import { VocabularyListSection, VocabularyStatsRow } from '../../vocabulary/sections';
+import { VocabularyAddWordBar, VocabularyListSection, VocabularyStatsRow } from '../../vocabulary/sections';
 import styles from './page.module.scss';
 
 export function StudentVocabularyTab({ studentId }: { studentId: string }) {
@@ -17,6 +21,7 @@ export function StudentVocabularyTab({ studentId }: { studentId: string }) {
   const fetchCards = useVocabularyStore((s) => s.fetchCards);
   const updateCardStatus = useVocabularyStore((s) => s.updateCardStatus);
   const deleteCard = useVocabularyStore((s) => s.deleteCard);
+  const addCard = useVocabularyStore((s) => s.addCard);
   const { nativeLanguageId, englishLanguageId } = useViewerLanguageIds();
   const [detailsWordId, setDetailsWordId] = useState<string | null>(null);
 
@@ -34,30 +39,37 @@ export function StudentVocabularyTab({ studentId }: { studentId: string }) {
   const [lessonFilter, setLessonFilter] = useState('all');
   const [search, setSearch] = useState('');
 
-  const categories = useMemo(() => {
-    const unique = [...new Set(items.map(({ display }) => display.category))].sort((a, b) =>
-      a.localeCompare(b),
-    );
-    return ['All', ...unique];
+  const posFilters = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const { display } of items) {
+      for (const pos of display.partsOfSpeech) {
+        const key = pos.toLowerCase();
+        if (!seen.has(key)) seen.set(key, pos);
+      }
+    }
+    return ['All', ...[...seen.values()].sort((a, b) => a.localeCompare(b))];
   }, [items]);
 
   useEffect(() => {
-    if (!categories.includes(filter)) setFilter('All');
-  }, [categories, filter]);
+    if (!posFilters.includes(filter)) setFilter('All');
+  }, [posFilters, filter]);
 
   const filtered = useMemo(
     () =>
       items.filter(({ card, display, status }) => {
-        const catOk = filter === 'All' || display.category === filter;
+        const catOk = wordMatchesPosFilter(display.partsOfSpeech, filter);
         const statusOk = statusFilter === 'all' || status === statusFilter;
         const lessonOk = lessonFilter === 'all' || (card.lessonId ?? '') === lessonFilter;
-        const searchOk =
-          !search ||
-          display.word.toLowerCase().includes(search.toLowerCase()) ||
-          display.definition.toLowerCase().includes(search.toLowerCase());
+        const searchOk = vocabularyItemMatchesSearch(
+          { card, display, status },
+          search,
+          filter,
+          nativeLanguageId,
+          englishLanguageId,
+        );
         return catOk && statusOk && lessonOk && searchOk;
       }),
-    [items, filter, statusFilter, lessonFilter, search],
+    [items, filter, statusFilter, lessonFilter, search, nativeLanguageId, englishLanguageId],
   );
 
   const stats = {
@@ -85,6 +97,10 @@ export function StudentVocabularyTab({ studentId }: { studentId: string }) {
     void updateCardStatus(cardId, status, studentId);
   };
 
+  const onAddWord = async (text: string) => {
+    await addCard({ text: text.trim() }, studentId);
+  };
+
   const onDeleteWord = async (cardId: string) => {
     if (!studentId) return;
     const ok = await confirmDialog({
@@ -108,16 +124,19 @@ export function StudentVocabularyTab({ studentId }: { studentId: string }) {
         <strong>learned</strong>.
       </p>
       <VocabularyStatsRow total={items.length} stats={stats} onFilter={setStatusFilter} />
+      <VocabularyAddWordBar onAdd={onAddWord} disabled={isLoading} />
       <VocabularyListSection
         search={search}
         setSearch={setSearch}
-        categories={categories}
-        filter={filter}
-        setFilter={setFilter}
+        posFilters={posFilters}
+        posFilter={filter}
+        setPosFilter={setFilter}
         lessonFilter={lessonFilter}
         setLessonFilter={setLessonFilter}
         lessonOptions={lessonOptions}
         filtered={filtered}
+        nativeLanguageId={nativeLanguageId}
+        englishLanguageId={englishLanguageId}
         onSetStatus={onSetStatus}
         canSetLearned
         canDelete

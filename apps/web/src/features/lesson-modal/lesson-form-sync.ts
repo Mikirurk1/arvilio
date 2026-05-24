@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react';
-import type { ScheduledLessonDto } from '@soenglish/shared-types';
+import type { ScheduledLessonDto } from '@pkg/types';
 import { fromLessonFormState } from '../calendar/adapters/lessonCalendarAdapter';
 import { upsertScheduledLesson } from './scheduledLessonsBackendAdapter';
 import type { LessonFormState } from './types';

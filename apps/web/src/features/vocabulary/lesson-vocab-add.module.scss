@@ -27,7 +27,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--ink-3, #6b7280);
   margin-bottom: 6px;
 }
@@ -49,7 +49,7 @@
 }
 
 .previewOrigin {
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-style: italic;
   color: var(--ink-4, #9ca3af);
   margin-bottom: 6px;
@@ -57,20 +57,20 @@
 }
 
 .previewDef {
-  font-size: 14px;
+  font-size: var(--fs-14);
   line-height: 1.45;
   color: var(--ink, #111827);
 }
 
 .previewExample {
   margin-top: 8px;
-  font-size: 13px;
+  font-size: var(--fs-13);
   font-style: italic;
   color: var(--ink-3, #6b7280);
 }
 
 .previewBadge {
-  font-size: 11px;
+  font-size: var(--fs-11);
   padding: 2px 8px;
   border-radius: 999px;
   background: var(--green-light, #d1fae5);
@@ -78,12 +78,12 @@
 }
 
 .previewError {
-  font-size: 13px;
+  font-size: var(--fs-13);
   color: var(--rose-dark, #be123c);
 }
 
 .hint {
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--ink-4, #9ca3af);
   margin: 0;
 }

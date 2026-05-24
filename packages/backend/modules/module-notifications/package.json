@@ -1,10 +1,14 @@
 {
-  "name": "@soenglish/module-notifications",
+  "name": "@be/notifications",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./telegram": "./src/lib/telegram-bot.client.ts"
+    "./telegram": "./src/infrastructure/telegram-bot.client.ts"
+  },
+  "scripts": {
+    "lint": "eslint src",
+    "typecheck": "tsc -p tsconfig.lib.json --noEmit"
   }
 }

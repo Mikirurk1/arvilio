@@ -1,6 +1,5 @@
-import type { LanguageDto, WordDefinitionDto, WordDetailsDto } from '@soenglish/shared-types';
-import { isUsableGloss, pickNativeDefinitions } from './word-definitions';
-import { stripHtml } from './strip-html';
+import type { LanguageDto, WordDefinitionDto, WordDetailsDto } from '@pkg/types';
+import { pickNativeDefinitions } from './word-definitions';
 
 export type DictionaryMeaning = {
   partOfSpeech?: string;

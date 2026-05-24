@@ -9,7 +9,7 @@
 
 .hint {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--text-tertiary, #6b7280);
 }
 
@@ -20,7 +20,7 @@
 }
 
 .label {
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   color: var(--text-secondary, #374151);
 }
@@ -29,7 +29,7 @@
   padding: 8px 10px;
   border-radius: 8px;
   border: 1px solid var(--border, #e5e7eb);
-  font-size: 14px;
+  font-size: var(--fs-14);
 }
 
 .chips {
@@ -43,7 +43,7 @@
   padding: 6px 12px;
   border-radius: 999px;
   border: 1px solid var(--border, #e5e7eb);
-  font-size: 13px;
+  font-size: var(--fs-13);
   cursor: pointer;
   background: var(--card, #fff);
 }
@@ -56,6 +56,6 @@
 
 .message {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-13);
   color: var(--green-dark, #065f46);
 }

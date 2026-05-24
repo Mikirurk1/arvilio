@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import type { PracticeWeekSummaryDto } from '@soenglish/shared-types';
+import type { PracticeWeekSummaryDto } from '@pkg/types';
 import { PRACTICE_WEEK_SUMMARY, RECORD_PRACTICE_SESSION } from '../graphql/operations';
 import { graphqlRequest } from '../lib/graphql-client';
 import {

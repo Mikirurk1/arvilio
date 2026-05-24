@@ -4,7 +4,7 @@ You maintain a **persistent, compounding knowledge base** for the SoEnglish mono
 
 ## Project context (code layout)
 
-- **Monorepo:** npm workspaces + Turborepo (`turbo run dev|build|lint|typecheck`, filters `@soenglish/web`, `@soenglish/api`)
+- **Monorepo:** npm workspaces + Turborepo (`turbo run dev|build|lint|typecheck`, filters `@app/web`, `@app/api`)
 - **`apps/web`** — Next.js frontend
 - **`apps/api`** — NestJS + GraphQL API
 - **`packages/backend/modules/`** — domain modules: `module-auth`, `module-lessons`, `module-progress`, `module-vocabulary`, `module-flashcards`

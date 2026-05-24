@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { QuizDetailDto, QuizQuestionDto } from '@soenglish/shared-types';
+import type { QuizDetailDto, QuizQuestionDto } from '@pkg/types';
 import { Check, CircleX, PencilLine, Target } from 'lucide-react';
 import { Button, Field } from '../../components/ui';
 import { useAuth } from '../../lib/auth-context';
@@ -103,7 +103,7 @@ export function QuizPlaySession({
     try {
       const result = await submitQuizAttempt({
         quizId: quiz.id,
-        studentId,
+        studentId: practiceMode ? undefined : (studentId ?? user?.id),
         practiceMode,
         answers: buildAnswerPayload(quiz.questions, sessionRows),
       });

@@ -1,5 +1,5 @@
-import { createCardSpec } from '@soenglish/shared-ui';
-import { VocabularyOverviewDto } from '@soenglish/shared-types';
+import { createCardSpec } from '@fe/ui';
+import { VocabularyOverviewDto } from '@pkg/types';
 
 export type VocabularyOverview = VocabularyOverviewDto;
 

@@ -6,11 +6,11 @@ import type {
   CreateScheduledLessonRequestDto,
   ScheduledLessonBackendDto,
   UpdateScheduledLessonRequestDto,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 import {
   CREATE_SCHEDULED_LESSON,
-  DELETE_SCHEDULED_LESSON,
   SCHEDULED_LESSONS,
+  SCHEDULED_LESSONS_PAGE,
 } from '../graphql/operations';
 import { apiClient } from '../lib/api';
 import { graphqlRequest } from '../lib/graphql-client';
@@ -21,6 +21,29 @@ import {
   sliceSuccess,
   type AsyncSlice,
 } from './lib/async-slice';
+
+/** Must match default in `LessonsService.listForPage`. */
+export const LESSONS_PAGE_SIZE = 25;
+
+type LessonsPageSlice = {
+  items: ScheduledLessonBackendDto[];
+  hasMore: boolean;
+  nextCursor: string | null;
+  status: 'idle' | 'loading' | 'success' | 'error';
+  error: string | null;
+  loadingMore: boolean;
+};
+
+function createIdleLessonsPage(): LessonsPageSlice {
+  return {
+    items: [],
+    hasMore: false,
+    nextCursor: null,
+    status: 'idle',
+    error: null,
+    loadingMore: false,
+  };
+}
 
 function patchBackendLessonCache(
   prev: AsyncSlice<ScheduledLessonBackendDto[]>,
@@ -34,9 +57,24 @@ function patchBackendLessonCache(
   );
 }
 
+function patchLessonsPageItem(
+  page: LessonsPageSlice,
+  id: string,
+  updated: ScheduledLessonBackendDto,
+): LessonsPageSlice {
+  if (!page.items.some((row) => row.id === id)) return page;
+  return {
+    ...page,
+    items: page.items.map((row) => (row.id === id ? updated : row)),
+  };
+}
+
 type LessonsState = {
   backendLessons: AsyncSlice<ScheduledLessonBackendDto[]>;
+  lessonsPage: LessonsPageSlice;
   fetchScheduledLessons: (force?: boolean) => Promise<void>;
+  fetchLessonsPage: (force?: boolean) => Promise<void>;
+  loadMoreLessonsPage: () => Promise<void>;
   createScheduledLesson: (body: CreateScheduledLessonRequestDto) => Promise<ScheduledLessonBackendDto>;
   updateScheduledLesson: (
     id: string,
@@ -49,6 +87,7 @@ export const useLessonsStore = create<LessonsState>()(
   devtools(
     (set, get) => ({
       backendLessons: createIdleSlice<ScheduledLessonBackendDto[]>(),
+      lessonsPage: createIdleLessonsPage(),
 
       fetchScheduledLessons: async (force = false) => {
         const prev = get().backendLessons;
@@ -68,6 +107,113 @@ export const useLessonsStore = create<LessonsState>()(
         }
       },
 
+      fetchLessonsPage: async (force = false) => {
+        const prev = get().lessonsPage;
+        if (!force && prev.status === 'success' && prev.items.length > 0) return;
+        set(
+          {
+            lessonsPage: {
+              ...createIdleLessonsPage(),
+              status: 'loading',
+            },
+          },
+          false,
+          'lessons/page:start',
+        );
+        try {
+          const data = await graphqlRequest<{
+            scheduledLessonsPage: {
+              items: ScheduledLessonBackendDto[];
+              hasMore: boolean;
+              nextCursor: string | null;
+            };
+          }>(SCHEDULED_LESSONS_PAGE, { limit: LESSONS_PAGE_SIZE });
+          const page = data.scheduledLessonsPage;
+          set(
+            {
+              lessonsPage: {
+                items: page.items,
+                hasMore: page.hasMore,
+                nextCursor: page.nextCursor,
+                status: 'success',
+                error: null,
+                loadingMore: false,
+              },
+            },
+            false,
+            'lessons/page:success',
+          );
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Failed to load lessons';
+          set(
+            {
+              lessonsPage: {
+                ...get().lessonsPage,
+                status: 'error',
+                error: message,
+                loadingMore: false,
+              },
+            },
+            false,
+            'lessons/page:error',
+          );
+        }
+      },
+
+      loadMoreLessonsPage: async () => {
+        const page = get().lessonsPage;
+        if (page.status !== 'success' || !page.hasMore || page.loadingMore || !page.nextCursor) {
+          return;
+        }
+        set(
+          { lessonsPage: { ...page, loadingMore: true } },
+          false,
+          'lessons/page:more:start',
+        );
+        try {
+          const data = await graphqlRequest<{
+            scheduledLessonsPage: {
+              items: ScheduledLessonBackendDto[];
+              hasMore: boolean;
+              nextCursor: string | null;
+            };
+          }>(SCHEDULED_LESSONS_PAGE, {
+            cursor: page.nextCursor,
+            limit: LESSONS_PAGE_SIZE,
+          });
+          const next = data.scheduledLessonsPage;
+          const seen = new Set(page.items.map((row) => row.id));
+          const merged = [...page.items, ...next.items.filter((row) => !seen.has(row.id))];
+          set(
+            {
+              lessonsPage: {
+                items: merged,
+                hasMore: next.hasMore,
+                nextCursor: next.nextCursor,
+                status: 'success',
+                error: null,
+                loadingMore: false,
+              },
+            },
+            false,
+            'lessons/page:more:success',
+          );
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Failed to load more lessons';
+          set(
+            {
+              lessonsPage: {
+                ...get().lessonsPage,
+                loadingMore: false,
+                error: message,
+              },
+            },
+            false,
+            'lessons/page:more:error',
+          );
+        }
+      },
+
       createScheduledLesson: async (body) => {
         const data = await graphqlRequest<{ createScheduledLesson: ScheduledLessonBackendDto }>(
           CREATE_SCHEDULED_LESSON,
@@ -83,6 +229,9 @@ export const useLessonsStore = create<LessonsState>()(
           false,
           'lessons/create:cache',
         );
+        if (get().lessonsPage.status === 'success') {
+          void get().fetchLessonsPage(true);
+        }
         return created;
       },
 
@@ -94,6 +243,7 @@ export const useLessonsStore = create<LessonsState>()(
         set(
           (state) => ({
             backendLessons: patchBackendLessonCache(state.backendLessons, id, updated),
+            lessonsPage: patchLessonsPageItem(state.lessonsPage, id, updated),
           }),
           false,
           'lessons/update:cache',
@@ -106,12 +256,22 @@ export const useLessonsStore = create<LessonsState>()(
         set(
           (state) => {
             const prev = state.backendLessons;
-            if (!prev.data) return { backendLessons: prev };
+            const nextBackend = prev.data
+              ? sliceSuccess(
+                  prev,
+                  prev.data.filter((row) => row.id !== id),
+                )
+              : prev;
+            const page = state.lessonsPage;
             return {
-              backendLessons: sliceSuccess(
-                prev,
-                prev.data.filter((row) => row.id !== id),
-              ),
+              backendLessons: nextBackend,
+              lessonsPage:
+                page.status === 'success'
+                  ? {
+                      ...page,
+                      items: page.items.filter((row) => row.id !== id),
+                    }
+                  : page,
             };
           },
           false,

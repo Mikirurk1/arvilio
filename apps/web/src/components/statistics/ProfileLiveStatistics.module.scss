@@ -5,12 +5,12 @@
 
 .note {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--text-tertiary);
 }
 
 .muted {
-  font-size: 13px;
+  font-size: var(--fs-13);
   color: var(--text-tertiary);
 }
 

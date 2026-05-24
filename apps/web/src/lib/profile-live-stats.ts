@@ -2,7 +2,7 @@ import type {
   DashboardSummaryDto,
   ScheduledLessonBackendDto,
   VocabularyOverviewDto,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 import type { ProfileStats } from '../mocks/domains/achievements';
 
 export function sumCompletedLessonMinutes(

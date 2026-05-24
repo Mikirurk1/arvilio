@@ -9,4 +9,4 @@ COPY . .
 
 EXPOSE 4200
 
-CMD ["npm", "run", "dev", "-w", "@soenglish/web"]
+CMD ["npm", "run", "dev", "-w", "@app/web"]

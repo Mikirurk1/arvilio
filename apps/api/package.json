@@ -1,10 +1,10 @@
 {
-  "name": "@soenglish/api",
+  "name": "@app/api",
   "version": "0.0.0",
   "private": true,
   "scripts": {
     "dev": "node scripts/dev.cjs",
-    "build": "npm run build -w @soenglish/email-templates && tsc -p tsconfig.app.json && tsc-alias -p tsconfig.app.json",
+    "build": "npm run build -w @be/email-templates && tsc -p tsconfig.app.json && tsc-alias -p tsconfig.app.json",
     "start": "node --env-file=../../.env ../../dist/apps/api/apps/api/src/main.js",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.app.json --noEmit"

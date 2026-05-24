@@ -2,17 +2,17 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Shield, Trash2, UserPlus } from 'lucide-react';
-import { AdaptiveSelect, Button, EmptyStateCard, Field, PageHeader } from '../../components/ui';
+import { Button, EmptyStateCard, Field, PageHeader } from '../../components/ui';
 import { useActiveRoleKey, isAdminOrSuperKey } from '../../lib/active-user';
 import { useOptionalAuth } from '../../lib/auth-context';
-import type { AdminUserSummaryDto } from '@soenglish/shared-types';
+import type { AdminUserSummaryDto } from '@pkg/types';
 import { selectLanguagesList, useLanguagesStore } from '../../stores/languages-store';
 import { useAdminStore } from '../../stores/admin-store';
 import { confirmDialog } from '../../features/confirm';
 import { toast } from '../../features/notifications';
 import { ApiError } from '../../lib/api';
 import { formatTimeZoneOptionLabel } from '../../mocks';
-import { PROFICIENCY_LEVEL, TIME_ZONE } from '@soenglish/shared-types';
+import { PROFICIENCY_LEVEL, TIME_ZONE } from '@pkg/types';
 import styles from './page.module.scss';
 
 type CreatableRole = 'student' | 'teacher' | 'admin';
@@ -149,9 +149,10 @@ export default function AdminUsersPage() {
         ? ' Their scheduled lessons will also be removed.'
         : '';
     const ok = await confirmDialog({
-      title: 'Delete user?',
-      message: `Delete ${label}? This cannot be undone.${lessonNote}`,
-      confirmLabel: 'Delete',
+      title: 'Delete this account?',
+      message: `Are you sure you want to delete ${label}? This cannot be undone.${lessonNote}`,
+      confirmLabel: 'Delete account',
+      cancelLabel: 'Cancel',
       variant: 'danger',
     });
     if (!ok) return;
@@ -208,7 +209,7 @@ export default function AdminUsersPage() {
               <label className={styles.label} htmlFor="admin-create-role">
                 Role
               </label>
-              <AdaptiveSelect
+              <Field as="select"
                 id="admin-create-role"
                 className={styles.input}
                 value={form.role}
@@ -219,7 +220,7 @@ export default function AdminUsersPage() {
                     {ROLE_LABEL[role]}
                   </option>
                 ))}
-              </AdaptiveSelect>
+              </Field>
             </div>
             <div className={styles.fieldGroup}>
               <label className={styles.label} htmlFor="admin-create-name">
@@ -238,7 +239,7 @@ export default function AdminUsersPage() {
               <label className={styles.label} htmlFor="admin-create-status">
                 Account status
               </label>
-              <AdaptiveSelect
+              <Field as="select"
                 id="admin-create-status"
                 className={styles.input}
                 value={form.status}
@@ -254,7 +255,7 @@ export default function AdminUsersPage() {
                     {STATUS_LABEL[status]}
                   </option>
                 ))}
-              </AdaptiveSelect>
+              </Field>
             </div>
             <div className={styles.fieldGroup}>
               <label className={styles.label} htmlFor="admin-create-phone">
@@ -287,7 +288,7 @@ export default function AdminUsersPage() {
               <label className={styles.label} htmlFor="admin-create-native-language">
                 Native language
               </label>
-              <AdaptiveSelect
+              <Field as="select"
                 id="admin-create-native-language"
                 className={styles.input}
                 value={form.nativeLanguageId}
@@ -299,13 +300,13 @@ export default function AdminUsersPage() {
                     {lang.name}
                   </option>
                 ))}
-              </AdaptiveSelect>
+              </Field>
             </div>
             <div className={styles.fieldGroup}>
               <label className={styles.label} htmlFor="admin-create-timezone">
                 Timezone
               </label>
-              <AdaptiveSelect
+              <Field as="select"
                 id="admin-create-timezone"
                 className={styles.input}
                 value={form.timezone}
@@ -316,13 +317,13 @@ export default function AdminUsersPage() {
                     {formatTimeZoneOptionLabel(tz)}
                   </option>
                 ))}
-              </AdaptiveSelect>
+              </Field>
             </div>
             <div className={styles.fieldGroup}>
               <label className={styles.label} htmlFor="admin-create-level">
                 English level
               </label>
-              <AdaptiveSelect
+              <Field as="select"
                 id="admin-create-level"
                 className={styles.input}
                 value={form.proficiencyLevel}
@@ -339,14 +340,14 @@ export default function AdminUsersPage() {
                     {level.label}
                   </option>
                 ))}
-              </AdaptiveSelect>
+              </Field>
             </div>
             {form.role === 'student' ? (
               <div className={styles.fieldGroup}>
                 <label className={styles.label} htmlFor="admin-create-teacher">
                   Assigned teacher
                 </label>
-                <AdaptiveSelect
+                <Field as="select"
                   id="admin-create-teacher"
                   className={styles.input}
                   value={form.teacherId}
@@ -358,7 +359,7 @@ export default function AdminUsersPage() {
                       {teacher.displayName} ({ROLE_LABEL[teacher.role] ?? teacher.role})
                     </option>
                   ))}
-                </AdaptiveSelect>
+                </Field>
               </div>
             ) : null}
           </div>
@@ -450,7 +451,7 @@ export default function AdminUsersPage() {
                           <Button
                             type="button"
                             className={styles.deleteBtn}
-                            onClick={() => onDelete(user.id, user.email, user.role)}
+                            onClick={() => void onDelete(user.id, user.email, user.role)}
                             disabled={mutating}
                             aria-label={`Delete ${user.email}`}
                           >

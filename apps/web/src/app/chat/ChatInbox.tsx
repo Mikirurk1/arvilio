@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
-import type { ChatConversationDto } from '@soenglish/shared-types';
+import type { ChatConversationDto } from '@pkg/types';
 import { Button, Field } from '../../components/ui';
 import styles from './page.module.scss';
 

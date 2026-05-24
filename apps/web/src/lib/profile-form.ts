@@ -1,10 +1,10 @@
-import type { MyProfileDto, UpdateMyProfileRequestDto } from '@soenglish/shared-types';
+import type { MyProfileDto, UpdateMyProfileRequestDto } from '@pkg/types';
 import {
   PROFICIENCY_LEVEL,
   TIME_ZONE,
   type ProficiencyLevelId,
   type TimeZoneId,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 import { formatTelFromStorage, normalizeTelForStorage } from './tel-mask';
 
 export type ProfileFormState = {

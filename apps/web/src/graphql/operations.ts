@@ -114,6 +114,16 @@ const WORD_CARD_FIELDS = `
   source
 `;
 
+/** Timestamps required for statistics (added vs known trends). */
+const STUDENT_WORD_CARD_FIELDS = `
+  id
+  status
+  masteryLevel
+  lessonId
+  firstSeenAt
+  knownAt
+`;
+
 export const LOOKUP_WORD = `
   query LookupWord($text: String!) {
     lookupWord(text: $text) {
@@ -147,6 +157,7 @@ export const UPDATE_STUDENT_LANGUAGES = `
       nativeLanguageId
       learningLanguageIds
       teacherId
+      displayColor
     }
   }
 `;
@@ -160,11 +171,21 @@ export const WORDS_BY_IDS = `
 export const STUDENT_VOCABULARY = `
   query StudentVocabulary($studentId: ID) {
     studentVocabulary(studentId: $studentId) {
-      id
-      status
-      masteryLevel
-      lessonId
+      ${STUDENT_WORD_CARD_FIELDS}
       word { ${WORD_CARD_FIELDS} }
+    }
+  }
+`;
+
+export const STUDENT_VOCABULARY_PAGE = `
+  query StudentVocabularyPage($studentId: ID, $cursor: String, $limit: Int) {
+    studentVocabularyPage(studentId: $studentId, cursor: $cursor, limit: $limit) {
+      hasMore
+      nextCursor
+      items {
+        ${STUDENT_WORD_CARD_FIELDS}
+        word { ${WORD_CARD_FIELDS} }
+      }
     }
   }
 `;
@@ -172,8 +193,7 @@ export const STUDENT_VOCABULARY = `
 export const ADD_STUDENT_WORD_CARD = `
   mutation AddStudentWordCard($input: CreateStudentWordCardInput!, $studentId: ID) {
     addStudentWordCard(input: $input, studentId: $studentId) {
-      id
-      status
+      ${STUDENT_WORD_CARD_FIELDS}
       word { ${WORD_CARD_FIELDS} }
     }
   }
@@ -182,8 +202,7 @@ export const ADD_STUDENT_WORD_CARD = `
 export const UPDATE_CARD_STATUS = `
   mutation UpdateCardStatus($input: UpdateCardStatusInput!, $studentId: ID) {
     updateCardStatus(input: $input, studentId: $studentId) {
-      id
-      status
+      ${STUDENT_WORD_CARD_FIELDS}
     }
   }
 `;
@@ -194,9 +213,7 @@ export const DELETE_STUDENT_WORD_CARD = `
   }
 `;
 
-export const QUIZZES_LIST = `
-  query Quizzes {
-    quizzes {
+const QUIZ_CARD_FIELDS = `
       id
       title
       category
@@ -204,6 +221,31 @@ export const QUIZZES_LIST = `
       source
       questionCount
       createdAt
+      attempt {
+        id
+        score
+        correctCount
+        totalCount
+        finishedAt
+      }
+`;
+
+export const QUIZZES_LIST = `
+  query Quizzes {
+    quizzes {
+${QUIZ_CARD_FIELDS}
+    }
+  }
+`;
+
+export const QUIZZES_PAGE = `
+  query QuizzesPage($cursor: String, $limit: Int) {
+    quizzesPage(cursor: $cursor, limit: $limit) {
+      hasMore
+      nextCursor
+      items {
+${QUIZ_CARD_FIELDS}
+      }
     }
   }
 `;
@@ -230,9 +272,7 @@ export const QUIZ_DETAIL = `
   }
 `;
 
-export const STUDENT_QUIZZES = `
-  query StudentQuizzes($studentId: ID!) {
-    studentQuizzes(studentId: $studentId) {
+const STUDENT_QUIZ_CARD_FIELDS = `
       id
       title
       category
@@ -247,6 +287,24 @@ export const STUDENT_QUIZZES = `
         correctCount
         totalCount
         finishedAt
+      }
+`;
+
+export const STUDENT_QUIZZES = `
+  query StudentQuizzes($studentId: ID!) {
+    studentQuizzes(studentId: $studentId) {
+${STUDENT_QUIZ_CARD_FIELDS}
+    }
+  }
+`;
+
+export const STUDENT_QUIZZES_PAGE = `
+  query StudentQuizzesPage($studentId: ID!, $cursor: String, $limit: Int) {
+    studentQuizzesPage(studentId: $studentId, cursor: $cursor, limit: $limit) {
+      hasMore
+      nextCursor
+      items {
+${STUDENT_QUIZ_CARD_FIELDS}
       }
     }
   }
@@ -290,9 +348,7 @@ export const GENERATE_QUIZ = `
   }
 `;
 
-export const SCHEDULED_LESSONS = `
-  query ScheduledLessons {
-    scheduledLessons {
+const SCHEDULED_LESSON_LIST_FIELDS = `
       id
       title
       description
@@ -304,7 +360,9 @@ export const SCHEDULED_LESSONS = `
       duration
       timezone
       teacherId
+      teacherName
       studentId
+      studentName
       status
       cancelReason
       credited
@@ -316,15 +374,34 @@ export const SCHEDULED_LESSONS = `
       googleCalendarEventId
       meetCreatedAt
       linkedWordIds
-      materials { id kind text files }
-      homework { text files }
+      materials { id kind text files fileLinks { ref fileName downloadPath } }
+      homework { text files fileLinks { ref fileName downloadPath } }
       studentResponse {
         text
         files
+        fileLinks { ref fileName downloadPath }
         status
         homeworkChecked
         teacherHomeworkFeedback
       }
+`;
+
+export const SCHEDULED_LESSONS_PAGE = `
+  query ScheduledLessonsPage($cursor: String, $limit: Int, $studentId: ID) {
+    scheduledLessonsPage(cursor: $cursor, limit: $limit, studentId: $studentId) {
+      hasMore
+      nextCursor
+      items {
+${SCHEDULED_LESSON_LIST_FIELDS}
+      }
+    }
+  }
+`;
+
+export const SCHEDULED_LESSONS = `
+  query ScheduledLessons {
+    scheduledLessons {
+${SCHEDULED_LESSON_LIST_FIELDS}
     }
   }
 `;
@@ -341,7 +418,9 @@ const SCHEDULED_LESSON_FIELDS = `
   duration
   timezone
   teacherId
+  teacherName
   studentId
+  studentName
   status
   cancelReason
   credited
@@ -350,11 +429,12 @@ const SCHEDULED_LESSON_FIELDS = `
   seriesId
   order
   googleMeetUrl
-  materials { id kind text files }
-  homework { text files }
+  materials { id kind text files fileLinks { ref fileName downloadPath } }
+  homework { text files fileLinks { ref fileName downloadPath } }
   studentResponse {
     text
     files
+    fileLinks { ref fileName downloadPath }
     status
     homeworkChecked
     teacherHomeworkFeedback
@@ -476,13 +556,12 @@ export const ASSIGNABLE_TEACHERS = `
       email
       displayName
       role
+      timezone
     }
   }
 `;
 
-export const STUDENTS_LIST = `
-  query Students {
-    students {
+const STUDENT_SUMMARY_FIELDS = `
       id
       email
       displayName
@@ -494,7 +573,27 @@ export const STUDENTS_LIST = `
       avatarUrl
       nativeLanguageId
       learningLanguageIds
+      scheduleType
+      displayColor
       createdAt
+`;
+
+export const STUDENTS_LIST = `
+  query Students {
+    students {
+${STUDENT_SUMMARY_FIELDS}
+    }
+  }
+`;
+
+export const STUDENTS_PAGE = `
+  query StudentsPage($cursor: String, $limit: Int) {
+    studentsPage(cursor: $cursor, limit: $limit) {
+      hasMore
+      nextCursor
+      items {
+${STUDENT_SUMMARY_FIELDS}
+      }
     }
   }
 `;
@@ -597,9 +696,7 @@ export const CHAT_CONTACTS = `
   }
 `;
 
-export const CHAT_INBOX = `
-  query ChatInbox {
-    chatInbox {
+const CHAT_CONVERSATION_FIELDS = `
       id
       type
       title
@@ -612,6 +709,24 @@ export const CHAT_INBOX = `
       }
       participants {
         ${CHAT_USER_FIELDS}
+      }
+`;
+
+export const CHAT_INBOX = `
+  query ChatInbox {
+    chatInbox {
+${CHAT_CONVERSATION_FIELDS}
+    }
+  }
+`;
+
+export const CHAT_INBOX_PAGE = `
+  query ChatInboxPage($cursor: String, $limit: Int) {
+    chatInboxPage(cursor: $cursor, limit: $limit) {
+      hasMore
+      nextCursor
+      items {
+${CHAT_CONVERSATION_FIELDS}
       }
     }
   }

@@ -30,7 +30,7 @@
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 14px;
+  font-size: var(--fs-14);
   flex-shrink: 0;
 }
 
@@ -40,14 +40,14 @@
 
 .name {
   font-family: 'Lora', serif;
-  font-size: 18px;
+  font-size: var(--fs-18);
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .teacher {
   margin-top: 2px;
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--text-tertiary);
 }
 
@@ -75,14 +75,14 @@
 }
 
 .metaLabel {
-  font-size: 11px;
+  font-size: var(--fs-11);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-tertiary);
 }
 
 .metaValue {
-  font-size: 13px;
+  font-size: var(--fs-13);
   color: var(--text-primary);
   overflow-wrap: anywhere;
 }
@@ -104,7 +104,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
 }
 

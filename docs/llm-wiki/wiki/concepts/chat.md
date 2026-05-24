@@ -34,7 +34,7 @@ Separate from one-way `TeacherMessage` (email/Telegram from student profile).
 |---------|---------|
 | `chatContacts` | Users allowed for new DM / group picker |
 | `chatInbox` | Conversation list with preview + unread |
-| `chatMessages` | Paginated history |
+| `chatMessages` | Paginated history (`cursor` = oldest loaded `createdAt`, 50 per page) |
 | `findOrCreateDirectConversation` | Open 1:1 |
 | `createGroupConversation` | New group |
 | `markConversationRead` | Clear unread |
@@ -57,9 +57,11 @@ Auth: httpOnly cookies on handshake (`AuthSessionService`). Upload dir: `CHAT_UP
 
 - `apps/web/src/app/chat/` — UI
 - `stores/chat-store.ts`, `lib/chat-socket.ts`
+- **Message history (web):** initial load = latest 50 (`fetchMessages`); scroll up near top → `fetchOlderMessages` prepends with cursor; scroll position preserved; auto-scroll to bottom only on conversation open, first load, or when user is already near bottom (new socket/send). States: “Loading older messages…”, “Beginning of conversation”.
 - Sidebar **Chat** link + unread badge (`useChatNavBadge`)
 - Env: `NEXT_PUBLIC_SOCKET_URL` (default `http://localhost:3000`)
 - Attachments: confirm dialog + thread banner warn **24h retention**; emoji picker in composer
+- DTO `attachment.url` is `/chat/attachments/:id` (no `/api` prefix); UI builds href as `` `${API_BASE}${url}` `` → `/api/chat/attachments/:id`
 
 ## Code
 

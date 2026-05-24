@@ -1,6 +1,7 @@
 'use client';
 
 import { AlertTriangle, CheckCircle2, CircleX, Info, X } from 'lucide-react';
+import { BodyPortal, Button } from '../../components/ui';
 import type { ToastKind } from '../../stores/notifications-store';
 import { useNotificationsStore } from '../../stores/notifications-store';
 import styles from './ToastViewport.module.scss';
@@ -50,7 +51,8 @@ export function ToastViewport() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className={styles.viewport} aria-live="polite" aria-relevant="additions removals">
+    <BodyPortal>
+      <div className={styles.viewport} aria-live="polite" aria-relevant="additions removals">
       {toasts.map((toast) => (
         <div key={toast.id} className={cardClass(toast.kind)} role="status">
           <div className={styles.cardSheen} aria-hidden />
@@ -60,14 +62,15 @@ export function ToastViewport() {
           <div className={styles.content}>
             <div className={styles.titleRow}>
               <div className={styles.title}>{toast.title}</div>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 className={styles.closeBtn}
                 onClick={() => removeToast(toast.id)}
                 aria-label="Close notification"
               >
                 <X size={14} aria-hidden />
-              </button>
+              </Button>
             </div>
             {toast.description ? (
               <div className={styles.description}>{toast.description}</div>
@@ -75,6 +78,7 @@ export function ToastViewport() {
           </div>
         </div>
       ))}
-    </div>
+      </div>
+    </BodyPortal>
   );
 }

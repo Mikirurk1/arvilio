@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import type { LanguageDto } from '@soenglish/shared-types';
+import type { LanguageDto } from '@pkg/types';
 import { LANGUAGES } from '../graphql/operations';
 import { graphqlRequest } from '../lib/graphql-client';
 import {

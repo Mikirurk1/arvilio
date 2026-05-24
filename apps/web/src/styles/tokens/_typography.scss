@@ -1,45 +1,62 @@
 /**
  * Typography tokens — families, scale, rhythm.
- * Components should prefer these variables over raw px where possible.
+ * Appearance → Font size sets `data-font-size` on `<html>` (see AppearanceSync).
+ * Use `rem` or `var(--fs-N)` in SCSS so the whole UI scales together.
  */
 
 :root {
-  /* Families */
   --font-sans: 'Outfit', system-ui, sans-serif;
   --font-display: 'Lora', Georgia, 'Times New Roman', serif;
 
-  /* Scale */
-  --fs-base: 16px;
-  --fs-page-title: 28px;
-  --fs-page-sub: 15px;
-  --fs-sm: 13px;
-  --fs-xs: 12px;
+  /* Semantic scale (rem) */
+  --fs-page-title: 1.75rem;
+  --fs-page-sub: 0.9375rem;
+  --fs-sm: 0.8125rem;
+  --fs-xs: 0.75rem;
 
   /* Line-height */
   --lh-body: 1.62;
   --lh-tight: 1.35;
+
+  /* Stepped scale for module SCSS (rem at 16px root) */
+  --fs-9: 0.5625rem;
+  --fs-10: 0.625rem;
+  --fs-11: 0.6875rem;
+  --fs-12: 0.75rem;
+  --fs-13: 0.8125rem;
+  --fs-14: 0.875rem;
+  --fs-15: 0.9375rem;
+  --fs-16: 1rem;
+  --fs-17: 1.0625rem;
+  --fs-18: 1.125rem;
+  --fs-19: 1.1875rem;
+  --fs-20: 1.25rem;
+  --fs-21: 1.3125rem;
+  --fs-22: 1.375rem;
+  --fs-24: 1.5rem;
+  --fs-26: 1.625rem;
+  --fs-28: 1.75rem;
+  --fs-30: 1.875rem;
+  --fs-32: 2rem;
+  --fs-36: 2.25rem;
+  --fs-40: 2.5rem;
+  --fs-44: 2.75rem;
+  --fs-48: 3rem;
+  --fs-52: 3.25rem;
 }
 
-[data-font-size='small'] {
-  --fs-base: 14px;
-  --fs-page-title: 26px;
-  --fs-page-sub: 14px;
-  --fs-sm: 12px;
-  --fs-xs: 11px;
+html {
+  font-size: 16px;
 }
 
-[data-font-size='medium'] {
-  --fs-base: 16px;
-  --fs-page-title: 28px;
-  --fs-page-sub: 15px;
-  --fs-sm: 13px;
-  --fs-xs: 12px;
+html[data-font-size='small'] {
+  font-size: 14px;
 }
 
-[data-font-size='large'] {
-  --fs-base: 18px;
-  --fs-page-title: 30px;
-  --fs-page-sub: 16px;
-  --fs-sm: 14px;
-  --fs-xs: 13px;
+html[data-font-size='medium'] {
+  font-size: 16px;
+}
+
+html[data-font-size='large'] {
+  font-size: 18px;
 }

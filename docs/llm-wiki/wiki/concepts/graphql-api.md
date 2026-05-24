@@ -1,6 +1,6 @@
 ---
 tags: [concept, api]
-updated: 2026-05-16
+updated: 2026-05-24
 ---
 
 # GraphQL API
@@ -9,7 +9,9 @@ Code-first GraphQL at **`/api/graphql`** (Nest global prefix `api` + path `graph
 
 Config: `apps/api/src/app/app.module.ts` — Apollo driver, `autoSchemaFile: true`, introspection on.
 
-## Resolvers (`domain.resolvers.ts`)
+## Resolvers (in `@be/*` modules)
+
+Resolvers live under `packages/backend/modules/module-*/src/presentation/graphql/`. `apps/api` only bootstraps `GraphQLModule` and imports domain modules.
 
 All use `@UseGuards(GqlAuthGuard)` unless noted.
 
@@ -23,7 +25,7 @@ All use `@UseGuards(GqlAuthGuard)` unless noted.
 | **AdminResolver** | `adminUsers` (+ `requireAdmin`) | `createAdminUser`, `deleteAdminUser` |
 | **SystemResolver** | `systemMailStatus` (super-admin) | `verifySmtpConnection`, `sendTestWelcomeEmail` |
 
-Types defined in `apps/api/src/graphql/graphql.types.ts`.
+Shared ObjectTypes / Inputs: `@be/graphql` (`packages/backend/shared/graphql/`). `apps/api/src/graphql/graphql.types.ts` re-exports for bootstrap.
 
 ## REST (companion)
 

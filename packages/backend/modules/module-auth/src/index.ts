@@ -1,13 +1,15 @@
-export * from './lib/auth';
-export * from './lib/auth.guard';
-export * from './lib/current-user';
-export * from './lib/current-gql-user';
-export * from './lib/dashboard.service';
-export * from './lib/daily-goals.service';
-export * from './lib/practice-sessions.service';
-export * from './lib/users.service';
-export * from './lib/languages.service';
-export * from './lib/students-admin.service';
-export * from './lib/gql-auth.guard';
-export * from './lib/auth-session.service';
-export * from './lib/auth-cookies';
+export { AuthSessionService } from './application/auth-session.service';
+export { DashboardService } from './application/dashboard.service';
+export { AuthGuard, OptionalAuthGuard } from './presentation/guards/auth.guard';
+export { CurrentUser } from './presentation/guards/current-user';
+export { GqlAuthGuard, getGqlRequest } from './presentation/guards/gql-auth.guard';
+export { CurrentGqlUser } from './presentation/guards/current-gql-user';
+export { Roles, ROLES_KEY, type RoleName } from './presentation/guards/roles.decorator';
+export { RolesGuard } from './presentation/guards/roles.guard';
+export {
+  ACCESS_COOKIE,
+  REFRESH_COOKIE,
+  GOOGLE_OAUTH_INTENT_COOKIE,
+  GOOGLE_OAUTH_USER_COOKIE,
+} from './shared/auth-cookies';
+export { AuthModule } from './auth.module';

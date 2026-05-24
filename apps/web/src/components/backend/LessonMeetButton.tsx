@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { Video } from 'lucide-react';
+import { Button } from '../ui';
 import { useLessonsStore } from '../../stores/lessons-store';
 import styles from './backend-panels.module.scss';
 
@@ -49,7 +50,7 @@ export function LessonMeetButton({
   }
 
   return (
-    <button
+    <Button
       type="button"
       className={fallbackClassName}
       disabled
@@ -60,6 +61,6 @@ export function LessonMeetButton({
       <span className={styles.subtitle} style={{ marginLeft: 6 }}>
         (Meet pending)
       </span>
-    </button>
+    </Button>
   );
 }

@@ -44,9 +44,9 @@ export function DailyGoalsCard() {
       ) : isError ? (
         <p className={styles.goalsSubtitle}>
           Could not load goals.{' '}
-          <button type="button" className={styles.goalsRetry} onClick={() => void fetchGoals(true)}>
+          <Button type="button" variant="ghost" className={styles.goalsRetry} onClick={() => void fetchGoals(true)}>
             Retry
-          </button>
+          </Button>
         </p>
       ) : (
         <>
@@ -54,9 +54,10 @@ export function DailyGoalsCard() {
             {total > 0 ? `${completed} of ${total} completed` : 'No goals for today'}
           </div>
           {rows.map((goal) => (
-            <button
+            <Button
               key={goal.id}
               type="button"
+              variant="ghost"
               className={styles.goalItem}
               onClick={() => void handleToggle(goal.id, !goal.done)}
               aria-pressed={goal.done}
@@ -66,7 +67,7 @@ export function DailyGoalsCard() {
               </span>
               <span className={`${styles.goalText} ${goal.done ? styles.goalDone : ''}`}>{goal.text}</span>
               <span className={styles.goalReward}>+{goal.xpReward} XP</span>
-            </button>
+            </Button>
           ))}
         </>
       )}
@@ -115,9 +116,9 @@ export function WordOfDayCard() {
       ) : isError ? (
         <p className={styles.goalsSubtitle}>
           Could not load word.{' '}
-          <button type="button" className={styles.goalsRetry} onClick={() => void fetchWordOfDay(true)}>
+          <Button type="button" variant="ghost" className={styles.goalsRetry} onClick={() => void fetchWordOfDay(true)}>
             Retry
-          </button>
+          </Button>
         </p>
       ) : !word ? (
         <p className={styles.goalsSubtitle}>Add vocabulary cards to get a word of the day.</p>
@@ -170,9 +171,9 @@ export function StreakCalendarCard() {
       ) : isError ? (
         <p className={styles.calSub}>
           Could not load streak.{' '}
-          <button type="button" className={styles.goalsRetry} onClick={() => void fetchStreak(true)}>
+          <Button type="button" variant="ghost" className={styles.goalsRetry} onClick={() => void fetchStreak(true)}>
             Retry
-          </button>
+          </Button>
         </p>
       ) : (
         <p className={styles.calSub}>

@@ -39,14 +39,14 @@
 .title {
   margin: 0;
   font-family: 'Lora', serif;
-  font-size: 20px;
+  font-size: var(--fs-20);
   font-weight: 600;
   color: var(--text-primary, #111827);
 }
 
 .headSubtitle {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: var(--fs-13);
   color: var(--text-faint, #9ca3af);
   text-transform: capitalize;
 }
@@ -82,7 +82,7 @@
 .heroWord {
   margin: 0;
   font-family: 'Lora', serif;
-  font-size: 26px;
+  font-size: var(--fs-26);
   font-weight: 600;
   color: var(--text-primary, #111827);
 }
@@ -94,7 +94,7 @@
 }
 
 .heroBadge {
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 600;
   text-transform: capitalize;
   letter-spacing: 0.04em;
@@ -127,7 +127,7 @@
 
 .blockTitle {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -136,7 +136,7 @@
 
 .blockSubtitle {
   margin: 4px 0 0;
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--text-faint, #9ca3af);
   line-height: 1.4;
 }
@@ -150,14 +150,14 @@
 
 .primaryDef {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--fs-15);
   line-height: 1.55;
   color: var(--text-secondary, #374151);
 }
 
 .primaryExample {
   margin: 10px 0 0;
-  font-size: 13px;
+  font-size: var(--fs-13);
   font-style: italic;
   color: var(--text-tertiary, #6b7280);
   border-left: 2px solid var(--green, #22c55e);
@@ -167,7 +167,7 @@
 
 .paragraph {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   line-height: 1.55;
   color: var(--text-secondary, #374151);
 }
@@ -193,7 +193,7 @@
 }
 
 .translationPos {
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   text-transform: capitalize;
   color: var(--text-secondary, #6b7280);
@@ -206,7 +206,7 @@
 }
 
 .translationPartLabel {
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -216,14 +216,14 @@
 .translationLemma {
   margin: 0;
   font-family: 'Lora', serif;
-  font-size: 22px;
+  font-size: var(--fs-22);
   font-weight: 600;
   color: var(--text-primary, #111827);
 }
 
 .translationText {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   line-height: 1.55;
   color: var(--text-secondary, #374151);
 }
@@ -241,7 +241,7 @@
 }
 
 .posLabel {
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   text-transform: capitalize;
   color: var(--blue, #3b82c4);
@@ -262,14 +262,14 @@
 
 .senseDef {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   line-height: 1.5;
   color: var(--text-secondary, #374151);
 }
 
 .example {
   margin: 6px 0 0;
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-style: italic;
   color: var(--text-tertiary, #6b7280);
   line-height: 1.45;
@@ -277,7 +277,7 @@
 
 .senseMeta {
   margin: 6px 0 0;
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--text-faint, #9ca3af);
   line-height: 1.4;
 }
@@ -306,7 +306,7 @@
 
 .phoneticText {
   font-style: italic;
-  font-size: 14px;
+  font-size: var(--fs-14);
   color: var(--text-tertiary, #6b7280);
 }
 
@@ -329,7 +329,7 @@
 }
 
 .chipGroupLabel {
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -345,7 +345,7 @@
 .chip {
   padding: 5px 10px;
   border-radius: 999px;
-  font-size: 13px;
+  font-size: var(--fs-13);
   background: var(--green-light, #dcfce7);
   color: var(--green-dark, #166534);
   border: 1px solid transparent;
@@ -359,7 +359,7 @@
 .hint,
 .error {
   padding: 16px 18px;
-  font-size: 14px;
+  font-size: var(--fs-14);
 }
 
 .error {

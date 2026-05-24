@@ -1,4 +1,4 @@
-import type { QuizDetailDto, QuizQuestionDto } from '@soenglish/shared-types';
+import type { QuizDetailDto, QuizQuestionDto } from '@pkg/types';
 
 /** GraphQL returns `correct` as string; MCQ UI expects a numeric option index. */
 export function normalizeQuizQuestions(

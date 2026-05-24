@@ -68,6 +68,10 @@ model User {
   /// Teacher assigned to a student. Null for non-student roles.
   teacherId        String?
   teacher          User?             @relation("StudentTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
+  /// Students only: `true` = fixed schedule (recurrence allowed), `false` = flexible.
+  scheduleType     Boolean           @default(true)
+  /// Calendar / roster accent color (#RRGGBB). Assigned on create; staff may edit.
+  displayColor     String?
   students         User[]            @relation("StudentTeacher")
   learningLanguages StudentLearningLanguage[]
 
@@ -498,11 +502,12 @@ model ScheduledLesson {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  teacher     User              @relation("LessonTeacher", fields: [teacherId], references: [id], onDelete: Restrict)
-  student     User              @relation("LessonStudent", fields: [studentId], references: [id], onDelete: Restrict)
-  materials   LessonMaterial[]
-  linkedWords StudentWordCard[]
-  quizzes     Quiz[]
+  teacher          User                   @relation("LessonTeacher", fields: [teacherId], references: [id], onDelete: Restrict)
+  student          User                   @relation("LessonStudent", fields: [studentId], references: [id], onDelete: Restrict)
+  materials        LessonMaterial[]
+  fileAttachments  LessonFileAttachment[]
+  linkedWords      StudentWordCard[]
+  quizzes          Quiz[]
 
   @@index([teacherId, date])
   @@index([studentId, date])
@@ -527,6 +532,19 @@ model LessonMaterial {
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
   lesson    ScheduledLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([lessonId])
+}
+
+model LessonFileAttachment {
+  id         String   @id @default(cuid())
+  lessonId   String
+  fileName   String
+  mimeType   String
+  sizeBytes  Int
+  storageKey String
+  createdAt  DateTime @default(now())
+  lesson     ScheduledLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@index([lessonId])
 }

@@ -1,6 +1,6 @@
 ---
 tags: [entity, vocabulary]
-updated: 2026-05-16
+updated: 2026-05-18
 ---
 
 # Entity: StudentWordCard
@@ -17,6 +17,7 @@ Per-student vocabulary card linking a [[entities/user]] to a [[entities/word]].
 ## API
 
 - GraphQL: `studentVocabulary`, `addStudentWordCard`, `updateCardStatus`
+- Web `STUDENT_VOCABULARY` / card mutations must request `firstSeenAt` and `knownAt` — live statistics (`buildLiveStatisticsDashboard`) bucket added/known by those timestamps.
 - Optional `studentId` arg — RBAC gap — [[concepts/auth-rbac#Known gaps]]
 
 ## Related

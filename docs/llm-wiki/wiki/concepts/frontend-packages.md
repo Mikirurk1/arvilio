@@ -29,7 +29,7 @@ Workspace packages under `packages/frontend/` — intended shared boundaries per
 
 ## Path aliases
 
-`apps/web/tsconfig.json` maps `@soenglish/feature-*` and `@soenglish/shared-ui` for future migration.
+`apps/web/tsconfig.json` maps `@fe/*` feature packages and `@pkg/types` (see [[concepts/package-aliases]]).
 
 ## Migration direction
 

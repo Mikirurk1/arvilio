@@ -1,5 +1,5 @@
 {
-  "name": "@soenglish/module-mail",
+  "name": "@be/mail",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -7,6 +7,10 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@soenglish/email-templates": "*"
+    "@be/email-templates": "*"
+  },
+  "scripts": {
+    "lint": "eslint src",
+    "typecheck": "tsc -p tsconfig.lib.json --noEmit"
   }
 }

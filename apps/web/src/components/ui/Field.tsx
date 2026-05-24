@@ -1,12 +1,25 @@
-import { Children, forwardRef, isValidElement, useId } from 'react';
+'use client';
+
+import {
+  Children,
+  forwardRef,
+  isValidElement,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type {
   ChangeEvent,
   InputHTMLAttributes,
   SelectHTMLAttributes,
   TextareaHTMLAttributes,
 } from 'react';
+import { MOBILE_MAX_WIDTH } from '../../lib/breakpoints';
 import { formatTelMask } from '../../lib/tel-mask';
 import { Button } from './Button';
+import uiStyles from './ui.module.scss';
 
 type SharedProps = {
   label?: string;
@@ -32,7 +45,7 @@ type FieldTextareaProps = SharedProps & {
   as: 'textarea';
 } & TextareaHTMLAttributes<HTMLTextAreaElement>;
 
-type FieldSelectProps = SharedProps & {
+export type FieldSelectProps = SharedProps & {
   as: 'select';
 } & SelectHTMLAttributes<HTMLSelectElement>;
 
@@ -52,6 +65,186 @@ export type FieldProps =
   | FieldSelectProps
   | FieldCheckboxProps
   | FieldFileButtonProps;
+
+type SelectControlProps = {
+  id: string;
+  describedBy?: string;
+  error?: string;
+  hint?: string;
+  errorId: string;
+  hintId: string;
+} & SelectHTMLAttributes<HTMLSelectElement>;
+
+const SelectControl = forwardRef<HTMLSelectElement, SelectControlProps>(function SelectControl(
+  {
+    children,
+    className,
+    value,
+    onChange,
+    disabled,
+    id,
+    describedBy,
+    error,
+    hint,
+    errorId,
+    hintId,
+    ...rest
+  },
+  ref,
+) {
+  const [isMobile, setIsMobile] = useState(false);
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+
+  const options = useMemo(
+    () =>
+      Children.toArray(children)
+        .filter((child): child is React.ReactElement<{ value?: unknown; children?: React.ReactNode }> => {
+          if (!isValidElement(child)) return false;
+          return child.type === 'option';
+        })
+        .map((option, index) => ({
+          key: `${String(option.props.value ?? '')}::${index}`,
+          value: String(option.props.value ?? ''),
+          label: option.props.children,
+          disabled: Boolean((option.props as { disabled?: boolean }).disabled),
+        })),
+    [children],
+  );
+
+  const selectedValue = String(value ?? '');
+  const selectedOption = options.find((option) => option.value === selectedValue);
+
+  useEffect(() => {
+    const media = window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH}px)`);
+    const apply = () => setIsMobile(media.matches);
+    apply();
+    media.addEventListener('change', apply);
+    return () => media.removeEventListener('change', apply);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: MouseEvent) => {
+      if (!wrapperRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    return () => document.removeEventListener('mousedown', onPointerDown);
+  }, [open]);
+
+  const footer = (
+    <>
+      {error ? <small id={errorId}>{error}</small> : null}
+      {hint && !error ? <small id={hintId}>{hint}</small> : null}
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <>
+        <select
+          ref={ref}
+          id={id}
+          className={className}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy}
+          {...rest}
+        >
+          {children}
+        </select>
+        {footer}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div
+        ref={wrapperRef}
+        className={[uiStyles.adaptiveSelectWrap, open ? uiStyles.adaptiveSelectWrapOpen : '']
+          .filter(Boolean)
+          .join(' ')}
+      >
+        <button
+          type="button"
+          className={[
+            className,
+            uiStyles.adaptiveSelectTrigger,
+            open ? uiStyles.adaptiveSelectTriggerOpen : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          disabled={disabled}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-controls={`${id}-listbox`}
+          id={id}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy}
+          onClick={() => setOpen((v) => !v)}
+        >
+          <span className={uiStyles.adaptiveSelectValue}>{selectedOption?.label ?? '—'}</span>
+          <span className={uiStyles.adaptiveSelectChevron} aria-hidden>
+            <svg viewBox="0 0 20 20" width="14" height="14" fill="none">
+              <path
+                d="M5 7.5L10 12.5L15 7.5"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+        </button>
+        {open ? (
+          <div id={`${id}-listbox`} role="listbox" className={uiStyles.adaptiveSelectMenu}>
+            {options.map((option) => (
+              <button
+                key={option.key}
+                type="button"
+                disabled={option.disabled}
+                className={[
+                  uiStyles.adaptiveSelectItem,
+                  option.value === selectedValue ? uiStyles.adaptiveSelectItemActive : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                onClick={() => {
+                  if (option.disabled) return;
+                  onChange?.({
+                    target: { value: option.value },
+                    currentTarget: { value: option.value },
+                  } as unknown as React.ChangeEvent<HTMLSelectElement>);
+                  setOpen(false);
+                }}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        <select
+          ref={ref}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          tabIndex={-1}
+          aria-hidden
+          {...rest}
+          style={{ display: 'none' }}
+        >
+          {children}
+        </select>
+      </div>
+      {footer}
+    </>
+  );
+});
+
+SelectControl.displayName = 'SelectControl';
 
 export const Field = forwardRef<
   HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement,
@@ -132,24 +325,21 @@ export const Field = forwardRef<
     const { as, children, label, hint, error, id: _id, formatValue: _formatValue, ...s } = props;
     void as;
     void label;
-    void hint;
-    void error;
     void _id;
     void _formatValue;
     return (
-      <>
-        <select
-          ref={ref as React.ForwardedRef<HTMLSelectElement>}
-          id={id}
-          aria-invalid={props.error ? true : undefined}
-          aria-describedby={describedBy}
-          {...s}
-        >
-          {children}
-        </select>
-        {props.error ? <small id={errorId}>{props.error}</small> : null}
-        {props.hint && !props.error ? <small id={hintId}>{props.hint}</small> : null}
-      </>
+      <SelectControl
+        ref={ref as React.ForwardedRef<HTMLSelectElement>}
+        id={id}
+        describedBy={describedBy}
+        error={error}
+        hint={hint}
+        errorId={errorId}
+        hintId={hintId}
+        {...s}
+      >
+        {children}
+      </SelectControl>
     );
   }
 

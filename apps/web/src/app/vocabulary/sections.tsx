@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import {
   vocabularyStatusLabel,
   type VocabularyWordStatusName,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 import {
   Check,
   ChevronRight,
@@ -14,7 +14,6 @@ import {
   Trash2,
 } from 'lucide-react';
 import {
-  AdaptiveSelect,
   Badge,
   Button,
   EmptyStateCard,
@@ -23,14 +22,17 @@ import {
   SegmentedControl,
   StatTile,
 } from '../../components/ui';
+import { VerbFormsLine } from '../../components/vocabulary/VerbFormsLine';
 import { WordCardAudioButton } from '../../features/vocabulary/WordCardAudioButton';
 import {
   validateEnglishWordInput,
   VOCABULARY_WORD_NOT_FOUND,
 } from '../../lib/vocabulary-word-input';
-import type {
-  VocabularyListItem,
-  VocabularyPlayQuestion,
+import { glossFromDefinition, pickNativeDefinitions } from '../../lib/word-definitions';
+import {
+  resolveVocabularyGlossesForPosFilter,
+  type VocabularyListItem,
+  type VocabularyPlayQuestion,
 } from '../../lib/vocabulary-ui';
 import { useVocabularyStore } from '../../stores/vocabulary-store';
 import styles from './page.module.scss';
@@ -229,6 +231,9 @@ export function VocabularyWordCards({
   canDelete = false,
   onDelete,
   onOpenWordDetails,
+  posFilter = 'All',
+  nativeLanguageId,
+  englishLanguageId,
   animationIndexOffset = 0,
 }: {
   items: VocabularyListItem[];
@@ -237,6 +242,9 @@ export function VocabularyWordCards({
   canDelete?: boolean;
   onDelete?: (cardId: string) => void;
   onOpenWordDetails?: (wordId: string) => void;
+  posFilter?: string;
+  nativeLanguageId?: string | null;
+  englishLanguageId?: string | null;
   /** Delay index shift when a prepend slot occupies the first grid cell. */
   animationIndexOffset?: number;
 }) {
@@ -246,7 +254,15 @@ export function VocabularyWordCards({
 
   return (
     <>
-      {items.map(({ card, display, status }, i) => (
+      {items.map(({ card, display, status }, i) => {
+        const gloss = resolveVocabularyGlossesForPosFilter(
+          display,
+          posFilter,
+          nativeLanguageId,
+          englishLanguageId,
+          card.word.definition,
+        );
+        return (
         <div
           key={card.id}
           className={styles.wordCard}
@@ -269,26 +285,28 @@ export function VocabularyWordCards({
               {onOpenWordDetails &&
               display.wordId &&
               display.wordId !== 'preview' ? (
-                <button
+                <Button
                   type='button'
+                  variant='ghost'
                   className={styles.wcDetailsBtn}
                   onClick={() => onOpenWordDetails(display.wordId)}
                   aria-label='All information'
                   title='All information'
                 >
                   <Info size={16} aria-hidden />
-                </button>
+                </Button>
               ) : null}
               {canDelete && onDelete ? (
-                <button
+                <Button
                   type='button'
+                  variant='ghost'
                   className={styles.wcDeleteBtn}
                   onClick={() => onDelete(card.id)}
                   aria-label='Remove word'
                   title='Remove word'
                 >
                   <Trash2 size={16} aria-hidden />
-                </button>
+                </Button>
               ) : null}
               <Badge
                 className={`${styles.wcStatus} ${styles[status === 'new' ? 'blue' : status === 'repeated' ? 'amber' : status === 'mistakes_work' ? 'rose' : 'green']}`}
@@ -306,11 +324,18 @@ export function VocabularyWordCards({
               </Badge>
             </div>
           </div>
-          <div className={styles.wcPos}>{display.pos}</div>
+          <div className={styles.wcPos}>{gloss.posLabel}</div>
+          {display.verbForms ? (
+            <VerbFormsLine verbForms={display.verbForms} className={styles.wcVerbForms} />
+          ) : null}
           {display.origin ? (
             <div className={styles.wcOrigin}>{display.origin}</div>
           ) : null}
-          <div className={styles.wcDef}>{display.definition}</div>
+          {gloss.translation &&
+          gloss.translation.trim() !== gloss.definition.trim() ? (
+            <div className={styles.wcTranslation}>{gloss.translation}</div>
+          ) : null}
+          <div className={styles.wcDef}>{gloss.definition}</div>
           {display.example ? (
             <div className={styles.wcExample}>
               &quot;{display.example}&quot;
@@ -331,21 +356,83 @@ export function VocabularyWordCards({
             </div>
           ) : null}
         </div>
-      ))}
+        );
+      })}
     </>
+  );
+}
+
+function formatPosFilterLabel(pos: string): string {
+  if (pos === 'All') return 'All';
+  return pos.charAt(0).toUpperCase() + pos.slice(1);
+}
+
+export function VocabularyFiltersBar({
+  search,
+  setSearch,
+  posFilters,
+  filter,
+  setFilter,
+  lessonFilter,
+  setLessonFilter,
+  lessonOptions,
+}: {
+  search: string;
+  setSearch: (value: string) => void;
+  posFilters: string[];
+  filter: string;
+  setFilter: (value: string) => void;
+  lessonFilter: string;
+  setLessonFilter: (value: string) => void;
+  lessonOptions: Array<{ value: string; label: string }>;
+}) {
+  return (
+    <div className={styles.filters}>
+      <Field
+        className={styles.searchInput}
+        placeholder='Search words...'
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+      />
+      <Field as="select"
+        className={styles.lessonFilterSelect}
+        value={lessonFilter}
+        onChange={event => setLessonFilter(event.target.value)}
+      >
+        {lessonOptions.map(option => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </Field>
+      <SegmentedControl
+        value={filter}
+        onValueChange={setFilter}
+        ariaLabel='Part of speech'
+        className={styles.catFilters}
+        optionClassName={styles.catBtn}
+        activeOptionClassName={styles.catActive}
+        options={posFilters.map(pos => ({
+          value: pos,
+          label: formatPosFilterLabel(pos),
+        }))}
+      />
+    </div>
   );
 }
 
 export function VocabularyListSection({
   search,
   setSearch,
-  categories,
-  filter,
-  setFilter,
+  posFilters,
+  posFilter,
+  setPosFilter,
   lessonFilter,
   setLessonFilter,
   lessonOptions,
   filtered,
+  nativeLanguageId,
+  englishLanguageId,
   onSetStatus,
   canSetLearned,
   canDelete = false,
@@ -357,13 +444,15 @@ export function VocabularyListSection({
 }: {
   search: string;
   setSearch: (value: string) => void;
-  categories: string[];
-  filter: string;
-  setFilter: (value: string) => void;
+  posFilters: string[];
+  posFilter: string;
+  setPosFilter: (value: string) => void;
   lessonFilter: string;
   setLessonFilter: (value: string) => void;
   lessonOptions: Array<{ value: string; label: string }>;
   filtered: VocabularyListItem[];
+  nativeLanguageId?: string | null;
+  englishLanguageId?: string | null;
   onSetStatus: (cardId: string, status: VocabularyWordStatusName) => void;
   /** Students do not see manual status buttons (teacher only). */
   canSetLearned: boolean;
@@ -377,42 +466,24 @@ export function VocabularyListSection({
 }) {
   return (
     <>
-      <div className={styles.filters}>
-        <Field
-          className={styles.searchInput}
-          placeholder='Search words...'
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
-        <AdaptiveSelect
-          className={styles.lessonFilterSelect}
-          value={lessonFilter}
-          onChange={event => setLessonFilter(event.target.value)}
-        >
-          {lessonOptions.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </AdaptiveSelect>
-        <SegmentedControl
-          value={filter}
-          onValueChange={setFilter}
-          ariaLabel='Vocabulary categories'
-          className={styles.catFilters}
-          optionClassName={styles.catBtn}
-          activeOptionClassName={styles.catActive}
-          options={categories.map(category => ({
-            value: category,
-            label: category.charAt(0).toUpperCase() + category.slice(1),
-          }))}
-        />
-      </div>
+      <VocabularyFiltersBar
+        search={search}
+        setSearch={setSearch}
+        posFilters={posFilters}
+        filter={posFilter}
+        setFilter={setPosFilter}
+        lessonFilter={lessonFilter}
+        setLessonFilter={setLessonFilter}
+        lessonOptions={lessonOptions}
+      />
 
       <div className={styles.wordGrid}>
         {prependSlot}
         <VocabularyWordCards
           items={filtered}
+          posFilter={posFilter}
+          nativeLanguageId={nativeLanguageId}
+          englishLanguageId={englishLanguageId}
           onSetStatus={onSetStatus}
           canSetLearned={canSetLearned}
           canDelete={canDelete}
@@ -458,7 +529,15 @@ export function VocabularyFlashcardSection({
   markStatus,
   setCardIndex,
   canSetLearned,
+  isStudent = false,
+  posFilter = 'All',
+  nativeLanguageId,
+  englishLanguageId,
+  lessonTitle,
+  onOpenWordDetails,
+  onRestart,
   isLoading = false,
+  emptyAfterFilters = false,
 }: {
   cardIndex: number;
   total: number;
@@ -468,9 +547,73 @@ export function VocabularyFlashcardSection({
   markStatus: (status: VocabularyWordStatusName) => void;
   setCardIndex: React.Dispatch<React.SetStateAction<number>>;
   canSetLearned: boolean;
+  isStudent?: boolean;
+  posFilter?: string;
+  nativeLanguageId?: string | null;
+  englishLanguageId?: string | null;
+  lessonTitle?: string;
+  onOpenWordDetails?: (wordId: string) => void;
+  onRestart?: () => void;
   isLoading?: boolean;
+  emptyAfterFilters?: boolean;
 }) {
   const display = currentItem?.display;
+  const status = currentItem?.status;
+  const gloss = useMemo(() => {
+    if (!display) return null;
+    return resolveVocabularyGlossesForPosFilter(
+      display,
+      posFilter,
+      nativeLanguageId,
+      englishLanguageId,
+      currentItem?.card.word.definition,
+    );
+  }, [currentItem?.card.word.definition, display, posFilter, nativeLanguageId, englishLanguageId]);
+  const showTranslation = Boolean(
+    gloss?.translation && gloss.translation.trim() !== gloss.definition.trim(),
+  );
+  const nativeGlosses = useMemo(() => {
+    if (!display?.definitions?.length) return [];
+    const rows: Array<{ key: string; partOfSpeech?: string; gloss: string }> = [];
+    for (const row of pickNativeDefinitions(
+      display.definitions,
+      nativeLanguageId,
+      englishLanguageId ?? undefined,
+      posFilter,
+    )) {
+      const gloss = glossFromDefinition(row);
+      if (!gloss) continue;
+      rows.push({
+        key: row.partOfSpeech?.trim() || 'default',
+        partOfSpeech: row.partOfSpeech?.trim() || undefined,
+        gloss,
+      });
+    }
+    return rows;
+  }, [display?.definitions, nativeLanguageId, englishLanguageId, posFilter]);
+
+  const statusActions: Array<{
+    status: VocabularyWordStatusName;
+    label: string;
+    className: string;
+  }> = isStudent
+    ? [
+        { status: 'new', label: 'Still learning', className: styles.fcBtnRed },
+        { status: 'repeated', label: 'Got it', className: styles.fcBtnGreen },
+      ]
+    : [
+        { status: 'new', label: 'Still learning', className: styles.fcBtnRed },
+        { status: 'repeated', label: 'Repeated', className: styles.fcBtnAmber },
+        {
+          status: 'mistakes_work',
+          label: vocabularyStatusLabel('mistakes_work'),
+          className: styles.fcBtnRed,
+        },
+        ...(canSetLearned
+          ? [{ status: 'learned' as const, label: 'Learned', className: styles.fcBtnGreen }]
+          : []),
+      ];
+
   return (
     <div className={`container container--form ${styles.flashcardMode}`}>
       <ProgressHeader
@@ -486,59 +629,159 @@ export function VocabularyFlashcardSection({
           title='Loading…'
           description='Fetching your words.'
         />
+      ) : emptyAfterFilters ? (
+        <EmptyStateCard
+          className={styles.empty}
+          title='No words match filters'
+          description='Try a different lesson, part of speech, or clear search.'
+        />
       ) : display ? (
         <>
-          <div
-            className={`${styles.flashcard} ${flipped ? styles.flipped : ''}`}
-            onClick={() => setFlipped(!flipped)}
-          >
-            <div className={styles.fcFront}>
-              <div className={styles.fcHint}>Click to reveal definition</div>
-              <div className={styles.fcWord}>{display.word}</div>
-              <div className={styles.fcPhonetic}>{display.phonetic}</div>
-              <div className={styles.fcCategory}>
-                {display.category} · {display.pos}
+          <div className={styles.fcCardShell}>
+            {(status || onOpenWordDetails) && (
+              <div
+                className={styles.fcToolbar}
+                onClick={event => event.stopPropagation()}
+              >
+                {status ? (
+                  <Badge
+                    className={`${styles.fcStatus} ${styles[status === 'new' ? 'blue' : status === 'repeated' ? 'amber' : status === 'mistakes_work' ? 'rose' : 'green']}`}
+                    variant={
+                      status === 'new'
+                        ? 'blue'
+                        : status === 'repeated'
+                          ? 'amber'
+                          : status === 'mistakes_work'
+                            ? 'rose'
+                            : 'green'
+                    }
+                  >
+                    {vocabularyStatusLabel(status)}
+                  </Badge>
+                ) : (
+                  <span />
+                )}
+                {onOpenWordDetails &&
+                display.wordId &&
+                display.wordId !== 'preview' ? (
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    className={styles.fcDetailsBtn}
+                    onClick={() => onOpenWordDetails(display.wordId)}
+                    aria-label='All information'
+                    title='All information'
+                  >
+                    <Info size={16} aria-hidden />
+                  </Button>
+                ) : null}
               </div>
-            </div>
-            <div className={styles.fcBack}>
-              <div className={styles.fcDef}>{display.definition}</div>
-              <div className={styles.fcExample}>
-                &quot;{display.example}&quot;
-              </div>
+            )}
+            <div
+              className={styles.flashcard}
+              onClick={() => setFlipped(!flipped)}
+            >
+              {!flipped ? (
+                <div className={styles.fcFront}>
+                  <div className={styles.fcHint}>Tap to reveal</div>
+                  <div className={styles.fcWord}>{display.word}</div>
+                  {display.phonetic || display.audioUrl ? (
+                    <div
+                      className={styles.fcPhoneticRow}
+                      onClick={event => event.stopPropagation()}
+                    >
+                      {display.phonetic ? (
+                        <span className={styles.fcPhonetic}>{display.phonetic}</span>
+                      ) : null}
+                      <WordCardAudioButton
+                        audioUrl={display.audioUrl}
+                        className={styles.fcAudioBtn}
+                        iconSize={18}
+                      />
+                    </div>
+                  ) : null}
+                  {display.partsOfSpeech.length > 0 ? (
+                    <div className={styles.fcPosRow}>
+                      {display.partsOfSpeech.map(pos => {
+                        const isActive =
+                          posFilter !== 'All' &&
+                          pos.toLowerCase() === posFilter.toLowerCase();
+                        return (
+                          <span
+                            key={pos}
+                            className={`${styles.fcPosBadge} ${isActive ? styles.fcPosBadgeActive : ''}`}
+                          >
+                            {formatPosFilterLabel(pos)}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                  {display.verbForms ? (
+                    <VerbFormsLine
+                      verbForms={display.verbForms}
+                      className={styles.fcVerbForms}
+                    />
+                  ) : null}
+                  <div className={styles.fcMeta}>
+                    {display.category && display.category !== 'General' ? (
+                      <span>{display.category}</span>
+                    ) : null}
+                    {lessonTitle ? (
+                      <span className={styles.fcLesson}>{lessonTitle}</span>
+                    ) : null}
+                  </div>
+                  {display.origin ? (
+                    <div className={styles.fcOrigin}>{display.origin}</div>
+                  ) : null}
+                </div>
+              ) : (
+                <div className={styles.fcBack}>
+                  {nativeGlosses.length > 0 ? (
+                    <div className={styles.fcGlossList}>
+                      {nativeGlosses.map(row => (
+                        <div key={row.key} className={styles.fcGlossRow}>
+                          {row.partOfSpeech ? (
+                            <span className={styles.fcGlossPos}>
+                              {formatPosFilterLabel(row.partOfSpeech)}
+                            </span>
+                          ) : null}
+                          <span className={styles.fcGlossText}>{row.gloss}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : showTranslation && gloss ? (
+                    <div className={styles.fcTranslation}>{gloss.translation}</div>
+                  ) : null}
+                  {gloss ? <div className={styles.fcDef}>{gloss.definition}</div> : null}
+                  {display.example ? (
+                    <div className={styles.fcExample}>
+                      &quot;{display.example}&quot;
+                    </div>
+                  ) : null}
+                  {display.synonyms.length > 0 ? (
+                    <div className={styles.fcSynonyms}>
+                      <span className={styles.fcSynonymsLabel}>Synonyms</span>
+                      {display.synonyms.slice(0, 6).join(', ')}
+                    </div>
+                  ) : null}
+                </div>
+              )}
             </div>
           </div>
           {flipped ? (
             <div className={styles.fcButtons}>
-              <Button
-                type='button'
-                className={`${styles.fcBtn} ${styles.fcBtnRed}`}
-                onClick={() => markStatus('new')}
-              >
-                Still learning
-              </Button>
-              <Button
-                type='button'
-                className={`${styles.fcBtn} ${styles.fcBtnAmber}`}
-                onClick={() => markStatus('repeated')}
-              >
-                Repeated
-              </Button>
-              <Button
-                type='button'
-                className={`${styles.fcBtn} ${styles.fcBtnRed}`}
-                onClick={() => markStatus('mistakes_work')}
-              >
-                {vocabularyStatusLabel('mistakes_work')}
-              </Button>
-              {canSetLearned ? (
+              {statusActions.map(action => (
                 <Button
+                  key={action.status}
                   type='button'
-                  className={`${styles.fcBtn} ${styles.fcBtnGreen}`}
-                  onClick={() => markStatus('learned')}
+                  className={`${styles.fcBtn} ${action.className}`}
+                  onClick={() => markStatus(action.status)}
                 >
-                  Learned <Check size={14} />
+                  {action.label}
+                  {action.status === 'learned' ? <Check size={14} /> : null}
                 </Button>
-              ) : null}
+              ))}
             </div>
           ) : null}
           <div className={styles.fcNav}>
@@ -577,8 +820,19 @@ export function VocabularyFlashcardSection({
           title={<div className={styles.fcCompleteTitle}>All done!</div>}
           description={
             <div className={styles.fcCompleteSub}>
-              You reviewed all {total} words. Great work!
+              You went through all {total} words. Great work!
             </div>
+          }
+          action={
+            onRestart && !isStudent ? (
+              <Button
+                type='button'
+                className={styles.fcRestartBtn}
+                onClick={onRestart}
+              >
+                Start over
+              </Button>
+            ) : undefined
           }
         />
       )}
@@ -632,60 +886,78 @@ export function VocabularyPlaySection({
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
   const current = playQuestions[playIndex];
   const complete = playPhase === 'result';
+
+  const playSetupDescription =
+    playPoolCount === 0
+      ? 'No words match your current filters. Add vocabulary or change the source below.'
+      : !canStart
+        ? 'Need at least two words with translations (or definitions) in this set to build answer choices. Add another word or switch the source filter.'
+        : 'You will see an English word and choose the correct translation from four options. New and mistakes work words are prioritized when using the default source.';
+
   return (
     <div className={styles.playWrap}>
       {playPhase === 'setup' ? (
-        <div className={styles.playControls}>
-          <SegmentedControl
-            value={playSource}
-            onValueChange={next =>
-              setPlaySource(next as 'random' | 'last' | 'lesson')
-            }
-            ariaLabel='Play source'
-            className={styles.catFilters}
-            optionClassName={styles.catBtn}
-            activeOptionClassName={styles.catActive}
-            options={[
-              { value: 'random', label: 'Without lesson' },
-              { value: 'last', label: 'Words from last lesson' },
-              { value: 'lesson', label: 'Words by lesson' },
-            ]}
-          />
-          {playSource === 'lesson' ? (
-            <AdaptiveSelect
-              className={styles.lessonFilterSelect}
-              value={playLessonId}
-              onChange={e => setPlayLessonId(e.target.value)}
+        <div className={styles.playSetupCard}>
+          <div className={styles.playSetupHero}>
+            <div className={styles.playSetupIcon} aria-hidden>
+              <Play size={28} />
+            </div>
+            <h2 className={styles.playSetupTitle}>Ready to play</h2>
+            <p
+              className={`${styles.playSetupDescription} ${!canStart && playPoolCount > 0 ? styles.playSetupDescriptionWarn : ''}`}
             >
-              <option value='all'>Without lesson</option>
-              {playLessonOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </AdaptiveSelect>
-          ) : null}
+              {playSetupDescription}
+            </p>
+            {playPoolCount > 0 ? (
+              <p className={styles.playSetupMeta}>
+                {playPoolCount} {playPoolCount === 1 ? 'word' : 'words'} in this set
+              </p>
+            ) : null}
+          </div>
+
+          <div className={styles.playSetupControls}>
+            <span className={styles.playSetupControlsLabel}>Word source</span>
+            <SegmentedControl
+              value={playSource}
+              onValueChange={next =>
+                setPlaySource(next as 'random' | 'last' | 'lesson')
+              }
+              ariaLabel='Play source'
+              className={styles.playSetupSourceToggle}
+              optionClassName={styles.catBtn}
+              activeOptionClassName={styles.catActive}
+              options={[
+                { value: 'random', label: 'Without lesson' },
+                { value: 'last', label: 'Last lesson' },
+                { value: 'lesson', label: 'By lesson' },
+              ]}
+            />
+            {playSource === 'lesson' ? (
+              <Field as="select"
+                className={styles.playSetupLessonSelect}
+                value={playLessonId}
+                onChange={e => setPlayLessonId(e.target.value)}
+              >
+                <option value='all'>Select lesson</option>
+                {playLessonOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Field>
+            ) : null}
+          </div>
+
           <Button
             type='button'
-            className={styles.playStartBtn}
+            className={styles.playSetupPlayBtn}
             disabled={!canStart}
             onClick={onStart}
           >
+            <Play size={18} aria-hidden />
             Play
           </Button>
         </div>
-      ) : null}
-
-      {playPhase === 'setup' ? (
-        <EmptyStateCard
-          className={styles.empty}
-          title='Ready to play'
-          description={
-            !canStart && playPoolCount > 0
-              ? 'Need at least two words with translations (or definitions) in this set to build answer choices. Add another word or switch the source filter.'
-              : 'By default we use words without lesson filter: new + mistakes work first, then all words if needed.'
-          }
-        />
       ) : null}
 
       {playPhase === 'quiz' && current ? (

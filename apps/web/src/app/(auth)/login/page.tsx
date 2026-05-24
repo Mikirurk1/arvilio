@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../../lib/auth-context';
 import { BrandLogo } from '../../../components/brand/BrandLogo';
+import { Button, Field } from '../../../components/ui';
 import styles from '../auth.module.scss';
 
 export default function LoginPage() {
@@ -71,7 +72,7 @@ function LoginPageInner() {
         <form className={styles.actions} onSubmit={onSubmit}>
           <div className={styles.field}>
             <label htmlFor="login-email">Email</label>
-            <input
+            <Field
               id="login-email"
               type="email"
               autoComplete="email"
@@ -82,7 +83,7 @@ function LoginPageInner() {
           </div>
           <div className={styles.field}>
             <label htmlFor="login-password">Password</label>
-            <input
+            <Field
               id="login-password"
               type="password"
               autoComplete="current-password"
@@ -92,9 +93,9 @@ function LoginPageInner() {
               onChange={(event) => setPassword(event.target.value)}
             />
           </div>
-          <button className={styles.primary} type="submit" disabled={submitting}>
+          <Button className={styles.primary} type="submit" disabled={submitting}>
             {submitting ? 'Signing in…' : 'Sign in'}
-          </button>
+          </Button>
         </form>
         <p className={styles.footer}>Need an account? Contact your administrator.</p>
       </div>

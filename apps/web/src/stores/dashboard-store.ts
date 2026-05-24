@@ -7,7 +7,7 @@ import type {
   DashboardSummaryDto,
   LearningStreakDto,
   WordOfDayDto,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 import {
   DAILY_GOALS,
   DASHBOARD_SUMMARY,

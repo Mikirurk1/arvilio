@@ -28,13 +28,16 @@
 }
 
 .editLessonBtn {
-  display: inline-flex;
+  width: 100%;
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 10px 18px;
+  padding: 12px 18px;
   border-radius: 12px;
+  margin-top: 12px;
   border: none;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 650;
   cursor: pointer;
   color: #fff;
@@ -45,9 +48,16 @@
     transform 0.15s ease;
 }
 
-.editLessonBtn:hover {
+.editLessonBtn:hover:not(:disabled):not([data-loading='true']) {
   background: var(--fill-strong-hover);
   transform: translateY(-1px);
+}
+
+.editLessonBtn:disabled,
+.editLessonBtn[data-loading='true'] {
+  cursor: not-allowed;
+  opacity: 0.75;
+  transform: none;
 }
 
 .layout {
@@ -74,7 +84,7 @@
   color: var(--text-tertiary);
   text-decoration: none;
   margin-bottom: 16px;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 500;
   padding: 6px 8px;
   margin-left: -8px;
@@ -112,7 +122,7 @@
 
 .heroTitle {
   margin: 0;
-  font-size: 20px;
+  font-size: var(--fs-20);
   font-weight: 650;
   color: var(--text-primary);
   line-height: 1.25;
@@ -127,7 +137,7 @@
   background: var(--field-bg);
   color: var(--text-primary);
   padding: 8px 10px;
-  font-size: 13px;
+  font-size: var(--fs-13);
   font-weight: 600;
   line-height: 1.35;
   outline: none;
@@ -161,7 +171,7 @@
   appearance: none;
   border-width: 1px;
   border-style: solid;
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -254,12 +264,12 @@
   background: var(--field-bg);
   color: var(--text-primary);
   padding: 8px 10px;
-  font-size: 13px;
+  font-size: var(--fs-13);
 }
 
 .metaLabel {
   display: block;
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -268,7 +278,7 @@
 }
 
 .metaValue {
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.35;
@@ -286,7 +296,7 @@
   border-radius: 10px;
   background: var(--field-bg);
   color: var(--text-primary);
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   line-height: 1.35;
   text-align: left;
@@ -332,7 +342,7 @@
   border-radius: 12px;
   text-decoration: none;
   padding: 12px 14px;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 650;
   transition:
     transform 0.15s ease,
@@ -371,7 +381,7 @@
 
 .description {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-13);
   line-height: 1.55;
   color: var(--text-tertiary);
   padding: 12px 14px;
@@ -383,7 +393,7 @@
 .descriptionWrap :global(textarea) {
   width: 100%;
   min-height: 96px;
-  font-size: 13px;
+  font-size: var(--fs-13);
   line-height: 1.55;
   color: var(--text-primary);
   padding: 12px 14px;
@@ -409,7 +419,7 @@
 
 .fileError {
   margin-top: 10px;
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--rose);
 }
 
@@ -442,7 +452,7 @@
 
 .sectionTitle {
   margin: 0;
-  font-size: 17px;
+  font-size: var(--fs-17);
   font-weight: 650;
   color: var(--text-primary);
   letter-spacing: -0.01em;
@@ -450,20 +460,20 @@
 
 .sectionKicker {
   margin: 4px 0 0;
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--text-tertiary);
 }
 
 .sectionText {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   color: var(--text-primary);
   line-height: 1.6;
 }
 
 .sectionMuted {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   color: var(--text-tertiary);
   font-style: italic;
 }
@@ -505,14 +515,14 @@
 }
 
 .materialTitle {
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .materialMeta {
   margin-top: 3px;
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -550,7 +560,7 @@
   background: var(--field-bg);
   color: var(--text-primary);
   padding: 8px 10px;
-  font-size: 13px;
+  font-size: var(--fs-13);
 }
 
 .fileTags {
@@ -569,7 +579,7 @@
   background: var(--card);
   color: var(--text-secondary);
   padding: 4px 8px;
-  font-size: 12px;
+  font-size: var(--fs-12);
 }
 
 .fileTagRemove {

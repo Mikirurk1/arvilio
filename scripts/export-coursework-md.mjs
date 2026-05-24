@@ -22,6 +22,7 @@ import {
   FUNCTIONAL_EXPANSION,
   USAGE_PERSPECTIVES,
 } from '../docs/coursework/coursework-data.mjs';
+import { CODE_APPENDIX, CODE_APPENDIX_INTRO } from '../docs/coursework/coursework-code-appendix.mjs';
 import {
   REACT_HOOKS_TABLE,
   NEXT_HOOKS_TABLE,
@@ -284,6 +285,23 @@ ${SOURCES.map((s, i) => `${i + 1}. ${s}`).join('\n')}
 ${tableMd(['Пакет', 'Версія', 'Workspace'], DEPS.map((d) => [d.name, d.version, d.packages.join(', ')]))}
 
 ${fig(20)}
+
+### Додаток Г — фрагменти коду (${CODE_APPENDIX.length} розділів)
+
+${CODE_APPENDIX_INTRO}
+
+${CODE_APPENDIX.map(
+  (e) => `#### ${e.id}. ${e.title}
+
+*Файл:* \`${e.file}\`
+
+${e.description}
+
+\`\`\`typescript
+${e.code}
+\`\`\`
+`,
+).join('\n')}
 `;
 
 fs.writeFileSync(path.join(OUT, 'Курсова_SoEnglish.md'), md, 'utf8');

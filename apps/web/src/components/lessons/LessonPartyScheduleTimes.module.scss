@@ -1,0 +1,25 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.primary {
+  font-size: var(--fs-13);
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.secondary {
+  font-size: var(--fs-12);
+  font-weight: 400;
+  color: var(--text-faint);
+  line-height: 1.4;
+}
+
+.zoneTag {
+  color: var(--text-tertiary);
+  font-weight: 400;
+}

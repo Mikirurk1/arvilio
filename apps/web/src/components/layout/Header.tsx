@@ -3,20 +3,18 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Menu } from 'lucide-react';
-import { LESSON_STATUS } from '@soenglish/shared-types';
-import { Button, Field } from '../ui';
+import { LESSON_STATUS } from '@pkg/types';
+import { Button } from '../ui';
 import { getAvatarFallbackInitials } from '../../lib/avatar';
 import { canSchedule, isAdminOrSuper, mockScheduledLessons, USER_ROLE } from '../../mocks';
 import { useActiveUser } from '../../lib/active-user';
 import { useBreakpoint } from '../../hooks/use-breakpoint';
 import { formatInTimeZone } from 'date-fns-tz';
-import {
-  getIanaForTimeZoneId,
-  lessonDateKeyInZone,
-  lessonStartUtc,
-} from '../../lib/lessonTime';
+import { lessonDateKeyInZone, lessonStartUtc } from '../../lib/lessonTime';
+import { useViewerTimezone } from '../../hooks/use-viewer-timezone';
 import { useShellNav } from './shell-nav-context';
 import { BrandLogo } from '../brand/BrandLogo';
+import { HeaderSearch } from './HeaderSearch';
 import styles from './Header.module.scss';
 
 const PAID_LESSONS_REMAINING_PLACEHOLDER = 12;
@@ -41,7 +39,7 @@ export default function Header() {
     return () => window.removeEventListener('mock-user-avatar-updated', onAvatarUpdated);
   }, [activeUser.id]);
 
-  const viewerIana = getIanaForTimeZoneId(activeUser.timezoneId);
+  const { iana: viewerIana } = useViewerTimezone();
   const todayKey = formatInTimeZone(new Date(), viewerIana, 'yyyy-MM-dd');
   const nowTs = Date.now();
   const isActiveLesson = (statusId: (typeof mockScheduledLessons)[number]['statusId']) =>
@@ -86,13 +84,7 @@ export default function Header() {
 
       {!isMobile ? (
         <div className={styles.mid}>
-          <div className={styles.searchBox}>
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden>
-              <circle cx="6.5" cy="6.5" r="4.5" stroke="#b4b4cc" strokeWidth="1.3" />
-              <path d="M10 10l3 3" stroke="#b4b4cc" strokeWidth="1.3" strokeLinecap="round" />
-            </svg>
-            <Field type="text" placeholder="Search lessons, words, topics..." />
-          </div>
+          <HeaderSearch />
         </div>
       ) : null}
 

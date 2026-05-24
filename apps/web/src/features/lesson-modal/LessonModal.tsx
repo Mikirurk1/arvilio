@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { createPortal } from 'react-dom';
 import { Button, Tabs } from '../../components/ui';
@@ -8,14 +8,23 @@ import type { LessonFormState, LessonModalMode } from './types';
 import {
   siteContent,
   USER_ROLE,
-  type MockStudent,
   type UserRole,
 } from '../../mocks';
+import type { LessonPartyOption } from '../../hooks/use-lesson-party-options';
 import styles from './LessonModal.module.scss';
 import { ImagePreviewOverlay } from './ImagePreviewOverlay';
 import { LessonContentTab } from './LessonContentTab';
 import { LessonModalHeader } from './LessonModalHeader';
 import { LessonSetupTab } from './LessonSetupTab';
+import {
+  buildFilePreviewsFromLinks,
+  buildMaterialPreviewsFromLesson,
+} from '../../lib/lesson-file-links';
+import {
+  movePendingLessonFiles,
+  pendingLessonFileKey,
+  registerPendingLessonFile,
+} from '../../lib/lesson-pending-files';
 import {
   filterSafeFiles,
   formatMessage,
@@ -37,8 +46,11 @@ export function LessonModal({
   role,
   canUnlinkSeries,
   onUnlinkSeries,
+  canDeleteSeries,
+  onDeleteSeries,
   canDeleteLesson,
   onDeleteLesson,
+  recurrenceAllowed = true,
   persistedLessonId = null,
   lessonBackendId = null,
   studentBackendId = null,
@@ -48,15 +60,18 @@ export function LessonModal({
   form: LessonFormState;
   onChange: (next: LessonFormState) => void;
   onClose: () => void;
-  onSubmit: () => void;
+  onSubmit: (formOverride?: LessonFormState) => void | Promise<void>;
   onSaveStudentResponse: () => void;
-  students: MockStudent[];
-  teachers: Array<{ id: number; fullName: string }>;
+  students: LessonPartyOption[];
+  teachers: LessonPartyOption[];
   role: UserRole;
   canUnlinkSeries: boolean;
   onUnlinkSeries: () => void;
+  canDeleteSeries: boolean;
+  onDeleteSeries: () => void;
   canDeleteLesson: boolean;
   onDeleteLesson: () => void;
+  recurrenceAllowed?: boolean;
   /** @deprecated Numeric lesson id — prefer lessonBackendId. */
   persistedLessonId?: number | null;
   lessonBackendId?: string | null;
@@ -104,6 +119,11 @@ export function LessonModal({
   const handleHomeworkFilesSelected = (files: FileList | null) => {
     const { safe, rejected, maxFileSizeMb } = filterSafeFiles(files);
     if (safe.length > 0) {
+      for (const item of safe) {
+        if (item.file) {
+          registerPendingLessonFile(pendingLessonFileKey('homework', 'main', item.name), item.file);
+        }
+      }
       onChange({
         ...form,
         homeworkFiles: [...form.homeworkFiles, ...safe.map(item => item.name)],
@@ -125,6 +145,14 @@ export function LessonModal({
   const handleStudentResponseFilesSelected = (files: FileList | null) => {
     const { safe, rejected, maxFileSizeMb } = filterSafeFiles(files);
     if (safe.length > 0) {
+      for (const item of safe) {
+        if (item.file) {
+          registerPendingLessonFile(
+            pendingLessonFileKey('response', 'main', item.name),
+            item.file,
+          );
+        }
+      }
       onChange({
         ...form,
         studentResponseFiles: [
@@ -149,6 +177,11 @@ export function LessonModal({
   const handleMaterialsFilesSelected = (files: FileList | null) => {
     const { safe, rejected, maxFileSizeMb } = filterSafeFiles(files);
     if (safe.length > 0) {
+      for (const item of safe) {
+        if (item.file) {
+          registerPendingLessonFile(pendingLessonFileKey('material', 'draft', item.name), item.file);
+        }
+      }
       setMaterialDraft(prev => ({
         ...prev,
         files: [...prev.files, ...safe.map(item => item.name)],
@@ -182,6 +215,88 @@ export function LessonModal({
   ];
   const canSaveMaterial =
     materialDraft.text.trim().length > 0 || materialDraft.files.length > 0;
+
+  const materialFilesSignature = useMemo(
+    () =>
+      form.materials
+        .map(
+          (m) =>
+            `${m.id}:${m.files.join('|')}:${(m.fileLinks ?? [])
+              .map((l) => l.downloadPath ?? '')
+              .join('|')}`,
+        )
+        .join(';'),
+    [form.materials],
+  );
+
+  useEffect(() => {
+    const fromServer = buildMaterialPreviewsFromLesson(form.materials);
+    if (Object.values(fromServer).some((row) => row.some((url) => url != null))) {
+      setSavedMaterialPreviews(fromServer);
+    }
+  }, [materialFilesSignature, form.materials]);
+
+  const homeworkFilesSignature = useMemo(
+    () =>
+      `${form.homeworkFiles.join('|')}:${(form.homeworkFileLinks ?? [])
+        .map((link) => link.downloadPath ?? '')
+        .join('|')}`,
+    [form.homeworkFiles, form.homeworkFileLinks],
+  );
+
+  useEffect(() => {
+    const fromServer = buildFilePreviewsFromLinks(form.homeworkFiles, form.homeworkFileLinks);
+    if (fromServer.some((url) => url != null)) {
+      setHomeworkPreviews(fromServer);
+    }
+  }, [homeworkFilesSignature, form.homeworkFiles, form.homeworkFileLinks]);
+
+  const studentResponseFilesSignature = useMemo(
+    () =>
+      `${form.studentResponseFiles.join('|')}:${(form.studentResponseFileLinks ?? [])
+        .map((link) => link.downloadPath ?? '')
+        .join('|')}`,
+    [form.studentResponseFiles, form.studentResponseFileLinks],
+  );
+
+  useEffect(() => {
+    const fromServer = buildFilePreviewsFromLinks(
+      form.studentResponseFiles,
+      form.studentResponseFileLinks,
+    );
+    if (fromServer.some((url) => url != null)) {
+      setStudentResponsePreviews(fromServer);
+    }
+  }, [studentResponseFilesSignature, form.studentResponseFiles, form.studentResponseFileLinks]);
+
+  const commitMaterialDraft = useCallback((): LessonFormState => {
+    if (!materialDraft.text.trim() && materialDraft.files.length === 0) return form;
+    const newMaterialId = `mat-${Date.now()}`;
+    movePendingLessonFiles('material', 'draft', 'material', newMaterialId, materialDraft.files);
+    const next: LessonFormState = {
+      ...form,
+      materials: [
+        ...form.materials,
+        {
+          id: newMaterialId,
+          kind: materialDraft.kind,
+          text: materialDraft.text.trim(),
+          files: materialDraft.files,
+        },
+      ],
+    };
+    setSavedMaterialPreviews((prev) => ({ ...prev, [newMaterialId]: [...materialDraftPreviews] }));
+    setMaterialDraft({ kind: materialDraft.kind, text: '', files: [] });
+    setMaterialDraftPreviews([]);
+    onChange(next);
+    return next;
+  }, [form, materialDraft, materialDraftPreviews, onChange]);
+
+  const handleSubmit = useCallback(() => {
+    const activeForm = commitMaterialDraft();
+    void onSubmit(activeForm);
+  }, [commitMaterialDraft, onSubmit]);
+
   const lessonPageRouteId =
     lessonBackendId ??
     (persistedLessonId != null ? String(persistedLessonId) : null);
@@ -212,6 +327,8 @@ export function LessonModal({
           text={text}
           canUnlinkSeries={canUnlinkSeries}
           onUnlinkSeries={onUnlinkSeries}
+          canDeleteSeries={canDeleteSeries}
+          onDeleteSeries={onDeleteSeries}
           canDeleteLesson={canDeleteLesson}
           onDeleteLesson={onDeleteLesson}
           onClose={onClose}
@@ -239,6 +356,7 @@ export function LessonModal({
                     students={students}
                     teachers={teachers}
                     weekDayOptions={weekDayOptions}
+                    recurrenceAllowed={recurrenceAllowed}
                     onChange={onChange}
                   />
                 ),
@@ -314,7 +432,7 @@ export function LessonModal({
             <Button
               type='button'
               className={styles.modalConfirmBtn}
-              onClick={onSubmit}
+              onClick={handleSubmit}
               disabled={!canEdit}
             >
               {mode === 'create'

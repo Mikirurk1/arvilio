@@ -1,8 +1,9 @@
 'use client';
 
+import Image from 'next/image';
 import { FileText } from 'lucide-react';
-import type { ChatMessageDto } from '@soenglish/shared-types';
-import { API_BASE } from '../../lib/api';
+import type { ChatMessageDto } from '@pkg/types';
+import { chatAttachmentHref } from '../../lib/chat-upload';
 import styles from './page.module.scss';
 
 function formatBytes(bytes: number): string {
@@ -25,21 +26,24 @@ export function ChatMessageContent({ message }: { message: ChatMessageDto }) {
             </p>
           ) : attachment.mimeType.startsWith('image/') ? (
             <a
-              href={`${API_BASE}${attachment.url}`}
+              href={chatAttachmentHref(attachment.url)}
               target="_blank"
               rel="noopener noreferrer"
               className={styles.attachmentImageLink}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`${API_BASE}${attachment.url}`}
+              <Image
+                src={chatAttachmentHref(attachment.url)}
                 alt={attachment.fileName}
                 className={styles.attachmentImage}
+                width={480}
+                height={320}
+                style={{ width: '100%', height: 'auto' }}
+                unoptimized
               />
             </a>
           ) : (
             <a
-              href={`${API_BASE}${attachment.url}`}
+              href={chatAttachmentHref(attachment.url)}
               target="_blank"
               rel="noopener noreferrer"
               className={styles.attachmentFileLink}

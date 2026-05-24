@@ -1,2 +1,5 @@
-export * from './lib/be-vocabulary';
-export { PlatformSettingsService } from './lib/platform-settings.service';
+export * from './vocabulary.module';
+export { VocabularyService } from './application/vocabulary.service';
+export { PlatformSettingsService } from './application/platform-settings.service';
+export { DictionaryService } from './application/dictionary.service';
+export { WordEnrichmentService } from './application/word-enrichment.service';

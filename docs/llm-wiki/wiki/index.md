@@ -28,7 +28,10 @@ Catalog of all wiki pages. Updated: 2026-05-16 (full project bootstrap).
 
 ## Concepts
 
+- [[concepts/package-aliases]] — `@pkg/*`, `@be/*`, `@fe/*`, `@app/*` import scopes
+- [[concepts/backend-modules]] — `@be/*` folder layout, layers, GraphQL ownership, tests
 - [[concepts/auth-rbac]] — cookies, JWT, API vs UI auth, known gaps
+- [[concepts/testing]] — Jest unit/integration, Playwright E2E, commands
 - [[concepts/transactional-email]] — welcome email, Mailtrap, templates
 - [[concepts/profile-notifications]] — profile toggles, cron delivery, teacher messages
 - [[concepts/roles-matrix]] — STUDENT / TEACHER / ADMIN / SUPER_ADMIN tables

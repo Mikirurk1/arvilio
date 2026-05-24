@@ -7,7 +7,7 @@ import type {
   MyProfileDto,
   ProfileNotificationPrefs,
   UpdateMyProfileRequestDto,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 import { CHANGE_MY_PASSWORD, MY_PROFILE, UPDATE_MY_PROFILE } from '../graphql/operations';
 import { graphqlRequest } from '../lib/graphql-client';
 import { useAuthStore } from './auth-store';

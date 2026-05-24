@@ -318,6 +318,10 @@ export type UpdateAdminStudentRequestDto = {
   learningLanguageIds?: string[];
   /** Assign or clear the student's teacher (admin / super-admin only). */
   teacherId?: string | null;
+  /** `true` = fixed schedule (recurrence allowed). */
+  scheduleType?: boolean;
+  /** Calendar/roster accent (#RRGGBB). Staff only. */
+  displayColor?: string | null;
 };
 
 export type CreateAdminUserRequestDto = {
@@ -387,6 +391,7 @@ export type AssignableTeacherDto = {
   email: string;
   displayName: string;
   role: 'teacher' | 'admin' | 'super_admin';
+  timezone: string;
 };
 
 /** Backend-driven student row for the teacher/admin Students page. */
@@ -402,6 +407,10 @@ export type StudentSummaryBackendDto = {
   avatarUrl: string | null;
   nativeLanguageId: string | null;
   learningLanguageIds: string[];
+  /** `true` = fixed schedule (recurrence allowed). */
+  scheduleType: boolean;
+  /** User color for calendar (#RRGGBB). */
+  displayColor: string | null;
   createdAt: string;
 };
 
@@ -512,7 +521,7 @@ export type ChatAttachmentDto = {
   fileName: string;
   mimeType: string;
   sizeBytes: number;
-  /** Same-origin path, e.g. `/api/chat/attachments/:id` */
+  /** Path relative to API base, e.g. `/chat/attachments/:id` → browser `/api/chat/attachments/:id` */
   url: string;
   expiresAt: string;
   expired: boolean;
@@ -613,6 +622,12 @@ export type WordDefinitionDto = {
   partOfSpeech?: string;
 };
 
+/** Irregular verb conjugation forms (from curated list). */
+export type VerbFormsDto = {
+  pastSimple: string;
+  pastParticiple: string;
+};
+
 /** Word card (global dictionary entry) returned by the backend. */
 export type WordCardDto = {
   id: string;
@@ -629,6 +644,8 @@ export type WordCardDto = {
   synonyms: string[];
   antonyms: string[];
   source?: string | null;
+  /** Present when the lemma is a known irregular verb with a verb sense. */
+  verbForms?: VerbFormsDto | null;
 };
 
 /** Full word payload for details modal (from DB only). */
@@ -674,6 +691,8 @@ export type QuizCardDto = {
   lessonId?: string | null;
   questionCount: number;
   createdAt: string;
+  /** Latest finished attempt by the current user (owner self-serve or assigned student). */
+  attempt?: QuizAttemptSummaryDto | null;
 };
 
 export type QuizDetailDto = QuizCardDto & {
@@ -693,6 +712,8 @@ export type GenerateQuizRequestDto = {
   questionCount?: number;
   title?: string;
   category?: string;
+  /** When true (default), include past / past-participle drills for irregular verbs in the pool. */
+  includeIrregularVerbDrills?: boolean;
 };
 
 export type QuizAttemptSummaryDto = {
@@ -724,6 +745,13 @@ export type QuizAttemptResultDto = {
   practiceMode: boolean;
 };
 
+/** Download metadata for a lesson file ref (`att:{id}` or legacy filename). */
+export type LessonFileLinkDto = {
+  ref: string;
+  fileName: string;
+  downloadPath: string | null;
+};
+
 /** Scheduled tutoring session — replaces the in-memory mock used by the web app. */
 export type ScheduledLessonBackendDto = {
   id: string;
@@ -737,7 +765,9 @@ export type ScheduledLessonBackendDto = {
   duration: number;
   timezone: string;
   teacherId: string;
+  teacherName: string;
   studentId: string;
+  studentName: string;
   status: 'planned' | 'completed' | 'cancelled';
   cancelReason?: 'student_absent' | 'student_requested_cancel' | 'teacher_absent' | null;
   credited: boolean;
@@ -753,14 +783,17 @@ export type ScheduledLessonBackendDto = {
     kind: 'text' | 'photo' | 'test' | 'file' | 'presentation';
     text: string;
     files: string[];
+    fileLinks: LessonFileLinkDto[];
   }>;
   homework: {
     text: string;
     files: string[];
+    fileLinks: LessonFileLinkDto[];
   };
   studentResponse: {
     text: string;
     files: string[];
+    fileLinks: LessonFileLinkDto[];
     status: 'not_submitted' | 'submitted' | 'needs_rework' | 'accepted';
     homeworkChecked: boolean;
     teacherHomeworkFeedback: string;
@@ -839,14 +872,17 @@ export type ScheduledLessonDto = {
     kind: 'text' | 'photo' | 'test' | 'file' | 'presentation';
     text: string;
     files: string[];
+    fileLinks?: LessonFileLinkDto[];
   }>;
   homework?: {
     text: string;
     files: string[];
+    fileLinks?: LessonFileLinkDto[];
   };
   studentResponse?: {
     text: string;
     files: string[];
+    fileLinks?: LessonFileLinkDto[];
     status?: StudentResponseStatus;
     /** Staff marked the homework submission as reviewed. */
     homeworkChecked?: boolean;

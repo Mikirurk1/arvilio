@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { ScheduledLessonDto } from '@soenglish/shared-types';
-import { LESSON_STATUS } from '@soenglish/shared-types';
+import type { ScheduledLessonDto } from '@pkg/types';
+import { LESSON_STATUS } from '@pkg/types';
 import { USER_ROLE, type UserRole } from '../../../mocks';
 import { getInitialLessons } from '../services/lessonCalendarService';
 import { useLessonsStore } from '../../../stores/lessons-store';

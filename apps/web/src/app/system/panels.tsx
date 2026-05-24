@@ -9,7 +9,7 @@ import {
   SYSTEM_MAIL_STATUS,
   VERIFY_SMTP_CONNECTION,
 } from '../../graphql/operations';
-import type { SendTestEmailResultDto, SystemMailStatusDto } from '@soenglish/shared-types';
+import type { SendTestEmailResultDto, SystemMailStatusDto } from '@pkg/types';
 import { ApiError } from '../../lib/api';
 import styles from './page.module.scss';
 
@@ -85,7 +85,7 @@ export function EmailTestPanel() {
       <header style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
         <Mail size={18} />
         <div>
-          <div style={{ fontWeight: 600, fontSize: 15 }}>Email (SMTP)</div>
+          <div style={{ fontWeight: 600, fontSize: 'var(--fs-15)' }}>Email (SMTP)</div>
           <div className={styles.hint}>
             Sends the <code>welcome-account</code> template with sample credentials. Use Mailtrap inbox to inspect.
           </div>

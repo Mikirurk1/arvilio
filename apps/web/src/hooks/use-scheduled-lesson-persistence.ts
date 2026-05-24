@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import type { ScheduledLessonDto } from '@soenglish/shared-types';
+import type { ScheduledLessonDto } from '@pkg/types';
 import {
   hydrateLessonPartyNames,
   fromBackendLesson,
@@ -15,6 +15,8 @@ import {
   toCreateScheduledLessonBody,
   toUpdateScheduledLessonBody,
 } from '../features/lesson-modal/lessonPersistence';
+import { uploadPendingLessonFiles } from '../lib/lesson-attachment-upload';
+import { takePendingLessonFile } from '../lib/lesson-pending-files';
 import { useLessonPartyOptions } from './use-lesson-party-options';
 import { useLessonsStore } from '../stores/lessons-store';
 
@@ -47,11 +49,12 @@ export function useScheduledLessonPersistence() {
       let result = adaptPersisted(created, candidate);
       const backendId = getLessonBackendId(result);
       if (backendId && lessonHasPersistableContent(candidate)) {
+        const withFiles = await uploadPendingLessonFiles(backendId, candidate, takePendingLessonFile);
         const updated = await updateScheduledLesson(
           backendId,
-          toUpdateScheduledLessonBody({ ...candidate, backendId }),
+          toUpdateScheduledLessonBody({ ...withFiles, backendId }),
         );
-        result = adaptPersisted(updated, candidate);
+        result = adaptPersisted(updated, withFiles);
       }
       return result;
     },
@@ -66,13 +69,15 @@ export function useScheduledLessonPersistence() {
     ) => {
       const backendId = getLessonBackendId(editingLesson);
       if (!backendId) return null;
+      const includeLessonContent = options?.includeLessonContent ?? true;
+      const payload = includeLessonContent
+        ? await uploadPendingLessonFiles(backendId, candidate, takePendingLessonFile)
+        : candidate;
       const updated = await updateScheduledLesson(
         backendId,
-        toUpdateScheduledLessonBody(candidate, {
-          includeLessonContent: options?.includeLessonContent ?? true,
-        }),
+        toUpdateScheduledLessonBody(payload, { includeLessonContent }),
       );
-      return adaptPersisted(updated, candidate);
+      return adaptPersisted(updated, payload);
     },
     [adaptPersisted, updateScheduledLesson],
   );

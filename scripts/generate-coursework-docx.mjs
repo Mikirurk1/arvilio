@@ -70,6 +70,7 @@ import {
   DEPLOYMENT_NOTES,
   STACK_EXTENDED_TABLE,
 } from '../docs/coursework/coursework-expanded.mjs';
+import { CODE_APPENDIX, CODE_APPENDIX_INTRO } from '../docs/coursework/coursework-code-appendix.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
@@ -396,7 +397,7 @@ function section2() {
     h2('2.2. Технології, засоби та мови програмування'),
     h3('2.2.1. PostgreSQL та Prisma'),
     p(
-      `У схемі Prisma визначено моделі: ${PRISMA_MODELS.join('; ')}. Міграції зберігаються в packages/backend/data-access/data-access-prisma/prisma/migrations.`,
+      `У схемі Prisma визначено моделі: ${PRISMA_MODELS.join('; ')}. Міграції зберігаються в packages/backend/data-access/prisma/prisma/migrations.`,
     ),
     ...prose(TECH_POSTGRESQL),
     ...prose(TECH_PRISMA),
@@ -638,6 +639,20 @@ function sectionSources() {
   ];
 }
 
+function appendixCodeSections() {
+  const blocks = [h2('Додаток Г. Фрагменти програмного коду та опис функцій'), p(CODE_APPENDIX_INTRO)];
+  for (const entry of CODE_APPENDIX) {
+    blocks.push(
+      h3(`${entry.id}. ${entry.title}`),
+      p(`Файл: ${entry.file}`),
+      p(entry.description),
+      codeBlock(entry.code),
+      p(''),
+    );
+  }
+  return blocks;
+}
+
 function sectionAppendix() {
   const depRows = DEPS.map((d) => [d.name, d.version, d.packages.slice(0, 2).join(', ')]);
   return [
@@ -658,6 +673,7 @@ function sectionAppendix() {
     bullet('npm run prisma:migrate:dev && npm run prisma:generate'),
     bullet('npm run dev — web :4200, api :3000'),
     bullet('WEB_ORIGIN=http://localhost:4200, NEXT_PUBLIC_SOCKET_URL=http://localhost:3000'),
+    ...appendixCodeSections(),
     ...figure(20, 'Повна ER-діаграма', FIGURES[19][2]),
   ];
 }

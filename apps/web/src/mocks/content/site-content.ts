@@ -94,6 +94,17 @@ export const siteContent = {
   },
   calendar: {
     title: 'Calendar',
+    seriesConfirm: {
+      detachTitle: 'Detach from recurrence?',
+      detachBody:
+        'Moving this lesson to another day will detach it from the series. Other lessons in the series stay on their dates.',
+      detachConfirm: 'Detach and move',
+      applyAllTitle: 'Change all lessons in series?',
+      applyAllBody:
+        'Are you sure you want to change the time for all scheduled lessons in this series?',
+      applyAllConfirm: 'Change all',
+      cancel: 'Cancel',
+    },
     lessonModal: {
       titleCreate: 'Plan lesson',
       titleEdit: 'Edit lesson',
@@ -134,6 +145,10 @@ export const siteContent = {
         credited: 'Credited',
         notCredited: 'Not credited',
       },
+      hints: {
+        recurrenceFixedOnly:
+          'Recurrence is available only for students with a fixed schedule.',
+      },
       weekDays: {
         mon: 'Mon',
         tue: 'Tue',
@@ -173,7 +188,8 @@ export const siteContent = {
       fallbackMaterialLabel: 'Material',
       aria: {
         sections: 'Lesson modal sections',
-        unlinkSeries: 'Unlink series',
+        unlinkSeries: 'Unlink lesson from series',
+        deleteSeries: 'Delete all lessons in this series',
         deleteLesson: 'Delete lesson',
         closeModal: 'Close modal',
         removeFile: 'Remove file',

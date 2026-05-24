@@ -64,7 +64,7 @@
 }
 
 .sectionTitle {
-  font-size: 11px;
+  font-size: var(--fs-11);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-faint);
@@ -89,7 +89,7 @@
   padding: 10px 12px;
   border-radius: 10px;
   color: var(--text-secondary);
-  font-size: 15px;
+  font-size: var(--fs-15);
   font-weight: 400;
   transition: background var(--transition), color var(--transition);
 }
@@ -174,7 +174,7 @@
   background: var(--rose);
   color: #fff;
   border-radius: 10px;
-  font-size: 11px;
+  font-size: var(--fs-11);
   padding: 1px 7px;
   font-weight: 600;
 }
@@ -194,7 +194,7 @@
   transform: translateY(-50%);
   padding: 8px 12px;
   border-radius: 10px;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 500;
   color: var(--text-primary);
   background: var(--card);
@@ -214,7 +214,7 @@
   height: 18px;
   padding: 0 5px;
   border-radius: 9px;
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 700;
   background: var(--rose-light);
   color: var(--rose);

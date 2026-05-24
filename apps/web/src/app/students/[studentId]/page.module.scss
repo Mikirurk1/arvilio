@@ -42,7 +42,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: var(--fs-24);
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -66,28 +66,51 @@
 }
 
 .heroStatVal {
-  font-size: 24px;
+  font-size: var(--fs-24);
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .heroStatLbl {
-  font-size: 11px;
+  font-size: var(--fs-11);
   color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
+.heroChatBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition);
+
+  &:hover {
+    background: var(--card);
+    color: var(--green);
+    border-color: color-mix(in srgb, var(--green) 35%, var(--border));
+  }
+}
+
 .headerName {
   font-family: 'Lora', serif;
-  font-size: 20px;
+  font-size: var(--fs-20);
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 3px;
 }
 
 .headerMeta {
-  font-size: 13px;
+  font-size: var(--fs-13);
   color: var(--text-tertiary);
 }
 
@@ -99,7 +122,7 @@
 }
 
 .badge {
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 500;
   padding: 3px 10px;
   border-radius: 20px;
@@ -150,11 +173,11 @@
 }
 
 .achievementIcon {
-  font-size: 24px;
+  font-size: var(--fs-24);
 }
 
 .achievementLabel {
-  font-size: 10px;
+  font-size: var(--fs-10);
   color: var(--text-tertiary);
   text-align: center;
   line-height: 1.3;
@@ -178,7 +201,7 @@
   padding: 10px 20px;
   border: none;
   background: transparent;
-  font-size: 15px;
+  font-size: var(--fs-15);
   font-weight: 500;
   cursor: pointer;
   color: var(--text-tertiary);
@@ -215,13 +238,20 @@
 
 .tabIntro {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-13);
   color: var(--text-tertiary);
   line-height: 1.5;
 }
 
+.colorFieldHint {
+  margin: 0 0 8px;
+  font-size: var(--fs-12);
+  color: var(--text-tertiary);
+  line-height: 1.4;
+}
+
 .vocabTabIntro {
-  font-size: 14px;
+  font-size: var(--fs-14);
   color: var(--text-secondary);
   line-height: 1.5;
   margin: 0 0 20px;
@@ -235,7 +265,7 @@
   margin-bottom: 20px;
 }
 .studentVocabQuickAddTitle {
-  font-size: 13px;
+  font-size: var(--fs-13);
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 12px;
@@ -252,7 +282,7 @@
   gap: 6px;
 }
 .studentVocabQuickAddLabel {
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 600;
   color: var(--text-tertiary);
   text-transform: uppercase;
@@ -262,7 +292,7 @@
   padding: 10px 14px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  font-size: 15px;
+  font-size: var(--fs-15);
   background: var(--card);
   color: var(--text-primary);
   width: 100%;
@@ -270,7 +300,7 @@
 .studentVocabQuickAddBtn {
   padding: 10px 18px;
   border-radius: 10px;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   border: 1px solid color-mix(in srgb, var(--green) 38%, var(--border));
   background: var(--card);
@@ -299,7 +329,7 @@
 }
 
 .label {
-  font-size: 13px;
+  font-size: var(--fs-13);
   font-weight: 600;
   color: var(--text-tertiary);
   text-transform: uppercase;
@@ -310,7 +340,7 @@
   padding: 10px 14px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  font-size: 15px;
+  font-size: var(--fs-15);
   color: var(--text-primary);
   outline: none;
   transition: border-color var(--transition);
@@ -435,7 +465,7 @@
 }
 
 .errorHint {
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--red-dark, #b42318);
   background: rgba(180, 35, 24, 0.08);
   border: 1px solid rgba(180, 35, 24, 0.2);
@@ -444,7 +474,7 @@
 }
 
 .savedHint {
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--green-dark);
   background: var(--green-light);
   border: 1px solid rgba(22, 169, 122, 0.22);
@@ -458,7 +488,7 @@
   background: var(--fill-strong);
   color: #fff;
   padding: 10px 24px;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -556,12 +586,12 @@
 
 .calendarMeta {
   margin-top: 6px;
-  font-size: 13px;
+  font-size: var(--fs-13);
   color: var(--text-secondary);
 }
 
 .calendarEmpty {
-  font-size: 13px;
+  font-size: var(--fs-13);
   color: var(--text-tertiary);
   border: 1px dashed var(--border);
   border-radius: var(--radius-md);
@@ -570,7 +600,7 @@
 }
 
 .lessonStatusTag {
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 600;
   border-radius: 999px;
   padding: 3px 9px;
@@ -609,7 +639,7 @@
 
 .lessonDetailTitle {
   margin: 0;
-  font-size: 20px;
+  font-size: var(--fs-20);
   line-height: 1.3;
   color: var(--text-primary);
 }
@@ -620,7 +650,7 @@
 }
 
 .lessonTypeBadge {
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -642,7 +672,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: var(--fs-13);
   color: var(--text-secondary);
 }
 
@@ -658,7 +688,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 700;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -668,7 +698,7 @@
 
 .lessonSectionBody {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   line-height: 1.5;
   color: var(--text-primary);
 }
@@ -682,7 +712,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--fs-13);
   color: var(--text-primary);
 }
 
@@ -705,6 +735,19 @@
   gap: 16px;
 }
 
+.quizSectionTitle {
+  margin: 0 0 4px;
+  font-size: var(--fs-17);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.quizSectionSub {
+  margin: 0 0 14px;
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+}
+
 .quizTabCard {
   padding: 0;
   overflow: hidden;
@@ -716,20 +759,20 @@
 
 .quizResultTitle {
   margin: 0 0 8px;
-  font-size: 18px;
+  font-size: var(--fs-18);
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .quizResultScore {
   margin: 0 0 12px;
-  font-size: 15px;
+  font-size: var(--fs-15);
   color: var(--text-secondary);
 }
 
 .quizResultHint {
   margin: 0 0 16px;
-  font-size: 13px;
+  font-size: var(--fs-13);
   color: var(--text-tertiary);
 }
 

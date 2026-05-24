@@ -1,5 +1,5 @@
-import type { QuizQuestionDto, UserRoleId } from '@soenglish/shared-types';
-import { USER_ROLE } from '@soenglish/shared-types';
+import type { QuizQuestionDto, UserRoleId } from '@pkg/types';
+import { USER_ROLE } from '@pkg/types';
 import { mockUsers } from './entities';
 
 export type MockQuizDifficulty = 'easy' | 'medium' | 'hard';

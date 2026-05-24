@@ -1,6 +1,6 @@
 ---
 tags: [synthesis, architecture]
-updated: 2026-05-16
+updated: 2026-05-24
 ---
 
 # Architecture synthesis
@@ -37,9 +37,10 @@ flowchart TB
 | Layer | Location | Responsibility |
 |-------|----------|----------------|
 | Presentation | `apps/web` | Pages, components, Zustand stores, GraphQL operations |
-| API gateway | `apps/api` | GraphQL resolvers, wires modules, global `/api` prefix |
-| Domain | `packages/backend/modules/*` | Business logic, guards on controllers |
-| Data access | `data-access-prisma` | Prisma schema + `PrismaModule` |
+| API gateway | `apps/api` | `GraphQLModule` bootstrap, global `/api` prefix, imports `@be/*` |
+| Domain | `packages/backend/modules/*` | Business logic, REST controllers, GraphQL resolvers (`presentation/`) |
+| Shared GraphQL types | `packages/backend/shared/graphql` (`@be/graphql`) | Code-first ObjectTypes / Inputs |
+| Data access | `data-access/data-access-prisma` | Prisma schema + `PrismaModule` |
 | Shared contracts | `packages/shared/types` | DTOs shared by web and API |
 
 ## GraphQL vs REST
@@ -50,7 +51,7 @@ flowchart TB
 | **REST** module controllers | Lessons, vocabulary, flashcards, progress (under `/api/...`) |
 | **GraphQL** | Dashboard, vocabulary, quizzes, lessons queries/mutations, students, admin users |
 
-Resolver map: [[concepts/graphql-api]].
+Resolver map: [[concepts/graphql-api]]. Resolvers live in `@be/*` modules; see [[concepts/backend-modules]].
 
 ## Module boundaries
 
@@ -61,18 +62,28 @@ flowchart LR
   Vocab["module-vocabulary"]
   Flash["module-flashcards"]
   Prog["module-progress"]
+  Chat["module-chat"]
+  Mail["module-mail"]
+  Notif["module-notifications"]
   Auth --> Lessons
   Auth --> Vocab
   Auth --> Flash
+  Auth --> Mail
+  Auth --> Notif
   Lessons --> Vocab
   Flash --> Vocab
+  Notif --> Mail
+  Chat --> Auth
 ```
 
-- **Auth** — identity, sessions, admin user CRUD, dashboard, student listing
+- **Auth** — identity, sessions, admin user CRUD, dashboard, student listing, dashboard GraphQL
 - **Lessons** — `ScheduledLesson` CRUD, Google Calendar/Meet
 - **Vocabulary** — `Word`, `StudentWordCard`, dictionary enrichment
 - **Flashcards** — `Quiz`, assignments, attempts (despite name, quiz domain)
-- **Progress** — catalog `Lesson`/`Progress`, calendar event helpers
+- **Progress** — calendar REST events for scheduled lessons
+- **Chat** — Socket.IO + REST messaging
+- **Mail** — SMTP, password helpers, email templates
+- **Notifications** — cron, Telegram, streaks, teacher messages
 
 ## Web architecture
 

@@ -35,14 +35,14 @@
 
 .title {
   margin: 0;
-  font-size: 22px;
+  font-size: var(--fs-22);
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .subtitle {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   color: var(--text-tertiary);
 }
 
@@ -52,7 +52,7 @@
   gap: 6px;
 
   label {
-    font-size: 13px;
+    font-size: var(--fs-13);
     color: var(--text-tertiary);
   }
 
@@ -63,7 +63,7 @@
     border: 1px solid var(--border);
     background: var(--field-bg);
     color: var(--text-primary);
-    font-size: 14px;
+    font-size: var(--fs-14);
     outline: none;
     transition: border-color var(--transition), box-shadow var(--transition);
   }
@@ -91,7 +91,7 @@
   padding: 11px 14px;
   border-radius: var(--radius-sm);
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--fs-14);
   cursor: pointer;
   transition: background var(--transition), opacity var(--transition);
 
@@ -112,7 +112,7 @@
   align-items: center;
   gap: 8px;
   color: var(--text-tertiary);
-  font-size: 12px;
+  font-size: var(--fs-12);
 
   &::before,
   &::after {
@@ -134,7 +134,7 @@
   background: var(--card);
   color: var(--text-primary);
   font-weight: 500;
-  font-size: 14px;
+  font-size: var(--fs-14);
   cursor: pointer;
   text-decoration: none;
   transition: border-color var(--transition), background var(--transition);
@@ -147,7 +147,7 @@
 
 .error {
   color: var(--rose);
-  font-size: 13px;
+  font-size: var(--fs-13);
   background: var(--rose-light);
   border-radius: var(--radius-sm);
   padding: 8px 10px;
@@ -155,7 +155,7 @@
 
 .footer {
   text-align: center;
-  font-size: 13px;
+  font-size: var(--fs-13);
   color: var(--text-tertiary);
 
   a {
@@ -177,7 +177,7 @@
     background: var(--field-bg);
     color: var(--text-secondary);
     cursor: pointer;
-    font-size: 13px;
+    font-size: var(--fs-13);
     transition: border-color var(--transition), background var(--transition),
       color var(--transition);
 

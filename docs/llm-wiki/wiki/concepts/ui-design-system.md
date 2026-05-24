@@ -5,7 +5,7 @@ updated: 2026-05-18
 
 # UI design system
 
-SoEnglish UI primitives live in **`apps/web/src/components/ui/`** — not in `@soenglish/shared-ui`.
+SoEnglish UI primitives live in **`apps/web/src/components/ui/`** — not in `@fe/ui`.
 
 ## Styling stack
 
@@ -17,6 +17,7 @@ SoEnglish UI primitives live in **`apps/web/src/components/ui/`** — not in `@s
 | Co-located | `*.module.scss` per page/feature |
 
 - **CSS custom properties** for theming (`data-theme` on `<html>` via `ui-store`)
+- **Font size** (Profile → Appearance): `data-font-size` on `<html>` sets root to 14px / 16px / 18px; component text uses `rem` or `var(--fs-N)` from `styles/tokens/_typography.scss` so the whole shell scales, not only page titles
 - **No Tailwind** in production web app
 - Icons: **lucide-react**
 
@@ -33,7 +34,7 @@ SoEnglish UI primitives live in **`apps/web/src/components/ui/`** — not in `@s
 
 From `components/ui/index.ts`:
 
-**Actions / inputs:** `Button`, `Field`, `AdaptiveSelect`
+**Actions / inputs:** `Button`, `Field`
 
 **Layout:** `PageHeader`, `SectionHeader`, `ProgressHeader`, `ActionRow`, `SettingsToggleRow`
 
@@ -45,12 +46,18 @@ From `components/ui/index.ts`:
 
 **Other:** `Tooltip`
 
+## Agent / contributor conventions
+
+In `apps/web`, prefer project primitives over raw HTML: **`Link`** (`next/link`) not in-app `<a>`, **`Image`** (`next/image`) not `<img>`, **`Field`** not bare `<input>`/`<textarea>`/`<select>`, **`Button`** not `<button>`. Toggle groups → **`SegmentedControl`**. Navigation/data → `next/navigation` (`useRouter`, `useSearchParams`). Rule file: `.cursor/rules/web-component-reuse.mdc`.
+
+**Left as raw HTML (intentional):** external `<a target="_blank">`, hidden file inputs, color-picker hue `<input type="range">`, crop resize handle, `Button`/`Field` internals (select dropdown triggers).
+
 ## Patterns
 
-- `Button` — `data-variant`, `data-active`; optional `classNames` slots
-- `Field` — polymorphic `as`: input | textarea | select | checkbox | file-button
+- `Button` — `data-variant`, `data-active`; optional `classNames` slots. Async `onClick` (returning a Promise) sets `data-loading`, disables the control, and shows a spinner; optional `loading` / `loadingLabel` / `onPendingChange` for controlled or parent-coordinated states (e.g. disable Cancel in a confirm row). **`data-icon-only="true"`** when `children` has no text (Lucide-only children count as icon-only; mixed icon + label does not). Icon-only buttons drop default `6px 12px` padding so fixed-size module classes (e.g. `deleteIconBtn`, `iconBtn`) are not squeezed; pair with explicit `width`/`height`/`padding: 0` and `svg { width; height }` in co-located SCSS when the hit target is smaller than the default button.
+- `Field` — polymorphic `as`: input | textarea | select | checkbox | file-button. **`as="select"`** uses adaptive UI: custom dropdown on desktop, native `<select>` at `≤767px` (see breakpoints below).
 - `SurfaceCard` — polymorphic `as` prop
-- `AdaptiveSelect` — custom dropdown on desktop; native `<select>` at `≤767px` (see breakpoints below)
+- `PageHeader` — optional `back` slot renders before title; `actions` stays on the right
 
 ## Responsive layout
 
@@ -66,7 +73,7 @@ Product NFR: adaptive UI (NFR-05 in coursework). Implementation in `apps/web`:
 
 **SCSS:** `styles/_variables.scss` breakpoints (`xs` 480, `sm` 768, `md` 1024, …); `@mixin respond-to($breakpoint)` in `styles/_mixins.scss` (`max-width` queries).
 
-**JS:** `lib/breakpoints.ts` (`MOBILE_MAX_WIDTH = 767`); `hooks/use-breakpoint.ts` → `{ isMobile, isTablet, isDesktop, tier }`. Shared with `AdaptiveSelect`.
+**JS:** `lib/breakpoints.ts` (`MOBILE_MAX_WIDTH = 767`); `hooks/use-breakpoint.ts` → `{ isMobile, isTablet, isDesktop, tier }`. Shared with `Field` select mode.
 
 **Shell components:** `ShellNavProvider` + `useShellNav()` (`shell-nav-context.tsx`); `MobileNavDrawer`; nav items in `sidebar-nav.tsx` (`SidebarNav`, RBAC + badges); `Header` menu button on mobile.
 
@@ -77,7 +84,8 @@ Product NFR: adaptive UI (NFR-05 in coursework). Implementation in `apps/web`:
 | Folder | Role |
 |--------|------|
 | `components/layout/` | `AppShell`, `Header`, `Sidebar`, `AuthGate` |
-| `components/backend/` | API-connected panels (`LessonMeetButton`, `GenerateQuizPanel`) |
+| `components/backend/` | API-connected panels (`LessonMeetButton`) |
+| `components/quiz/` | `CreateQuizCard`, `QuizAssignmentCards`, play session |
 | `components/profile/`, `lessons/`, `students/`, `statistics/` | Domain composites |
 
 ## Related

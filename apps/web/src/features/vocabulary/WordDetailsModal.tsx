@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { WordDetailsDto } from '@soenglish/shared-types';
+import type { WordDetailsDto } from '@pkg/types';
 import { X } from 'lucide-react';
 import { Button } from '../../components/ui';
 import { WORD_DETAILS } from '../../graphql/operations';

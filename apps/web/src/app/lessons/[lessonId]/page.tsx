@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { LESSON_STATUS } from '@soenglish/shared-types';
+import { LESSON_STATUS } from '@pkg/types';
 import {
   ArrowLeft,
   BookOpen,
@@ -17,7 +17,7 @@ import {
   Save,
   UserRound,
 } from 'lucide-react';
-import { AdaptiveSelect, Button, Field, PageHeader, SurfaceCard } from '../../../components/ui';
+import { Button, Field, PageHeader, SurfaceCard } from '../../../components/ui';
 import {
   canSchedule,
   canView,
@@ -25,6 +25,7 @@ import {
   USER_ROLE,
 } from '../../../mocks';
 import { useActiveUser } from '../../../lib/active-user';
+import { useOptionalAuth } from '../../../lib/auth-context';
 import {
   calculateEndTime,
   fromLessonFormState,
@@ -43,7 +44,18 @@ import { useViewerPartyNumericId } from '../../../hooks/use-viewer-party-numeric
 import { ImagePreviewOverlay } from '../../../features/lesson-modal/ImagePreviewOverlay';
 import { LessonContentTab } from '../../../features/lesson-modal/LessonContentTab';
 import { LessonMeetButton } from '../../../components/backend/LessonMeetButton';
+import { LessonPartyScheduleTimes } from '../../../components/lessons/LessonPartyScheduleTimes';
 import { filterSafeFiles, formatMessage, getFilePlaceholder } from '../../../features/lesson-modal/fileUtils';
+import {
+  buildFilePreviewsFromLinks,
+  buildFilePreviewsResolvingPending,
+  buildMaterialPreviewsFromLesson,
+} from '../../../lib/lesson-file-links';
+import {
+  pendingLessonFileKey,
+  registerPendingLessonFile,
+} from '../../../lib/lesson-pending-files';
+import { resolveLessonPartyLabel } from '../../../lib/lesson-party-display';
 import type { MaterialKind, MaterialKindOption } from '../../../features/lesson-modal/tabTypes';
 import { toast } from '../../../features/notifications';
 import styles from './page.module.scss';
@@ -59,6 +71,7 @@ export default function LessonPage() {
   const lessonIdNum =
     rawLessonId !== undefined && rawLessonId !== '' ? Number(rawLessonId) : Number.NaN;
   const activeUser = useActiveUser();
+  const auth = useOptionalAuth();
   const role = activeUser.role;
   const viewerPartyNumericId = useViewerPartyNumericId();
   const hasAccess = canView('dashboard', role);
@@ -76,7 +89,8 @@ export default function LessonPage() {
   const [homeworkPreviews, setHomeworkPreviews] = useState<Array<string | null>>([]);
   const [studentResponsePreviews, setStudentResponsePreviews] = useState<Array<string | null>>([]);
   const materialsFileInputRef = useRef<HTMLInputElement | null>(null);
-  const { studentOptions, teacherOptions } = useLessonPartyOptions();
+  const { studentOptions, teacherOptions, timezoneIanaByPartyId, nameByNumericId } =
+    useLessonPartyOptions();
   const { persistUpdate } = useScheduledLessonPersistence();
 
   const lesson = useMemo(() => {
@@ -117,24 +131,66 @@ export default function LessonPage() {
       homework: {
         text: lesson.homework?.text ?? '',
         files: [...(lesson.homework?.files ?? [])],
+        fileLinks: lesson.homework?.fileLinks,
       },
       studentResponse: {
         text: lesson.studentResponse?.text ?? '',
         files: [...(lesson.studentResponse?.files ?? [])],
+        fileLinks: lesson.studentResponse?.fileLinks,
         status: lesson.studentResponse?.status ?? 'not_submitted',
         homeworkChecked: lesson.studentResponse?.homeworkChecked ?? false,
         teacherHomeworkFeedback: lesson.studentResponse?.teacherHomeworkFeedback ?? '',
       },
     });
   }, [lesson]);
+
   useEffect(() => {
+    if (!draft) return;
+    const teacherName = resolveLessonPartyLabel(
+      draft.teacherId,
+      draft.teacherName,
+      nameByNumericId,
+    );
+    const studentName = resolveLessonPartyLabel(
+      draft.studentId,
+      draft.studentName,
+      nameByNumericId,
+      role === USER_ROLE.student.id ? activeUser.fullName : '—',
+    );
+    if (teacherName === draft.teacherName && studentName === draft.studentName) return;
+    setDraft((prev) => (prev ? { ...prev, teacherName, studentName } : prev));
+  }, [activeUser.fullName, draft?.id, draft?.studentId, draft?.studentName, draft?.teacherId, draft?.teacherName, nameByNumericId, role]);
+
+  useEffect(() => {
+    if (!lesson) return;
+    setSavedMaterialPreviews(buildMaterialPreviewsFromLesson(lesson.materials));
     setMaterialDraftPreviews([]);
-    setSavedMaterialPreviews({});
-    setHomeworkPreviews([]);
-    setStudentResponsePreviews([]);
     setFileError(null);
     setMaterialsFileStatus(null);
   }, [lesson?.id]);
+
+  useEffect(() => {
+    if (!draft) return;
+    setHomeworkPreviews((prev) =>
+      buildFilePreviewsResolvingPending(
+        draft.homework?.files ?? [],
+        draft.homework?.fileLinks,
+        prev,
+      ),
+    );
+    setStudentResponsePreviews((prev) =>
+      buildFilePreviewsResolvingPending(
+        draft.studentResponse?.files ?? [],
+        draft.studentResponse?.fileLinks,
+        prev,
+      ),
+    );
+  }, [
+    draft?.homework?.files,
+    draft?.homework?.fileLinks,
+    draft?.studentResponse?.files,
+    draft?.studentResponse?.fileLinks,
+  ]);
 
   const statusLabel =
     draft?.statusId === LESSON_STATUS.planned.id
@@ -147,6 +203,25 @@ export default function LessonPage() {
     draft?.statusId === LESSON_STATUS.completed.id;
 
   if (!hasAccess || !lesson || !draft) return null;
+
+  const lessonStudentBackendId =
+    role === USER_ROLE.student.id
+      ? auth?.user?.id ?? null
+      : resolvePartyBackendId(draft.studentId, studentOptions, teacherOptions) ?? null;
+
+  const teacherDisplayName = resolveLessonPartyLabel(
+    draft.teacherId,
+    draft.teacherName,
+    nameByNumericId,
+  );
+  const studentDisplayName = resolveLessonPartyLabel(
+    draft.studentId,
+    draft.studentName,
+    nameByNumericId,
+    role === USER_ROLE.student.id ? activeUser.fullName : '—',
+  );
+  const summaryText = (draft.description ?? '').trim();
+  const showSummaryBlock = canManageLessons || summaryText.length > 0;
 
   const applyUpdate = (next: typeof draft) => setDraft(next);
   const text = siteContent.calendar.lessonModal;
@@ -195,11 +270,17 @@ export default function LessonPage() {
   const handleHomeworkFilesSelected = (files: FileList | null) => {
     const { safe, rejected, maxFileSizeMb } = filterSafeFiles(files);
     if (safe.length > 0) {
+      for (const item of safe) {
+        if (item.file) {
+          registerPendingLessonFile(pendingLessonFileKey('homework', 'main', item.name), item.file);
+        }
+      }
       applyUpdate({
         ...draft,
         homework: {
           text: draft.homework?.text ?? '',
           files: [...(draft.homework?.files ?? []), ...safe.map((item) => item.name)],
+          fileLinks: draft.homework?.fileLinks,
         },
       });
       setHomeworkPreviews((prev) => [...prev, ...safe.map((item) => item.previewUrl)]);
@@ -216,11 +297,20 @@ export default function LessonPage() {
   const handleStudentResponseFilesSelected = (files: FileList | null) => {
     const { safe, rejected, maxFileSizeMb } = filterSafeFiles(files);
     if (safe.length > 0) {
+      for (const item of safe) {
+        if (item.file) {
+          registerPendingLessonFile(
+            pendingLessonFileKey('response', 'main', item.name),
+            item.file,
+          );
+        }
+      }
       applyUpdate({
         ...draft,
         studentResponse: {
           text: draft.studentResponse?.text ?? '',
           files: [...(draft.studentResponse?.files ?? []), ...safe.map((item) => item.name)],
+          fileLinks: draft.studentResponse?.fileLinks,
           status: draft.studentResponse?.status ?? 'submitted',
           homeworkChecked: draft.studentResponse?.homeworkChecked ?? false,
           teacherHomeworkFeedback: draft.studentResponse?.teacherHomeworkFeedback ?? '',
@@ -240,6 +330,11 @@ export default function LessonPage() {
   const handleMaterialsFilesSelected = (files: FileList | null) => {
     const { safe, rejected, maxFileSizeMb } = filterSafeFiles(files);
     if (safe.length > 0) {
+      for (const item of safe) {
+        if (item.file) {
+          registerPendingLessonFile(pendingLessonFileKey('material', 'draft', item.name), item.file);
+        }
+      }
       setMaterialDraft((prev) => ({
         ...prev,
         files: [...prev.files, ...safe.map((item) => item.name)],
@@ -275,6 +370,16 @@ export default function LessonPage() {
       if (persisted) {
         setLessons((prev) => prev.map((item) => (item.id === persisted.id ? persisted : item)));
         setDraft(persisted);
+        setSavedMaterialPreviews(buildMaterialPreviewsFromLesson(persisted.materials));
+        setHomeworkPreviews(
+          buildFilePreviewsFromLinks(persisted.homework?.files ?? [], persisted.homework?.fileLinks),
+        );
+        setStudentResponsePreviews(
+          buildFilePreviewsFromLinks(
+            persisted.studentResponse?.files ?? [],
+            persisted.studentResponse?.fileLinks,
+          ),
+        );
         toast.success('Lesson saved');
         return;
       }
@@ -314,6 +419,12 @@ export default function LessonPage() {
       if (persisted) {
         setLessons((prev) => prev.map((item) => (item.id === persisted.id ? persisted : item)));
         setDraft(persisted);
+        setStudentResponsePreviews(
+          buildFilePreviewsFromLinks(
+            persisted.studentResponse?.files ?? [],
+            persisted.studentResponse?.fileLinks,
+          ),
+        );
         toast.success('Response submitted');
         return;
       }
@@ -326,8 +437,8 @@ export default function LessonPage() {
   };
 
   const persistLesson = () => {
-    if (canManageLessons) saveAllLessonData();
-    else if (canStudentSubmitHomework) saveStudentHomework();
+    if (canManageLessons) return saveAllLessonData();
+    if (canStudentSubmitHomework) return saveStudentHomework();
   };
 
   return (
@@ -362,14 +473,15 @@ export default function LessonPage() {
                 />
               </div>
               <div className={styles.heroBadges}>
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={handleStatusBadgeClick}
                   disabled={!canManageLessons}
                   className={`${styles.statusBadge} ${draft.statusId === LESSON_STATUS.planned.id ? styles.statusPlanned : ''} ${draft.statusId === LESSON_STATUS.completed.id ? styles.statusCompleted : ''} ${draft.statusId === LESSON_STATUS.cancelled.id ? styles.statusCancelled : ''}`}
                 >
                   {statusLabel}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -420,6 +532,21 @@ export default function LessonPage() {
                     }
                   />
                 </div>
+                {draft ? (
+                  <LessonPartyScheduleTimes
+                    wall={{
+                      date: draft.date,
+                      startTime: draft.startTime,
+                      duration: draft.duration,
+                      timezoneId: draft.timezoneId,
+                    }}
+                    role={role}
+                    teacherTimezoneIana={timezoneIanaByPartyId.get(draft.teacherId)}
+                    studentTimezoneIana={timezoneIanaByPartyId.get(draft.studentId)}
+                    teacherName={teacherDisplayName}
+                    studentName={studentDisplayName}
+                  />
+                ) : null}
               </div>
             </div>
             <div className={styles.metaRow}>
@@ -428,12 +555,7 @@ export default function LessonPage() {
               </span>
               <div className={styles.metaText}>
                 <span className={styles.metaLabel}>Teacher</span>
-                <Field
-                  as="input"
-                  className={styles.metaValue}
-                  value={lesson.teacherName}
-                  readOnly
-                />
+                <Field as="input" className={styles.metaValue} value={teacherDisplayName} readOnly />
               </div>
             </div>
             <div className={styles.metaRow}>
@@ -442,24 +564,28 @@ export default function LessonPage() {
               </span>
               <div className={styles.metaText}>
                 <span className={styles.metaLabel}>Student</span>
-                <div className={styles.metaSelectHost}>
-                  <AdaptiveSelect
-                    className={canManageLessons ? styles.metaSelect : styles.metaValue}
-                    value={String(draft.studentId)}
-                    readOnly={!canManageLessons}
-                    onChange={(event) => {
-                      const next = studentOptions.find((item) => item.id === Number(event.target.value));
-                      if (!next) return;
-                      applyUpdate({ ...draft, studentId: next.id, studentName: next.fullName });
-                    }}
-                  >
-                    {studentOptions.map((student) => (
-                      <option key={student.id} value={student.id}>
-                        {student.fullName}
-                      </option>
-                    ))}
-                  </AdaptiveSelect>
-                </div>
+                {canManageLessons ? (
+                  <div className={styles.metaSelectHost}>
+                    <Field
+                      as="select"
+                      className={styles.metaSelect}
+                      value={String(draft.studentId)}
+                      onChange={(event) => {
+                        const next = studentOptions.find((item) => item.id === Number(event.target.value));
+                        if (!next) return;
+                        applyUpdate({ ...draft, studentId: next.id, studentName: next.fullName });
+                      }}
+                    >
+                      {studentOptions.map((student) => (
+                        <option key={student.id} value={student.id}>
+                          {student.fullName}
+                        </option>
+                      ))}
+                    </Field>
+                  </div>
+                ) : (
+                  <Field as="input" className={styles.metaValue} value={studentDisplayName} readOnly />
+                )}
               </div>
             </div>
             {canManageLessons &&
@@ -472,7 +598,7 @@ export default function LessonPage() {
                   <div className={styles.metaText}>
                     <span className={styles.metaLabel}>Cancel reason</span>
                     <div className={styles.metaSelectHost}>
-                      <AdaptiveSelect
+                      <Field as="select"
                         className={styles.metaSelect}
                         value={draft.cancelReason ?? 'student_absent'}
                         onChange={(event) =>
@@ -485,7 +611,7 @@ export default function LessonPage() {
                       <option value="student_absent">Student absent</option>
                       <option value="student_requested_cancel">Student requested cancel</option>
                       <option value="teacher_absent">Teacher absent</option>
-                      </AdaptiveSelect>
+                      </Field>
                     </div>
                   </div>
                 </div>
@@ -496,14 +622,14 @@ export default function LessonPage() {
                   <div className={styles.metaText}>
                     <span className={styles.metaLabel}>Credited</span>
                     <div className={styles.metaSelectHost}>
-                      <AdaptiveSelect
+                      <Field as="select"
                         className={styles.metaSelect}
                         value={draft.credited ? 'yes' : 'no'}
                         onChange={(event) => applyUpdate({ ...draft, credited: event.target.value === 'yes' })}
                       >
                         <option value="yes">Yes</option>
                         <option value="no">No</option>
-                      </AdaptiveSelect>
+                      </Field>
                     </div>
                   </div>
                 </div>
@@ -523,26 +649,28 @@ export default function LessonPage() {
             </Link>
           </div>
 
-          <div className={styles.descriptionWrap}>
-            <Field
-              as="textarea"
-              className={!canManageLessons ? styles.description : undefined}
-              rows={4}
-              value={draft.description ?? ''}
-              readOnly={!canManageLessons}
-              formatValue={(value) =>
-                value && String(value).trim().length > 0
-                  ? String(value)
-                  : lesson.notes ??
-                    'Materials and homework are listed on the right — use this page as your lesson hub.'
-              }
-              placeholder="Short summary for this lesson hub…"
-              onChange={(event) => applyUpdate({ ...draft, description: event.target.value })}
-            />
-          </div>
+          {showSummaryBlock ? (
+            <div className={styles.descriptionWrap}>
+              <Field
+                as="textarea"
+                className={!canManageLessons ? styles.description : undefined}
+                rows={4}
+                value={draft.description ?? ''}
+                readOnly={!canManageLessons}
+                placeholder="Short summary for this lesson hub…"
+                onChange={(event) => applyUpdate({ ...draft, description: event.target.value })}
+              />
+            </div>
+          ) : null}
           {canManageLessons || canStudentSubmitHomework ? (
-            <Button type="button" className={styles.editLessonBtn} onClick={persistLesson}>
-              <Save size={16} />
+            <Button
+              type="button"
+              className={styles.editLessonBtn}
+              onClick={persistLesson}
+              startIcon={<Save size={16} aria-hidden />}
+              loadingLabel={canManageLessons ? 'Saving…' : 'Submitting…'}
+              loadingAriaLabel={canManageLessons ? 'Saving lesson' : 'Submitting response'}
+            >
               Save
             </Button>
           ) : null}
@@ -568,8 +696,10 @@ export default function LessonPage() {
                 materials: draft.materials ?? [],
                 homeworkText: draft.homework?.text ?? '',
                 homeworkFiles: draft.homework?.files ?? [],
+                homeworkFileLinks: draft.homework?.fileLinks,
                 studentResponseText: draft.studentResponse?.text ?? '',
                 studentResponseFiles: draft.studentResponse?.files ?? [],
+                studentResponseFileLinks: draft.studentResponse?.fileLinks,
                 studentResponseStatus: draft.studentResponse?.status ?? 'not_submitted',
                 homeworkChecked: draft.studentResponse?.homeworkChecked ?? false,
                 teacherHomeworkFeedback: draft.studentResponse?.teacherHomeworkFeedback ?? '',
@@ -578,13 +708,10 @@ export default function LessonPage() {
                 credited: draft.credited,
                 recurrence: draft.recurrence,
                 weeklyDays: draft.weeklyDays ?? [],
-                applyToSeries: false,
                 linkedWordIds: draft.linkedWordIds ?? [],
               }}
               lessonBackendId={getLessonBackendId(lesson) ?? null}
-              studentBackendId={
-                resolvePartyBackendId(draft.studentId, studentOptions, teacherOptions) ?? null
-              }
+              studentBackendId={lessonStudentBackendId}
               materialKinds={materialKinds}
               materialDraft={materialDraft}
               setMaterialDraft={setMaterialDraft}
@@ -611,10 +738,12 @@ export default function LessonPage() {
                   homework: {
                     text: form.homeworkText,
                     files: form.homeworkFiles,
+                    fileLinks: form.homeworkFileLinks,
                   },
                   studentResponse: {
                     text: form.studentResponseText,
                     files: form.studentResponseFiles,
+                    fileLinks: form.studentResponseFileLinks,
                     status: form.studentResponseStatus,
                     homeworkChecked: form.homeworkChecked,
                     teacherHomeworkFeedback: form.teacherHomeworkFeedback,

@@ -27,12 +27,47 @@ export default [
     },
   },
   {
+    files: [
+      '**/*.config.cjs',
+      '**/jest*.cjs',
+      '**/create-module-jest-config.cjs',
+      'jest.paths.cjs',
+      'apps/api/scripts/**/*.cjs',
+      'scripts/**/*.cjs',
+    ],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: {
+        require: 'readonly',
+        module: 'readonly',
+        exports: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        process: 'readonly',
+        console: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
+  {
+    files: ['**/*.config.mjs', '**/next.config.mjs'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+      },
+    },
+  },
+  {
     files: ['apps/web/**/*.{ts,tsx,js,jsx}', 'packages/frontend/**/*.{ts,tsx,js,jsx}'],
     rules: {
       'no-restricted-imports': [
         'error',
         {
-          patterns: ['@soenglish/module-*', '@soenglish/backend-*', '@soenglish/data-access-*'],
+          patterns: ['@be/*', '@pkg/*'],
         },
       ],
     },
@@ -49,7 +84,81 @@ export default [
       'no-restricted-imports': [
         'error',
         {
-          patterns: ['@soenglish/feature-*', '@soenglish/shared-ui', '@soenglish/shared-utils'],
+          patterns: ['@fe/*'],
+        },
+      ],
+    },
+  },
+  {
+    files: ['packages/backend/modules/**/src/domain/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: ['@nestjs/*', '@be/prisma'],
+        },
+      ],
+    },
+  },
+  {
+    files: [
+      'packages/backend/modules/**/src/application/**/*.ts',
+      'packages/backend/modules/**/src/presentation/**/*.ts',
+    ],
+    rules: {
+      'max-lines': ['error', { max: 550, skipBlankLines: true, skipComments: true }],
+    },
+  },
+  {
+    files: ['packages/backend/shared/graphql/src/graphql.types.ts'],
+    rules: {
+      'max-lines': 'off',
+    },
+  },
+  {
+    files: ['packages/backend/modules/**/src/domain/**/*.ts'],
+    rules: {
+      'import/no-restricted-paths': [
+        'error',
+        {
+          zones: [
+            {
+              target: './',
+              from: ['**/application/**', '**/presentation/**', '**/infrastructure/**'],
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['packages/backend/modules/**/src/application/**/*.ts'],
+    rules: {
+      'import/no-restricted-paths': [
+        'error',
+        {
+          zones: [
+            {
+              target: './',
+              from: ['**/presentation/**'],
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['apps/api/**/*.{ts,tsx}', 'packages/backend/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@be/*/src/*'],
+              message: 'Import from the package root (@be/module-name), not deep paths.',
+            },
+          ],
         },
       ],
     },

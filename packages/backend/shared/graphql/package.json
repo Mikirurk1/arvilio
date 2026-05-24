@@ -1,0 +1,11 @@
+{
+  "name": "@be/graphql",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit --project ../../../tsconfig.base.json"
+  }
+}

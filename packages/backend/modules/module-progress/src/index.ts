@@ -1,1 +1,1 @@
-export * from './lib/be-progress';
+export * from './progress.module';

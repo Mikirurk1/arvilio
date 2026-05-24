@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { MessageSquarePlus, Users } from 'lucide-react';
 import { useBreakpoint } from '../../hooks/use-breakpoint';
 import { canView } from '../../mocks';
@@ -8,7 +9,7 @@ import { mapAuthRoleToRoleId } from '../../lib/active-user';
 import { isAdminOrSuperKey, useActiveRoleKey } from '../../lib/active-user';
 import { useAuth } from '../../lib/auth-context';
 import { useChatSocket } from '../../hooks/use-chat-socket';
-import { chatUnreadTotal, useChatStore } from '../../stores/chat-store';
+import { useChatStore } from '../../stores/chat-store';
 import { Button } from '../../components/ui';
 import { ChatInbox } from './ChatInbox';
 import { ChatThread } from './ChatThread';
@@ -17,6 +18,9 @@ import { NewDirectModal } from './NewDirectModal';
 import styles from './page.module.scss';
 
 export default function ChatPage() {
+  const searchParams = useSearchParams();
+  const peerFromUrl = searchParams.get('peer');
+  const openedPeerRef = useRef<string | null>(null);
   const { isMobile } = useBreakpoint();
   const { user } = useAuth();
   const roleId = mapAuthRoleToRoleId(user?.role);
@@ -51,11 +55,27 @@ export default function ChatPage() {
     [conversations, activeConversationId],
   );
 
-  const handleSelect = (conversationId: string) => {
-    setActiveConversation(conversationId);
-    void fetchMessages(conversationId, true);
-    void markRead(conversationId);
-  };
+  const handleSelect = useCallback(
+    (conversationId: string) => {
+      setActiveConversation(conversationId);
+      void fetchMessages(conversationId, true);
+      void markRead(conversationId);
+    },
+    [fetchMessages, markRead, setActiveConversation],
+  );
+
+  useEffect(() => {
+    if (!peerFromUrl || openedPeerRef.current === peerFromUrl) return;
+    openedPeerRef.current = peerFromUrl;
+    void (async () => {
+      try {
+        const conversation = await openDirect(peerFromUrl);
+        handleSelect(conversation.id);
+      } catch {
+        openedPeerRef.current = null;
+      }
+    })();
+  }, [peerFromUrl, openDirect, handleSelect]);
 
   const handleBack = () => {
     setActiveConversation(null);

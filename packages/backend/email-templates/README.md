@@ -14,10 +14,10 @@ Transactional emails are React components rendered with [`@react-email/render`](
 ## Build
 
 ```bash
-npm run build -w @soenglish/email-templates
+npm run build -w @be/email-templates
 ```
 
-API `build` and `dev` compile this package first (`dist/`). Nest mail code imports `renderEmail` from `@soenglish/email-templates`.
+API `build` and `dev` compile this package first (`dist/`). Nest mail code imports `renderEmail` from `@be/email-templates`.
 
 ## Preview (optional)
 

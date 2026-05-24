@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button } from '../../components/ui';
+import { Button, Field } from '../../components/ui';
 import { UPDATE_STUDENT_LANGUAGES } from '../../graphql/operations';
 import { graphqlRequest } from '../../lib/graphql-client';
 import { selectLanguagesList, useLanguagesStore } from '../../stores/languages-store';
@@ -69,7 +69,8 @@ export function StudentLearningLanguagesField({
       </p>
       <div className={styles.fieldGroup}>
         <label className={styles.label}>Native language</label>
-        <select
+        <Field
+          as="select"
           className={styles.select}
           value={nativeLanguageId}
           onChange={(e) => setNativeLanguageId(e.target.value)}
@@ -80,7 +81,7 @@ export function StudentLearningLanguagesField({
               {lang.name}
             </option>
           ))}
-        </select>
+        </Field>
       </div>
       <div className={styles.fieldGroup}>
         <span className={styles.label}>Languages learning</span>
@@ -88,14 +89,15 @@ export function StudentLearningLanguagesField({
           {languages.map((lang) => {
             const active = learningLanguageIds.includes(lang.id);
             return (
-              <button
+              <Button
                 key={lang.id}
                 type="button"
+                variant="ghost"
                 className={active ? styles.chipActive : styles.chip}
                 onClick={() => toggleLearning(lang.id)}
               >
                 {lang.name}
-              </button>
+              </Button>
             );
           })}
         </div>

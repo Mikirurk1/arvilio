@@ -1,6 +1,6 @@
 ---
 tags: [concept, auth, security]
-updated: 2026-05-16
+updated: 2026-05-24
 ---
 
 # Auth & RBAC
@@ -33,7 +33,7 @@ sequenceDiagram
 | `soenglish_at` | JWT access token (httpOnly) | 30 min |
 | `soenglish_rt` | Refresh token (httpOnly) | 30 days |
 
-Implementation: `packages/backend/modules/module-auth/src/lib/auth-cookies.ts`, `AuthSessionService`.
+Implementation: [`module-auth/src/shared/auth-cookies.ts`](../../../../packages/backend/modules/module-auth/src/shared/auth-cookies.ts), [`AuthSessionService`](../../../../packages/backend/modules/module-auth/src/application/auth-session.service.ts).
 
 - Access JWT payload: `{ sub: userId }` — **no role in token**
 - Refresh tokens stored as SHA-256 hash in `AuthRefreshToken`
@@ -48,7 +48,7 @@ Public self-registration is **disabled**. New users are created only by administ
 | Google OAuth | **Existing users only** — links Google to a pre-provisioned email; unknown emails redirect to `/login?error=no_account` |
 | `npm run super-admin` CLI | **SUPER_ADMIN** only |
 
-Code: `createUserAsAdmin`, `upsertGoogleUser` in `module-auth/src/lib/auth.ts`.
+Code: `AuthService.createUserAsAdmin`, `AuthService.upsertGoogleUser` in [`module-auth/src/application/auth.service.ts`](../../../../packages/backend/modules/module-auth/src/application/auth.service.ts).
 
 ### Session endpoints
 
@@ -57,8 +57,10 @@ Code: `createUserAsAdmin`, `upsertGoogleUser` in `module-auth/src/lib/auth.ts`.
 - Google sign-in: `/api/auth/google`, `/api/auth/google/callback`
 - Google link (logged in): `/api/auth/google/link` → callback → Profile `?tab=connections&google_linked=1`
 - Facebook link: `/api/auth/facebook/link` → callback → `facebook_linked=1` (env: `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`)
-- Telegram link: `GET /api/auth/telegram/widget-config`; production uses Login Widget → `POST /api/auth/telegram/link` (`/setdomain` in @BotFather). **Localhost:** `POST /api/auth/telegram/link/start` → user opens `t.me/bot?start=link_<token>` → API dev long-polling completes link (`TELEGRAM_DEV_POLLING` or auto when `WEB_ORIGIN` is localhost).
+- Telegram link: `GET /api/auth/telegram/widget-config`; production uses Login Widget → `POST /api/auth/telegram/link` (`/setdomain` in @BotFather). **Localhost:** `POST /api/auth/telegram/link/start` → user opens `t.me/bot?start=link_<token>` → API dev long-polling completes link only when `TELEGRAM_DEV_POLLING=true` in `.env` (opt-in; avoids getUpdates 409 if the bot token is used elsewhere).
 - `myProfile.linkedAccounts` — connection status including `calendarConnected` for Google
+- **Change password:** GraphQL `changeMyPassword(input: { currentPassword, newPassword })` → `UsersService.changeMyPassword` (min 8 chars; rejects OAuth-only accounts without `passwordHash`). Web: Profile → Account tab → modal (`AccountPanel` in `apps/web/src/app/profile/panels.tsx`, `profile-store.changePassword`). Session user `hasPassword` from `GET /api/auth/me` / login payload — when false, UI shows linked-provider hint instead of the Change button.
+- **Delete account:** not exposed in Profile → Account (staff-only via admin panel). `apps/web/src/app/admin/page.tsx` calls `confirmDialog` before `deleteUser` (SUPER_ADMIN rows not deletable in UI).
 
 ## Authorization model (API)
 
@@ -66,13 +68,13 @@ Code: `createUserAsAdmin`, `upsertGoogleUser` in `module-auth/src/lib/auth.ts`.
 
 | Mechanism | Location | Roles |
 |-----------|----------|-------|
-| `requireAdmin()` | `auth.ts`, `AdminResolver` | ADMIN, SUPER_ADMIN |
-| `createUserAsAdmin` | `auth.ts` | ADMIN → student only; SUPER_ADMIN → student/teacher/admin |
-| `UsersService.listStudents` | `users.service.ts` | TEACHER (own students), ADMIN/SUPER_ADMIN (all) |
-| Lesson membership | `be-lessons.ts` | teacher or student on lesson |
-| Most GraphQL mutations | `domain.resolvers.ts` | Authenticated only |
+| `AdminUsersGraphqlService.assertAdmin` | [`admin-users-graphql.service.ts`](../../../../packages/backend/modules/module-auth/src/application/admin-users-graphql.service.ts), `AdminResolver` | ADMIN, SUPER_ADMIN |
+| `createUserAsAdmin` | [`auth.service.ts`](../../../../packages/backend/modules/module-auth/src/application/auth.service.ts) | ADMIN → student only; SUPER_ADMIN → student/teacher/admin |
+| `UsersService.listStudents` | [`users.service.ts`](../../../../packages/backend/modules/module-auth/src/application/users.service.ts) | TEACHER (own students), ADMIN/SUPER_ADMIN (all) |
+| Lesson membership | [`lessons.service.ts`](../../../../packages/backend/modules/module-lessons/src/application/lessons.service.ts) | teacher or student on lesson |
+| Most GraphQL mutations | `@be/*/presentation/graphql/*` | Authenticated only |
 
-There is **no** shared `@Roles()` decorator or `RolesGuard`.
+GraphQL admin/system resolvers use **`@Roles()` + `RolesGuard`** (`module-auth/src/presentation/guards/roles.guard.ts`) together with `GqlAuthGuard`. REST handlers still use ad hoc checks in services where not yet migrated.
 
 ### SUPER_ADMIN via API
 
@@ -88,7 +90,7 @@ There is **no** shared `@Roles()` decorator or `RolesGuard`.
 | Navigation | `Sidebar.tsx` | Hide `/students`, `/admin` by role |
 | Pages | e.g. `admin/page.tsx` | Client empty state if disallowed |
 
-Role mapping: `lib/active-user.ts` maps API `AuthUserDto.role` (snake string) → numeric `USER_ROLE` id from `@soenglish/shared-types`.
+Role mapping: `lib/active-user.ts` maps API `AuthUserDto.role` (snake string) → numeric `USER_ROLE` id from `@pkg/types`.
 
 **Students** see all main nav except `/students` and `/admin`. **Teachers** see `/students`. **Admin/Super-admin** see `/admin`.
 

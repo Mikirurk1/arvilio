@@ -1,0 +1,217 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+/** Children become direct grid items of parent (e.g. .manageGrid). */
+.gridEmbedded {
+  display: contents;
+}
+
+.empty {
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+}
+
+.emptyEmbedded {
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 767px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.cardCompleted {
+  border-color: color-mix(in srgb, var(--green) 35%, var(--border));
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.headMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.deleteIconBtn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background-color 0.15s;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+}
+
+.deleteIconBtn:hover:not(:disabled) {
+  color: var(--rose);
+  border-color: rgba(220, 38, 38, 0.25);
+  background: var(--rose-light);
+}
+
+.deleteIconBtn:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--fs-17);
+  color: var(--text-primary);
+}
+
+.doneIcon {
+  color: var(--green);
+  flex-shrink: 0;
+}
+
+.badges {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.badgeBlue,
+.badgeAmber,
+.badgeGreen,
+.badgeRose {
+  font-size: var(--fs-11);
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+
+.badgeBlue {
+  background: var(--blue-light);
+  color: var(--blue);
+}
+
+.badgeAmber {
+  background: var(--amber-light);
+  color: #9a6200;
+}
+
+.badgeGreen {
+  background: var(--green-light);
+  color: var(--green-dark);
+}
+
+.badgeRose {
+  background: var(--rose-light);
+  color: var(--rose);
+}
+
+.meta {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 10px;
+  color: var(--text-tertiary);
+  font-size: var(--fs-13);
+}
+
+.meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.scoreBox {
+  background: var(--green-light);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.scoreBox span {
+  color: var(--green-dark);
+  font-size: var(--fs-13);
+}
+
+.scoreBox strong {
+  color: var(--green-dark);
+  font-size: var(--fs-20);
+}
+
+.pendingBox {
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+.actionsSingle {
+  grid-template-columns: 1fr;
+}
+
+.playBtn {
+  background: var(--fill-strong);
+  color: white;
+}
+
+.practiceBtn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+}
+

@@ -1,6 +1,6 @@
 'use client';
 
-import type { ScheduledLessonDto } from '@soenglish/shared-types';
+import type { ScheduledLessonDto } from '@pkg/types';
 import {
   createContext,
   useContext,

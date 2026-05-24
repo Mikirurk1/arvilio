@@ -1,15 +1,30 @@
 'use client';
 
-import { ActionRow, AdaptiveSelect, Button, Field, SegmentedControl, SettingsToggleRow, SurfaceCard } from '../../components/ui';
-import { useState, type ReactNode } from 'react';
+import {
+  ActionRow,
+  BodyPortal,
+  Button,
+  Field,
+  SegmentedControl,
+  SettingsToggleRow,
+  SurfaceCard,
+} from '../../components/ui';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import type { ProfileNotificationPrefs } from '@pkg/types';
 import { useRouter } from 'next/navigation';
-import { Check } from 'lucide-react';
+import { Check, X } from 'lucide-react';
+import { toast } from '../../features/notifications';
+import { useProfileStore } from '../../stores/profile-store';
 import { useAuth } from '../../lib/auth-context';
-import type { ProfileLinkedAccountDto } from '@soenglish/shared-types';
+import type { ProfileLinkedAccountDto } from '@pkg/types';
 import { TelegramConnectButton } from '../../components/profile/TelegramConnectButton';
 import { FACEBOOK_LINK_URL, GOOGLE_LINK_URL } from '../../lib/api';
 import { ProfileAchievementsPanel } from '../../components/profile/ProfileAchievementsPanel';
 import { StatisticsDashboard } from '../../components/statistics';
+import { useProfileLiveStats } from '../../hooks/use-profile-live-stats';
+import { useOptionalAuth } from '../../lib/auth-context';
+import { filterLessonsForViewer } from '../../lib/live-statistics-dashboard';
+import { useActiveUser } from '../../lib/active-user';
 import {
   formatTimeZoneOptionLabel,
   PROFICIENCY_LEVEL,
@@ -18,55 +33,51 @@ import {
   getTimeZoneById,
   type LinkedAccountLink,
   type ProficiencyLevelId,
-  type TimeZoneId,
   type UserRole,
 } from '../../mocks';
+import type { ProfileFormState } from '../../lib/profile-form';
+import { selectLanguagesList, useLanguagesStore } from '../../stores/languages-store';
 import styles from './page.module.scss';
-
-type ProfileFormState = {
-  name: string;
-  email: string;
-  telegram: string;
-  phone: string;
-  timezoneId: TimeZoneId;
-  nativeLanguage: string;
-  proficiencyLevelId: ProficiencyLevelId;
-  bio: string;
-};
-
-type NotificationsState = {
-  lessonReminder: boolean;
-  streakAlert: boolean;
-  weeklyReport: boolean;
-  newVocab: boolean;
-  teacherMessages: boolean;
-};
 
 export function ProfileDetailsPanel({
   form,
   setForm,
   saved,
+  saving = false,
+  saveError = null,
+  loading = false,
   viewerRole,
   onSave,
 }: {
   form: ProfileFormState;
   setForm: React.Dispatch<React.SetStateAction<ProfileFormState>>;
   saved: boolean;
+  saving?: boolean;
+  saveError?: string | null;
+  loading?: boolean;
   viewerRole: UserRole;
   onSave: () => void;
 }) {
   const isStudentViewer = viewerRole === USER_ROLE.student.id;
+  const languages = useLanguagesStore(selectLanguagesList);
+  const fetchLanguages = useLanguagesStore((s) => s.fetchLanguages);
+
+  useEffect(() => {
+    void fetchLanguages();
+  }, [fetchLanguages]);
+
+  const fieldsDisabled = loading || saving;
 
   return (
     <SurfaceCard className={styles.formCard}>
       <div className={styles.formGrid}>
         <div className={styles.fieldGroup}>
           <label className={styles.label}>Full name</label>
-          <Field className={styles.input} value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+          <Field className={styles.input} value={form.name} disabled={fieldsDisabled} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
         </div>
         <div className={styles.fieldGroup}>
           <label className={styles.label}>Email</label>
-          <Field className={styles.input} value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
+          <Field className={styles.input} value={form.email} disabled={fieldsDisabled} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
         </div>
         <div className={styles.fieldGroup}>
           <label className={styles.label}>Phone</label>
@@ -76,18 +87,20 @@ export function ProfileDetailsPanel({
             value={form.phone}
             placeholder="+380 67 123 4567"
             autoComplete="tel"
+            disabled={fieldsDisabled}
             onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
           />
         </div>
         <div className={styles.fieldGroup}>
           <label className={styles.label}>Telegram</label>
-          <Field className={styles.input} value={form.telegram} onChange={(e) => setForm((f) => ({ ...f, telegram: e.target.value }))} />
+          <Field className={styles.input} value={form.telegram} disabled={fieldsDisabled} onChange={(e) => setForm((f) => ({ ...f, telegram: e.target.value }))} />
         </div>
         <div className={styles.fieldGroup}>
           <label className={styles.label}>Timezone</label>
-          <AdaptiveSelect
+          <Field as="select"
             className={styles.input}
             value={String(form.timezoneId)}
+            disabled={fieldsDisabled}
             onChange={(e) =>
               setForm((f) => ({ ...f, timezoneId: Number(e.target.value) as ProfileFormState['timezoneId'] }))
             }
@@ -100,24 +113,32 @@ export function ProfileDetailsPanel({
                 </option>
               ) : null;
             })}
-          </AdaptiveSelect>
+          </Field>
         </div>
         <div className={styles.fieldGroup}>
           <label className={styles.label}>Native language</label>
-          <AdaptiveSelect className={styles.input} value={form.nativeLanguage} onChange={(e) => setForm((f) => ({ ...f, nativeLanguage: e.target.value }))}>
-            <option>Ukrainian</option>
-            <option>Russian</option>
-            <option>Polish</option>
-            <option>German</option>
-            <option>French</option>
-          </AdaptiveSelect>
+          <Field
+            as="select"
+            className={styles.input}
+            value={form.nativeLanguageId}
+            disabled={fieldsDisabled}
+            onChange={(e) => setForm((f) => ({ ...f, nativeLanguageId: e.target.value }))}
+          >
+            <option value="">—</option>
+            {languages.map((lang) => (
+              <option key={lang.id} value={lang.id}>
+                {lang.name}
+              </option>
+            ))}
+          </Field>
         </div>
         <div className={styles.fieldGroup}>
           <label className={styles.label}>Proficiency</label>
-          <AdaptiveSelect
+          <Field as="select"
             className={styles.input}
             value={String(form.proficiencyLevelId)}
             readOnly={isStudentViewer}
+            disabled={fieldsDisabled}
             onChange={(e) =>
               setForm((f) => ({
                 ...f,
@@ -133,21 +154,26 @@ export function ProfileDetailsPanel({
                 </option>
               );
             })}
-          </AdaptiveSelect>
+          </Field>
         </div>
       </div>
       <div className={styles.fieldGroup} style={{ marginTop: 16 }}>
         <label className={styles.label}>Bio</label>
-        <Field as="textarea" className={`${styles.input} ${styles.textarea}`} value={form.bio} onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))} rows={3} />
+        <Field as="textarea" className={`${styles.input} ${styles.textarea}`} value={form.bio} disabled={fieldsDisabled} onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))} rows={3} />
       </div>
       <div className={styles.formFooter}>
-        {saved && (
+        {saveError ? (
+          <span className={styles.savedMsg} style={{ color: 'var(--red, #c00)' }}>
+            {saveError}
+          </span>
+        ) : null}
+        {saved && !saveError ? (
           <span className={styles.savedMsg}>
             <Check size={14} /> Changes saved
           </span>
-        )}
-        <Button type="button" className={styles.saveBtn} onClick={onSave}>
-          Save changes
+        ) : null}
+        <Button type="button" className={styles.saveBtn} disabled={fieldsDisabled} onClick={onSave}>
+          {saving ? 'Saving…' : 'Save changes'}
         </Button>
       </div>
     </SurfaceCard>
@@ -261,12 +287,28 @@ export function LinkedAccountsPanel({
 export function NotificationsPanel({
   notifications,
   setNotifications,
+  saved = false,
+  saving = false,
+  saveError = null,
 }: {
-  notifications: NotificationsState;
-  setNotifications: React.Dispatch<React.SetStateAction<NotificationsState>>;
+  notifications: ProfileNotificationPrefs;
+  setNotifications: React.Dispatch<React.SetStateAction<ProfileNotificationPrefs>>;
+  saved?: boolean;
+  saving?: boolean;
+  saveError?: string | null;
 }) {
   return (
     <SurfaceCard className={styles.formCard}>
+      {saveError ? (
+        <p className={styles.panelHint} style={{ color: 'var(--red, #c00)' }}>
+          {saveError}
+        </p>
+      ) : null}
+      {saved && !saveError ? (
+        <p className={styles.savedMsg}>
+          <Check size={14} /> Preferences saved
+        </p>
+      ) : null}
       <p className={styles.panelHint}>
         Email is sent when SMTP is configured. Telegram messages are sent when you connect Telegram under
         Connections (server needs TELEGRAM_BOT_TOKEN in .env).
@@ -289,7 +331,8 @@ export function NotificationsPanel({
           thumbClassName={styles.toggleThumb}
           label={label}
           description={desc}
-          checked={notifications[key as keyof NotificationsState]}
+          checked={notifications[key as keyof ProfileNotificationPrefs]}
+          disabled={saving}
           onChange={(value) => setNotifications((n) => ({ ...n, [key]: value }))}
         />
       ))}
@@ -351,10 +394,196 @@ export function AppearancePanel({
   );
 }
 
+function formatLinkedProviderLabel(provider: string): string {
+  if (provider === 'google') return 'Google';
+  if (provider === 'facebook') return 'Facebook';
+  if (provider === 'telegram') return 'Telegram';
+  return provider;
+}
+
+function ChangePasswordModal({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
+  const changePassword = useProfileStore((s) => s.changePassword);
+  const passwordMutating = useProfileStore((s) => s.passwordMutating);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setFormError(null);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !passwordMutating) onClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open, onClose, passwordMutating]);
+
+  if (!open) return null;
+
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    setFormError(null);
+    if (!currentPassword.trim()) {
+      setFormError('Enter your current password.');
+      return;
+    }
+    if (newPassword.length < 8) {
+      setFormError('New password must be at least 8 characters.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setFormError('New passwords do not match.');
+      return;
+    }
+    try {
+      await changePassword({ currentPassword, newPassword });
+      toast.success('Password updated', 'Use your new password next time you sign in.');
+      onClose();
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : 'Failed to change password');
+    }
+  };
+
+  return (
+    <BodyPortal>
+      <div
+        className={styles.passwordModalBackdrop}
+        onClick={() => {
+          if (!passwordMutating) onClose();
+        }}
+      >
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="change-password-title"
+          className={styles.passwordModal}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <header className={styles.passwordModalHead}>
+            <div className={styles.passwordModalHeadText}>
+              <h3 id="change-password-title" className={styles.passwordModalTitle}>
+                Change password
+              </h3>
+              <p className={styles.passwordModalText}>
+                Enter your current password, then choose a new one (at least 8 characters).
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              className={styles.passwordModalClose}
+              aria-label="Close"
+              disabled={passwordMutating}
+              onClick={onClose}
+            >
+              <X size={16} aria-hidden />
+            </Button>
+          </header>
+
+          <form className={styles.passwordModalForm} onSubmit={(event) => void handleSubmit(event)}>
+            {formError ? <p className={styles.passwordModalError}>{formError}</p> : null}
+
+            <div className={styles.passwordModalFields}>
+              <div className={styles.fieldGroup}>
+                <label className={styles.label} htmlFor="current-password">
+                  Current password
+                </label>
+                <Field
+                  id="current-password"
+                  type="password"
+                  className={styles.input}
+                  autoComplete="current-password"
+                  value={currentPassword}
+                  onChange={(event) => setCurrentPassword(event.target.value)}
+                  disabled={passwordMutating}
+                  required
+                />
+              </div>
+              <div className={styles.fieldGroup}>
+                <label className={styles.label} htmlFor="new-password">
+                  New password
+                </label>
+                <Field
+                  id="new-password"
+                  type="password"
+                  className={styles.input}
+                  autoComplete="new-password"
+                  value={newPassword}
+                  onChange={(event) => setNewPassword(event.target.value)}
+                  disabled={passwordMutating}
+                  minLength={8}
+                  required
+                />
+              </div>
+              <div className={styles.fieldGroup}>
+                <label className={styles.label} htmlFor="confirm-password">
+                  Confirm new password
+                </label>
+                <Field
+                  id="confirm-password"
+                  type="password"
+                  className={styles.input}
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  disabled={passwordMutating}
+                  minLength={8}
+                  required
+                />
+              </div>
+            </div>
+
+            <footer className={styles.passwordModalActions}>
+              <Button
+                type="button"
+                variant="ghost"
+                className={styles.passwordModalCancel}
+                disabled={passwordMutating}
+                onClick={onClose}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className={styles.passwordModalSubmit}
+                loading={passwordMutating}
+                loadingLabel="Saving…"
+              >
+                Update password
+              </Button>
+            </footer>
+          </form>
+        </div>
+      </div>
+    </BodyPortal>
+  );
+}
+
 export function AccountPanel() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const canChangePassword = user?.hasPassword ?? false;
+  const linkedProviders = user?.linkedProviders ?? [];
+  const passwordUnavailableHint =
+    linkedProviders.length > 0
+      ? `Your account signs in with ${linkedProviders.map(formatLinkedProviderLabel).join(', ')}. Set a password there or contact support.`
+      : 'Password sign-in is not enabled for this account.';
 
   const handleLogout = async () => {
     if (loggingOut) return;
@@ -368,7 +597,9 @@ export function AccountPanel() {
   };
 
   return (
-    <SurfaceCard className={styles.formCard}>
+    <>
+      <ChangePasswordModal open={passwordModalOpen} onClose={() => setPasswordModalOpen(false)} />
+      <SurfaceCard className={styles.formCard}>
       {user ? (
         <div className={styles.accountSession}>
           <div className={styles.sectionLabel}>Session</div>
@@ -398,27 +629,24 @@ export function AccountPanel() {
           titleClassName={styles.accountItemTitle}
           descriptionClassName={styles.accountItemDesc}
           title="Change password"
-          description="Update your login password"
-          action={<Button type="button" className={styles.actionBtn}>Change</Button>}
-        />
-        <ActionRow
-          className={styles.accountItem}
-          titleClassName={styles.accountItemTitle}
-          descriptionClassName={styles.accountItemDesc}
-          title="Export my data"
-          description="Download your learning history and vocabulary"
-          action={<Button type="button" className={styles.actionBtn}>Export</Button>}
-        />
-        <ActionRow
-          className={`${styles.accountItem} ${styles.dangerItem}`}
-          titleClassName={styles.accountItemTitle}
-          descriptionClassName={styles.accountItemDesc}
-          title={<span style={{ color: 'var(--rose)' }}>Delete account</span>}
-          description="Permanently delete all your data. This cannot be undone."
-          action={<Button type="button" className={`${styles.actionBtn} ${styles.actionBtnDanger}`}>Delete</Button>}
+          description={
+            canChangePassword ? 'Update your login password' : passwordUnavailableHint
+          }
+          action={
+            canChangePassword ? (
+              <Button
+                type="button"
+                className={styles.actionBtn}
+                onClick={() => setPasswordModalOpen(true)}
+              >
+                Change
+              </Button>
+            ) : null
+          }
         />
       </div>
     </SurfaceCard>
+    </>
   );
 }
 
@@ -430,12 +658,30 @@ export function AchievementsPanel({
   return <ProfileAchievementsPanel achievements={achievements} />;
 }
 
-export function ProfileStatisticsPanel({
-  roleId,
-  userId,
-}: {
-  roleId: UserRole;
-  userId: number;
-}) {
-  return <StatisticsDashboard roleId={roleId} currentUserId={userId} subjectStudentId={roleId === USER_ROLE.student.id ? userId : undefined} />;
+export function ProfileStatisticsPanel() {
+  const activeUser = useActiveUser();
+  const auth = useOptionalAuth();
+  const { loading, error, lessons, cards, isStudent } = useProfileLiveStats();
+  const viewerLessons = filterLessonsForViewer(lessons, activeUser.role, auth?.user?.id ?? null);
+
+  const title =
+    activeUser.role === USER_ROLE.student.id
+      ? 'Student statistics'
+      : activeUser.role === USER_ROLE.teacher.id
+        ? 'Teacher statistics'
+        : activeUser.role === USER_ROLE.admin.id
+          ? 'Admin statistics'
+          : 'Statistics';
+
+  return (
+    <StatisticsDashboard
+      roleId={activeUser.role}
+      currentUserId={activeUser.id}
+      liveLessons={viewerLessons}
+      liveCards={isStudent ? cards : []}
+      liveTitle={title}
+      loading={loading}
+      error={error}
+    />
+  );
 }

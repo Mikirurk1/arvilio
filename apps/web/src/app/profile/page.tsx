@@ -43,12 +43,11 @@ import {
   ProfileDetailsPanel,
 } from './panels';
 import { ProfileViewShell } from '../../components/profile/ProfileViewShell';
-import type { TabsItem } from '../../components/ui';
+import { Button, type TabsItem } from '../../components/ui';
 import {
   buildProfileAchievements,
   canView,
   getProficiencyLevelById,
-  getTimeZoneById,
   getUserAccountStatusById,
   getAppearancePrefsForUser,
   getNotificationPrefsForUser,
@@ -60,7 +59,7 @@ import {
   type ProfileThemeMode,
   type UserRoleId,
 } from '../../mocks';
-import { DEFAULT_NOTIFICATION_PREFS, type ProfileNotificationPrefs } from '@soenglish/shared-types';
+import { DEFAULT_NOTIFICATION_PREFS, type ProfileNotificationPrefs } from '@pkg/types';
 import { toast } from '../../features/notifications';
 import { useActiveUser } from '../../lib/active-user';
 import { useOptionalAuth } from '../../lib/auth-context';
@@ -530,14 +529,15 @@ export default function ProfilePage() {
             className={styles.avatarModal}
             onClick={(event) => event.stopPropagation()}
           >
-            <button
+            <Button
               type="button"
+              variant="ghost"
               className={styles.avatarModalClose}
               aria-label="Close"
               onClick={() => setAvatarModalOpen(false)}
             >
               <X size={16} />
-            </button>
+            </Button>
             <div className={styles.avatarModalPreview}>
               {avatarUrl ? (
                 <Image
@@ -569,10 +569,10 @@ export default function ProfilePage() {
                   ref={cropImageRef}
                   src={cropSource}
                   alt=""
-                  fill
+                  width={360}
+                  height={360}
                   className={styles.cropImage}
                   unoptimized
-                  sizes="360px"
                 />
                 <div
                   className={styles.cropRect}
@@ -594,31 +594,31 @@ export default function ProfilePage() {
               </div>
             ) : null}
             <div className={styles.avatarModalActions}>
-              <button
+              <Button
                 type="button"
                 className={styles.avatarModalPrimary}
                 onClick={() => avatarInputRef.current?.click()}
               >
                 Choose image
-              </button>
+              </Button>
               {cropSource ? (
-                <button
+                <Button
                   type="button"
                   className={styles.avatarModalPrimary}
                   disabled={isProcessingAvatar}
                   onClick={() => void applyAvatarCrop()}
                 >
                   {isProcessingAvatar ? 'Processing...' : 'Apply crop'}
-                </button>
+                </Button>
               ) : null}
               {avatarUrl ? (
-                <button
+                <Button
                   type="button"
                   className={styles.avatarModalSecondary}
                   onClick={() => setAvatarUrl('')}
                 >
                   Remove
-                </button>
+                </Button>
               ) : null}
             </div>
           </div>
@@ -628,8 +628,9 @@ export default function ProfilePage() {
       title={siteContent.profile.title}
       subtitle={`${siteContent.profile.subtitle} · ${activeUser.role}`}
       avatar={
-        <button
+        <Button
           type="button"
+          variant="ghost"
           className={styles.heroAvatarButton}
           onClick={() => setAvatarModalOpen(true)}
           aria-label="Change avatar"
@@ -649,7 +650,7 @@ export default function ProfilePage() {
           <span className={styles.heroAvatarPencil} aria-hidden>
             <Pencil size={12} />
           </span>
-        </button>
+        </Button>
       }
       name={form.name}
       meta={`${getProficiencyLevelById(activeUser.proficiencyLevelId)?.code ?? '—'} · ${activeUser.role}`}

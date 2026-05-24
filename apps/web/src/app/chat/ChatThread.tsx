@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Paperclip, Send, Smile } from 'lucide-react';
-import type { ChatConversationDto, ChatMessageDto } from '@soenglish/shared-types';
+import type { ChatConversationDto, ChatMessageDto } from '@pkg/types';
 import { Button, Field } from '../../components/ui';
 import { confirmDialog } from '../../features/confirm';
 import { filterSafeFiles } from '../../features/lesson-modal/fileUtils';
@@ -21,8 +21,14 @@ const ATTACH_CONFIRM = {
   confirmLabel: 'Choose file',
 };
 
+const SCROLL_NEAR_BOTTOM_PX = 120;
+
 function formatMessageTime(iso: string): string {
   return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+}
+
+function isNearBottom(el: HTMLElement, threshold = SCROLL_NEAR_BOTTOM_PX): boolean {
+  return el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
 }
 
 export function ChatThread({
@@ -41,12 +47,107 @@ export function ChatThread({
   const [uploading, setUploading] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const topSentinelRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const stickToBottomRef = useRef(true);
+  const isPrependingOlderRef = useRef(false);
+  const prevConversationIdRef = useRef<string | null>(null);
+  const prevLoadingRef = useRef(true);
+  const prevMessageCountRef = useRef(0);
+
   const appendMessage = useChatStore((s) => s.appendMessage);
+  const hasMoreOlder = useChatStore((s) => s.hasMoreOlder);
+  const loadingOlder = useChatStore((s) => s.loadingOlder);
+  const fetchOlderMessages = useChatStore((s) => s.fetchOlderMessages);
+
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    bottomRef.current?.scrollIntoView({ behavior });
+  }, []);
+
+  const loadOlderMessages = useCallback(async () => {
+    if (!conversation || loadingOlder || !hasMoreOlder || loading) return;
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const prevHeight = el.scrollHeight;
+    const prevTop = el.scrollTop;
+    isPrependingOlderRef.current = true;
+    try {
+      await fetchOlderMessages(conversation.id);
+      requestAnimationFrame(() => {
+        if (scrollContainerRef.current) {
+          const next = scrollContainerRef.current;
+          next.scrollTop = prevTop + (next.scrollHeight - prevHeight);
+        }
+        isPrependingOlderRef.current = false;
+      });
+    } catch {
+      isPrependingOlderRef.current = false;
+    }
+  }, [conversation, fetchOlderMessages, hasMoreOlder, loading, loadingOlder]);
+
+  const handleMessagesScroll = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (el) stickToBottomRef.current = isNearBottom(el);
+  }, []);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, conversation?.id]);
+    const root = scrollContainerRef.current;
+    const sentinel = topSentinelRef.current;
+    if (!root || !sentinel || !conversation || loading) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          void loadOlderMessages();
+        }
+      },
+      { root, rootMargin: '80px' },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [conversation?.id, loading, loadOlderMessages]);
+
+  useEffect(() => {
+    if (!conversation) return;
+
+    const convChanged = prevConversationIdRef.current !== conversation.id;
+    if (convChanged) {
+      prevConversationIdRef.current = conversation.id;
+      stickToBottomRef.current = true;
+      prevMessageCountRef.current = 0;
+    }
+
+    if (loading) {
+      prevLoadingRef.current = true;
+      return;
+    }
+
+    const justFinishedLoading = prevLoadingRef.current;
+    prevLoadingRef.current = false;
+
+    if (isPrependingOlderRef.current) {
+      prevMessageCountRef.current = messages.length;
+      return;
+    }
+
+    if (convChanged || justFinishedLoading) {
+      requestAnimationFrame(() => scrollToBottom('auto'));
+      prevMessageCountRef.current = messages.length;
+      return;
+    }
+
+    if (messages.length <= prevMessageCountRef.current) {
+      prevMessageCountRef.current = messages.length;
+      return;
+    }
+
+    prevMessageCountRef.current = messages.length;
+    if (stickToBottomRef.current) {
+      scrollToBottom('smooth');
+    }
+  }, [conversation, loading, messages, scrollToBottom]);
 
   if (!conversation) {
     return (
@@ -64,6 +165,7 @@ export function ChatThread({
   const handleSend = () => {
     const body = input.trim();
     if (!body || sending || uploading) return;
+    stickToBottomRef.current = true;
     setSending(true);
     const socket = getChatSocket();
     socket.emit(
@@ -97,6 +199,7 @@ export function ChatThread({
     if (!safe.length) return;
     const rawFile = files[0];
 
+    stickToBottomRef.current = true;
     setUploading(true);
     try {
       const caption = input.trim();
@@ -114,6 +217,8 @@ export function ChatThread({
   const insertEmoji = (emoji: string) => {
     setInput((prev) => prev + emoji);
   };
+
+  const showHistoryStart = !loading && messages.length > 0 && !hasMoreOlder;
 
   return (
     <section className={styles.thread}>
@@ -144,7 +249,18 @@ export function ChatThread({
         Files shared in chat are deleted automatically after 24 hours.
       </p>
 
-      <div className={styles.messages}>
+      <div
+        ref={scrollContainerRef}
+        className={styles.messages}
+        onScroll={handleMessagesScroll}
+      >
+        <div ref={topSentinelRef} className={styles.historySentinel} aria-hidden />
+        {loadingOlder ? (
+          <p className={styles.historyStatus}>Loading older messages…</p>
+        ) : null}
+        {showHistoryStart ? (
+          <p className={styles.historyStatus}>Beginning of conversation</p>
+        ) : null}
         {loading ? <p className={styles.threadEmpty}>Loading messages…</p> : null}
         {!loading
           ? messages.map((message) => (

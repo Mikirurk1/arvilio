@@ -1,6 +1,6 @@
 ---
 tags: [synthesis, tech-stack]
-updated: 2026-05-16
+updated: 2026-05-20
 ---
 
 # Tech stack
@@ -10,16 +10,20 @@ updated: 2026-05-16
 | Layer | Technology | Notes |
 |-------|------------|-------|
 | Workspaces | npm workspaces | `apps/*`, `packages/*`, `packages/*/*` |
-| Task runner | **Turborepo** ^2.5 | `turbo run dev\|build\|lint\|typecheck` |
-| TypeScript | ~5.9 | `tsconfig.base.json`, path aliases `@soenglish/*` |
+| Task runner | **Turborepo** ^2.5 | `turbo run dev\|build\|lint\|typecheck\|test` |
+| TypeScript | ~5.9 | `tsconfig.base.json`, path aliases `@pkg/*`, `@be/*`, `@fe/*`, `@app/*` — [[concepts/package-aliases]] |
 | Lint / format | ESLint 9 (flat), Prettier 3 | Root `eslint.config.mjs` |
-| Tests | — | No jest/vitest scripts in workspace packages |
+| Unit tests | **Jest** 29 + `@swc/jest` | Projects: `module-auth`, `apps/web` (`next/jest`, jsdom) |
+| Integration tests | Jest + **ts-jest** + supertest | `jest.integration.config.cjs`; needs Postgres — [[concepts/testing]] |
+| E2E | **Playwright** | `tests/e2e/`; env `PLAYWRIGHT_TEST_EMAIL` / `PASSWORD` |
+| CI/CD | **GitHub Actions** | CI (lint, typecheck, unit, integration, build); CD → GHCR; see `docs/reference/ci-cd.md` |
+| Containers | Docker | Dev: `infra/docker/docker-compose.yml`; prod images: `*.prod.Dockerfile`, `docker-compose.prod.yml` |
 
-**Root scripts:** `dev`, `dev:web`, `dev:api`, `build`, `prisma:generate`, `prisma:migrate:dev`, `super-admin`
+**Root scripts:** `dev`, `dev:web`, `dev:api`, `build`, `test`, `test:unit`, `test:integration`, `test:e2e`, `prisma:generate`, `prisma:migrate:dev`, `super-admin`
 
 ## Runtime applications
 
-### Web — `apps/web` (`@soenglish/web`)
+### Web — `apps/web` (`@app/web`)
 
 | Item | Version / detail |
 |------|----------------|
@@ -32,7 +36,7 @@ updated: 2026-05-16
 | Styles | SCSS modules + CSS custom properties — [[concepts/ui-design-system]] |
 | Icons | lucide-react |
 
-### API — `apps/api` (`@soenglish/api`)
+### API — `apps/api` (`@app/api`)
 
 | Item | Version / detail |
 |------|----------------|
@@ -82,6 +86,14 @@ updated: 2026-05-16
 ## Frontend packages (planned)
 
 `packages/frontend/*` — scaffolded; **web does not import yet** — [[concepts/frontend-packages]]
+
+## Prisma Migrate
+
+- Schema: `packages/backend/data-access/data-access-prisma/prisma/schema.prisma`
+- History is a **single baseline** migration `20260501000000_baseline` (full schema from empty). Older incremental folders were squashed so `migrate dev` shadow replay works.
+- **Apply on existing DB (prod/staging):** `npm run prisma:migrate:deploy` then `npm run prisma:generate`
+- **Create migrations locally:** `npm run prisma:migrate:dev` (needs Postgres + shadow DB)
+- **After pull, if `migrate dev` fails and `_prisma_migrations` lists removed migration names:** `npm run prisma:migrate:rebaseline` (marks baseline applied; does not alter app tables)
 
 ## Deployment notes
 

@@ -6,7 +6,7 @@ import type {
   ChatConversationDto,
   ChatMessageDto,
   ChatUserDto,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 import {
   CHAT_CONTACTS,
   CHAT_INBOX,
@@ -25,14 +25,20 @@ import {
   type AsyncSlice,
 } from './lib/async-slice';
 
+/** Must match `MESSAGE_PAGE` in `packages/backend/modules/chat`. */
+export const CHAT_MESSAGE_PAGE_SIZE = 50;
+
 type ChatState = {
   inbox: AsyncSlice<ChatConversationDto[]>;
   contacts: AsyncSlice<ChatUserDto[]>;
   messages: AsyncSlice<ChatMessageDto[]>;
   activeConversationId: string | null;
+  hasMoreOlder: boolean;
+  loadingOlder: boolean;
   fetchInbox: (force?: boolean) => Promise<void>;
   fetchContacts: (force?: boolean) => Promise<void>;
   fetchMessages: (conversationId: string, force?: boolean) => Promise<void>;
+  fetchOlderMessages: (conversationId: string) => Promise<void>;
   setActiveConversation: (conversationId: string | null) => void;
   openDirect: (peerUserId: string) => Promise<ChatConversationDto>;
   createGroup: (title: string, memberIds: string[]) => Promise<ChatConversationDto>;
@@ -48,6 +54,8 @@ export const useChatStore = create<ChatState>()(
       contacts: createIdleSlice<ChatUserDto[]>(),
       messages: createIdleSlice<ChatMessageDto[]>(),
       activeConversationId: null,
+      hasMoreOlder: false,
+      loadingOlder: false,
 
       fetchInbox: async (force = false) => {
         const prev = get().inbox;
@@ -78,19 +86,80 @@ export const useChatStore = create<ChatState>()(
         if (!force && get().activeConversationId === conversationId && prev.status === 'success') {
           return;
         }
-        set({ messages: sliceLoading(prev), activeConversationId: conversationId }, false, 'chat/messages:start');
+        set(
+          {
+            messages: sliceLoading(prev),
+            activeConversationId: conversationId,
+            hasMoreOlder: false,
+            loadingOlder: false,
+          },
+          false,
+          'chat/messages:start',
+        );
         try {
           const data = await graphqlRequest<{ chatMessages: ChatMessageDto[] }>(CHAT_MESSAGES, {
             conversationId,
           });
-          set({ messages: sliceSuccess(prev, data.chatMessages) }, false, 'chat/messages:success');
+          const batch = data.chatMessages;
+          set(
+            {
+              messages: sliceSuccess(prev, batch),
+              hasMoreOlder: batch.length === CHAT_MESSAGE_PAGE_SIZE,
+              loadingOlder: false,
+            },
+            false,
+            'chat/messages:success',
+          );
         } catch (error) {
-          set({ messages: sliceError(prev, error) }, false, 'chat/messages:error');
+          set({ messages: sliceError(prev, error), loadingOlder: false }, false, 'chat/messages:error');
+        }
+      },
+
+      fetchOlderMessages: async (conversationId) => {
+        const state = get();
+        if (
+          conversationId !== state.activeConversationId ||
+          !state.hasMoreOlder ||
+          state.loadingOlder ||
+          state.messages.status !== 'success'
+        ) {
+          return;
+        }
+        const existing = state.messages.data ?? [];
+        if (existing.length === 0) return;
+
+        const cursor = existing[0].createdAt;
+        set({ loadingOlder: true }, false, 'chat/messages:older:start');
+        try {
+          const data = await graphqlRequest<{ chatMessages: ChatMessageDto[] }>(CHAT_MESSAGES, {
+            conversationId,
+            cursor,
+          });
+          const batch = data.chatMessages;
+          const seen = new Set(existing.map((row) => row.id));
+          const older = batch.filter((row) => !seen.has(row.id));
+          const merged = [...older, ...existing];
+          set(
+            {
+              messages: sliceSuccess(state.messages, merged),
+              hasMoreOlder: batch.length === CHAT_MESSAGE_PAGE_SIZE,
+              loadingOlder: false,
+            },
+            false,
+            'chat/messages:older:success',
+          );
+        } catch {
+          set({ loadingOlder: false }, false, 'chat/messages:older:error');
         }
       },
 
       setActiveConversation: (conversationId) => {
-        set({ activeConversationId: conversationId });
+        set({
+          activeConversationId: conversationId,
+          ...(conversationId === null
+            ? { hasMoreOlder: false, loadingOlder: false }
+            : {}),
+        });
       },
 
       openDirect: async (peerUserId) => {

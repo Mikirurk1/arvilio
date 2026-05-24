@@ -16,9 +16,19 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import type { ScheduledLessonBackendDto, StudentWordCardDto } from '@pkg/types';
 import { getRoleStatisticsDashboard, type StatsRange, type UserRoleId } from '../../mocks';
 import { Info } from 'lucide-react';
-import { SectionHeader, StatTile, SurfaceCard, Tooltip as AppTooltip } from '../ui';
+import { buildLiveStatisticsDashboard } from '../../lib/live-statistics-dashboard';
+import {
+  Button,
+  EmptyStateCard,
+  SectionHeader,
+  SegmentedControl,
+  StatTile,
+  SurfaceCard,
+  Tooltip as AppTooltip,
+} from '../ui';
 import styles from './StatisticsDashboard.module.scss';
 
 const PIE_COLORS = ['var(--green)', 'var(--blue)', 'var(--purple)', 'var(--text-faint)'];
@@ -35,24 +45,72 @@ type StatisticsDashboardProps = {
   roleId: UserRoleId;
   currentUserId: number;
   subjectStudentId?: number;
+  /** When set, charts and KPIs are built from API lessons/cards instead of mocks. */
+  liveLessons?: ScheduledLessonBackendDto[];
+  liveCards?: StudentWordCardDto[];
+  liveTitle?: string;
+  loading?: boolean;
+  error?: string | null;
 };
 
-export function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }: StatisticsDashboardProps) {
+export function StatisticsDashboard({
+  roleId,
+  currentUserId,
+  subjectStudentId,
+  liveLessons,
+  liveCards,
+  liveTitle,
+  loading = false,
+  error = null,
+}: StatisticsDashboardProps) {
   const [range, setRange] = useState<StatsRange>('week');
   const [hoveredKpiId, setHoveredKpiId] = useState<number | null>(null);
   const [hoveredKpiEl, setHoveredKpiEl] = useState<HTMLElement | null>(null);
   const [hoveredSectionId, setHoveredSectionId] = useState<string | null>(null);
   const [hoveredSectionEl, setHoveredSectionEl] = useState<HTMLElement | null>(null);
+  const useLive = liveLessons !== undefined;
   const data = useMemo(
     () =>
-      getRoleStatisticsDashboard({
-        roleId,
-        userId: currentUserId,
-        subjectStudentId,
-        rangePreset: range,
-      }),
-    [currentUserId, range, roleId, subjectStudentId],
+      useLive
+        ? buildLiveStatisticsDashboard({
+            roleId,
+            rangePreset: range,
+            lessons: liveLessons,
+            cards: liveCards,
+            title: liveTitle ?? 'Statistics',
+            currentUserId,
+            subjectStudentId,
+          })
+        : getRoleStatisticsDashboard({
+            roleId,
+            userId: currentUserId,
+            subjectStudentId,
+            rangePreset: range,
+          }),
+    [
+      currentUserId,
+      liveCards,
+      liveLessons,
+      liveTitle,
+      range,
+      roleId,
+      subjectStudentId,
+      useLive,
+    ],
   );
+
+  if (loading) {
+    return <p className={styles.loadingNote}>Loading statistics from the server…</p>;
+  }
+
+  if (error) {
+    return (
+      <EmptyStateCard
+        title="Could not load statistics"
+        description={error}
+      />
+    );
+  }
 
   const goalTarget =
     range === 'week'
@@ -84,8 +142,9 @@ export function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }:
 
   const renderSectionInfo = (id: string) => (
     <>
-      <button
+      <Button
         type="button"
+        variant="ghost"
         className={styles.sectionInfoBtn}
         aria-label="About this section"
         onMouseEnter={(event) => {
@@ -106,7 +165,7 @@ export function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }:
         }}
       >
         <Info size={14} />
-      </button>
+      </Button>
       <AppTooltip
         open={hoveredSectionId === id}
         targetEl={hoveredSectionEl}
@@ -122,24 +181,20 @@ export function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }:
         <SectionHeader
           title={data.title}
           action={
-            <div className={styles.rangeSwitch} role="tablist" aria-label="Statistics range">
-              {(['week', 'month', 'quarter', 'year'] as const).map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={`${styles.rangeBtn} ${range === value ? styles.rangeBtnActive : ''}`}
-                  onClick={() => setRange(value)}
-                >
-                  {value === 'week'
-                    ? 'Week'
-                    : value === 'month'
-                      ? 'Month'
-                      : value === 'quarter'
-                        ? 'Quarter'
-                        : 'Year'}
-                </button>
-              ))}
-            </div>
+            <SegmentedControl
+              className={styles.rangeSwitch}
+              ariaLabel="Statistics range"
+              value={range}
+              onValueChange={setRange}
+              optionClassName={styles.rangeBtn}
+              activeOptionClassName={styles.rangeBtnActive}
+              options={[
+                { value: 'week', label: 'Week' },
+                { value: 'month', label: 'Month' },
+                { value: 'quarter', label: 'Quarter' },
+                { value: 'year', label: 'Year' },
+              ]}
+            />
           }
         />
         <p className={styles.rangeNote}>
@@ -148,8 +203,9 @@ export function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }:
         <div className={styles.kpiGrid}>
           {data.kpis.map((kpi) => (
             <div key={kpi.id} className={styles.kpiWrap}>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 className={styles.kpiInfoBtn}
                 aria-label={`About ${kpi.label}`}
                 onMouseEnter={(event) => {
@@ -170,7 +226,7 @@ export function StatisticsDashboard({ roleId, currentUserId, subjectStudentId }:
                 }}
               >
                 <Info size={14} />
-              </button>
+              </Button>
               <StatTile
                 label={kpi.label}
                 value={kpi.value}

@@ -1,4 +1,4 @@
-export * from './lib/notifications.module';
-export * from './lib/notification-prefs.service';
-export * from './lib/teacher-messages.service';
-export * from './lib/streak.service';
+export * from './notifications.module';
+export { NotificationPrefsService } from './application/notification-prefs.service';
+export { TeacherMessagesService } from './application/teacher-messages.service';
+export { StreakService } from './application/streak.service';

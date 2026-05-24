@@ -1,4 +1,4 @@
-import type { MyProfileDto } from '@soenglish/shared-types';
+import type { MyProfileDto } from '@pkg/types';
 
 export type ProfileCompletenessInput = Pick<
   MyProfileDto,

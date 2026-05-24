@@ -1,5 +1,12 @@
-import type { ChatMessageDto } from '@soenglish/shared-types';
+import type { ChatMessageDto } from '@pkg/types';
 import { API_BASE } from './api';
+
+/** Build browser URL for a chat attachment DTO path (handles legacy `/api/...` values). */
+export function chatAttachmentHref(url: string): string {
+  if (!url) return url;
+  if (url.startsWith('/api/')) return url;
+  return `${API_BASE}${url}`;
+}
 
 export async function uploadChatAttachment(
   conversationId: string,

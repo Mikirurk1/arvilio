@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { WordCardDto } from '@soenglish/shared-types';
+import type { WordCardDto } from '@pkg/types';
 import { Plus } from 'lucide-react';
 import { WordCardAudioButton } from './WordCardAudioButton';
 import { Button, Field } from '../../components/ui';
@@ -108,7 +108,7 @@ export function LessonVocabularyAddPanel({
       return;
     }
     if (!studentBackendId) {
-      setError('Select a student on the lesson before adding vocabulary.');
+      setError('Lesson student is not available yet. Refresh the page and try again.');
       return;
     }
     setAdding(true);
@@ -125,7 +125,7 @@ export function LessonVocabularyAddPanel({
           lessonId: lessonBackendId ?? undefined,
           status: 'new',
         },
-        studentBackendId,
+        studentBackendId || undefined,
       );
       const wordId = card.word.id;
       if (linkedWordIds.includes(wordId)) {

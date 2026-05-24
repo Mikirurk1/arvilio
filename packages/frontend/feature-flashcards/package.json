@@ -1,5 +1,5 @@
 {
-  "name": "@soenglish/feature-flashcards",
+  "name": "@fe/flashcards",
   "version": "0.0.0",
   "private": true,
   "type": "module",

@@ -24,6 +24,7 @@ export type ProfileViewShellProps<T extends string> = {
   meta: ReactNode;
   badges: Array<{ label: ReactNode; variant?: BadgeVariant }>;
   stats: HeroStat[];
+  heroActions?: ReactNode;
   achievements: readonly ProfileAchievement[];
   tab: T;
   onTabChange: (next: T) => void;
@@ -38,6 +39,7 @@ export function ProfileViewShell<T extends string>({
   meta,
   badges,
   stats,
+  heroActions,
   achievements,
   tab,
   onTabChange,
@@ -53,8 +55,9 @@ export function ProfileViewShell<T extends string>({
         subtitle={subtitle}
       />
 
+      <div className={styles.profileHero}>
       <ProfileHero
-        className={styles.profileHero}
+        className={styles.profileHeroInner}
         avatarClassName={styles.avatarBig}
         infoClassName={styles.heroInfo}
         nameClassName={styles.heroName}
@@ -65,7 +68,16 @@ export function ProfileViewShell<T extends string>({
         statValueClassName={styles.heroStatVal}
         statLabelClassName={styles.heroStatLbl}
         avatar={avatar}
-        name={name}
+        name={
+          heroActions ? (
+            <div className={styles.heroNameRow}>
+              <span className={styles.heroNameText}>{name}</span>
+              <div className={styles.heroInlineActions}>{heroActions}</div>
+            </div>
+          ) : (
+            name
+          )
+        }
         meta={meta}
         badges={badges.map((badge, index) => (
           <Badge
@@ -78,6 +90,7 @@ export function ProfileViewShell<T extends string>({
         ))}
         stats={stats}
       />
+      </div>
 
       <div className={styles.achievementsRow}>
         {achievements.map((achievement) => (

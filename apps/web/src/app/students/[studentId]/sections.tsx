@@ -1,10 +1,14 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import type { LessonRecurrence, ScheduledLessonDto } from '@soenglish/shared-types';
-import { AdaptiveSelect, Button, EmptyStateCard, Field, SurfaceCard } from '../../../components/ui';
+import { useEffect, useRef, useState } from 'react';
+import type { LessonRecurrence, ScheduledLessonDto } from '@pkg/types';
+import { Button, EmptyStateCard, Field, SurfaceCard } from '../../../components/ui';
 import { LessonsListPanel } from '../../../components/lessons/LessonsListPanel';
 import { ProfileAchievementsPanel } from '../../../components/profile/ProfileAchievementsPanel';
+import { StatisticsDashboard } from '../../../components/statistics';
+import { useStudentLiveStats } from '../../../hooks/use-student-live-stats';
+import { selectLanguagesList, useLanguagesStore } from '../../../stores/languages-store';
+import { studentIdToNumericId } from '../../../lib/student-profile';
 import {
   formatTimeZoneOptionLabel,
   getTimeZoneById,
@@ -71,7 +75,7 @@ function hslToHex(color: HslColor): string {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
-function CalendarColorPicker({
+function UserColorPicker({
   value,
   disabled,
   onChange,
@@ -107,7 +111,7 @@ function CalendarColorPicker({
     <div className={styles.colorPicker}>
       <div className={styles.colorControlsRowCompact}>
         <div className={styles.colorSwatch} style={{ backgroundColor: hslToHex(hsl) }} />
-        <input
+        <Field
           type="text"
           className={styles.input}
           value={value}
@@ -168,6 +172,9 @@ export function StudentProfileTab({
   saved = false,
   saveError = null,
   onSave,
+  showNativeLanguage = false,
+  nativeLanguageId = '',
+  onNativeLanguageIdChange,
 }: {
   student: MockStudent;
   onChange: (next: MockStudent) => void;
@@ -179,14 +186,26 @@ export function StudentProfileTab({
   saved?: boolean;
   saveError?: string | null;
   onSave: () => void;
+  showNativeLanguage?: boolean;
+  nativeLanguageId?: string;
+  onNativeLanguageIdChange?: (languageId: string) => void;
 }) {
+  const languages = useLanguagesStore(selectLanguagesList);
+  const fetchLanguages = useLanguagesStore((s) => s.fetchLanguages);
   const isStudentViewer = viewerRole === USER_ROLE.student.id;
   const isTeacherViewer = viewerRole === USER_ROLE.teacher.id;
   const canAssignTeacher = isAdminOrSuper(viewerRole);
+  const canManageUserColor =
+    !isStudentViewer &&
+    (isTeacherViewer || canAssignTeacher);
+
+  useEffect(() => {
+    if (showNativeLanguage) void fetchLanguages();
+  }, [fetchLanguages, showNativeLanguage]);
   return (
     <SurfaceCard className={styles.tabCard}>
       <p className={styles.tabIntro}>
-        Manage core student profile settings, contacts, timezone, and calendar color.
+        Manage core student profile settings, contacts, native language, timezone, and user color.
       </p>
       <div className={styles.formGrid}>
         <div className={styles.fieldGroup}>
@@ -200,7 +219,7 @@ export function StudentProfileTab({
         {!isStudentViewer ? (
           <div className={styles.fieldGroup}>
             <label className={styles.label}>Level</label>
-            <AdaptiveSelect
+            <Field as="select"
               className={styles.input}
               value={String(student.proficiencyLevelId)}
               readOnly={!canEdit}
@@ -219,7 +238,7 @@ export function StudentProfileTab({
                   </option>
                 );
               })}
-            </AdaptiveSelect>
+            </Field>
           </div>
         ) : null}
         {!isTeacherViewer ? (
@@ -228,9 +247,27 @@ export function StudentProfileTab({
             <Field className={styles.input} value={student.phone} readOnly={!canEdit} onChange={(e) => onChange({ ...student, phone: e.target.value })} />
           </div>
         ) : null}
+        {showNativeLanguage && onNativeLanguageIdChange ? (
+          <div className={styles.fieldGroup}>
+            <label className={styles.label}>Native language</label>
+            <Field as="select"
+              className={styles.input}
+              value={nativeLanguageId}
+              readOnly={!canEdit}
+              onChange={(e) => onNativeLanguageIdChange(e.target.value)}
+            >
+              <option value="">—</option>
+              {languages.map((lang) => (
+                <option key={lang.id} value={lang.id}>
+                  {lang.name}
+                </option>
+              ))}
+            </Field>
+          </div>
+        ) : null}
         <div className={styles.fieldGroup}>
           <label className={styles.label}>Timezone</label>
-          <AdaptiveSelect
+          <Field as="select"
             className={styles.input}
             value={String(student.timezoneId)}
             readOnly={!canEdit}
@@ -246,12 +283,12 @@ export function StudentProfileTab({
                 </option>
               ) : null;
             })}
-          </AdaptiveSelect>
+          </Field>
         </div>
         {!isStudentViewer ? (
           <div className={styles.fieldGroup}>
             <label className={styles.label}>Status</label>
-            <AdaptiveSelect
+            <Field as="select"
               className={styles.input}
               value={String(student.statusId)}
               readOnly={!canEdit}
@@ -270,13 +307,13 @@ export function StudentProfileTab({
                   </option>
                 ) : null;
               })}
-            </AdaptiveSelect>
+            </Field>
           </div>
         ) : null}
         {canAssignTeacher ? (
           <div className={styles.fieldGroup}>
             <label className={styles.label}>Assigned teacher</label>
-            <AdaptiveSelect
+            <Field as="select"
               className={styles.input}
               value={teacherBackendId ?? ''}
               readOnly={!canEdit}
@@ -290,7 +327,7 @@ export function StudentProfileTab({
                   {teacher.displayName}
                 </option>
               ))}
-            </AdaptiveSelect>
+            </Field>
           </div>
         ) : !isStudentViewer ? (
           <div className={styles.fieldGroup}>
@@ -301,7 +338,7 @@ export function StudentProfileTab({
         {!isStudentViewer ? (
           <div className={styles.fieldGroup}>
             <label className={styles.label}>Schedule type</label>
-            <AdaptiveSelect
+            <Field as="select"
               className={styles.input}
               value={String(student.scheduleType)}
               readOnly={!canEdit}
@@ -311,17 +348,20 @@ export function StudentProfileTab({
             >
               <option value="true">Fixed schedule</option>
               <option value="false">Flexible schedule</option>
-            </AdaptiveSelect>
+            </Field>
           </div>
         ) : null}
-        <div className={styles.fieldGroup}>
-          <label className={styles.label}>Calendar color (HEX)</label>
-          <CalendarColorPicker
-            value={student.color ?? ''}
-            disabled={!canEdit}
-            onChange={(nextHex) => onChange({ ...student, color: nextHex })}
-          />
-        </div>
+        {canManageUserColor ? (
+          <div className={styles.fieldGroup}>
+            <label className={styles.label}>User color</label>
+            <p className={styles.colorFieldHint}>Shown on the calendar for this student.</p>
+            <UserColorPicker
+              value={student.color ?? ''}
+              disabled={!canEdit}
+              onChange={(nextHex) => onChange({ ...student, color: nextHex })}
+            />
+          </div>
+        ) : null}
       </div>
       <div className={styles.actions}>
         {saveError ? <span className={styles.errorHint}>{saveError}</span> : null}
@@ -343,7 +383,7 @@ export function StudentLessonsTab({ lessons }: { lessons: ScheduledLessonDto[] }
       <p className={styles.tabIntro}>
         Browse all lessons for this student, filter by status, and open a lesson for details.
       </p>
-      <LessonsListPanel lessons={lessons} />
+      <LessonsListPanel lessons={lessons} defaultStatusFilter="all" />
     </div>
   );
 }
@@ -387,11 +427,11 @@ export function StudentScheduleTab({
         </div>
         <div className={styles.fieldGroup}>
           <label className={styles.label}>Recurrence</label>
-          <AdaptiveSelect className={styles.input} value={recurrence} readOnly={!canEdit} onChange={(e) => setRecurrence(e.target.value as LessonRecurrence)}>
+          <Field as="select" className={styles.input} value={recurrence} readOnly={!canEdit} onChange={(e) => setRecurrence(e.target.value as LessonRecurrence)}>
             <option value="none">No repeat</option>
             <option value="weekly">Weekly</option>
             <option value="monthly">Monthly</option>
-          </AdaptiveSelect>
+          </Field>
         </div>
       </div>
       <div className={styles.fieldGroup}>
@@ -415,11 +455,20 @@ export function StudentAchievementsTab({
   return <ProfileAchievementsPanel achievements={achievements} />;
 }
 
-export function StudentStatisticsTab() {
+export function StudentStatisticsTab({ studentId }: { studentId: string }) {
+  const { loading, error, studentLessons, studentCards } = useStudentLiveStats(studentId);
+  const numericId = studentIdToNumericId(studentId);
+
   return (
-    <EmptyStateCard
-      title="Statistics not available here"
-      description="Per-student charts and KPIs are not loaded from the server yet. Open Profile & Settings → Statistics to see your own live totals from the database."
+    <StatisticsDashboard
+      roleId={USER_ROLE.student.id}
+      currentUserId={numericId}
+      subjectStudentId={numericId}
+      liveLessons={studentLessons}
+      liveCards={studentCards}
+      liveTitle="Student statistics"
+      loading={loading}
+      error={error}
     />
   );
 }

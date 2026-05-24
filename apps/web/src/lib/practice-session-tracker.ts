@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import type { RecordPracticeSessionRequestDto } from '@soenglish/shared-types';
+import type { RecordPracticeSessionRequestDto } from '@pkg/types';
 import { usePracticeStore } from '../stores/practice-store';
 
 export const PRACTICE_SESSION_LOGGED_EVENT = 'practice-session-logged';

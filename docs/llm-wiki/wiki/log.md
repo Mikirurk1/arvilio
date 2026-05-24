@@ -4,6 +4,469 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 ---
 
+## [2026-05-24] update | CI/CD pipelines (GitHub Actions)
+- **Trigger:** user request
+- **Pages:** `concepts/testing.md`, `synthesis/tech-stack.md`, `log.md`
+- **Notes:** Parallel CI (quality, unit, integration, build); E2E workflow; CD → GHCR with `api.prod` / `web.prod` Dockerfiles; Next `output: standalone`; `docs/reference/ci-cd.md`, `.dockerignore`, dependabot.
+
+## [2026-05-24] update | Web unit test fixtures + tsconfig.spec
+- **Trigger:** code change
+- **Pages:** `log.md`
+- **Notes:** `apps/web/src/testing/fixtures.ts` typed mocks; `tsconfig.spec.json` includes jest-dom types + `index.d.ts` SCSS modules; `LessonPartyOption` imported from `use-lesson-party-options` (not `@pkg/types`).
+
+## [2026-05-24] update | Problems panel / typecheck + lint green
+- **Trigger:** code change (fix IDE Problems)
+- **Pages:** `overview.md`, `log.md`
+- **Notes:** Calendar null-narrowing in portaled dialogs; `LessonModal` teachers typed as `LessonPartyOption[]`; web production TS fixes; unused imports; ESLint globals for `.cjs` / `next.config.mjs`; `@app/web` tsconfig excludes unit test files from `tsc`.
+
+## [2026-05-24] update | VS Code / Cursor workspace diagnostics
+- **Trigger:** user request
+- **Pages:** `overview.md`, `log.md`
+- **Notes:** `.vscode/settings.json` (`enableProjectDiagnostics`, ESLint `workingDirectories: auto`), `extensions.json`, `tasks.json` for `npm run typecheck` / `lint` / `test:unit`.
+
+## [2026-05-24] update | Backend hygiene follow-ups
+- **Trigger:** code change (post-refactor cleanup plan)
+- **Pages:** `concepts/auth-rbac.md`, `concepts/backend-modules.md`, `overview.md`, `synthesis/tech-stack.md`, `entities/user.md`, `log.md`
+- **Notes:** Layered `module-mail` / `module-notifications`; Prisma out of admin/users/system GraphQL resolvers; `QuizGeneratorService` split (list/detail/generate/attempt + repository); `@Roles`/`RolesGuard`; narrowed `@be/auth` exports; Prisma CLI paths → `data-access-prisma`; module `tests/integration/`; ESLint max-lines + layer imports; GitHub Actions CI.
+
+## [2026-05-24] update | Backend module architecture refactor
+- **Trigger:** code change (big-bang modular layout)
+- **Pages:** `concepts/backend-modules.md`, `synthesis/architecture.md`, `concepts/testing.md`, `index.md`
+- **Notes:** Layered `presentation/application/domain/infrastructure` per `@be/*`; GraphQL resolvers in modules; `@be/graphql` shared types; thin `apps/api` gateway.
+
+## [2026-05-20] update | Turbo dev TUI + app-only filter
+- **Trigger:** user request (restore 2-pane terminal UI on `npm run dev`)
+- **Pages:** `overview.md`, `log.md`
+- **Notes:** `turbo.json` `"ui": "tui"`; root `dev` script filters `@app/web` + `@app/api` (drops 9 workspace packages without `dev` script from scope).
+
+## [2026-05-20] update | lesson-recurrence, users, attachments, mail index, be-prisma
+- **Trigger:** user request (coverage gaps)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** 123 unit suites / 712 tests — `lesson-recurrence` (daily/weekly/monthly horizons), `users.service` (profile/password/pagination), `lesson-attachment.service` (disk CRUD + create rollback), `module-mail/index.spec.ts`, `be-prisma` default `DATABASE_URL`.
+
+## [2026-05-20] update | Web lib/stores + be-prisma unit coverage
+- **Trigger:** user request (coverage gaps: fileUtils, chat-upload, tracker, roles, student-profile, vocabulary-audio, word-definitions, word-details-payload, mocks, auth-store, be-prisma)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** 122 unit suites / 688 tests — new `data-access-prisma` Jest project + `be-prisma.spec.ts`; expanded web tests listed above.
+
+## [2026-05-20] update | Targeted coverage: quizzes-store, auth, practice, chat mail
+- **Trigger:** user request (coverage gaps from report)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** 121 unit suites / 646 tests — expanded `quizzes-store`, `auth-cookies`, `auth.guard` (AuthGuard/OptionalAuthGuard), `delete-admin-user`, `practice-sessions.service`, `students-admin.service`, `chat-attachment.service`, new `mail.module.spec.ts`.
+
+## [2026-05-20] fix | be-vocabulary resolveVerbForms import + dispatch/lesson tests
+- **Trigger:** user request (continue) + dev build failure
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** Fixed `resolveVerbForms` import in `be-vocabulary.ts` (API `tsc` green). 603 unit tests — `notification-dispatch` partial channel send, `series-lesson-delete` edge cases, `lessonPersistence` editing/create content.
+
+## [2026-05-20] update | Practice/notifications stores + series-lesson + translation
+- **Trigger:** user request (continue coverage)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** 120 unit suites / 597 tests — `practice-store`, `notifications-store` (MAX_TOASTS/auto-dismiss), `series-lesson-update` (conflicts/schedule persist), `TranslationService` edge cases.
+
+## [2026-05-20] update | Students/vocabulary/admin stores + telegram + recurring lessons
+- **Trigger:** user request (continue coverage)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** 120 unit suites / 582 tests — `students-store`, `vocabulary-store` (CRUD/pagination), `admin-store`, `languages-store`, `recurring-lesson-create` conflict/past paths, `telegram-bot.client` network/API edge cases.
+
+## [2026-05-20] update | Profile/chat stores + ChatService + Google Calendar
+- **Trigger:** user request (continue coverage)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** 120 unit suites / 544 tests — `profile-store` (update/password/auth sync), `chat-store` (messages/pagination/append/markRead), `ChatService` (send/attachments/group), `GoogleCalendarService` (googleapis mock for Meet CRUD).
+
+## [2026-05-20] update | Button/Field UI kit + lessons/quizzes stores
+- **Trigger:** user request (continue coverage)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** 120 unit suites / 510 tests — `Button.test.tsx` (loading, async pending, icons), `Field.test.tsx` (select/checkbox/tel/readOnly/file-button), expanded `lessons-store` + `quizzes-store`. Web UI coverage: Button ~97% lines, Field ~96% lines.
+
+## [2026-05-20] update | Daily goals, chat attachments, dashboard/confirm stores
+- **Trigger:** user request (continue coverage)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** 120 unit suites / 475 tests — `DailyGoalsService`, `ChatAttachmentService`, `dashboard-store`, `confirm-dialog-store`, `vocabulary-ui`, `lessonPersistence` content omit.
+
+## [2026-05-20] update | Mail SMTP + NotificationsMail + lessonTime
+- **Trigger:** user request (continue coverage)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** 120 unit suites / 456 tests — `MailService` nodemailer mock, `NotificationsMailService`, `sendTelegramBotMessage`, `lessonTime` helpers, `profile-form`, `quiz-questions`.
+
+## [2026-05-20] update | Translation/Telegram fetch mocks + web upload/previews
+- **Trigger:** user request (continue coverage)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** 119 unit suites / 442 tests — `TranslationService` Libre+GTX, `telegram-bot.client` widget/getUpdates, `word-details-payload`, `chat-upload`, `lesson-file-links`, `chatUnreadTotal`, `escapeRegex`.
+
+## [2026-05-20] update | Dashboard hero, header search, ESLint for Jest CJS
+- **Trigger:** user request (continue coverage) + ESLint on `jest.config.cjs`
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** 119 unit suites / 427 tests — `dashboard-hero` homework/calendar/streak, `header-search` lessons/vocab, `hydrateLessonPartyNames`, `chat-attachment.util` reject/sanitize; root ESLint Node globals for `*.config.cjs`.
+
+## [2026-05-20] update | Lesson persistence, conflicts, calendar service
+- **Trigger:** user request (continue coverage)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** 119 unit suites / 415 tests — expanded `lessonPersistence`, `conflicts`, `fileUtils.filterSafeFiles`, `lesson-series` content/time helpers; new `lessonCalendarService.test`.
+
+## [2026-05-20] update | API/chat-socket, lesson series, dictionary merge, integration cleanup
+- **Trigger:** user request (continue coverage)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** 118 unit suites / 399 tests — `api`, `chat-socket`, lesson-modal sync/recurring/series-update, `dictionary-merge.util`; `cleanupTestUsers` clears chat/lessons/quiz FKs.
+
+## [2026-05-20] update | Web lib stats/profile/audio + dashboard wordOfDay
+- **Trigger:** user request (continue coverage)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** 111 unit suites / 378 tests — `live-statistics-dashboard`, `student-profile`, `student-lessons`, `student-schedule-type`, `vocabulary-audio`, `lesson-attachment-upload`; `DashboardService.wordOfDayFor` stability spec.
+
+## [2026-05-20] update | Web features + staff access + facebook oauth tests
+- **Trigger:** user request (continue coverage)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** 105 unit suites / 360 tests — `vocabulary-staff-access.util`, `facebook-oauth`, web `lessonPersistence`/`lessonCalendarAdapter`/`dragPayload`/`series-lesson-delete`/`active-user-role`; integration quiz delete RBAC + student quiz detail.
+
+## [2026-05-20] update | RBAC utils, E2E page objects, chat integration
+- **Trigger:** user request (continue coverage)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** `lessons-access.util`, `vocabulary-rbac.util`; E2E `ChatPage`/`CalendarPage`; integration chat direct conversation + invalid inbox cursor; dropped service specs importing full `be-*` (SWC SIGABRT).
+
+## [2026-05-20] update | vocabulary/lessons map utils + integration RBAC
+- **Trigger:** user request (continue coverage)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** Extracted `vocabulary-map.util.ts` and `lessons-map.util.ts` from `be-vocabulary` / `be-lessons` with unit specs; integration tests for teacher vocab add, invalid cursor, student/admin lessons.
+
+## [2026-05-20] update | Unit tests batch 5 (lesson adapter, lessonTime, practice tracker)
+- **Trigger:** user request (continue coverage)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** 93 unit suites / 320 tests — `scheduledLessonsBackendAdapter`, `lessonTime` wall-clock helpers, `practice-session-tracker`, `paginated-api` loadInitial/loadNext, `students-admin` teacher restrictions, `chat.service` inboxPage.
+
+## [2026-05-20] update | Unit tests batch 4 (chat service, live stats, file links)
+- **Trigger:** user request (continue coverage)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** 90 unit suites / 301 tests — extracted `chat-inbox-cursor.util`; `chat.service`, `chat-attachment`, `telegram-delivery` specs; web student/profile live stats, lesson file links, teacher chat peer resolver.
+
+## [2026-05-20] update | Unit tests batch 3 (translation, dashboard, vocabulary UI)
+- **Trigger:** user request (continue coverage)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** 82 unit suites / 271 tests — `translation.service`, `platform-settings`, `lesson-attachment`, `notification-delivery`, expanded `google-calendar`; web `dashboard-hero`, `vocabulary-ui`, `word-details-payload`, `lesson-pending-files`, `pkg-shared-types`, lesson party / schedule helpers.
+
+## [2026-05-20] update | Unit tests batch 2 (streak, dispatch, web lib)
+- **Trigger:** user request (continue coverage)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** 72 unit suites / 231 tests — `streak.service`, `notification-dispatch`, `daily-goals` + `irregular-verbs` (@pkg/types), web `word-definitions` / `practice-pending` / `avatar` / `lesson-file-ref`; store `createIdleSlice()` fix; expanded `chat-visibility`, `users.service.listAssignableTeachers`, `streak-alert.job`.
+
+## [2026-05-20] update | Technical package import aliases
+- **Trigger:** user request
+- **Pages:** `concepts/package-aliases.md` (new), `synthesis/tech-stack.md`, `concepts/frontend-packages.md`, `index.md`, `log.md`
+- **Notes:** Renamed npm scopes from `@soenglish/*` to `@pkg/types`, `@be/*`, `@fe/*`, `@app/*`; updated tsconfig, jest.paths, eslint boundaries, all package.json names, Docker CMD filters.
+
+## [2026-05-20] update | Test coverage continuation
+- **Trigger:** user request
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** Expanded dictionary-payload, quiz cursor in `quiz-generator.logic`, notification-prefs, practice weekSummary, users pagination; web lib (profile-form, lesson-series, header-search, chat-upload, quiz-questions); integration lessons + quiz suites; 56 unit / 170 tests.
+
+## [2026-05-20] update | Full test coverage plan (infra + breadth)
+- **Trigger:** code change (user plan)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** 9 Jest unit projects via `create-module-jest-config.cjs`; `test:coverage` scripts; `tests/shared/`; ~48 unit / 8 integration / 14 E2E route specs; `quiz-generator.logic.ts` extract; all web Zustand stores smoke-tested; GraphQL integration split by domain.
+
+## [2026-05-20] update | Phase 3 core product tests
+- **Trigger:** code change
+- **Pages:** `concepts/testing.md`, `concepts/lessons-calendar.md` (createMeetLink GraphQL), `log.md`
+- **Notes:** backend-modules Jest project; vocabulary/chat unit; web recurrence/paginated-api/Field; graphql-product integration; E2E product-pages smoke; 60 unit / 10 integration.
+
+## [2026-05-20] update | Phase 2 auth/RBAC tests
+- **Trigger:** code change
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** seed.ts, auth-session + telegram unit, refresh/logout integration, graphql-rbac (3), auth-store + roles web tests; 40 unit / 7 integration.
+
+## [2026-05-20] update | Testing coverage roadmap (phases 2–5)
+- **Trigger:** user request
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** Phased plan to ~40% critical paths (auth → lessons/vocab/flashcards/chat → CI coverage gates).
+
+## [2026-05-20] update | Jest unit, integration, Playwright E2E
+- **Trigger:** code change
+- **Pages:** `concepts/testing.md`, `synthesis/tech-stack.md`, `log.md`, `index.md`
+- **Notes:** Jest projects `module-auth` + `web` (`@swc/jest`, `next/jest`); integration via `jest.integration.config.cjs` + `ts-jest` + supertest; Playwright in `tests/e2e/`. Scripts: `test`, `test:unit`, `test:integration`, `test:e2e`.
+
+## [2026-05-18] update | Prisma migrations squashed to baseline
+- **Trigger:** debug (`migrate dev` P3006 shadow DB / missing `User` table)
+- **Pages:** `synthesis/tech-stack.md`, `log.md`
+- **Notes:** Replaced six incremental-only migrations with `20260501000000_baseline`. Existing DBs: `npm run prisma:migrate:rebaseline` once if history still lists old names.
+
+## [2026-05-18] update | User display color (calendar + staff edit)
+- **Trigger:** code change
+- **Pages:** `concepts/lessons-calendar.md`, `log.md`
+- **Notes:** Prisma `User.displayColor`; random on `createUserAsAdmin`; staff edit on student profile; calendar reads API colors. Renamed UI from "Calendar color (HEX)" to **User color**.
+
+## [2026-05-18] update | Appearance font size scales full UI
+- **Trigger:** code change
+- **Pages:** `concepts/ui-design-system.md`, `log.md`
+- **Notes:** `html[data-font-size]` root 14/16/18px; `--fs-9`…`--fs-52` rem tokens; module SCSS `font-size: Npx` → `var(--fs-N)`.
+
+## [2026-05-18] update | Profile: no self-delete; admin delete confirm
+- **Trigger:** code change
+- **Pages:** `concepts/auth-rbac.md`, `log.md`
+- **Notes:** Removed **Delete account** from Profile → Account. Admin user delete uses `confirmDialog` (“Are you sure…”) before `deleteUser`.
+
+## [2026-05-18] update | Profile change password; remove data export stub
+- **Trigger:** code change
+- **Pages:** `concepts/auth-rbac.md`, `log.md`
+- **Notes:** Account tab: `changeMyPassword` modal via `profile-store`; OAuth-only users see hint (`hasPassword` false). Removed **Export my data** row (no backend).
+
+## [2026-05-18] update | Icon-only Button padding + fixed hit targets
+- **Trigger:** UI polish
+- **Pages:** `concepts/ui-design-system.md`, `log.md`
+- **Notes:** `Button` sets `data-icon-only` when children are Lucide-only (no text). Fixed SCSS for `deleteIconBtn`, chat `iconBtn`, toast close, quiz modal close, admin/vocab delete icon buttons.
+
+## [2026-05-18] update | Student response images after lesson save
+- **Trigger:** bug fix
+- **Pages:** `concepts/lessons-calendar.md`, `log.md`
+- **Notes:** After save, previews use API `fileLinks` (`resolveLessonFilePreview`); student response chips match homework/materials pattern; lesson page rebuilds response previews on save.
+
+## [2026-05-18] update | Homework save in lesson series + file previews
+- **Trigger:** bug fix
+- **Pages:** `concepts/lessons-calendar.md`, `log.md`
+- **Notes:** Series modal save now applies homework/materials/plan only to the edited lesson; homework chips use `fileLinks`; lesson page preview state no longer resets on unrelated store updates.
+
+## [2026-05-18] update | Lesson material images persist after save
+- **Trigger:** bug fix
+- **Pages:** `entities/lesson-material.md`, `log.md`
+- **Notes:** `mergeLessonDisplayNames` no longer overwrites API materials/fileLinks; modal flushes material draft on lesson save; previews sync from `fileLinks`.
+
+## [2026-05-18] update | Calendar Request lesson → teacher chat
+- **Trigger:** code change
+- **Pages:** `concepts/lessons-calendar.md`, `log.md`
+- **Notes:** Student **Request lesson** navigates to `/chat?peer=` assigned teacher.
+
+## [2026-05-18] update | Student lesson vocabulary on lesson page
+- **Trigger:** code change
+- **Pages:** `concepts/lessons-calendar.md`, `log.md`
+- **Notes:** Students see Lesson vocabulary block and add words; `studentBackendId` from auth on lesson page; re-link existing cards to lesson when `lessonId` set.
+
+## [2026-05-18] update | Lesson party names + file attachments API
+
+- **Trigger:** code change
+- **Pages:** `concepts/lessons-calendar.md`, `entities/lesson-material.md`, `log.md`
+- **Notes:** GraphQL `teacherName`/`studentName`; `LessonFileAttachment` + REST upload/download; web uploads pending files on persist; fixed `activeUser.fullName` on lesson page.
+
+## [2026-05-18] update | Lesson hub: summary, party names, material files
+
+- **Trigger:** code change
+- **Pages:** `concepts/lessons-calendar.md`, `log.md`
+- **Notes:** Hide empty short summary for students; student/teacher labels via `resolveLessonPartyLabel`; lesson attachments open/download via blob URLs (`openLessonAttachment`).
+
+## [2026-05-18] update | PageHeader back before title
+
+- **Trigger:** code change
+- **Pages:** `concepts/ui-design-system.md`, `log.md`
+- **Notes:** `PageHeader` `back` prop; quiz + vocabulary use it instead of placing Back in `actions`.
+
+## [2026-05-18] update | AdaptiveSelect removed; Field select only
+
+- **Trigger:** code change
+- **Pages:** `concepts/ui-design-system.md`, `log.md`, `.cursor/rules/web-component-reuse.mdc`
+- **Notes:** All call sites use `<Field as="select" />`; `AdaptiveSelect.tsx` deleted.
+
+## [2026-05-18] update | Adaptive select merged into Field
+
+- **Trigger:** code change
+- **Pages:** `concepts/ui-design-system.md`, `log.md`, `.cursor/rules/web-component-reuse.mdc`
+- **Notes:** `Field as="select"` uses former `AdaptiveSelect` logic in `Field.tsx`.
+
+## [2026-05-18] update | apps/web raw HTML → UI primitives audit
+
+- **Trigger:** user request
+- **Pages:** `concepts/ui-design-system.md`, `log.md`, `.cursor/rules/web-component-reuse.mdc`
+- **Notes:** Replaced raw `<button>`/`<input>`/`<img>` across app/features with `Button`, `Field`, `Image`, `SegmentedControl`; chat attachments use `next/image`; external links unchanged.
+
+## [2026-05-18] update | Cursor rule — web component reuse
+
+- **Trigger:** user request
+- **Pages:** `concepts/ui-design-system.md`, `log.md`
+- **Notes:** `.cursor/rules/web-component-reuse.mdc` — Link, Image, Field, Button instead of raw HTML in `apps/web`.
+
+## [2026-05-18] fix | generateQuiz REST + GraphQL includeIrregularVerbDrills
+
+- **Trigger:** debug
+- **Pages:** `concepts/quizzes-flashcards.md`, `log.md`
+- **Notes:** `GenerateQuizInput.includeIrregularVerbDrills` in `graphql.types.ts`; web store calls `POST /quizzes/generate` so generation works before GraphQL schema reload.
+
+## [2026-05-18] update | Quiz generation + irregular verbs
+
+- **Trigger:** code change | user request
+- **Pages:** `concepts/quizzes-flashcards.md`, `concepts/vocabulary.md`, `log.md`
+- **Notes:** Curated `irregular-verbs.ts` + `verbForms` on `WordCardDto`; flashcard/list `VerbFormsLine`; fixed `mixed` pool (lesson + rest); quiz templates for past / past participle, translation MCQ, weighted `mistakes_work`; `CreateQuizCard` source hints + `includeIrregularVerbDrills`.
+
+## [2026-05-18] update | Quiz create card (merged auto-generate panel)
+
+- **Trigger:** user request
+- **Pages:** `concepts/quizzes-flashcards.md`, `log.md`
+- **Notes:** Removed standalone `GenerateQuizPanel` on `/quiz` and student Quiz tab; generation (source, difficulty, count) lives in `CreateQuizCard` inside `manageGrid`.
+
+## [2026-05-18] update | Vocabulary Play setup card UI
+
+- **Trigger:** user request
+- **Pages:** `concepts/vocabulary.md`, `log.md`
+- **Notes:** Play mode setup merged into one card with hero, source filters, bottom Play button.
+
+## [2026-05-18] update | Vocabulary POS filter scopes card glosses
+
+- **Trigger:** user request
+- **Pages:** `concepts/vocabulary.md`, `log.md`
+- **Notes:** `pickWordDefinition` / `pickWordTranslation` accept POS filter; `resolveVocabularyGlossesForPosFilter` updates list + flashcard translation/definition when a part-of-speech chip is selected.
+
+## [2026-05-18] update | Vocabulary flashcards filters, POS, card size
+
+- **Trigger:** user request
+- **Pages:** `concepts/vocabulary.md`, `log.md`
+- **Notes:** `VocabularyFiltersBar` on list + flashcards (lesson + POS); `collectWordPartsOfSpeech` / `wordMatchesPosFilter`; taller flashcard + glosses/synonyms/lesson on card.
+
+## [2026-05-18] update | Vocabulary flashcards (audio, student actions)
+
+- **Trigger:** user request
+- **Pages:** `concepts/vocabulary.md`, `log.md`
+- **Notes:** Flashcard front: pronunciation + origin; back: translation when distinct; `statusActions` by role (student: Still learning / Got it; staff: full set including Repeated). No staff-only **Start over** for students.
+
+## [2026-05-18] update | Lesson timezones (viewer calendar + cross-party display)
+
+- **Trigger:** user request
+- **Pages:** `concepts/lessons-calendar.md`, `log.md`
+- **Notes:** `useViewerTimezone`; calendar/dashboard in profile TZ; `LessonPartyScheduleTimes` on modal + lesson page; `assignableTeachers.timezone` in GraphQL.
+
+## [2026-05-18] fix | Lessons list empty after pagination
+
+- **Trigger:** bug report (empty SurfaceCard on `/lessons`)
+- **Pages:** `concepts/lessons-calendar.md`, `log.md`
+- **Notes:** `listForPage` now orders **desc** (newest first); `/lessons` default filter **All** + fallback to provider full list when page slice empty.
+
+## [2026-05-18] update | Lessons list infinite scroll
+
+- **Trigger:** user question
+- **Pages:** `concepts/lessons-calendar.md`, `log.md`
+- **Notes:** `scheduledLessonsPage` GraphQL + `LessonsService.listForPage`; `/lessons` uses paginated store; calendar still loads full `scheduledLessons`.
+
+## [2026-05-18] update | Chat scroll-up pagination (web)
+
+- **Trigger:** plan implementation
+- **Pages:** `concepts/chat.md`, `log.md`
+- **Notes:** `chat-store` `fetchOlderMessages`, `hasMoreOlder`, `loadingOlder`; `ChatThread` IntersectionObserver + scroll preservation.
+
+## [2026-05-18] update | Student-page quiz uses student vocab only
+
+- **Trigger:** user note
+- **Pages:** `concepts/quizzes-flashcards.md`, `log.md`
+- **Notes:** `resolveQuizTargetStudentId`; staff `listFor` excludes quizzes assigned only to other students; store skips `fetchList` when `studentId` set on generate/delete/submit.
+
+## [2026-05-18] update | Practice badge excludes completed quizzes (staff)
+
+- **Trigger:** bug
+- **Pages:** `log.md`
+- **Notes:** `countIncompleteQuizzesFromList` filters `!attempt.finishedAt` like student assignments; Practice statPill + sidebar badge.
+
+## [2026-05-18] update | GraphQL QuizAttemptSummaryType init order
+
+- **Trigger:** debug (API crash on dev)
+- **Pages:** `log.md`
+- **Notes:** `QuizAttemptSummaryType` declared before `QuizCardType` to fix TDZ `ReferenceError`.
+
+## [2026-05-18] update | Admin self-quiz attempt on cards
+
+- **Trigger:** bug (admin own quiz not marked complete)
+- **Pages:** `concepts/quizzes-flashcards.md`, `log.md`
+- **Notes:** `quizzes` query returns `attempt`; staff Start (not Practice) + `studentId` on submit; `QuizAssignmentCards` on manage grid.
+
+## [2026-05-18] update | Quiz vocab source + student tab cards
+
+- **Trigger:** user note (admin vocabulary-only quizzes; student page card results)
+- **Pages:** `concepts/quizzes-flashcards.md`, `log.md`
+- **Notes:** `collectPool` / distractors from user cards only; `QuizAssignmentCards` on student profile Quiz tab and `/quiz` student grid.
+
+## [2026-05-18] update | Quiz completion reflected on student cards
+
+- **Trigger:** bug (result not on card after submit)
+- **Pages:** `log.md`
+- **Notes:** `submitQuizAttempt` refetches + optimistic `attempt`; `listForStudent` loads latest `QuizAttempt` per quiz; quiz page returns to intro with score banner.
+
+## [2026-05-18] update | Chat attachment URL without double /api
+
+- **Trigger:** bug (404 on `/api/api/chat/attachments/...`)
+- **Pages:** `concepts/chat.md`, `log.md`
+- **Notes:** `attachmentUrl` returns `/chat/attachments/:id`; web prepends `API_BASE` once.
+
+## [2026-05-18] update | Vocabulary statistics timestamps in GraphQL
+
+- **Trigger:** bug (vocabulary added vs known chart empty)
+- **Pages:** `entities/student-word-card.md`, `concepts/web-app.md`, `log.md`
+- **Notes:** `STUDENT_VOCABULARY` and card mutations now fetch `firstSeenAt`/`knownAt`; `vocabularyTrendFromCards` buckets by UTC date key (up to 14 days in range).
+
+## [2026-05-18] update | Delete series: planned lessons only
+
+- **Trigger:** code change (user note)
+- **Pages:** `concepts/lessons-calendar.md`, `log.md`
+- **Notes:** `getPlannedLessonsInSeries`; confirm copy; skip when none planned.
+
+## [2026-05-18] update | Telegram dev polling opt-in only
+
+- **Trigger:** user note (409 spam)
+- **Pages:** `concepts/auth-rbac.md`, `log.md`
+- **Notes:** `shouldTelegramDevPolling` requires `TELEGRAM_DEV_POLLING=true`; no auto-enable on localhost.
+
+## [2026-05-18] update | Telegram dev polling 409 log dedupe
+
+- **Trigger:** debug / user note
+- **Pages:** `log.md`
+- **Notes:** 409 = duplicate getUpdates; one-time warn + 60s backoff.
+
+## [2026-05-18] update | Button async loading + confirm onConfirm
+
+- **Trigger:** code change (UX)
+- **Pages:** `concepts/ui-design-system.md`, `log.md`
+- **Notes:** `Button` auto-pending for Promise onClick; `loadingLabel`; `confirmDialog.onConfirm` with spinner on confirm.
+
+## [2026-05-18] update | Confirm/toast BodyPortal above lesson modal
+
+- **Trigger:** bug (confirms under Edit lesson)
+- **Pages:** `concepts/lessons-calendar.md`, `log.md`
+- **Notes:** `BodyPortal` + `WhenPortaled`; confirms/toasts on `document.body` at z 2400/10100.
+
+## [2026-05-18] update | Series unlink fix, delete series, z-index stack
+
+- **Trigger:** code change (bug + UX)
+- **Pages:** `concepts/lessons-calendar.md`, `log.md`
+- **Notes:** Unlink sends `seriesId: null`; delete-all-series button; confirms above lesson modal; toasts on top.
+
+## [2026-05-18] update | Series UX: unlink default, calendar dialogs, scheduleType gate
+
+- **Trigger:** code change (plan)
+- **Pages:** `concepts/lessons-calendar.md`, `log.md`
+- **Notes:** Removed apply-to-series checkbox; drag detach vs resize apply-all popups; series icon; `User.scheduleType` + Recurrence gate.
+
+## [2026-05-18] update | Lesson series: apply time to all + conflict check + unlink persist
+
+- **Trigger:** user note
+- **Pages:** `concepts/lessons-calendar.md`, `log.md`
+- **Notes:** `applyToSeries` UI; series schedule validation; batch persist; unlink saves to API.
+
+## [2026-05-18] update | Lesson recurrence expands future occurrences on create
+
+- **Trigger:** code change (bug)
+- **Pages:** `concepts/lessons-calendar.md`, `log.md`
+- **Notes:** `expandRecurrenceDates` materializes daily/weekly/monthly lessons ahead; shared create path in calendar + lesson modal.
+
+## [2026-05-18] update | Header search + student hero UX
+
+- **Trigger:** code change
+- **Pages:** `concepts/web-app.md`, `log.md`
+- **Notes:** Working `HeaderSearch`; student hero drops Cards stat; chat button inline with name; vocabulary `?q=` deep link.
+
+## [2026-05-18] update | Statistics charts restored with live API data
+
+- **Trigger:** user note
+- **Pages:** `concepts/web-app.md`, `log.md`
+- **Notes:** `StatisticsDashboard` accepts `liveLessons`/`liveCards`; `buildLiveStatisticsDashboard` replaces mock-only `ProfileLiveStatistics` on profile and student tabs.
+
+## [2026-05-18] update | Student page: native language, stats, chat, lessons, vocab add
+
+- **Trigger:** code change
+- **Pages:** `concepts/web-app.md`, `log.md`
+- **Notes:** Student profile native language field; live stats (student + profile Statistics tab); hero chat link `/chat?peer=`; lessons from GraphQL; vocabulary add bar on student tab.
+
 ## [2026-05-18] update | BrandLogo back to SVG (no PNG)
 
 - **Trigger:** user note + code change
@@ -236,7 +699,7 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 - **Trigger:** code change
 - **Pages:** `concepts/transactional-email.md`, `log.md`
-- **Notes:** Replaced file-based `subject.txt`/`body.html` with `@soenglish/email-templates` (React Email); API dev/build compiles package first.
+- **Notes:** Replaced file-based `subject.txt`/`body.html` with `@be/email-templates` (React Email); API dev/build compiles package first.
 
 ## [2026-05-17] update | Profile notifications persistence + email delivery
 

@@ -1,9 +1,41 @@
+# Dependencies & caches
 node_modules
-dist
-.nx
+**/node_modules
+.turbo
+**/.turbo
 .next
-materials/fluent/.next
-materials/fluent/node_modules
-*.log
+**/.next
+dist
+**/dist
+out-tsc
+**/out-tsc
+coverage
+**/coverage
+
+# Local env & secrets
+.env
+.env.*
+!.env.example
+!.env.test.example
+
+# Git & editor
 .git
-.DS_Store
+.github
+.cursor
+.vscode
+*.md
+!packages/backend/email-templates/**/*.md
+
+# Design references (not needed in images)
+materials
+
+# Tests (not needed in production images)
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+tests
+**/tests
+
+# Playwright artifacts
+playwright-report
+test-results

@@ -1,16 +1,12 @@
 'use client';
 
-import type { ScheduledLessonDto } from '@soenglish/shared-types';
+import type { ScheduledLessonDto } from '@pkg/types';
 import { useRouter } from 'next/navigation';
-import { LESSON_STATUS } from '@soenglish/shared-types';
-import { AdaptiveSelect, Button, CalendarEventCard, SegmentedControl, SurfaceCard } from '../../components/ui';
+import { LESSON_STATUS } from '@pkg/types';
+import { Button, CalendarEventCard, Field, SegmentedControl, SurfaceCard } from '../../components/ui';
 import { USER_ROLE, type UserRole } from '../../mocks';
-import { useActiveUser } from '../../lib/active-user';
-import {
-  getIanaForTimeZoneId,
-  lessonEndTimeInZone,
-  lessonStartTimeInZone,
-} from '../../lib/lessonTime';
+import { lessonEndTimeInZone, lessonStartTimeInZone } from '../../lib/lessonTime';
+import { useViewerTimezone } from '../../hooks/use-viewer-timezone';
 import styles from './page.module.scss';
 
 export function CalendarHeaderControls({
@@ -66,7 +62,7 @@ export function CalendarHeaderControls({
         />
       ) : null}
       {showAudienceToggle && audience === 'all' ? (
-        <AdaptiveSelect
+        <Field as="select"
           className={styles.teacherFilter}
           value={teacherFilter}
           onChange={(e) => setTeacherFilter(e.target.value)}
@@ -78,7 +74,7 @@ export function CalendarHeaderControls({
               {teacher.name}
             </option>
           ))}
-        </AdaptiveSelect>
+        </Field>
       ) : null}
       {isStudent ? (
         <Button type="button" className={styles.createLessonBtn} onClick={onRequestLesson}>
@@ -100,8 +96,7 @@ export function SelectedDateSidebar({
   getLessonColor: (lesson: ScheduledLessonDto) => 'Blue' | 'Green' | 'Amber' | 'Purple';
 }) {
   const router = useRouter();
-  const activeUser = useActiveUser();
-  const viewerIana = getIanaForTimeZoneId(activeUser.timezoneId);
+  const { iana: viewerIana } = useViewerTimezone();
   return (
     <div className={styles.calSidebar}>
       <SurfaceCard className={styles.sidePanel}>

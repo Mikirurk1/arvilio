@@ -1,4 +1,4 @@
-import type { AuthUserDto, StudentSummaryBackendDto } from '@soenglish/shared-types';
+import type { AuthUserDto, StudentSummaryBackendDto } from '@pkg/types';
 import {
   getProfileByUserId,
   USER_ACCOUNT_STATUS,
@@ -47,12 +47,13 @@ export function mapBackendStudentToProfile(row: StudentSummaryBackendDto): MockS
       ? (PROFICIENCY_TO_ID[row.proficiencyLevel] ?? 1)
       : 1) as ProficiencyLevelId,
     statusId: (STATUS_TO_ID[row.status] ?? USER_ACCOUNT_STATUS.active.id) as UserAccountStatusId,
-    scheduleType: true,
+    scheduleType: row.scheduleType ?? true,
     teacherId: row.teacherId ? studentIdToNumericId(row.teacherId) : 0,
     wordsLearned: 0,
     lessonsCompleted: 0,
     streakDays: 0,
     timezoneId: 1,
+    color: row.displayColor ?? undefined,
   };
 }
 

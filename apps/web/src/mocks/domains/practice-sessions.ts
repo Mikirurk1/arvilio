@@ -1,7 +1,7 @@
 import {
   PRACTICE_SESSION_TYPE,
   type PracticeSessionLogEntry,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 
 /** Source-of-truth mock table for practice/lesson session logs. */
 export const mockPracticeSessionLog: PracticeSessionLogEntry[] = [

@@ -1,0 +1,65 @@
+# Browser E2E — heavier than unit/integration; not required on every PR by default.
+# Runs on main pushes, nightly schedule, and manual dispatch.
+
+name: E2E
+
+on:
+  push:
+    branches: [main, master]
+  schedule:
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_ENV: test
+  JWT_SECRET: e2e-jwt-secret-minimum-thirty-two-chars-long
+  DATABASE_URL: postgresql://soenglish:soenglish@localhost:5432/soenglish?schema=public
+  PLAYWRIGHT_TEST_EMAIL: jest-student@soenglish.test
+  PLAYWRIGHT_TEST_PASSWORD: TestPass123!
+  PLAYWRIGHT_TEACHER_EMAIL: jest-teacher@soenglish.test
+  PLAYWRIGHT_TEACHER_PASSWORD: TestPass123!
+  WEB_ORIGIN: http://localhost:4200
+  API_PROXY_TARGET: http://127.0.0.1:3000
+  NEXT_PUBLIC_API_URL: /api
+  NEXT_PUBLIC_SOCKET_URL: http://localhost:3000
+
+jobs:
+  playwright:
+    name: Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: soenglish
+          POSTGRES_PASSWORD: soenglish
+          POSTGRES_DB: soenglish
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U soenglish -d soenglish"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-monorepo
+      - run: npm run build:email-templates
+      - run: npm run prisma:migrate:deploy
+      - run: npm run seed:test-users
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: Run E2E
+        run: npm run test:e2e
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

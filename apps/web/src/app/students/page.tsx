@@ -7,7 +7,6 @@ import {
   canView,
   isTeacherAdminOrSuper,
   USER_ROLE,
-  type MockStudent,
 } from '../../mocks';
 import { useActiveUser } from '../../lib/active-user';
 import { mapBackendStudentToProfile } from '../../lib/student-profile';

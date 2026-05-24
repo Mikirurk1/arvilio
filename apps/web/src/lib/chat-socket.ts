@@ -1,7 +1,7 @@
 'use client';
 
 import { io, type Socket } from 'socket.io-client';
-import type { ChatMessageDto } from '@soenglish/shared-types';
+import type { ChatMessageDto } from '@pkg/types';
 
 const SOCKET_URL =
   process.env.NEXT_PUBLIC_SOCKET_URL?.replace(/\/$/, '') ?? 'http://localhost:3000';

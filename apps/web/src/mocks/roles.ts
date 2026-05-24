@@ -1,4 +1,4 @@
-import { USER_ROLE } from '@soenglish/shared-types';
+import { USER_ROLE } from '@pkg/types';
 import type { UserRole } from './session';
 
 /** Quick numeric id access for permission matrix. */

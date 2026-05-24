@@ -3,7 +3,7 @@ import type {
   LearningStreakDto,
   ScheduledLessonBackendDto,
   VocabularyOverviewDto,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 
 export type DashboardHero =
   | {

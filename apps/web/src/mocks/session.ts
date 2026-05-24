@@ -1,4 +1,4 @@
-import { USER_ROLE, USER_ROLE_ID_LIST } from '@soenglish/shared-types';
+import { USER_ROLE, USER_ROLE_ID_LIST } from '@pkg/types';
 import {
   mockUsers as mockUsersEntity,
   type MockUser as MockUserRecord,

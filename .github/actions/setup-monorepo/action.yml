@@ -1,0 +1,30 @@
+name: Setup monorepo
+description: Node.js, npm ci, Prisma client generate
+
+inputs:
+  node-version:
+    description: Node.js version
+    required: false
+    default: '22'
+  skip-prisma:
+    description: Skip prisma generate (lint-only jobs)
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: npm
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    - name: Generate Prisma client
+      if: inputs.skip-prisma != 'true'
+      shell: bash
+      run: npm run prisma:generate

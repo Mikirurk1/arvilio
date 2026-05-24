@@ -1,5 +1,5 @@
 {
-  "name": "@soenglish/email-templates",
+  "name": "@be/email-templates",
   "version": "0.0.0",
   "private": true,
   "scripts": {

@@ -1,6 +1,6 @@
 ---
 tags: [overview]
-updated: 2026-05-16
+updated: 2026-05-20
 ---
 
 # SoEnglish overview
@@ -27,9 +27,11 @@ See [[synthesis/product]] — 1:1 lessons (Meet), vocabulary, quizzes, curriculu
 ## Build & dev
 
 - **Tooling:** npm workspaces + **Turborepo**
-- `npm run dev` — web + api in parallel
-- `npm run dev:web` / `dev:api` — filtered
+- `npm run dev` — `@app/web` (:4200) + `@app/api` (:3000) via Turbo TUI (`turbo.json` `"ui": "tui"`, filtered to both apps)
+- `npm run dev:web` / `dev:api` — single app
 - `npm run prisma:generate` / `prisma:migrate:dev`
+- **Editor:** `.vscode/settings.json` — project-wide TS diagnostics + ESLint monorepo roots; tasks **SoEnglish: typecheck (all)** / **lint (all)** in Command Palette → Tasks: Run Task
+- **`@app/web` typecheck:** `npm run typecheck` runs `tsconfig.json` (app) + `tsconfig.spec.json` (unit tests + `src/testing/fixtures.ts`); shared mocks in `apps/web/src/testing/fixtures.ts`
 
 ## Domain modules
 

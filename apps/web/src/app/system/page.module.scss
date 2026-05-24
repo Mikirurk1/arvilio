@@ -9,13 +9,13 @@
 }
 
 .pageTitle {
-  font-size: 24px;
+  font-size: var(--fs-24);
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .pageSub {
-  font-size: 13px;
+  font-size: var(--fs-13);
   color: var(--text-tertiary);
   max-width: 720px;
 }
@@ -45,7 +45,7 @@
 }
 
 .statusLabel {
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -54,7 +54,7 @@
 }
 
 .statusValue {
-  font-size: 14px;
+  font-size: var(--fs-14);
   color: var(--text-primary);
   word-break: break-all;
 }
@@ -75,7 +75,7 @@
 }
 
 .label {
-  font-size: 13px;
+  font-size: var(--fs-13);
   font-weight: 600;
   color: var(--text-tertiary);
   text-transform: uppercase;
@@ -86,7 +86,7 @@
   padding: 10px 14px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  font-size: 15px;
+  font-size: var(--fs-15);
   color: var(--text-primary);
   outline: none;
   transition: border-color var(--transition);
@@ -99,7 +99,7 @@
 }
 
 .hint {
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--text-tertiary);
   margin-top: 4px;
   max-width: 560px;
@@ -119,7 +119,7 @@
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: var(--fs-13);
   font-weight: 600;
   cursor: pointer;
 
@@ -140,7 +140,7 @@
   background: var(--fill-strong);
   color: white;
   border: none;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   cursor: pointer;
 
@@ -155,17 +155,17 @@
 }
 
 .error {
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--rose);
 }
 
 .success {
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--green-dark);
 }
 
 .muted {
-  font-size: 13px;
+  font-size: var(--fs-13);
   color: var(--text-tertiary);
 }
 
@@ -178,7 +178,7 @@
 
 .panelTitle {
   font-weight: 600;
-  font-size: 15px;
+  font-size: var(--fs-15);
   color: var(--text-primary);
 }
 
@@ -229,13 +229,13 @@
 }
 
 .providerName {
-  font-size: 15px;
+  font-size: var(--fs-15);
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .providerBadge {
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -247,13 +247,13 @@
 
 .providerDesc {
   margin: 0 0 8px;
-  font-size: 13px;
+  font-size: var(--fs-13);
   line-height: 1.5;
   color: var(--text-secondary);
 }
 
 .providerLink {
-  font-size: 13px;
+  font-size: var(--fs-13);
   font-weight: 500;
   color: var(--blue, #2563eb);
   text-decoration: none;

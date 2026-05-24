@@ -10,6 +10,10 @@ type ConfirmOptions = {
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: ConfirmVariant;
+  /** Shown on the confirm button while `onConfirm` runs. */
+  loadingLabel?: string;
+  /** Runs on confirm; dialog stays open until this settles. Loading is shown on the confirm button. */
+  onConfirm?: () => void | Promise<void>;
 };
 
 type AlertOptions = {
@@ -25,10 +29,14 @@ type ConfirmDialogState = {
   message?: string;
   confirmLabel: string;
   cancelLabel: string;
+  loadingLabel?: string;
   variant: ConfirmVariant;
+  onConfirm: (() => void | Promise<void>) | null;
+  confirming: boolean;
   resolve: ((value: boolean) => void) | null;
   openConfirm: (options: ConfirmOptions, resolve: (value: boolean) => void) => void;
   openAlert: (options: AlertOptions, resolve: () => void) => void;
+  setConfirming: (confirming: boolean) => void;
   close: (result: boolean) => void;
 };
 
@@ -40,6 +48,9 @@ export const useConfirmDialogStore = create<ConfirmDialogState>((set, get) => ({
   confirmLabel: 'Confirm',
   cancelLabel: 'Cancel',
   variant: 'default',
+  loadingLabel: undefined,
+  onConfirm: null,
+  confirming: false,
   resolve: null,
 
   openConfirm: (options, resolve) => {
@@ -50,10 +61,15 @@ export const useConfirmDialogStore = create<ConfirmDialogState>((set, get) => ({
       message: options.message,
       confirmLabel: options.confirmLabel ?? (options.variant === 'danger' ? 'Delete' : 'Confirm'),
       cancelLabel: options.cancelLabel ?? 'Cancel',
+      loadingLabel: options.loadingLabel,
       variant: options.variant ?? 'default',
+      onConfirm: options.onConfirm ?? null,
+      confirming: false,
       resolve,
     });
   },
+
+  setConfirming: (confirming) => set({ confirming }),
 
   openAlert: (options, resolve) => {
     set({
@@ -74,6 +90,9 @@ export const useConfirmDialogStore = create<ConfirmDialogState>((set, get) => ({
     set({
       open: false,
       resolve: null,
+      onConfirm: null,
+      confirming: false,
+      loadingLabel: undefined,
     });
   },
 }));

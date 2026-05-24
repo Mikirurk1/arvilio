@@ -2,24 +2,25 @@
 
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
-import type { ScheduledLessonDto } from '@soenglish/shared-types';
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { EmptyStateCard } from '../../../components/ui';
 import { ProfileViewShell } from '../../../components/profile/ProfileViewShell';
-import { lessonStartUtc } from '../../../lib/lessonTime';
+import { buildLiveProfileStats } from '../../../lib/profile-live-stats';
+import { buildStudentLessonList } from '../../../lib/student-lessons';
+import { filterLessonsForStudent } from '../../../lib/student-live-stats';
+import { useStudentLiveStats } from '../../../hooks/use-student-live-stats';
+import { useLessonsStore } from '../../../stores/lessons-store';
 import {
   buildProfileAchievements,
   canView,
-  emptyProfileStats,
   getProficiencyLevelById,
-  getStudentScheduledLessons,
   getUserAccountStatusById,
   isAdminOrSuper,
   isTeacherAdminOrSuper,
-  mockProfileStatsByUserId,
-  mockScheduledLessons,
   mockUsers,
   USER_ACCOUNT_STATUS,
+  USER_ROLE,
   type MockStudent,
 } from '../../../mocks';
 import { useActiveUser } from '../../../lib/active-user';
@@ -37,7 +38,6 @@ import {
   StudentProfileTab,
   StudentStatisticsTab,
 } from './sections';
-import { TeacherMessageCompose } from './TeacherMessageCompose';
 import { StudentVocabularyTab } from './StudentVocabularyTab';
 import { StudentQuizTab } from './StudentQuizTab';
 import {
@@ -49,7 +49,7 @@ import {
   Flame,
   Gem,
   GraduationCap,
-  MessageSquareText,
+  MessageCircle,
   Mic,
   Mountain,
   Rocket,
@@ -85,12 +85,14 @@ export default function StudentDetailsPage() {
   const list = useStudentsStore((s) => s.list);
   const fetchStudents = useStudentsStore((s) => s.fetchStudents);
   const updateStudentAdmin = useStudentsStore((s) => s.updateStudentAdmin);
-  const { teacherOptions } = useLessonPartyOptions();
+  const { teacherOptions, nameByNumericId } = useLessonPartyOptions();
+  const fetchScheduledLessons = useLessonsStore((s) => s.fetchScheduledLessons);
+  const backendLessons = useLessonsStore((s) => s.backendLessons);
 
   const allowedRoles = isTeacherAdminOrSuper(activeUser.role);
   const backendRow = list.data?.find((row) => row.id === studentId);
   const resolved = useMemo(
-    () => resolveStudentProfile(studentId, list.data),
+    () => resolveStudentProfile(studentId, list.data ?? undefined),
     [studentId, list.data],
   );
 
@@ -101,22 +103,46 @@ export default function StudentDetailsPage() {
   const [teacherBackendId, setTeacherBackendId] = useState<string | null>(null);
   const [savedProfile, setSavedProfile] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [lessons, setLessons] = useState<ScheduledLessonDto[]>([]);
+  const [nativeLanguageId, setNativeLanguageId] = useState('');
+  const studentBackendId = resolved?.backendId;
+  const {
+    loading: liveStatsLoading,
+    summary: liveSummary,
+    overview: liveOverview,
+    studentLessons: liveStudentLessons,
+  } = useStudentLiveStats(studentBackendId);
 
   useEffect(() => {
     if (allowedRoles) void fetchStudents();
   }, [allowedRoles, fetchStudents]);
 
   useEffect(() => {
+    if (allowedRoles) void fetchScheduledLessons(true);
+  }, [allowedRoles, fetchScheduledLessons]);
+
+  useEffect(() => {
     if (!resolved?.profile) return;
     setStudentForm(resolved.profile);
     setTeacherBackendId(resolved.teacherBackendId);
-    setLessons(
-      [...getStudentScheduledLessons(resolved.profile.id)].sort(
-        (a, b) => lessonStartUtc(a).getTime() - lessonStartUtc(b).getTime(),
-      ),
-    );
   }, [resolved?.profile]);
+
+  useEffect(() => {
+    if (!backendRow?.displayColor) return;
+    setStudentForm((prev) => ({ ...prev, color: backendRow.displayColor! }));
+  }, [backendRow?.displayColor, studentId]);
+
+  useEffect(() => {
+    setNativeLanguageId(backendRow?.nativeLanguageId ?? '');
+  }, [backendRow?.nativeLanguageId]);
+
+  const lessons = useMemo(() => {
+    if (!studentBackendId) return [];
+    const rows =
+      liveStudentLessons.length > 0
+        ? liveStudentLessons
+        : filterLessonsForStudent(backendLessons.data, studentBackendId);
+    return buildStudentLessonList(rows, nameByNumericId);
+  }, [backendLessons.data, liveStudentLessons, nameByNumericId, studentBackendId]);
 
   const pageSubtitle = useMemo(() => 'Manage student profile, lessons and scheduling', []);
   const achievementIconMap = {
@@ -126,7 +152,7 @@ export default function StudentDetailsPage() {
     flame: <Flame size={20} />,
     'book-open': <BookOpen size={20} />,
     brain: <Brain size={20} />,
-    'messages-square': <MessageSquareText size={20} />,
+    'messages-square': <MessageCircle size={20} />,
     mic: <Mic size={20} />,
     target: <Target size={20} />,
     'badge-check': <BadgeCheck size={20} />,
@@ -138,11 +164,17 @@ export default function StudentDetailsPage() {
     gem: <Gem size={20} />,
   } as const;
 
-  const studentStats =
-    mockProfileStatsByUserId.find((entry) => entry.userId === studentForm.userId)?.stats ??
-    emptyProfileStats;
+  const liveProfileStats = useMemo(
+    () =>
+      buildLiveProfileStats(
+        liveSummary ?? undefined,
+        liveOverview ?? undefined,
+        liveStudentLessons.length > 0 ? liveStudentLessons : undefined,
+      ),
+    [liveOverview, liveStudentLessons, liveSummary],
+  );
 
-  const studentAchievements = buildProfileAchievements(studentStats).map((achievement) => ({
+  const studentAchievements = buildProfileAchievements(liveProfileStats).map((achievement) => ({
     icon: achievementIconMap[achievement.icon],
     label: achievement.label,
     description: achievement.description,
@@ -231,10 +263,31 @@ export default function StudentDetailsPage() {
         { label: studentForm.scheduleType ? 'Fixed schedule' : 'Flexible schedule' },
       ]}
       stats={[
-        { value: studentForm.wordsLearned, label: 'Words' },
-        { value: studentForm.lessonsCompleted, label: 'Lessons' },
-        { value: studentForm.streakDays, label: 'Streak' },
+        {
+          value: liveStatsLoading ? '…' : String(liveProfileStats.wordsLearned),
+          label: 'Words',
+        },
+        {
+          value: liveStatsLoading ? '…' : String(liveProfileStats.lessonsCompleted),
+          label: 'Lessons',
+        },
+        {
+          value: liveStatsLoading ? '…' : (liveProfileStats.streakDays > 0 ? String(liveProfileStats.streakDays) : '—'),
+          label: 'Streak',
+        },
       ]}
+      heroActions={
+        studentBackendId && isTeacherAdminOrSuper(activeUser.role) ? (
+          <Link
+            href={`/chat?peer=${encodeURIComponent(studentBackendId)}`}
+            className={styles.heroChatBtn}
+            aria-label={`Open chat with ${studentForm.fullName}`}
+            title="Open chat"
+          >
+            <MessageCircle size={20} aria-hidden />
+          </Link>
+        ) : null
+      }
       achievements={recentUnlockedAchievements}
       tab={tab}
       onTabChange={setTab}
@@ -243,7 +296,6 @@ export default function StudentDetailsPage() {
           value: 'profile',
           label: 'Profile',
           panel: (
-            <div className={styles.tabStack}>
             <StudentProfileTab
               student={studentForm}
               onChange={setStudentForm}
@@ -255,6 +307,9 @@ export default function StudentDetailsPage() {
                 displayName: row.fullName,
               }))}
               onTeacherBackendIdChange={setTeacherBackendId}
+              showNativeLanguage={Boolean(resolved.backendId)}
+              nativeLanguageId={nativeLanguageId}
+              onNativeLanguageIdChange={setNativeLanguageId}
               saved={savedProfile}
               saveError={saveError}
               onSave={() => {
@@ -273,6 +328,26 @@ export default function StudentDetailsPage() {
                         teacherOptions.find((t) => t.backendId === teacherBackendId)
                           ?.fullName ?? '—';
                       setStudentForm((prev) => ({ ...prev, teacherName }));
+                    }
+                    if (resolved.backendId) {
+                      const validColor =
+                        studentForm.color && /^#[0-9a-fA-F]{6}$/.test(studentForm.color)
+                          ? studentForm.color
+                          : null;
+                      if (activeUser.role === USER_ROLE.teacher.id) {
+                        if (validColor) {
+                          await updateStudentAdmin(resolved.backendId, {
+                            displayColor: validColor,
+                          });
+                        }
+                      } else if (isAdminOrSuper(activeUser.role)) {
+                        await updateStudentAdmin(resolved.backendId, {
+                          nativeLanguageId: nativeLanguageId || null,
+                          learningLanguageIds: backendRow?.learningLanguageIds ?? [],
+                          scheduleType: studentForm.scheduleType,
+                          ...(validColor ? { displayColor: validColor } : {}),
+                        });
+                      }
                     }
                     const target = mockUsers.find((u) => u.id === studentForm.id);
                     if (target) {
@@ -293,17 +368,18 @@ export default function StudentDetailsPage() {
                 })();
               }}
             />
-            {resolved.backendId && isTeacherAdminOrSuper(activeUser.role) ? (
-              <TeacherMessageCompose studentId={resolved.backendId} />
-            ) : null}
-            </div>
           ),
         },
         {
           value: 'statistics',
           label: 'Statistics',
-          panel: (
-              <StudentStatisticsTab />
+          panel: studentBackendId ? (
+            <StudentStatisticsTab studentId={studentBackendId} />
+          ) : (
+            <EmptyStateCard
+              title="Statistics unavailable"
+              description="Link this student to a backend account first."
+            />
           ),
         },
         {

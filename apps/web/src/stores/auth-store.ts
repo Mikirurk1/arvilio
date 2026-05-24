@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import type { AuthSessionDto, AuthUserDto, LoginRequestDto } from '@soenglish/shared-types';
+import type { AuthSessionDto, AuthUserDto, LoginRequestDto } from '@pkg/types';
 import { apiClient, ApiError, GOOGLE_SIGN_IN_URL } from '../lib/api';
 
 type AuthState = {

@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" data-font-size="medium" suppressHydrationWarning>
       <body>
         <AppProviders>
           <AppShell>{children}</AppShell>

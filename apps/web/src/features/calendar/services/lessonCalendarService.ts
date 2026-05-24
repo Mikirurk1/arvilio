@@ -1,4 +1,4 @@
-import type { ScheduledLessonDto } from '@soenglish/shared-types';
+import type { ScheduledLessonDto } from '@pkg/types';
 import { mockScheduledLessons } from '../../../mocks';
 
 export function getInitialLessons(): ScheduledLessonDto[] {

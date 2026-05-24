@@ -36,7 +36,8 @@ export function filterSafeFiles(
     if ((hasAllowedExt || hasAllowedMime) && sizeMb <= MAX_FILE_SIZE_MB) {
       safe.push({
         name: file.name.replace(/[^\w.\-()\s]/g, '_'),
-        previewUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : null,
+        previewUrl: URL.createObjectURL(file),
+        file,
       });
     } else {
       rejected.push(file.name);
@@ -51,6 +52,31 @@ export function formatMessage(template: string, values: Record<string, string | 
     (acc, [key, value]) => acc.replaceAll(`{${key}}`, String(value)),
     template,
   );
+}
+
+export function isImageFileName(fileName: string): boolean {
+  return /\.(jpg|jpeg|png|webp|gif|heic|heif|svg)$/i.test(fileName);
+}
+
+/** Open image in overlay; other types open/download via blob URL. */
+export function openLessonAttachment(
+  fileName: string,
+  objectUrl: string | null | undefined,
+  onImagePreview: (url: string) => void,
+): void {
+  if (!objectUrl) return;
+  if (isImageFileName(fileName)) {
+    onImagePreview(objectUrl);
+    return;
+  }
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = fileName.replace(/^att:[^:]+$/, 'download');
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 }
 
 export function getFilePlaceholder(fileName: string): string {

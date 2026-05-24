@@ -8,7 +8,7 @@ import {
   type LessonRecurrence,
   type TimeZoneId,
   type UserRoleId,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 
 /**
  * Stable string→number id mapping for scheduled lessons and parties (teachers,
@@ -171,9 +171,9 @@ export function fromBackendLesson(dto: ScheduledLessonBackendDto): ScheduledLess
     duration: dto.duration,
     timezoneId: timezoneToId(dto.timezone),
     teacherId: partyNumericId(dto.teacherId),
-    teacherName: '',
+    teacherName: dto.teacherName?.trim() ?? '',
     studentId: partyNumericId(dto.studentId),
-    studentName: '',
+    studentName: dto.studentName?.trim() ?? '',
     statusId: statusToId(dto.status),
     cancelReason: dto.cancelReason ?? undefined,
     credited: dto.credited,
@@ -182,9 +182,22 @@ export function fromBackendLesson(dto: ScheduledLessonBackendDto): ScheduledLess
     seriesId: dto.seriesId ?? undefined,
     order: dto.order,
     googleMeetUrl: dto.googleMeetUrl ?? null,
-    materials: dto.materials,
-    homework: dto.homework,
-    studentResponse: dto.studentResponse,
+    materials: dto.materials.map((material) => ({
+      id: material.id,
+      kind: material.kind,
+      text: material.text,
+      files: material.files,
+      fileLinks: material.fileLinks,
+    })),
+    homework: {
+      text: dto.homework.text,
+      files: dto.homework.files,
+      fileLinks: dto.homework.fileLinks,
+    },
+    studentResponse: {
+      ...dto.studentResponse,
+      fileLinks: dto.studentResponse.fileLinks,
+    },
     linkedWordIds: dto.linkedWordIds?.length ? [...dto.linkedWordIds] : undefined,
   };
 }

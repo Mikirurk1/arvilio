@@ -150,7 +150,7 @@
 
 .cardTitle {
   font-family: 'Lora', serif;
-  font-size: 19px;
+  font-size: var(--fs-19);
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 8px;
@@ -175,7 +175,7 @@
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 700;
   letter-spacing: 0.02em;
   pointer-events: none;
@@ -184,7 +184,7 @@
 }
 
 .cardDesc {
-  font-size: 14px;
+  font-size: var(--fs-14);
   color: var(--text-tertiary);
   line-height: 1.55;
   flex: 1;
@@ -199,7 +199,7 @@
 }
 
 .tag {
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -229,7 +229,7 @@
 }
 
 .cta {
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--green-dark);
   white-space: nowrap;
@@ -254,7 +254,7 @@
 .summaryTitle {
   margin: 0 0 14px;
   font-family: 'Lora', serif;
-  font-size: 20px;
+  font-size: var(--fs-20);
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -281,14 +281,14 @@
 
 .summaryValue {
   margin: 0;
-  font-size: 24px;
+  font-size: var(--fs-24);
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .summaryLabel {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: var(--fs-13);
   color: var(--text-tertiary);
 }
 
@@ -305,7 +305,7 @@
   }
 
   .summaryTitle {
-    font-size: 18px;
+    font-size: var(--fs-18);
   }
 
   .summaryGrid {

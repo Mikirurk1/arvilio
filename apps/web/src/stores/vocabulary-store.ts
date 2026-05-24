@@ -8,11 +8,12 @@ import type {
   VocabularyOverviewDto,
   WordCardDto,
   WordLookupResultDto,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 import {
   ADD_STUDENT_WORD_CARD,
   LOOKUP_WORD,
   STUDENT_VOCABULARY,
+  STUDENT_VOCABULARY_PAGE,
   DELETE_STUDENT_WORD_CARD,
   UPDATE_CARD_STATUS,
   VOCABULARY_OVERVIEW,
@@ -26,13 +27,19 @@ import {
   sliceSuccess,
   type AsyncSlice,
 } from './lib/async-slice';
+import { loadInitialPage, loadNextPage, mergePageItems } from './lib/paginated-api';
+import { createIdlePaginatedSlice, type PaginatedSlice } from './lib/paginated-slice';
 
 type VocabularyState = {
   overview: AsyncSlice<VocabularyOverviewDto>;
   cards: AsyncSlice<StudentWordCardDto[]>;
   cardsStudentId: string | null;
+  cardsPage: PaginatedSlice<StudentWordCardDto>;
+  cardsPageStudentId: string | null;
   fetchOverview: (force?: boolean) => Promise<void>;
   fetchCards: (studentId?: string, force?: boolean) => Promise<void>;
+  fetchCardsPage: (studentId?: string, force?: boolean) => Promise<void>;
+  loadMoreCardsPage: () => Promise<void>;
   lookupWord: (text: string) => Promise<WordLookupResultDto>;
   fetchWordsByIds: (ids: string[]) => Promise<WordCardDto[]>;
   addCard: (body: CreateStudentWordCardRequestDto, studentId?: string) => Promise<StudentWordCardDto>;
@@ -50,6 +57,8 @@ export const useVocabularyStore = create<VocabularyState>()(
       overview: createIdleSlice<VocabularyOverviewDto>(),
       cards: createIdleSlice<StudentWordCardDto[]>(),
       cardsStudentId: null,
+      cardsPage: createIdlePaginatedSlice<StudentWordCardDto>(),
+      cardsPageStudentId: null,
 
       fetchOverview: async (force = false) => {
         const prev = get().overview;
@@ -95,6 +104,82 @@ export const useVocabularyStore = create<VocabularyState>()(
         }
       },
 
+      fetchCardsPage: async (studentId, force = false) => {
+        const key = studentId ?? null;
+        const prev = get().cardsPage;
+        if (!force && get().cardsPageStudentId === key && prev.status === 'success' && prev.items.length > 0) {
+          return;
+        }
+        set(
+          {
+            cardsPage: { ...createIdlePaginatedSlice<StudentWordCardDto>(), status: 'loading' },
+            cardsPageStudentId: key,
+          },
+          false,
+          'vocabulary/cardsPage:start',
+        );
+        try {
+          const page = await loadInitialPage<StudentWordCardDto>(
+            STUDENT_VOCABULARY_PAGE,
+            'studentVocabularyPage',
+            studentId ? { studentId } : {},
+          );
+          set(
+            {
+              cardsPage: {
+                items: page.items,
+                hasMore: page.hasMore,
+                nextCursor: page.nextCursor,
+                status: 'success',
+                error: null,
+                loadingMore: false,
+              },
+              cardsPageStudentId: key,
+            },
+            false,
+            'vocabulary/cardsPage:success',
+          );
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Failed to load vocabulary';
+          set(
+            {
+              cardsPage: { ...get().cardsPage, status: 'error', error: message, loadingMore: false },
+            },
+            false,
+            'vocabulary/cardsPage:error',
+          );
+        }
+      },
+
+      loadMoreCardsPage: async () => {
+        const page = get().cardsPage;
+        const studentId = get().cardsPageStudentId;
+        if (page.status !== 'success' || !page.hasMore || page.loadingMore || !page.nextCursor) {
+          return;
+        }
+        set({ cardsPage: { ...page, loadingMore: true } }, false, 'vocabulary/cardsPage:more:start');
+        try {
+          const next = await loadNextPage<StudentWordCardDto>(
+            STUDENT_VOCABULARY_PAGE,
+            'studentVocabularyPage',
+            studentId ? { studentId } : {},
+            page.nextCursor,
+          );
+          set(
+            { cardsPage: mergePageItems(page, next) },
+            false,
+            'vocabulary/cardsPage:more:success',
+          );
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Failed to load more';
+          set(
+            { cardsPage: { ...get().cardsPage, loadingMore: false, error: message } },
+            false,
+            'vocabulary/cardsPage:more:error',
+          );
+        }
+      },
+
       lookupWord: async (text) => {
         const data = await graphqlRequest<{ lookupWord: WordLookupResultDto }>(LOOKUP_WORD, {
           text: text.trim(),
@@ -116,7 +201,11 @@ export const useVocabularyStore = create<VocabularyState>()(
             studentId,
           },
         );
-        await Promise.all([get().fetchCards(studentId, true), get().fetchOverview(true)]);
+        await Promise.all([
+          get().fetchCards(studentId, true),
+          get().fetchCardsPage(studentId, true),
+          get().fetchOverview(true),
+        ]);
         return data.addStudentWordCard;
       },
 
@@ -125,7 +214,7 @@ export const useVocabularyStore = create<VocabularyState>()(
           input: { cardId, status },
           studentId,
         });
-        await get().fetchCards(studentId, true);
+        await Promise.all([get().fetchCards(studentId, true), get().fetchCardsPage(studentId, true)]);
       },
 
       deleteCard: async (cardId, studentId) => {
@@ -133,7 +222,11 @@ export const useVocabularyStore = create<VocabularyState>()(
           cardId,
           studentId,
         });
-        await Promise.all([get().fetchCards(studentId, true), get().fetchOverview(true)]);
+        await Promise.all([
+          get().fetchCards(studentId, true),
+          get().fetchCardsPage(studentId, true),
+          get().fetchOverview(true),
+        ]);
       },
     }),
     { name: 'soenglish/vocabulary' },

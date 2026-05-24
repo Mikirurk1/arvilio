@@ -23,6 +23,12 @@
 }
 
 .profileHero {
+  position: relative;
+  margin-bottom: 16px;
+  animation: slideUp 0.3s ease;
+}
+
+.profileHeroInner {
   background:
     radial-gradient(circle at top right, color-mix(in srgb, var(--fill-strong) 12%, transparent) 0%, transparent 50%),
     linear-gradient(135deg, var(--card) 0%, color-mix(in srgb, var(--card) 82%, var(--surface) 18%) 100%);
@@ -32,9 +38,26 @@
   display: flex;
   align-items: stretch;
   gap: 22px;
-  margin-bottom: 16px;
-  animation: slideUp 0.3s ease;
   box-shadow: 0 8px 24px color-mix(in srgb, var(--text-primary) 8%, transparent);
+}
+
+.heroNameRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.heroNameText {
+  min-width: 0;
+}
+
+.heroInlineActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .avatarBig {
@@ -46,7 +69,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: var(--fs-28);
   font-weight: 600;
   flex-shrink: 0;
   border: 3px solid color-mix(in srgb, var(--card) 88%, transparent);
@@ -64,7 +87,7 @@
 
 .heroName {
   font-family: 'Lora', serif;
-  font-size: 24px;
+  font-size: var(--fs-24);
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 6px;
@@ -72,7 +95,7 @@
 }
 
 .heroMeta {
-  font-size: 13px;
+  font-size: var(--fs-13);
   color: var(--text-tertiary);
   margin-bottom: 10px;
 }
@@ -84,7 +107,7 @@
 }
 
 .badge {
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 500;
   padding: 4px 12px;
   border-radius: 20px;
@@ -112,14 +135,14 @@
 }
 
 .heroStatVal {
-  font-size: 22px;
+  font-size: var(--fs-22);
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.1;
 }
 
 .heroStatLbl {
-  font-size: 10px;
+  font-size: var(--fs-10);
   color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -147,11 +170,11 @@
   .avatarBig {
     width: 74px;
     height: 74px;
-    font-size: 24px;
+    font-size: var(--fs-24);
   }
 
   .heroName {
-    font-size: 20px;
+    font-size: var(--fs-20);
   }
 }
 
@@ -179,11 +202,11 @@
 }
 
 .achievementIcon {
-  font-size: 24px;
+  font-size: var(--fs-24);
 }
 
 .achievementLabel {
-  font-size: 10px;
+  font-size: var(--fs-10);
   color: var(--text-tertiary);
   text-align: center;
   line-height: 1.3;
@@ -205,7 +228,7 @@
 
 .achievementTooltip {
   max-width: 220px;
-  font-size: 11px;
+  font-size: var(--fs-11);
   line-height: 1.35;
   text-align: center;
 }
@@ -230,7 +253,7 @@
   border: none;
   border-radius: 0;
   background: transparent;
-  font-size: 15px;
+  font-size: var(--fs-15);
   font-weight: 500;
   cursor: pointer;
   color: var(--text-tertiary);
@@ -258,6 +281,6 @@
 @media (max-width: 640px) {
   .tabBtn {
     padding: 10px 12px;
-    font-size: 14px;
+    font-size: var(--fs-14);
   }
 }

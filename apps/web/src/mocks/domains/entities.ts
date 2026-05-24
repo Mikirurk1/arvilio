@@ -4,7 +4,7 @@ import type {
   TimeZoneId,
   UserAccountStatusId,
   UserRoleId,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 import {
   PROFILE_VOCABULARY_PROGRESS_EVENT,
   PROFICIENCY_LEVEL,
@@ -12,7 +12,7 @@ import {
   USER_ACCOUNT_STATUS,
   USER_ROLE,
   VOCABULARY_WORD_STATUS_IDS,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 import type { ProfileStats } from './achievements';
 import { computeUnlockedAchievementIdsFromCounters } from './achievements';
 import { buildLinkedAccounts, type LinkedAccountLink } from './linked-accounts';

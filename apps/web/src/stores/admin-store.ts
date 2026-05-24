@@ -6,7 +6,7 @@ import type {
   AdminUserSummaryDto,
   CreateAdminUserRequestDto,
   CreateAdminUserResultDto,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 import { ADMIN_USERS, CREATE_ADMIN_USER, DELETE_ADMIN_USER } from '../graphql/operations';
 import { graphqlRequest } from '../lib/graphql-client';
 import {

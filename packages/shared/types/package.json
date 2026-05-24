@@ -1,5 +1,5 @@
 {
-  "name": "@soenglish/shared-types",
+  "name": "@pkg/types",
   "version": "0.0.0",
   "private": true,
   "type": "module",

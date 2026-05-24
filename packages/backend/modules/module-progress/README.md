@@ -1,3 +1,3 @@
-# be-progress
+# @be/progress
 
-This library was generated with [Nx](https://nx.dev).
+Calendar REST events for scheduled lessons. Layered layout: see [backend-modules wiki](../../../../docs/llm-wiki/wiki/concepts/backend-modules.md).

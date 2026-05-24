@@ -1,6 +1,6 @@
 ---
 tags: [concept, vocabulary]
-updated: 2026-05-16
+updated: 2026-05-18
 ---
 
 # Vocabulary
@@ -30,7 +30,9 @@ Word learning: global dictionary + per-student cards + spaced repetition.
 
 ## Web
 
-- `/vocabulary` — main vocabulary UI; **Play** mode shows English word → multiple-choice **translation** (`lemmaText` via `pickWordTranslation`, falls back to definition gloss); needs ≥2 distinct answers in pool (2–4 options per question)
+- `/vocabulary` — main vocabulary UI; shared **filters** (search, lesson select, part-of-speech chips) on **List** and **Flashcards**. POS chips from `collectWordPartsOfSpeech` (word row + all `definitions[].partOfSpeech`). When a POS chip is active, card glosses use `resolveVocabularyGlossesForPosFilter` → `pickWordTranslation` / `pickWordDefinition` scoped to that POS (homographs like *kind* show noun vs adjective translation + definition on list cards and flashcards).
+- **Flashcards** mode: taller card (~400px); front — word, phonetic, audio, POS badges, **irregular verb forms** (`verbForms`: Past / Past participle from curated list in `@pkg/types` / `irregular-verbs.ts` when the lemma is a verb), topic category, lesson label, origin; back — per-POS native glosses (`pickNativeDefinitions`), EN definition, example, synonyms; toolbar status + word-details (ℹ). After flip: **staff** Still learning / Repeated / Mistakes work / Learned; **students** Still learning / Got it only. **Start over** staff-only. List cards show the same `verbForms` line via `VerbFormsLine`.
+- **Play** setup is a single start card (instructions, word-source controls, full-width **Play** at bottom); quiz shows English word → multiple-choice **translation** (`lemmaText` via `pickWordTranslation`, falls back to definition gloss); needs ≥2 distinct answers in pool (2–4 options per question)
 - `/practice/vocabulary` — practice mode
 - Store: `vocabulary-store.ts` (if present) / GraphQL operations
 

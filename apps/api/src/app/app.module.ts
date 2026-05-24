@@ -6,26 +6,15 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { AppController } from './app.controller';
 import { AppResolver } from './app.resolver';
 import { AppService } from './app.service';
-import {
-  AdminResolver,
-  LanguagesResolver,
-  SystemResolver,
-  DashboardResolver,
-  LessonsResolver,
-  QuizzesResolver,
-  UsersResolver,
-  VocabularyResolver,
-} from '../graphql/domain.resolvers';
-import { ChatResolver } from '../graphql/chat.resolver';
-import { PrismaModule } from '@soenglish/data-access-prisma';
-import { AuthModule } from '@soenglish/module-auth';
-import { MailModule } from '@soenglish/module-mail';
-import { FlashcardsModule } from '@soenglish/module-flashcards';
-import { LessonsModule } from '@soenglish/module-lessons';
-import { ProgressModule } from '@soenglish/module-progress';
-import { VocabularyModule } from '@soenglish/module-vocabulary';
-import { NotificationsModule } from '@soenglish/module-notifications';
-import { ChatModule } from '@soenglish/module-chat';
+import { PrismaModule } from '@be/prisma';
+import { AuthModule } from '@be/auth';
+import { MailModule } from '@be/mail';
+import { FlashcardsModule } from '@be/flashcards';
+import { LessonsModule } from '@be/lessons';
+import { ProgressModule } from '@be/progress';
+import { VocabularyModule } from '@be/vocabulary';
+import { NotificationsModule } from '@be/notifications';
+import { ChatModule } from '@be/chat';
 
 @Module({
   imports: [
@@ -52,18 +41,6 @@ import { ChatModule } from '@soenglish/module-chat';
     }),
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
-    AppResolver,
-    DashboardResolver,
-    VocabularyResolver,
-    QuizzesResolver,
-    LessonsResolver,
-    UsersResolver,
-    LanguagesResolver,
-    AdminResolver,
-    SystemResolver,
-    ChatResolver,
-  ],
+  providers: [AppService, AppResolver],
 })
 export class AppModule {}

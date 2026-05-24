@@ -2,20 +2,24 @@
 
 import { Suspense, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import type { ScheduledLessonDto } from '@soenglish/shared-types';
-import { LESSON_STATUS } from '@soenglish/shared-types';
+import type { ScheduledLessonDto } from '@pkg/types';
+import { LESSON_STATUS } from '@pkg/types';
 import { BookOpen, Calendar, CheckCircle2, CircleAlert, Clock, FileText, Users } from 'lucide-react';
 import { PageHeader, SurfaceCard } from '../../components/ui';
 import { canView, USER_ROLE, type UserRole } from '../../mocks';
 import { useActiveUser } from '../../lib/active-user';
 import {
+  fromBackendLessons,
   getLessonRouteId,
+  hydrateLessonPartyNames,
   lessonIncludesViewer,
 } from '../../features/lesson-modal/scheduledLessonsBackendAdapter';
+import { useLessonPartyOptions } from '../../hooks/use-lesson-party-options';
 import { useViewerPartyNumericId } from '../../hooks/use-viewer-party-numeric-id';
 import { lessonStartUtc } from '../../lib/lessonTime';
 import { LessonModal, useLessonEditor } from '../../features/lesson-modal';
 import { LessonsListPanel } from '../../components/lessons/LessonsListPanel';
+import { useLessonsStore } from '../../stores/lessons-store';
 import styles from './page.module.scss';
 
 function toDateString(date: Date): string {
@@ -117,13 +121,24 @@ function LessonsPageInner() {
     submitModal,
     saveStudentResponse,
     handleUnlinkSeries,
+    handleDeleteSeries,
     handleDeleteLesson,
     visibleStudents,
     assignableTeachers,
     lessonBackendId,
     persistedLessonId,
     studentBackendId,
+    recurrenceAllowed,
   } = useLessonEditor();
+
+  const lessonsPage = useLessonsStore((s) => s.lessonsPage);
+  const fetchLessonsPage = useLessonsStore((s) => s.fetchLessonsPage);
+  const loadMoreLessonsPage = useLessonsStore((s) => s.loadMoreLessonsPage);
+  const { nameByNumericId } = useLessonPartyOptions();
+
+  useEffect(() => {
+    void fetchLessonsPage(true);
+  }, [fetchLessonsPage]);
 
   const visibleLessons = useMemo(
     () =>
@@ -134,6 +149,32 @@ function LessonsPageInner() {
         .sort((a, b) => toStartTimeMs(a) - toStartTimeMs(b)),
     [lessons, role, viewerPartyNumericId, activeUser.id],
   );
+
+  const listLessons = useMemo(() => {
+    const fromPage = hydrateLessonPartyNames(
+      fromBackendLessons(lessonsPage.items).filter((lesson) =>
+        lessonIncludesViewer(lesson, viewerPartyNumericId ?? activeUser.id, role),
+      ),
+      nameByNumericId,
+    ).sort((a, b) => toStartTimeMs(b) - toStartTimeMs(a));
+
+    if (fromPage.length > 0) return fromPage;
+
+    if (lessonsPage.status === 'loading' || lessonsPage.status === 'idle') {
+      return [];
+    }
+
+    // Paginated slice empty (or failed) — fall back to full list from provider.
+    return [...visibleLessons].sort((a, b) => toStartTimeMs(b) - toStartTimeMs(a));
+  }, [
+    lessonsPage.items,
+    lessonsPage.status,
+    nameByNumericId,
+    role,
+    viewerPartyNumericId,
+    activeUser.id,
+    visibleLessons,
+  ]);
 
   const now = Date.now();
   const nextLesson = useMemo(
@@ -340,7 +381,16 @@ function LessonsPageInner() {
       </div>
 
       <div className={styles.workspace}>
-        <LessonsListPanel lessons={visibleLessons} canManageLessons={canManageLessons} onEditLesson={openEditModal} />
+        <LessonsListPanel
+          lessons={listLessons}
+          canManageLessons={canManageLessons}
+          onEditLesson={openEditModal}
+          defaultStatusFilter="all"
+          hasMore={lessonsPage.hasMore}
+          loadingMore={lessonsPage.loadingMore}
+          listLoading={lessonsPage.status === 'loading' || lessonsPage.status === 'idle'}
+          onLoadMore={() => void loadMoreLessonsPage()}
+        />
       </div>
 
       {form ? (
@@ -351,8 +401,11 @@ function LessonsPageInner() {
           form={form}
           onChange={setForm}
           onClose={closeModal}
-          canUnlinkSeries={modalMode === 'edit' && role === USER_ROLE.teacher.id && Boolean(editingLesson?.seriesId)}
+          recurrenceAllowed={recurrenceAllowed}
+          canUnlinkSeries={modalMode === 'edit' && canManageLessons && Boolean(editingLesson?.seriesId)}
           onUnlinkSeries={handleUnlinkSeries}
+          canDeleteSeries={modalMode === 'edit' && canManageLessons && Boolean(editingLesson?.seriesId)}
+          onDeleteSeries={handleDeleteSeries}
           canDeleteLesson={modalMode === 'edit' && role !== USER_ROLE.student.id}
           onDeleteLesson={handleDeleteLesson}
           onSubmit={submitModal}

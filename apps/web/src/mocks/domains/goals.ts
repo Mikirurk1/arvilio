@@ -7,4 +7,4 @@ export {
   type DailyGoalInstance,
   type GoalDifficulty,
   type GoalTemplate,
-} from '@soenglish/shared-types';
+} from '@pkg/types';

@@ -1,6 +1,6 @@
 'use client';
 
-import { Trash2, Unlink2, X } from 'lucide-react';
+import { Repeat, Trash2, Unlink2, X } from 'lucide-react';
 import { Button } from '../../components/ui';
 import styles from './LessonModal.module.scss';
 import type { LessonModalMode } from './types';
@@ -13,6 +13,8 @@ type Props = {
   text: LessonModalText;
   canUnlinkSeries: boolean;
   onUnlinkSeries: () => void;
+  canDeleteSeries: boolean;
+  onDeleteSeries: () => void;
   canDeleteLesson: boolean;
   onDeleteLesson: () => void;
   onClose: () => void;
@@ -24,12 +26,14 @@ export function LessonModalHeader({
   text,
   canUnlinkSeries,
   onUnlinkSeries,
+  canDeleteSeries,
+  onDeleteSeries,
   canDeleteLesson,
   onDeleteLesson,
   onClose,
 }: Props) {
   const isStudent = role === USER_ROLE.student.id;
-  const canShowUnlink = role === USER_ROLE.teacher.id && canUnlinkSeries;
+  const canShowUnlink = canUnlinkSeries;
   return (
     <div className={styles.modalHeader}>
       <div>
@@ -48,6 +52,17 @@ export function LessonModalHeader({
             onClick={onUnlinkSeries}
           >
             <Unlink2 size={16} />
+          </Button>
+        ) : null}
+        {canDeleteSeries ? (
+          <Button
+            type="button"
+            aria-label={text.aria.deleteSeries}
+            title={text.aria.deleteSeries}
+            className={`${styles.modalIconBtn} ${styles.modalIconBtnDanger}`}
+            onClick={onDeleteSeries}
+          >
+            <Repeat size={16} />
           </Button>
         ) : null}
         {canDeleteLesson ? (

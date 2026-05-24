@@ -10,16 +10,22 @@ import {
   MessageSquare,
   Users,
 } from 'lucide-react';
-import type { ScheduledLessonBackendDto, StudentSummaryBackendDto } from '@soenglish/shared-types';
+import type { ScheduledLessonBackendDto, StudentSummaryBackendDto } from '@pkg/types';
 import { SectionHeader, SurfaceCard } from '../../components/ui';
 import { isTeacherAdminOrSuperKey, useActiveRoleKey } from '../../lib/active-user';
 import {
-  formatLessonTime12h,
   formatShortWeekdayDate,
   lessonCountByDate,
   monthCalendarMeta,
   pickPendingHomeworkLessons,
 } from '../../lib/dashboard-hero';
+import { fromBackendLesson } from '../../features/lesson-modal/scheduledLessonsBackendAdapter';
+import {
+  lessonDateKeyInZone,
+  lessonEndTimeInZone,
+  lessonStartTimeInZone,
+} from '../../lib/lessonTime';
+import { useViewerTimezone } from '../../hooks/use-viewer-timezone';
 import { useChatNavBadge } from '../../hooks/use-chat-nav-badge';
 import { usePracticeNavBadge } from '../../hooks/use-practice-nav-badge';
 import { useStudentsStore } from '../../stores/students-store';
@@ -243,6 +249,7 @@ export function WeekLessonsList({
   students?: StudentSummaryBackendDto[];
   showStudentNames: boolean;
 }) {
+  const { iana: viewerIana } = useViewerTimezone();
   if (lessons.length === 0) return null;
 
   return (
@@ -256,14 +263,17 @@ export function WeekLessonsList({
         actionClassName={styles.seeAll}
       />
       <ul className={styles.weekList}>
-        {lessons.map((lesson) => (
+        {lessons.map((lesson) => {
+          const dto = fromBackendLesson(lesson);
+          const viewerDate = lessonDateKeyInZone(dto, viewerIana);
+          return (
           <li key={lesson.id}>
             <Link href={`/lessons/${lesson.id}`} className={styles.weekRow}>
-              <span className={styles.weekDate}>{formatShortWeekdayDate(lesson.date)}</span>
+              <span className={styles.weekDate}>{formatShortWeekdayDate(viewerDate)}</span>
               <span className={styles.weekMain}>
                 <span className={styles.weekTitle}>{lesson.title}</span>
                 <span className={styles.weekMeta}>
-                  {formatLessonTime12h(lesson.startTime)} · {lesson.duration} min
+                  {lessonStartTimeInZone(dto, viewerIana)}–{lessonEndTimeInZone(dto, viewerIana)} · {lesson.duration} min
                   {showStudentNames
                     ? ` · ${studentDisplayName(students, lesson.studentId)}`
                     : ''}
@@ -272,7 +282,8 @@ export function WeekLessonsList({
               <span className={styles.weekStatus}>{lesson.status}</span>
             </Link>
           </li>
-        ))}
+          );
+        })}
       </ul>
     </>
   );

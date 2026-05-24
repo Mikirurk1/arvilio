@@ -5,7 +5,7 @@ import {
   VOCABULARY_WORD_STATUS_IDS,
   type PracticeSessionLogEntry,
   type UserRoleId,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 import { computeUnlockedAchievementIdsFromCounters, emptyProfileStats } from './achievements';
 import { mockUsers } from './entities';
 import { mockScheduledLessons } from './lessons';

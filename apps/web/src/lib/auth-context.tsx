@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect } from 'react';
-import type { AuthUserDto, LoginRequestDto } from '@soenglish/shared-types';
+import type { AuthUserDto, LoginRequestDto } from '@pkg/types';
 import { useShallow } from 'zustand/react/shallow';
 import { useAuthStore } from '../stores/auth-store';
 

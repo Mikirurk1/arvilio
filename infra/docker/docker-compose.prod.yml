@@ -1,0 +1,69 @@
+# Production-style stack using images from GHCR (after CD workflow).
+# Usage on server:
+#   export GHCR_OWNER=your-org/soenglish
+#   export IMAGE_TAG=main
+#   docker compose -f infra/docker/docker-compose.prod.yml pull
+#   docker compose -f infra/docker/docker-compose.prod.yml up -d
+#
+# Run migrations once per release:
+#   docker compose -f infra/docker/docker-compose.prod.yml run --rm migrate
+
+name: soenglish-prod
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-soenglish}
+      POSTGRES_USER: ${POSTGRES_USER:-soenglish}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    volumes:
+      - soenglish-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-soenglish} -d ${POSTGRES_DB:-soenglish}']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  migrate:
+    image: ${GHCR_REGISTRY:-ghcr.io}/${GHCR_OWNER:?set GHCR_OWNER}/api:${IMAGE_TAG:-main}
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL}
+    command: ['npm', 'run', 'prisma:migrate:deploy']
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  api:
+    image: ${GHCR_REGISTRY:-ghcr.io}/${GHCR_OWNER}/api:${IMAGE_TAG:-main}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: 3000
+      DATABASE_URL: ${DATABASE_URL}
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:4200}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
+    ports:
+      - '${API_PORT:-3000}:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    image: ${GHCR_REGISTRY:-ghcr.io}/${GHCR_OWNER}/web:${IMAGE_TAG:-main}
+    restart: unless-stopped
+    environment:
+      PORT: 4200
+      API_PROXY_TARGET: http://api:3000
+      NEXT_PUBLIC_API_URL: /api
+      NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-http://localhost:3000}
+    ports:
+      - '${WEB_PORT:-4200}:4200'
+    depends_on:
+      - api
+
+volumes:
+  soenglish-postgres-data:

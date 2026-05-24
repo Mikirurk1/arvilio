@@ -1,13 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { ScheduledLessonDto } from '@soenglish/shared-types';
-import { LESSON_STATUS } from '@soenglish/shared-types';
+import type { ScheduledLessonDto } from '@pkg/types';
+import { LESSON_STATUS } from '@pkg/types';
 import { getLessonRouteId } from '../../features/lesson-modal/scheduledLessonsBackendAdapter';
 import { BookOpen, Calendar, ChevronRight, Clock, Pencil, Search, Users, Video } from 'lucide-react';
-import { SurfaceCard } from '../ui';
+import { Button, Field, SurfaceCard } from '../ui';
 import styles from './LessonsListPanel.module.scss';
 
 const STATUS_OPTIONS: Array<{ value: 'all' | ScheduledLessonDto['statusId']; label: string }> = [
@@ -33,16 +33,28 @@ export function LessonsListPanel({
   canManageLessons = false,
   onEditLesson,
   emptyText = 'No lessons match your filters.',
+  defaultStatusFilter = LESSON_STATUS.planned.id,
+  hasMore = false,
+  loadingMore = false,
+  onLoadMore,
+  listLoading = false,
 }: {
   lessons: ScheduledLessonDto[];
   canManageLessons?: boolean;
   onEditLesson?: (lesson: ScheduledLessonDto) => void;
   emptyText?: string;
+  defaultStatusFilter?: 'all' | ScheduledLessonDto['statusId'];
+  hasMore?: boolean;
+  loadingMore?: boolean;
+  onLoadMore?: () => void;
+  listLoading?: boolean;
 }) {
   const router = useRouter();
+  const listScrollRef = useRef<HTMLDivElement>(null);
+  const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | ScheduledLessonDto['statusId']>(
-    LESSON_STATUS.planned.id,
+    defaultStatusFilter,
   );
 
   const filteredLessons = useMemo(() => {
@@ -58,12 +70,35 @@ export function LessonsListPanel({
     });
   }, [lessons, query, statusFilter]);
 
+  const handleLoadMore = useCallback(() => {
+    if (!onLoadMore || loadingMore || !hasMore || listLoading) return;
+    onLoadMore();
+  }, [hasMore, listLoading, loadingMore, onLoadMore]);
+
+  useEffect(() => {
+    if (!onLoadMore) return;
+    const root = listScrollRef.current;
+    const sentinel = loadMoreSentinelRef.current;
+    if (!root || !sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          handleLoadMore();
+        }
+      },
+      { root, rootMargin: '120px' },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [handleLoadMore, onLoadMore, filteredLessons.length, hasMore]);
+
   return (
     <SurfaceCard className={styles.listPane}>
       <div className={styles.toolbar}>
         <div className={styles.searchWrap}>
           <Search size={18} className={styles.searchIcon} aria-hidden />
-          <input
+          <Field
             type="search"
             className={styles.searchInput}
             value={query}
@@ -76,27 +111,33 @@ export function LessonsListPanel({
           <span className={styles.filterHeading}>Status</span>
           <div className={styles.chipRow} role="group" aria-label="Filter by status">
             {STATUS_OPTIONS.map((opt) => (
-              <button
+              <Button
                 key={opt.value}
                 type="button"
+                variant="ghost"
                 className={`${styles.chip} ${statusFilter === opt.value ? styles.chipActive : ''}`}
                 onClick={() => setStatusFilter(opt.value)}
                 aria-pressed={statusFilter === opt.value}
               >
                 {opt.label}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
         <div className={styles.toolbarMeta}>
           <span className={styles.countMuted}>
-            Showing {filteredLessons.length} of {lessons.length}
+            {onLoadMore
+              ? `Showing ${filteredLessons.length} loaded${hasMore ? ' · scroll for more' : ''}`
+              : `Showing ${filteredLessons.length} of ${lessons.length}`}
           </span>
         </div>
       </div>
 
+      <div ref={listScrollRef} className={styles.listScroll}>
       <div className={styles.list}>
-        {filteredLessons.map((lesson) => {
+        {listLoading ? <div className={styles.empty}>Loading lessons…</div> : null}
+        {!listLoading
+          ? filteredLessons.map((lesson) => {
           const routeId = getLessonRouteId(lesson);
           return (
           <div
@@ -121,11 +162,6 @@ export function LessonsListPanel({
               <div className={styles.lessonMain}>
                 <div className={styles.lessonTitleRow}>
                   <h3 className={styles.lessonTitle}>{lesson.title}</h3>
-                  <span
-                    className={`${styles.statusPill} ${lesson.statusId === LESSON_STATUS.planned.id ? styles.statusPlanned : ''} ${lesson.statusId === LESSON_STATUS.completed.id ? styles.statusCompleted : ''} ${lesson.statusId === LESSON_STATUS.cancelled.id ? styles.statusCancelled : ''}`}
-                  >
-                    {statusLabel(lesson.statusId)}
-                  </span>
                 </div>
                 <div className={styles.lessonMetaRow}>
                   <span className={styles.metaItem}>
@@ -144,6 +180,11 @@ export function LessonsListPanel({
                   </span>
                 </div>
               </div>
+              <span
+                className={`${styles.statusPill} ${styles.statusPillAside} ${lesson.statusId === LESSON_STATUS.planned.id ? styles.statusPlanned : ''} ${lesson.statusId === LESSON_STATUS.completed.id ? styles.statusCompleted : ''} ${lesson.statusId === LESSON_STATUS.cancelled.id ? styles.statusCancelled : ''}`}
+              >
+                {statusLabel(lesson.statusId)}
+              </span>
               <div className={styles.lessonAside}>
                 <span className={styles.quickActions} aria-hidden>
                   <ChevronRight size={20} className={styles.chevron} />
@@ -157,8 +198,9 @@ export function LessonsListPanel({
                   <Video size={15} />
                 </Link>
                 {canManageLessons && onEditLesson ? (
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     className={styles.iconActionBtn}
                     aria-label="Edit lesson"
                     onClick={(event) => {
@@ -167,14 +209,25 @@ export function LessonsListPanel({
                     }}
                   >
                     <Pencil size={15} />
-                  </button>
+                  </Button>
                 ) : null}
               </div>
             </div>
           </div>
           );
-        })}
-        {filteredLessons.length === 0 ? <div className={styles.empty}>{emptyText}</div> : null}
+        })
+          : null}
+        {!listLoading && filteredLessons.length === 0 ? (
+          <div className={styles.empty}>{emptyText}</div>
+        ) : null}
+        {onLoadMore && hasMore ? (
+          <div ref={loadMoreSentinelRef} className={styles.loadMoreSentinel} aria-hidden />
+        ) : null}
+        {loadingMore ? <p className={styles.loadMoreStatus}>Loading more lessons…</p> : null}
+        {onLoadMore && !hasMore && lessons.length > 0 && !listLoading ? (
+          <p className={styles.loadMoreStatus}>All lessons loaded</p>
+        ) : null}
+      </div>
       </div>
     </SurfaceCard>
   );

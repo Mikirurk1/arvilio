@@ -19,4 +19,11 @@
   --container-max-prose: 720px;
   --container-max-form: 560px;
   --container-max-reading: 460px;
+
+  /* Stacking: lesson modal (body portal) < confirms (body portal) < toasts (body portal) */
+  --z-modal: 2200;
+  --z-modal-confirm: 2400;
+  --z-modal-lightbox: 2350;
+  --z-nav-drawer: 1200;
+  --z-toast: 10100;
 }

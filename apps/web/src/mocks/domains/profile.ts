@@ -5,7 +5,7 @@ import type {
   VocabularyWordDto,
   VocabularyWordStatusName,
   VocabularyWordStatusId,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 import {
   PROFILE_VOCABULARY_PROGRESS_EVENT,
   TIME_ZONE,
@@ -13,7 +13,7 @@ import {
   VOCABULARY_WORD_STATUS_IDS,
   type TimeZoneId,
   type UserAccountStatusId,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 import { siteContent } from '../content/site-content';
 import { activeUser, type MockUser, type UserRole } from '../session';
 import {
@@ -31,7 +31,7 @@ import {
   mockVocabularyWords,
   vocabularyStatusIdToLegacy,
 } from './vocabulary';
-import { LESSON_STATUS } from '@soenglish/shared-types';
+import { LESSON_STATUS } from '@pkg/types';
 import { mockScheduledLessons } from './lessons';
 
 function nextProfileVocabularyRowId(): number {

@@ -23,7 +23,7 @@ GraphQL: `myProfile.notificationPrefs`, `updateMyProfile(input: { notificationPr
 
 Web: `profile-store.updateNotificationPrefs` → debounced save on Profile → Notifications tab (`apps/web/src/app/profile/page.tsx`).
 
-## Delivery (`@soenglish/module-notifications`)
+## Delivery (`@be/notifications`)
 
 | Kind | Cron / trigger | Template |
 |------|----------------|----------|
@@ -35,7 +35,7 @@ Web: `profile-store.updateNotificationPrefs` → debounced save on Profile → N
 
 Idempotency: `NotificationDelivery` unique on (`userId`, `kind`, `dedupeKey`, `channel`) — email and Telegram tracked separately.
 
-HTML via React Email (`@soenglish/email-templates`). SMTP unset → email skipped. Telegram: `TelegramDeliveryService` uses linked `OAuthAccount` provider `TELEGRAM` (`providerAccountId` = numeric chat id from Login Widget) and `TELEGRAM_BOT_TOKEN`; welcome message on connect in `linkTelegramToUser`. Scheduler: `@nestjs/schedule` in `apps/api`.
+HTML via React Email (`@be/email-templates`). SMTP unset → email skipped. Telegram: `TelegramDeliveryService` uses linked `OAuthAccount` provider `TELEGRAM` (`providerAccountId` = numeric chat id from Login Widget) and `TELEGRAM_BOT_TOKEN`; welcome message on connect in `linkTelegramToUser`. Scheduler: `@nestjs/schedule` in `apps/api`.
 
 ## Teacher messages
 

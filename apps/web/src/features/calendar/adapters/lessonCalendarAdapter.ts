@@ -1,5 +1,5 @@
-import type { ScheduledLessonDto } from '@soenglish/shared-types';
-import { LESSON_STATUS, TIME_ZONE } from '@soenglish/shared-types';
+import type { ScheduledLessonDto } from '@pkg/types';
+import { LESSON_STATUS, TIME_ZONE } from '@pkg/types';
 import type { LessonFormState } from '../../lesson-modal/types';
 
 export function nextLessonEntityId(lessons: ScheduledLessonDto[]): number {
@@ -38,8 +38,10 @@ export function toLessonFormState(lesson: ScheduledLessonDto): LessonFormState {
       })) ?? [],
     homeworkText: lesson.homework?.text ?? '',
     homeworkFiles: lesson.homework?.files ?? [],
+    homeworkFileLinks: lesson.homework?.fileLinks,
     studentResponseText: lesson.studentResponse?.text ?? '',
     studentResponseFiles: lesson.studentResponse?.files ?? [],
+    studentResponseFileLinks: lesson.studentResponse?.fileLinks,
     studentResponseStatus: lesson.studentResponse?.status ?? 'not_submitted',
     homeworkChecked: lesson.studentResponse?.homeworkChecked ?? false,
     teacherHomeworkFeedback: lesson.studentResponse?.teacherHomeworkFeedback ?? '',
@@ -48,7 +50,6 @@ export function toLessonFormState(lesson: ScheduledLessonDto): LessonFormState {
     credited: lesson.credited,
     recurrence: lesson.recurrence,
     weeklyDays: lesson.weeklyDays ?? [],
-    applyToSeries: false,
     linkedWordIds: [...(lesson.linkedWordIds ?? [])],
   };
 }
@@ -85,10 +86,12 @@ export function fromLessonFormState(
     homework: {
       text: form.homeworkText,
       files: form.homeworkFiles,
+      fileLinks: form.homeworkFileLinks ?? existing?.homework?.fileLinks,
     },
     studentResponse: {
       text: form.studentResponseText,
       files: form.studentResponseFiles,
+      fileLinks: form.studentResponseFileLinks ?? existing?.studentResponse?.fileLinks,
       status: form.studentResponseStatus,
       homeworkChecked: form.homeworkChecked,
       teacherHomeworkFeedback: form.teacherHomeworkFeedback,

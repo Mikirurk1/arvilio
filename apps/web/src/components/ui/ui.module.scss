@@ -1,6 +1,6 @@
 .buttonBase {
   padding: 6px 12px;
-  font-size: 14px;
+  font-size: var(--fs-14);
   border-radius: 10px;
   cursor: pointer;
   font-weight: 500;
@@ -17,9 +17,14 @@
   background: color-mix(in srgb, var(--surface) 80%, var(--card));
 }
 
-.buttonBase:disabled {
+.buttonBase:disabled,
+.buttonBase[data-loading='true'] {
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+.buttonPending {
+  pointer-events: none;
 }
 
 .buttonVariantDefault {}
@@ -27,6 +32,18 @@
 .buttonVariantGhost {
   border-color: transparent;
   background: transparent;
+}
+
+/** Icon-only controls (e.g. info / pencil) — do not shrink Lucide SVG inside fixed-size hit targets. */
+.buttonBase[data-icon-only='true'] {
+  padding: 0;
+  gap: 0;
+  line-height: 0;
+}
+
+.buttonBase[data-icon-only='true'] svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .buttonVariantDashed {
@@ -38,7 +55,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  line-height: 0;
+  gap: 8px;
+  line-height: 1.25;
 }
 
 .buttonLoader {
@@ -61,6 +79,19 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
+}
+
+.pageHeaderStart {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.pageHeaderBack {
+  flex-shrink: 0;
+  padding-top: 4px;
 }
 
 .pageHeaderText {
@@ -86,12 +117,12 @@
 
 .badgeSm {
   padding: 4px 8px;
-  font-size: 11px;
+  font-size: var(--fs-11);
 }
 
 .badgeMd {
   padding: 6px 10px;
-  font-size: 12px;
+  font-size: var(--fs-12);
 }
 
 .badgeNeutral {
@@ -160,16 +191,16 @@
 }
 
 .statLabel {
-  font-size: 12px;
+  font-size: var(--fs-12);
 }
 
 .statValue {
-  font-size: 24px;
+  font-size: var(--fs-24);
   font-weight: 800;
 }
 
 .statSubtext {
-  font-size: 12px;
+  font-size: var(--fs-12);
 }
 
 .featureCard {
@@ -283,7 +314,7 @@
 }
 
 .progressLabel {
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 700;
 }
 
@@ -292,7 +323,7 @@
 }
 
 .emptyStateIcon {
-  font-size: 28px;
+  font-size: var(--fs-28);
 }
 
 .emptyStateTitle {
@@ -302,7 +333,7 @@
 
 .emptyStateDescription {
   margin-top: 4px;
-  font-size: 14px;
+  font-size: var(--fs-14);
   opacity: 0.8;
 }
 
@@ -322,7 +353,7 @@
 }
 
 .actionRowDescription {
-  font-size: 13px;
+  font-size: var(--fs-13);
   opacity: 0.8;
 }
 
@@ -362,7 +393,7 @@
   z-index: 10000;
   padding: 8px 10px;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: var(--fs-12);
   line-height: 1.35;
   color: var(--text-primary);
   background: color-mix(in srgb, var(--card) 92%, #111827);

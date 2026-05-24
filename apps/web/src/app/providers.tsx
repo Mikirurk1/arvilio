@@ -4,7 +4,7 @@ import { ReactNode, useEffect } from 'react';
 import { AuthProvider } from '../lib/auth-context';
 import { ConfirmDialogHost } from '../features/confirm';
 import { ToastViewport } from '../features/notifications/ToastViewport';
-import { useUiStore, type FontSizeMode, type ThemeMode } from '../stores/ui-store';
+import { useUiStore, type ThemeMode } from '../stores/ui-store';
 
 type ProviderProps = {
   children: ReactNode;

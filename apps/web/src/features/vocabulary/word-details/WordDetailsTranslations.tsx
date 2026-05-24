@@ -1,4 +1,4 @@
-import type { WordDefinitionDto } from '@soenglish/shared-types';
+import type { WordDefinitionDto } from '@pkg/types';
 import { isUsableGloss } from '../../../lib/word-definitions';
 import styles from '../word-details-modal.module.scss';
 

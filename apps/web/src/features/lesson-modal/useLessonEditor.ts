@@ -1,12 +1,13 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
-import type { ScheduledLessonDto } from '@soenglish/shared-types';
-import { LESSON_STATUS } from '@soenglish/shared-types';
+import { useCallback, useState } from 'react';
+import type { ScheduledLessonDto } from '@pkg/types';
+import { LESSON_STATUS } from '@pkg/types';
 import { canSchedule, isAdminOrSuper, USER_ROLE } from '../../mocks';
 import { useActiveUser } from '../../lib/active-user';
 import { useLessonPartyOptions } from '../../hooks/use-lesson-party-options';
 import { useScheduledLessonPersistence } from '../../hooks/use-scheduled-lesson-persistence';
+import { isRecurrenceAllowedForStudent } from '../../lib/student-schedule-type';
 import { toLessonFormState } from '../calendar/adapters/lessonCalendarAdapter';
 import {
   buildLessonCandidate,
@@ -21,15 +22,22 @@ import {
   upsertScheduledLesson,
 } from './scheduledLessonsBackendAdapter';
 import { hasTimeConflict, isPastSlot } from '../calendar/rules/conflicts';
-import { defaultCreateLessonStartTime, getIanaForTimeZoneId } from '../../lib/lessonTime';
+import { defaultCreateLessonStartTime } from '../../lib/lessonTime';
+import { useViewerTimezone } from '../../hooks/use-viewer-timezone';
 import type { LessonFormState, LessonModalMode } from './types';
 import { useScheduledLessons } from './ScheduledLessonsProvider';
-
-function toDateString(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
-    date.getDate(),
-  ).padStart(2, '0')}`;
-}
+import {
+  applyRecurringLessonsLocally,
+  createRecurringLessons,
+} from './recurring-lesson-create';
+import {
+  applyLessonSeriesUpdatesLocally,
+  persistLessonSeriesUpdates,
+  validateLessonScheduleUpdates,
+} from './series-lesson-update';
+import { deleteScheduledLessonSeries } from './series-lesson-delete';
+import { getPlannedLessonsInSeries } from '../../lib/lesson-series';
+import { useLessonsStore } from '../../stores/lessons-store';
 
 export type UseLessonEditorOptions = {
   /** Called after a lesson is deleted (modal closes after delete). */
@@ -41,6 +49,7 @@ export type UseLessonEditorOptions = {
 export function useLessonEditor(options: UseLessonEditorOptions = {}) {
   const { onAfterDelete, onLessonCreated } = options;
   const activeUser = useActiveUser();
+  const { timezoneId: viewerTimezoneId, iana: viewerIana } = useViewerTimezone();
   const role = activeUser.role;
   const { lessons, setLessons } = useScheduledLessons();
   const canManageLessons = canSchedule('lessons', role);
@@ -52,6 +61,7 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
     currentUserNumericId,
   } = useLessonPartyOptions();
   const { persistCreate, persistUpdate, persistenceErrorMessage } = useScheduledLessonPersistence();
+  const deleteScheduledLesson = useLessonsStore((s) => s.deleteScheduledLesson);
 
   const [modalMode, setModalMode] = useState<LessonModalMode>('create');
   const [saving, setSaving] = useState(false);
@@ -60,7 +70,6 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
 
   const openCreateModal = useCallback(
     (date: string) => {
-      const viewerIana = getIanaForTimeZoneId(activeUser.timezoneId);
       const { startTime } = defaultCreateLessonStartTime(viewerIana, date);
       const teacher =
         isAdminOrSuper(role)
@@ -69,6 +78,8 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
               id: currentUserNumericId ?? activeUser.id,
               fullName: activeUser.fullName,
               backendId: '',
+              timezoneIana: viewerIana,
+              scheduleType: true,
             };
       const student =
         role === USER_ROLE.student.id
@@ -76,6 +87,8 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
               id: currentUserNumericId ?? activeUser.id,
               fullName: activeUser.fullName,
               backendId: '',
+              timezoneIana: viewerIana,
+              scheduleType: true,
             }
           : defaultStudent;
       setModalMode('create');
@@ -104,8 +117,7 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
         credited: false,
         recurrence: 'none',
         weeklyDays: [],
-        applyToSeries: false,
-        timezoneId: activeUser.timezoneId,
+        timezoneId: viewerTimezoneId,
       });
     },
     [
@@ -115,7 +127,8 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
       currentUserNumericId,
       activeUser.id,
       activeUser.fullName,
-      activeUser.timezoneId,
+      viewerIana,
+      viewerTimezoneId,
     ],
   );
 
@@ -139,36 +152,68 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
 
   const tryApplyLesson = useCallback(
     (nextLesson: ScheduledLessonDto, sourceLesson?: ScheduledLessonDto): boolean => {
-      if (hasTimeConflict(lessons, nextLesson, sourceLesson?.id, 'any-overlap')) {
-        toast.warning('Time slot unavailable', 'This time slot is already booked.');
-        return false;
-      }
-      if (isPastSlot(nextLesson)) {
-        toast.warning('Invalid time', 'You cannot schedule a lesson in the past.');
-        return false;
-      }
       if (!sourceLesson) {
+        if (hasTimeConflict(lessons, nextLesson, undefined, 'any-overlap')) {
+          toast.warning('Time slot unavailable', 'This time slot is already booked.');
+          return false;
+        }
+        if (isPastSlot(nextLesson)) {
+          toast.warning('Invalid time', 'You cannot schedule a lesson in the past.');
+          return false;
+        }
         setLessons((prev) => upsertScheduledLesson(prev, nextLesson));
         onLessonCreated?.(nextLesson);
-      } else {
-        setLessons((prev) => prev.map((lesson) => (lesson.id === sourceLesson.id ? nextLesson : lesson)));
+        return true;
       }
+
+      const inSeries = Boolean(sourceLesson.seriesId);
+      const validation = validateLessonScheduleUpdates(
+        lessons,
+        sourceLesson,
+        nextLesson,
+        'any-overlap',
+      );
+      if (!validation.ok) {
+        if (validation.past.length > 0) {
+          toast.warning('Invalid time', 'You cannot schedule a lesson in the past.');
+        } else {
+          toast.warning(
+            'Time slot unavailable',
+            inSeries
+              ? 'At least one lesson in this series would overlap another lesson.'
+              : 'This time slot is already booked.',
+          );
+        }
+        return false;
+      }
+      setLessons((prev) => applyLessonSeriesUpdatesLocally(prev, validation.updates));
       return true;
     },
     [lessons, setLessons, onLessonCreated],
   );
 
-  const submitModal = useCallback(async () => {
-    if (!form || saving) return;
-    const candidate = buildLessonCandidate(form, lessons, editingLesson);
+  const submitModal = useCallback(async (formOverride?: LessonFormState) => {
+    const activeForm = formOverride ?? form;
+    if (!activeForm || saving) return;
+    const candidate = buildLessonCandidate(activeForm, lessons, editingLesson);
     if (!canManageLessons) candidate.statusId = LESSON_STATUS.planned.id;
 
-    if (hasTimeConflict(lessons, candidate, editingLesson?.id, 'any-overlap')) {
-      toast.warning('Time slot unavailable', 'This time slot is already booked.');
-      return;
-    }
-    if (isPastSlot(candidate)) {
-      toast.warning('Invalid time', 'You cannot schedule a lesson in the past.');
+    const inSeries = Boolean(editingLesson?.seriesId);
+    const scheduleValidation = editingLesson
+      ? validateLessonScheduleUpdates(lessons, editingLesson, candidate, 'any-overlap')
+      : validateLessonScheduleUpdates(lessons, null, candidate, 'any-overlap');
+
+    if (!scheduleValidation.ok) {
+      if (scheduleValidation.past.length > 0) {
+        toast.warning('Invalid time', 'You cannot schedule a lesson in the past.');
+      } else {
+        toast.warning(
+          'Time slot unavailable',
+          inSeries
+            ? 'At least one lesson in this series would overlap another lesson.'
+            : 'This time slot is already booked.',
+        );
+      }
       return;
     }
 
@@ -177,45 +222,36 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
       let keepModalOpenAfterSave = false;
       try {
         if (editingLesson) {
-          const persisted = await persistUpdate(candidate, editingLesson);
+          const persisted = await persistLessonSeriesUpdates({
+            updates: scheduleValidation.updates,
+            lessons,
+            persistUpdate,
+            setLessons,
+            primaryLessonId: editingLesson.id,
+          });
           if (persisted) {
-            setLessons((prev) =>
-              prev.map((lesson) => (lesson.id === editingLesson.id ? persisted : lesson)),
-            );
             setEditingLesson(persisted);
             setForm(toLessonFormState(persisted));
           } else if (!tryApplyLesson(candidate, editingLesson)) {
             return;
           }
         } else {
-          const persisted = await persistCreate(candidate);
-          setLessons((prev) => upsertScheduledLesson(prev, persisted));
+          const persisted = await createRecurringLessons({
+            form: activeForm,
+            candidate,
+            lessons,
+            persistCreate,
+            setLessons,
+            onLessonCreated,
+          });
+          if (!persisted) {
+            toast.warning('Time slot unavailable', 'No open slots for this recurrence pattern.');
+            return;
+          }
           setEditingLesson(persisted);
           setModalMode('edit');
           setForm(toLessonFormState(persisted));
           keepModalOpenAfterSave = true;
-          onLessonCreated?.(persisted);
-          if (form.recurrence === 'weekly' && form.weeklyDays.length > 0) {
-            const baseDate = new Date(form.date);
-            const clones = form.weeklyDays
-              .map((weekday, index) => {
-                if (index === 0) return null;
-                const delta =
-                  (weekday - (baseDate.getDay() === 0 ? 7 : baseDate.getDay()) + 7) % 7;
-                const nextDate = new Date(baseDate);
-                nextDate.setDate(baseDate.getDate() + delta);
-                return { ...candidate, date: toDateString(nextDate) };
-              })
-              .filter((row): row is ScheduledLessonDto => row !== null);
-
-            for (const clone of clones) {
-              if (hasTimeConflict(lessons, clone, undefined, 'any-overlap')) continue;
-              if (isPastSlot(clone)) continue;
-              const clonePersisted = await persistCreate(clone);
-              setLessons((prev) => upsertScheduledLesson(prev, clonePersisted));
-              onLessonCreated?.(clonePersisted);
-            }
-          }
         }
       } catch (error) {
         const message = persistenceErrorMessage(error);
@@ -231,26 +267,15 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
       return;
     }
 
-    if (!tryApplyLesson(candidate, editingLesson ?? undefined)) return;
-    if (!editingLesson && form.recurrence === 'weekly' && form.weeklyDays.length > 0) {
-      const baseDate = new Date(form.date);
-      let cloneOffset = 1;
-      const seq = candidate.id;
-      form.weeklyDays.forEach((weekday, index) => {
-        if (index === 0) return;
-        const delta = (weekday - (baseDate.getDay() === 0 ? 7 : baseDate.getDay()) + 7) % 7;
-        const nextDate = new Date(baseDate);
-        nextDate.setDate(baseDate.getDate() + delta);
-        tryApplyLesson(
-          {
-            ...candidate,
-            id: seq + cloneOffset,
-            date: toDateString(nextDate),
-          },
-          undefined,
-        );
-        cloneOffset += 1;
+    if (!editingLesson && activeForm.recurrence !== 'none') {
+      applyRecurringLessonsLocally({
+        form: activeForm,
+        candidate,
+        tryApplyLesson,
+        editingLesson,
       });
+    } else if (!tryApplyLesson(candidate, editingLesson ?? undefined)) {
+      return;
     }
     closeModal();
   }, [
@@ -294,49 +319,141 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
   }, [form, editingLesson, setLessons]);
 
   const handleUnlinkSeries = useCallback(async () => {
-    if (!editingLesson?.seriesId) return;
-    const ok = await confirmDialog({
+    if (!editingLesson?.seriesId || !form) return;
+    await confirmDialog({
       title: 'Unlink from series?',
       message:
         'Only this lesson will be detached; other lessons in the series stay linked.',
       confirmLabel: 'Unlink',
+      loadingLabel: 'Unlinking…',
+      onConfirm: async () => {
+        const unlinkedCandidate = {
+          ...buildLessonCandidate(
+            { ...form, recurrence: 'none', weeklyDays: [] },
+            lessons,
+            editingLesson,
+          ),
+          seriesId: undefined,
+        };
+
+        try {
+          if (canManageLessons && getLessonBackendId(editingLesson)) {
+            const persisted = await persistUpdate(unlinkedCandidate, editingLesson, {
+              includeLessonContent: false,
+            });
+            if (persisted) {
+              setLessons((prev) =>
+                prev.map((lesson) => (lesson.id === editingLesson.id ? persisted : lesson)),
+              );
+              setEditingLesson(persisted);
+              setForm(toLessonFormState(persisted));
+              return;
+            }
+          }
+        } catch (error) {
+          toast.error('Could not unlink lesson', persistenceErrorMessage(error));
+          throw error;
+        }
+
+        setLessons((prev) =>
+          prev.map((lesson) =>
+            lesson.id === editingLesson.id
+              ? { ...lesson, seriesId: undefined, recurrence: 'none', weeklyDays: [] }
+              : lesson,
+          ),
+        );
+        setEditingLesson((prev) =>
+          prev ? { ...prev, seriesId: undefined, recurrence: 'none', weeklyDays: [] } : prev,
+        );
+        setForm((prev) =>
+          prev ? { ...prev, recurrence: 'none', weeklyDays: [] } : prev,
+        );
+      },
     });
-    if (!ok) return;
-    setLessons((prev) =>
-      prev.map((lesson) =>
-        lesson.id === editingLesson.id
-          ? { ...lesson, seriesId: undefined, recurrence: 'none', weeklyDays: [] }
-          : lesson,
-      ),
-    );
-    setEditingLesson((prev) =>
-      prev ? { ...prev, seriesId: undefined, recurrence: 'none', weeklyDays: [] } : prev,
-    );
-    setForm((prev) =>
-      prev ? { ...prev, recurrence: 'none', weeklyDays: [], applyToSeries: false } : prev,
-    );
-  }, [editingLesson, setLessons]);
+  }, [canManageLessons, editingLesson, form, lessons, persistUpdate, persistenceErrorMessage, setLessons]);
+
+  const handleDeleteSeries = useCallback(async () => {
+    if (!editingLesson?.seriesId) return;
+    const plannedInSeries = getPlannedLessonsInSeries(lessons, editingLesson.seriesId);
+    if (plannedInSeries.length === 0) {
+      toast.info('No planned lessons', 'Completed or cancelled lessons in this series are kept.');
+      return;
+    }
+    await confirmDialog({
+      title: 'Delete planned lessons in series?',
+      message: `This will permanently delete ${plannedInSeries.length} planned lesson${plannedInSeries.length === 1 ? '' : 's'}. Completed and cancelled lessons stay.`,
+      confirmLabel: 'Delete all',
+      loadingLabel: 'Deleting…',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          const { removedIds } = await deleteScheduledLessonSeries({
+            lessons,
+            seriesId: editingLesson.seriesId!,
+            canManage: canManageLessons,
+            deleteScheduledLesson,
+          });
+          const removed = new Set(removedIds);
+          setLessons((prev) => prev.filter((lesson) => !removed.has(lesson.id)));
+          closeModal();
+        } catch (error) {
+          toast.error('Could not delete series', persistenceErrorMessage(error));
+          throw error;
+        }
+      },
+    });
+  }, [
+    canManageLessons,
+    closeModal,
+    deleteScheduledLesson,
+    editingLesson,
+    lessons,
+    persistenceErrorMessage,
+    setLessons,
+  ]);
 
   const handleDeleteLesson = useCallback(async () => {
     if (!editingLesson) return;
-    const ok = await confirmDialog({
+    const id = editingLesson.id;
+    await confirmDialog({
       title: 'Delete lesson?',
       message: 'This lesson will be permanently deleted.',
       confirmLabel: 'Delete',
+      loadingLabel: 'Deleting…',
       variant: 'danger',
+      onConfirm: async () => {
+        const backendId = getLessonBackendId(editingLesson);
+        try {
+          if (canManageLessons && backendId) {
+            await deleteScheduledLesson(backendId);
+          }
+        } catch (error) {
+          toast.error('Could not delete lesson', persistenceErrorMessage(error));
+          throw error;
+        }
+        setLessons((prev) => prev.filter((lesson) => lesson.id !== id));
+        onAfterDelete?.(id);
+        closeModal();
+      },
     });
-    if (!ok) return;
-    const id = editingLesson.id;
-    setLessons((prev) => prev.filter((lesson) => lesson.id !== id));
-    onAfterDelete?.(id);
-    closeModal();
-  }, [editingLesson, setLessons, onAfterDelete, closeModal]);
+  }, [
+    canManageLessons,
+    deleteScheduledLesson,
+    editingLesson,
+    persistenceErrorMessage,
+    setLessons,
+    onAfterDelete,
+    closeModal,
+  ]);
 
   const lessonBackendId = editingLesson ? getLessonBackendId(editingLesson) ?? null : null;
   const persistedLessonId = editingLesson?.id ?? null;
   const studentBackendId = form
     ? resolvePartyBackendId(form.studentId, studentOptions, teacherOptions) ?? null
     : null;
+  const recurrenceAllowed = form
+    ? isRecurrenceAllowedForStudent(form.studentId, studentOptions)
+    : true;
 
   return {
     role,
@@ -358,6 +475,8 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
     submitModal,
     saveStudentResponse,
     handleUnlinkSeries,
+    handleDeleteSeries,
     handleDeleteLesson,
+    recurrenceAllowed,
   };
 }

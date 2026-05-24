@@ -2,8 +2,8 @@ import type {
   VocabularyWordDto,
   VocabularyWordStatusName,
   VocabularyWordStatusId,
-} from '@soenglish/shared-types';
-import { VOCABULARY_WORD_STATUS_IDS } from '@soenglish/shared-types';
+} from '@pkg/types';
+import { VOCABULARY_WORD_STATUS_IDS } from '@pkg/types';
 
 export { VOCABULARY_WORD_STATUS_IDS };
 

@@ -1,5 +1,5 @@
-import type { CalendarEventDto, ScheduledLessonDto } from '@soenglish/shared-types';
-import { LESSON_STATUS, TIME_ZONE } from '@soenglish/shared-types';
+import type { CalendarEventDto, ScheduledLessonDto } from '@pkg/types';
+import { LESSON_STATUS, TIME_ZONE } from '@pkg/types';
 import { getStudentScheduledLessons, mockScheduledLessons } from './lessons';
 
 export function scheduledLessonToCalendarEvent(

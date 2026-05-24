@@ -1,8 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ScheduledLessonDto } from '@soenglish/shared-types';
-import { LESSON_STATUS } from '@soenglish/shared-types';
+import { useRouter } from 'next/navigation';
+import { Repeat } from 'lucide-react';
+import type { ScheduledLessonDto } from '@pkg/types';
+import { LESSON_STATUS } from '@pkg/types';
 import { Button, PageHeader } from '../../components/ui';
 import {
   canSchedule,
@@ -14,12 +16,14 @@ import {
   USER_ROLE,
 } from '../../mocks';
 import { useActiveUser } from '../../lib/active-user';
+import { useOptionalAuth } from '../../lib/auth-context';
+import { resolveStudentTeacherChatPeerId } from '../../lib/student-teacher-chat';
 import { useLessonPartyOptions } from '../../hooks/use-lesson-party-options';
+import { useViewerTimezone } from '../../hooks/use-viewer-timezone';
 import { CalendarHeaderControls, CalendarMonthNavigator, SelectedDateSidebar } from './sections';
 import { readLessonDragPayload, writeLessonDragPayload } from '../../features/calendar/dnd/dragPayload';
 import {
   defaultCreateLessonStartTime,
-  getIanaForTimeZoneId,
   lessonDateKeyInZone,
   lessonEndUtc,
   lessonEndTimeInZone,
@@ -34,13 +38,28 @@ import {
 } from '../../features/calendar/adapters/lessonCalendarAdapter';
 import { buildLessonCandidate, resolvePartyBackendId } from '../../features/lesson-modal/lessonPersistence';
 import { syncLessonFormChange } from '../../features/lesson-modal/lesson-form-sync';
-import {
-  getLessonBackendId,
-  upsertScheduledLesson,
-} from '../../features/lesson-modal/scheduledLessonsBackendAdapter';
+import { getLessonBackendId } from '../../features/lesson-modal/scheduledLessonsBackendAdapter';
 import { useScheduledLessonPersistence } from '../../hooks/use-scheduled-lesson-persistence';
+import {
+  applyRecurringLessonsLocally,
+  createRecurringLessons,
+} from '../../features/lesson-modal/recurring-lesson-create';
+import {
+  applyLessonSeriesUpdatesLocally,
+  persistLessonSeriesUpdates,
+  persistSeriesScheduleChanges,
+  validateLessonScheduleUpdates,
+  validateSeriesTimeUpdates,
+} from '../../features/lesson-modal/series-lesson-update';
+import { getPlannedLessonsInSeries, unlinkLessonFields } from '../../lib/lesson-series';
+import { deleteScheduledLessonSeries } from '../../features/lesson-modal/series-lesson-delete';
+import { useLessonsStore } from '../../stores/lessons-store';
+import { useStudentsStore } from '../../stores/students-store';
+import { partyNumericId } from '../../features/lesson-modal/scheduledLessonsBackendAdapter';
+import { isRecurrenceAllowedForStudent } from '../../lib/student-schedule-type';
 import { hasTimeConflict, isPastSlot } from '../../features/calendar/rules/conflicts';
 import { LessonModal } from '../../features/lesson-modal';
+import { WhenPortaled } from '../../features/confirm';
 import { useLessonCalendarState } from '../../features/calendar/ui/useLessonCalendarState';
 import type { LessonFormState, LessonModalMode } from '../../features/calendar/types';
 import styles from './page.module.scss';
@@ -146,9 +165,11 @@ function buildWeekEventLayout(lessons: ScheduledLessonDto[]): Record<number, Wee
 }
 
 export default function CalendarPage() {
+  const router = useRouter();
   const activeUser = useActiveUser();
+  const auth = useOptionalAuth();
   if (!canView('calendar', activeUser.role)) return null;
-  const viewerIana = getIanaForTimeZoneId(activeUser.timezoneId);
+  const { iana: viewerIana, timezoneId: viewerTimezoneId } = useViewerTimezone();
   const {
     studentOptions,
     teacherOptions: assignableTeachers,
@@ -169,6 +190,7 @@ export default function CalendarPage() {
   } = useLessonCalendarState(activeUser.role, viewerPartyNumericId);
   const { persistCreate, persistUpdate, persistScheduleUpdate, persistenceErrorMessage } =
     useScheduledLessonPersistence();
+  const deleteScheduledLesson = useLessonsStore((s) => s.deleteScheduledLesson);
   const [savingLesson, setSavingLesson] = useState(false);
   const [audience, setAudience] = useState<'all' | 'my-students'>('all');
   const [teacherFilter, setTeacherFilter] = useState<string>('all-teachers');
@@ -207,17 +229,35 @@ export default function CalendarPage() {
     }
     return visibleLessons;
   }, [audience, showAudienceToggle, teacherFilter, visibleLessons]);
+  const fetchStudents = useStudentsStore((s) => s.fetchStudents);
+  const studentsFromApi = useStudentsStore((s) => s.list.data);
+  const isStaffViewer =
+    role === USER_ROLE.teacher.id ||
+    role === USER_ROLE.admin.id ||
+    role === USER_ROLE.superAdmin.id;
+
+  useEffect(() => {
+    if (isStaffViewer) void fetchStudents();
+  }, [isStaffViewer, fetchStudents]);
+
   const visibleStudents = useMemo(
     () => getVisibleProfiles(role, activeUser.id),
     [role, activeUser.id],
   );
   const studentColorById = useMemo(() => {
     const m = new Map<number, string | undefined>();
+    for (const row of studentsFromApi ?? []) {
+      const hex = row.displayColor?.trim();
+      if (hex) m.set(partyNumericId(row.id), hex);
+    }
     for (const student of visibleStudents) {
-      m.set(student.id, student.color?.trim() || undefined);
+      if (!m.has(student.id)) {
+        const fallback = student.color?.trim();
+        if (fallback) m.set(student.id, fallback);
+      }
     }
     return m;
-  }, [visibleStudents]);
+  }, [studentsFromApi, visibleStudents]);
   const isHexColor = (value?: string) => Boolean(value && /^#[0-9a-fA-F]{6}$/.test(value));
   const colorHexFromStudentId = (studentId: number): string | null => {
     const colorHex = studentColorById.get(studentId) ?? getProfileByUserId(studentId)?.color;
@@ -316,7 +356,15 @@ export default function CalendarPage() {
     null,
   );
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [confirmDeleteSeriesOpen, setConfirmDeleteSeriesOpen] = useState(false);
   const [confirmUnlinkOpen, setConfirmUnlinkOpen] = useState(false);
+  const [overlayConfirmBusy, setOverlayConfirmBusy] = useState(false);
+  const [seriesScheduleConfirm, setSeriesScheduleConfirm] = useState<{
+    type: 'detach' | 'applyAll';
+    before: ScheduledLessonDto;
+    next: ScheduledLessonDto;
+  } | null>(null);
+  const seriesDialogText = siteContent.calendar.seriesConfirm;
   useEffect(() => {
     lessonsRef.current = lessons;
   }, [lessons]);
@@ -351,6 +399,8 @@ export default function CalendarPage() {
             id: currentUserNumericId ?? activeUser.id,
             fullName: activeUser.fullName,
             backendId: '',
+            timezoneIana: viewerIana,
+            scheduleType: true,
           };
     const student =
       role === USER_ROLE.student.id
@@ -358,6 +408,8 @@ export default function CalendarPage() {
             id: currentUserNumericId ?? activeUser.id,
             fullName: activeUser.fullName,
             backendId: '',
+            timezoneIana: viewerIana,
+            scheduleType: true,
           }
         : defaultStudent;
     setModalMode('create');
@@ -386,16 +438,30 @@ export default function CalendarPage() {
       credited: false,
       recurrence: 'none',
       weeklyDays: [],
-      applyToSeries: false,
-      timezoneId: activeUser.timezoneId,
+      timezoneId: viewerTimezoneId,
     });
   };
+  const studentTeacherChatPeerId = useMemo(
+    () =>
+      resolveStudentTeacherChatPeerId({
+        assignedTeacherId: auth?.user?.teacherId,
+        lessons: visibleLessons,
+        studentPartyNumericId: viewerPartyNumericId,
+      }),
+    [auth?.user?.teacherId, visibleLessons, viewerPartyNumericId],
+  );
+
   const requestLesson = () => {
-    setWarningDialog({
-      open: true,
-      title: 'Request lesson',
-      message: 'This button will redirect to teacher chat soon. For now, lesson request chat is not connected yet.',
-    });
+    if (!studentTeacherChatPeerId) {
+      setWarningDialog({
+        open: true,
+        title: 'No teacher assigned',
+        message:
+          'We could not find your teacher. Ask an administrator to assign a teacher to your account, or schedule a lesson first.',
+      });
+      return;
+    }
+    router.push(`/chat?peer=${encodeURIComponent(studentTeacherChatPeerId)}`);
   };
 
   const openEditModal = (lesson: ScheduledLessonDto) => {
@@ -409,21 +475,12 @@ export default function CalendarPage() {
     setEditingLesson(null);
   };
 
-  const applyLessonUpdate = (nextLesson: ScheduledLessonDto, sourceLesson?: ScheduledLessonDto) => {
-    if (hasTimeConflict(lessons, nextLesson, sourceLesson?.id, conflictStrategy)) {
-      setConflictDialog({
-        open: true,
-        title: 'Time slot is busy',
-        message:
-          conflictStrategy === 'same-teacher-overlap'
-            ? 'This teacher already has a lesson in this time slot.'
-            : 'You cannot create or move a lesson to this time because another lesson already exists.',
-        candidate: nextLesson,
-        excludeLessonId: sourceLesson?.id,
-      });
-      return;
-    }
-    if (isPastSlot(nextLesson)) {
+  const showScheduleConflict = (
+    validation: ReturnType<typeof validateLessonScheduleUpdates>,
+    inSeries: boolean,
+  ) => {
+    if (validation.ok) return;
+    if (validation.past.length > 0) {
       setWarningDialog({
         open: true,
         title: 'Cannot schedule in the past',
@@ -431,56 +488,77 @@ export default function CalendarPage() {
       });
       return;
     }
+    const first = validation.conflicts[0];
+    if (!first) return;
+    setConflictDialog({
+      open: true,
+      title: 'Time slot is busy',
+      message: inSeries
+        ? 'At least one lesson in this series would overlap another lesson.'
+        : conflictStrategy === 'same-teacher-overlap'
+          ? 'This teacher already has a lesson in this time slot.'
+          : 'You cannot create or move a lesson to this time because another lesson already exists.',
+      candidate: first.occurrence,
+      excludeLessonId: first.occurrence.id,
+    });
+  };
+
+  const recurrenceAllowed = form
+    ? isRecurrenceAllowedForStudent(form.studentId, studentOptions)
+    : true;
+
+  const applyLessonUpdate = (nextLesson: ScheduledLessonDto, sourceLesson?: ScheduledLessonDto) => {
     if (!sourceLesson) {
+      if (hasTimeConflict(lessons, nextLesson, undefined, conflictStrategy)) {
+        setConflictDialog({
+          open: true,
+          title: 'Time slot is busy',
+          message:
+            conflictStrategy === 'same-teacher-overlap'
+              ? 'This teacher already has a lesson in this time slot.'
+              : 'You cannot create or move a lesson to this time because another lesson already exists.',
+          candidate: nextLesson,
+        });
+        return;
+      }
+      if (isPastSlot(nextLesson)) {
+        setWarningDialog({
+          open: true,
+          title: 'Cannot schedule in the past',
+          message: 'You cannot create or move a lesson to a past date or time.',
+        });
+        return;
+      }
       setLessons((prev) => [...prev, nextLesson]);
       return;
     }
-    if (form?.applyToSeries && sourceLesson.seriesId) {
-      setLessons((prev) =>
-        prev.map((lesson) =>
-          lesson.seriesId === sourceLesson.seriesId
-            ? {
-                ...lesson,
-                title: nextLesson.title,
-                duration: nextLesson.duration,
-                recurrence: nextLesson.recurrence,
-                weeklyDays: nextLesson.weeklyDays,
-                notes: nextLesson.notes,
-                startTime: nextLesson.startTime,
-                endTime: nextLesson.endTime,
-              }
-            : lesson,
-        ),
-      );
+
+    const validation = validateLessonScheduleUpdates(
+      lessons,
+      sourceLesson,
+      nextLesson,
+      conflictStrategy,
+    );
+    if (!validation.ok) {
+      showScheduleConflict(validation, Boolean(sourceLesson.seriesId));
       return;
     }
-    setLessons((prev) => prev.map((lesson) => (lesson.id === sourceLesson.id ? nextLesson : lesson)));
+    setLessons((prev) => applyLessonSeriesUpdatesLocally(prev, validation.updates));
   };
 
-  const submitModal = async () => {
-    if (!form || savingLesson) return;
-    const candidate = buildLessonCandidate(form, lessons, editingLesson);
+  const submitModal = async (formOverride?: LessonFormState) => {
+    const activeForm = formOverride ?? form;
+    if (!activeForm || savingLesson) return;
+    const candidate = buildLessonCandidate(activeForm, lessons, editingLesson);
     if (!canManage) candidate.statusId = LESSON_STATUS.planned.id;
 
-    if (hasTimeConflict(lessons, candidate, editingLesson?.id, conflictStrategy)) {
-      setConflictDialog({
-        open: true,
-        title: 'Time slot is busy',
-        message:
-          conflictStrategy === 'same-teacher-overlap'
-            ? 'This teacher already has a lesson in this time slot.'
-            : 'You cannot create or move a lesson to this time because another lesson already exists.',
-        candidate,
-        excludeLessonId: editingLesson?.id,
-      });
-      return;
-    }
-    if (isPastSlot(candidate)) {
-      setWarningDialog({
-        open: true,
-        title: 'Cannot schedule in the past',
-        message: 'You cannot create or move a lesson to a past date or time.',
-      });
+    const inSeries = Boolean(editingLesson?.seriesId);
+    const scheduleValidation = editingLesson
+      ? validateLessonScheduleUpdates(lessons, editingLesson, candidate, conflictStrategy)
+      : validateLessonScheduleUpdates(lessons, null, candidate, conflictStrategy);
+
+    if (!scheduleValidation.ok) {
+      showScheduleConflict(scheduleValidation, inSeries);
       return;
     }
 
@@ -489,44 +567,40 @@ export default function CalendarPage() {
       let keepModalOpenAfterSave = false;
       try {
         if (editingLesson) {
-          const persisted = await persistUpdate(candidate, editingLesson);
+          const persisted = await persistLessonSeriesUpdates({
+            updates: scheduleValidation.updates,
+            lessons,
+            persistUpdate,
+            setLessons,
+            primaryLessonId: editingLesson.id,
+          });
           if (persisted) {
-            setLessons((prev) =>
-              prev.map((lesson) => (lesson.id === editingLesson.id ? persisted : lesson)),
-            );
             setEditingLesson(persisted);
             setForm(toLessonFormState(persisted));
           } else {
             applyLessonUpdate(candidate, editingLesson);
           }
         } else {
-          const persisted = await persistCreate(candidate);
-          setLessons((prev) => upsertScheduledLesson(prev, persisted));
+          const persisted = await createRecurringLessons({
+            form: activeForm,
+            candidate,
+            lessons,
+            persistCreate,
+            setLessons,
+            conflictStrategy,
+          });
+          if (!persisted) {
+            setWarningDialog({
+              open: true,
+              title: 'Time slot is busy',
+              message: 'No open slots for this recurrence pattern.',
+            });
+            return;
+          }
           setEditingLesson(persisted);
           setModalMode('edit');
           setForm(toLessonFormState(persisted));
           keepModalOpenAfterSave = true;
-
-          if (form.recurrence === 'weekly' && form.weeklyDays.length > 0) {
-            const baseDate = new Date(form.date);
-            const clones = form.weeklyDays
-              .map((weekday, index) => {
-                if (index === 0) return null;
-                const delta =
-                  (weekday - (baseDate.getDay() === 0 ? 7 : baseDate.getDay()) + 7) % 7;
-                const nextDate = new Date(baseDate);
-                nextDate.setDate(baseDate.getDate() + delta);
-                return { ...candidate, date: toDateString(nextDate) };
-              })
-              .filter((row): row is ScheduledLessonDto => row !== null);
-
-            for (const branch of clones) {
-              if (hasTimeConflict(lessons, branch, undefined, conflictStrategy)) continue;
-              if (isPastSlot(branch)) continue;
-              const clonePersisted = await persistCreate(branch);
-              setLessons((prev) => upsertScheduledLesson(prev, clonePersisted));
-            }
-          }
         }
       } catch (error) {
         const message = persistenceErrorMessage(error);
@@ -545,24 +619,18 @@ export default function CalendarPage() {
       return;
     }
 
-    applyLessonUpdate(candidate, editingLesson ?? undefined);
-    if (!editingLesson && form.recurrence === 'weekly' && form.weeklyDays.length > 0) {
-      const baseDate = new Date(form.date);
-      let cloneOffset = 1;
-      const seq = candidate.id;
-      form.weeklyDays.forEach((weekday, index) => {
-        if (index === 0) return;
-        const delta = (weekday - (baseDate.getDay() === 0 ? 7 : baseDate.getDay()) + 7) % 7;
-        const nextDate = new Date(baseDate);
-        nextDate.setDate(baseDate.getDate() + delta);
-        const branch = {
-          ...candidate,
-          id: seq + cloneOffset,
-          date: toDateString(nextDate),
-        };
-        cloneOffset += 1;
-        applyLessonUpdate(branch, undefined);
+    if (!editingLesson && activeForm.recurrence !== 'none') {
+      applyRecurringLessonsLocally({
+        form: activeForm,
+        candidate,
+        tryApplyLesson: (lesson, source) => {
+          applyLessonUpdate(lesson, source);
+          return true;
+        },
+        editingLesson,
       });
+    } else {
+      applyLessonUpdate(candidate, editingLesson ?? undefined);
     }
     closeModal();
   };
@@ -640,14 +708,106 @@ export default function CalendarPage() {
     }
   };
 
-  const moveLesson = (lessonId: number, date: string, startTime?: string) => {
-    const before = lessonsRef.current.find((lesson) => lesson.id === lessonId);
-    if (!before) return;
+  const commitDetachAndMove = async (before: ScheduledLessonDto, next: ScheduledLessonDto) => {
+    const unlinked: ScheduledLessonDto = {
+      ...next,
+      ...unlinkLessonFields(before),
+    };
+    if (hasTimeConflict(lessonsRef.current, unlinked, before.id, conflictStrategy)) {
+      setConflictDialog({
+        open: true,
+        title: 'Time slot is busy',
+        message:
+          conflictStrategy === 'same-teacher-overlap'
+            ? 'This teacher already has a lesson in this time slot.'
+            : 'Another lesson already exists for this time.',
+        candidate: unlinked,
+        excludeLessonId: before.id,
+      });
+      return;
+    }
+    if (isPastSlot(unlinked)) {
+      setWarningDialog({
+        open: true,
+        title: 'Cannot move to past time',
+        message: 'You cannot move a lesson to a past date or time.',
+      });
+      return;
+    }
+    setLessons((prev) => prev.map((lesson) => (lesson.id === before.id ? unlinked : lesson)));
+    const backendId = getLessonBackendId(before);
+    if (!canManage || !backendId) return;
+    try {
+      const persisted = await persistUpdate(unlinked, before, { includeLessonContent: false });
+      if (persisted) {
+        setLessons((prev) => prev.map((lesson) => (lesson.id === before.id ? persisted : lesson)));
+      }
+    } catch (error) {
+      setLessons((prev) => prev.map((lesson) => (lesson.id === before.id ? before : lesson)));
+      setWarningDialog({
+        open: true,
+        title: 'Could not save lesson',
+        message: persistenceErrorMessage(error),
+      });
+    }
+  };
 
-    const next = buildMovedLesson(before, date, startTime);
+  const commitApplyAllSchedule = async (before: ScheduledLessonDto, next: ScheduledLessonDto) => {
+    const validation = validateSeriesTimeUpdates(
+      lessonsRef.current,
+      before,
+      {
+        startTime: next.startTime,
+        endTime: next.endTime,
+        duration: next.duration,
+        timezoneId: next.timezoneId,
+      },
+      conflictStrategy,
+    );
+    if (!validation.ok) {
+      showScheduleConflict(validation, true);
+      setLessons((prev) =>
+        prev.map((lesson) => (lesson.id === before.id ? before : lesson)),
+      );
+      return;
+    }
+    setLessons((prev) => applyLessonSeriesUpdatesLocally(prev, validation.updates));
+    if (!canManage) return;
+    try {
+      await persistSeriesScheduleChanges({
+        updates: validation.updates,
+        lessons: lessonsRef.current,
+        persistScheduleUpdate,
+        setLessons,
+      });
+    } catch (error) {
+      setLessons((prev) =>
+        prev.map((lesson) => {
+          const original = lessonsRef.current.find((row) => row.id === lesson.id);
+          return original ?? lesson;
+        }),
+      );
+      setWarningDialog({
+        open: true,
+        title: 'Could not save lesson time',
+        message: persistenceErrorMessage(error),
+      });
+    }
+  };
+
+  const requestScheduleChange = (before: ScheduledLessonDto, next: ScheduledLessonDto) => {
     if (scheduleUnchanged(before, next)) return;
 
-    if (hasTimeConflict(lessonsRef.current, next, lessonId, conflictStrategy)) {
+    if (before.seriesId) {
+      if (next.date !== before.date) {
+        setSeriesScheduleConfirm({ type: 'detach', before, next });
+        return;
+      }
+      setSeriesScheduleConfirm({ type: 'applyAll', before, next });
+      return;
+    }
+
+    if (hasTimeConflict(lessonsRef.current, next, before.id, conflictStrategy)) {
       setConflictDialog({
         open: true,
         title: 'Time slot is busy',
@@ -656,7 +816,7 @@ export default function CalendarPage() {
             ? 'This teacher already has a lesson in this time slot.'
             : 'Another lesson already exists for this time.',
         candidate: next,
-        excludeLessonId: lessonId,
+        excludeLessonId: before.id,
       });
       return;
     }
@@ -668,8 +828,14 @@ export default function CalendarPage() {
       });
       return;
     }
+    void persistScheduleChange(before.id, before, next);
+  };
 
-    void persistScheduleChange(lessonId, before, next);
+  const moveLesson = (lessonId: number, date: string, startTime?: string) => {
+    const before = lessonsRef.current.find((lesson) => lesson.id === lessonId);
+    if (!before) return;
+    const next = buildMovedLesson(before, date, startTime);
+    requestScheduleChange(before, next);
   };
 
   const weekStartStr = toDateString(weekDays[0]);
@@ -729,8 +895,13 @@ export default function CalendarPage() {
   const stopResize = () => {
     const preview = previewResizeRef.current;
     const snapshot = resizeState?.snapshot ?? null;
-    let persistAfterResize: { lessonId: number; before: ScheduledLessonDto; next: ScheduledLessonDto } | null =
-      null;
+    const resizeOutcome: {
+      persist: {
+        lessonId: number;
+        before: ScheduledLessonDto;
+        next: ScheduledLessonDto;
+      } | null;
+    } = { persist: null };
 
     if (preview && snapshot) {
       setLessons((prev) =>
@@ -762,19 +933,21 @@ export default function CalendarPage() {
             return snapshot;
           }
           if (!scheduleUnchanged(snapshot, next)) {
-            persistAfterResize = { lessonId: lesson.id, before: snapshot, next };
+            resizeOutcome.persist = { lessonId: lesson.id, before: snapshot, next };
           }
           return next;
         }),
       );
     }
 
-    if (persistAfterResize) {
-      void persistScheduleChange(
-        persistAfterResize.lessonId,
-        persistAfterResize.before,
-        persistAfterResize.next,
-      );
+    const resizePersist = resizeOutcome.persist;
+    if (resizePersist) {
+      const { lessonId, before, next } = resizePersist;
+      if (before.seriesId) {
+        setSeriesScheduleConfirm({ type: 'applyAll', before, next });
+      } else {
+        void persistScheduleChange(lessonId, before, next);
+      }
     }
 
     setTimeout(() => {
@@ -935,6 +1108,9 @@ export default function CalendarPage() {
                         }}
                       >
                         <div className={styles.dayLessonTitle}>
+                          {lesson.seriesId ? (
+                            <Repeat size={11} className={styles.seriesBadge} aria-hidden />
+                          ) : null}
                           {lessonStartTimeInZone(lesson, viewerIana)} {lesson.title}
                         </div>
                       </div>
@@ -998,15 +1174,8 @@ export default function CalendarPage() {
                         key={dateStr}
                         className={`${styles.weekCell} ${isPastDay ? styles.weekCellPast : ''}`}
                         style={{ position: 'relative', minHeight: dayColumnHeight }}
-                        onDoubleClick={(e) => {
+                        onDoubleClick={() => {
                           if (!canManage) return;
-                          const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
-                          const minutes = Math.max(
-                            0,
-                            Math.min(minutesPerDay - 55, Math.round((e.clientY - rect.top) / pxPerMinute / 15) * 15),
-                          );
-                          const hh = startHour + Math.floor(minutes / 60);
-                          const mm = minutes % 60;
                           openCreateModal(dateStr);
                         }}
                         onDragOver={(e) => {
@@ -1139,7 +1308,12 @@ export default function CalendarPage() {
                                   });
                                 }}
                               />
-                              <div className={styles.weekEvtTitle}>{lesson.title}</div>
+                              <div className={styles.weekEvtTitle}>
+                                {lesson.seriesId ? (
+                                  <Repeat size={12} className={styles.seriesBadge} aria-hidden />
+                                ) : null}
+                                <span>{lesson.title}</span>
+                              </div>
                               <div className={styles.weekEvtTime}>
                                 {lessonStartTimeInZone(lesson, viewerIana)} · {lesson.duration} min
                               </div>
@@ -1218,8 +1392,23 @@ export default function CalendarPage() {
           form={form}
           onChange={updateForm}
           onClose={closeModal}
-          canUnlinkSeries={modalMode === 'edit' && role === USER_ROLE.teacher.id && Boolean(editingLesson?.seriesId)}
+          recurrenceAllowed={recurrenceAllowed}
+          canUnlinkSeries={modalMode === 'edit' && canManage && Boolean(editingLesson?.seriesId)}
           onUnlinkSeries={() => setConfirmUnlinkOpen(true)}
+          canDeleteSeries={modalMode === 'edit' && canManage && Boolean(editingLesson?.seriesId)}
+          onDeleteSeries={() => {
+            if (!editingLesson?.seriesId) return;
+            const plannedCount = getPlannedLessonsInSeries(lessons, editingLesson.seriesId).length;
+            if (plannedCount === 0) {
+              setWarningDialog({
+                open: true,
+                title: 'No planned lessons',
+                message: 'Completed or cancelled lessons in this series are kept.',
+              });
+              return;
+            }
+            setConfirmDeleteSeriesOpen(true);
+          }}
           canDeleteLesson={modalMode === 'edit' && role !== USER_ROLE.student.id}
           onDeleteLesson={() => setConfirmDeleteOpen(true)}
           onSubmit={submitModal}
@@ -1235,19 +1424,23 @@ export default function CalendarPage() {
           }
         />
       ) : null}
-      {conflictDialog?.open ? (
+      <WhenPortaled when={Boolean(conflictDialog?.open)}>
+        {() => {
+          const dialog = conflictDialog;
+          if (!dialog?.open) return null;
+          return (
         <div className={styles.confirmOverlay} onClick={() => setConflictDialog(null)}>
           <div className={styles.confirmModal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.confirmTitle}>{conflictDialog.title}</div>
-            {conflictDialog.message ? <div className={styles.confirmBody}>{conflictDialog.message}</div> : null}
+            <div className={styles.confirmTitle}>{dialog.title}</div>
+            {dialog.message ? <div className={styles.confirmBody}>{dialog.message}</div> : null}
             <div className={styles.confirmSubtitle}>
-              {conflictDialog.candidate.date} · {conflictDialog.candidate.startTime} –{' '}
-              {conflictDialog.candidate.endTime}
+              {dialog.candidate.date} · {dialog.candidate.startTime} –{' '}
+              {dialog.candidate.endTime}
             </div>
             <div className={styles.conflictList}>
               {getConflictingLessons({
-                candidate: conflictDialog.candidate,
-                excludeLessonId: conflictDialog.excludeLessonId,
+                candidate: dialog.candidate,
+                excludeLessonId: dialog.excludeLessonId,
               }).map((lesson) => (
                 <Button
                   key={lesson.id}
@@ -1272,12 +1465,18 @@ export default function CalendarPage() {
             </div>
           </div>
         </div>
-      ) : null}
-      {warningDialog?.open ? (
+          );
+        }}
+      </WhenPortaled>
+      <WhenPortaled when={Boolean(warningDialog?.open)}>
+        {() => {
+          const dialog = warningDialog;
+          if (!dialog?.open) return null;
+          return (
         <div className={styles.confirmOverlay} onClick={() => setWarningDialog(null)}>
           <div className={styles.confirmModal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.confirmTitle}>{warningDialog.title}</div>
-            <div className={styles.confirmBody}>{warningDialog.message}</div>
+            <div className={styles.confirmTitle}>{dialog.title}</div>
+            <div className={styles.confirmBody}>{dialog.message}</div>
             <div className={styles.confirmActions}>
               <Button type="button" className={styles.confirmPrimary} onClick={() => setWarningDialog(null)}>
                 OK
@@ -1285,21 +1484,156 @@ export default function CalendarPage() {
             </div>
           </div>
         </div>
-      ) : null}
-      {confirmDeleteOpen ? (
-        <div className={styles.confirmOverlay} onClick={() => setConfirmDeleteOpen(false)}>
+          );
+        }}
+      </WhenPortaled>
+      <WhenPortaled when={Boolean(seriesScheduleConfirm)}>
+        {() => {
+          const confirm = seriesScheduleConfirm;
+          if (!confirm) return null;
+          return (
+        <div className={styles.confirmOverlay} onClick={() => setSeriesScheduleConfirm(null)}>
           <div className={styles.confirmModal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.confirmTitle}>Delete lesson?</div>
-            <div className={styles.confirmBody}>Are you sure you want to delete this lesson? This action cannot be undone.</div>
+            <div className={styles.confirmTitle}>
+              {confirm.type === 'detach'
+                ? seriesDialogText.detachTitle
+                : seriesDialogText.applyAllTitle}
+            </div>
+            <div className={styles.confirmBody}>
+              {confirm.type === 'detach'
+                ? seriesDialogText.detachBody
+                : seriesDialogText.applyAllBody}
+            </div>
             <div className={styles.confirmActions}>
-              <Button type="button" className={styles.confirmSecondary} onClick={() => setConfirmDeleteOpen(false)}>
+              <Button
+                type="button"
+                className={styles.confirmSecondary}
+                onClick={() => {
+                  setLessons((prev) =>
+                    prev.map((lesson) =>
+                      lesson.id === confirm.before.id ? confirm.before : lesson,
+                    ),
+                  );
+                  setSeriesScheduleConfirm(null);
+                }}
+              >
+                {seriesDialogText.cancel}
+              </Button>
+              <Button
+                type="button"
+                className={styles.confirmPrimary}
+                onClick={() => {
+                  if (confirm.type === 'detach') {
+                    void commitDetachAndMove(confirm.before, confirm.next);
+                  } else {
+                    void commitApplyAllSchedule(confirm.before, confirm.next);
+                  }
+                  setSeriesScheduleConfirm(null);
+                }}
+              >
+                {confirm.type === 'detach'
+                  ? seriesDialogText.detachConfirm
+                  : seriesDialogText.applyAllConfirm}
+              </Button>
+            </div>
+          </div>
+        </div>
+          );
+        }}
+      </WhenPortaled>
+      <WhenPortaled when={Boolean(confirmDeleteSeriesOpen && editingLesson?.seriesId)}>
+        {() => {
+          const seriesId = editingLesson?.seriesId;
+          if (!seriesId) return null;
+          const plannedCount = getPlannedLessonsInSeries(lessons, seriesId).length;
+          return (
+        <div className={styles.confirmOverlay} onClick={() => setConfirmDeleteSeriesOpen(false)}>
+          <div className={styles.confirmModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.confirmTitle}>Delete planned lessons in series?</div>
+            <div className={styles.confirmBody}>
+              This will permanently delete{' '}
+              {plannedCount} planned lesson
+              {plannedCount === 1 ? '' : 's'}
+              . Completed and cancelled lessons stay.
+            </div>
+            <div className={styles.confirmActions}>
+              <Button
+                type="button"
+                className={styles.confirmSecondary}
+                disabled={overlayConfirmBusy}
+                onClick={() => setConfirmDeleteSeriesOpen(false)}
+              >
                 Cancel
               </Button>
               <Button
                 type="button"
                 className={styles.confirmDanger}
-                onClick={() => {
+                loadingLabel="Deleting…"
+                onPendingChange={setOverlayConfirmBusy}
+                onClick={async () => {
+                  try {
+                    const { removedIds } = await deleteScheduledLessonSeries({
+                      lessons,
+                      seriesId,
+                      canManage,
+                      deleteScheduledLesson,
+                    });
+                    const removed = new Set(removedIds);
+                    setLessons((prev) => prev.filter((lesson) => !removed.has(lesson.id)));
+                    setConfirmDeleteSeriesOpen(false);
+                    closeModal();
+                  } catch (error) {
+                    setWarningDialog({
+                      open: true,
+                      title: 'Could not delete series',
+                      message: persistenceErrorMessage(error),
+                    });
+                  }
+                }}
+              >
+                Delete all
+              </Button>
+            </div>
+          </div>
+        </div>
+          );
+        }}
+      </WhenPortaled>
+      <WhenPortaled when={confirmDeleteOpen}>
+        {() => (
+        <div className={styles.confirmOverlay} onClick={() => setConfirmDeleteOpen(false)}>
+          <div className={styles.confirmModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.confirmTitle}>Delete lesson?</div>
+            <div className={styles.confirmBody}>Are you sure you want to delete this lesson? This action cannot be undone.</div>
+            <div className={styles.confirmActions}>
+              <Button
+                type="button"
+                className={styles.confirmSecondary}
+                disabled={overlayConfirmBusy}
+                onClick={() => setConfirmDeleteOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                className={styles.confirmDanger}
+                loadingLabel="Deleting…"
+                onPendingChange={setOverlayConfirmBusy}
+                onClick={async () => {
                   if (!editingLesson) return;
+                  const backendId = getLessonBackendId(editingLesson);
+                  try {
+                    if (canManage && backendId) {
+                      await deleteScheduledLesson(backendId);
+                    }
+                  } catch (error) {
+                    setWarningDialog({
+                      open: true,
+                      title: 'Could not delete lesson',
+                      message: persistenceErrorMessage(error),
+                    });
+                    return;
+                  }
                   setLessons((prev) => prev.filter((lesson) => lesson.id !== editingLesson.id));
                   setConfirmDeleteOpen(false);
                   closeModal();
@@ -1310,54 +1644,99 @@ export default function CalendarPage() {
             </div>
           </div>
         </div>
-      ) : null}
-      {confirmUnlinkOpen ? (
+        )}
+      </WhenPortaled>
+      <WhenPortaled when={confirmUnlinkOpen}>
+        {() => (
         <div className={styles.confirmOverlay} onClick={() => setConfirmUnlinkOpen(false)}>
           <div className={styles.confirmModal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.confirmTitle}>Unlink this lesson from series?</div>
             <div className={styles.confirmBody}>Only this lesson will be detached. Other lessons in series will remain unchanged.</div>
             <div className={styles.confirmActions}>
-              <Button type="button" className={styles.confirmSecondary} onClick={() => setConfirmUnlinkOpen(false)}>
+              <Button
+                type="button"
+                className={styles.confirmSecondary}
+                disabled={overlayConfirmBusy}
+                onClick={() => setConfirmUnlinkOpen(false)}
+              >
                 Cancel
               </Button>
               <Button
                 type="button"
                 className={styles.confirmPrimary}
-                onClick={() => {
-                  if (!editingLesson) return;
-                  setLessons((prev) =>
-                    prev.map((lesson) =>
-                      lesson.id === editingLesson.id
+                loadingLabel="Unlinking…"
+                onPendingChange={setOverlayConfirmBusy}
+                onClick={async () => {
+                    if (!editingLesson || !form) return;
+                    const unlinkedCandidate = {
+                      ...buildLessonCandidate(
+                        {
+                          ...form,
+                          recurrence: 'none',
+                          weeklyDays: [],
+                        },
+                        lessons,
+                        editingLesson,
+                      ),
+                      seriesId: undefined,
+                    };
+                    try {
+                      if (canManage && getLessonBackendId(editingLesson)) {
+                        const persisted = await persistUpdate(unlinkedCandidate, editingLesson, {
+                          includeLessonContent: false,
+                        });
+                        if (persisted) {
+                          setLessons((prev) =>
+                            prev.map((lesson) =>
+                              lesson.id === editingLesson.id ? persisted : lesson,
+                            ),
+                          );
+                          setEditingLesson(persisted);
+                          setForm(toLessonFormState(persisted));
+                          setConfirmUnlinkOpen(false);
+                          return;
+                        }
+                      }
+                    } catch (error) {
+                      setWarningDialog({
+                        open: true,
+                        title: 'Could not unlink lesson',
+                        message: persistenceErrorMessage(error),
+                      });
+                      return;
+                    }
+                    setLessons((prev) =>
+                      prev.map((lesson) =>
+                        lesson.id === editingLesson.id
+                          ? {
+                              ...lesson,
+                              seriesId: undefined,
+                              recurrence: 'none',
+                              weeklyDays: [],
+                            }
+                          : lesson,
+                      ),
+                    );
+                    setEditingLesson((prev) =>
+                      prev
                         ? {
-                            ...lesson,
+                            ...prev,
                             seriesId: undefined,
                             recurrence: 'none',
                             weeklyDays: [],
                           }
-                        : lesson,
-                    ),
-                  );
-                  setEditingLesson((prev) =>
-                    prev
-                      ? {
-                          ...prev,
-                          seriesId: undefined,
-                          recurrence: 'none',
-                          weeklyDays: [],
-                        }
-                      : prev,
-                  );
-                  setForm((prev) =>
-                    prev
-                      ? {
-                          ...prev,
-                          recurrence: 'none',
-                          weeklyDays: [],
-                          applyToSeries: false,
-                        }
-                      : prev,
-                  );
-                  setConfirmUnlinkOpen(false);
+                        : prev,
+                    );
+                    setForm((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            recurrence: 'none',
+                            weeklyDays: [],
+                          }
+                        : prev,
+                    );
+                    setConfirmUnlinkOpen(false);
                 }}
               >
                 Unlink
@@ -1365,7 +1744,8 @@ export default function CalendarPage() {
             </div>
           </div>
         </div>
-      ) : null}
+        )}
+      </WhenPortaled>
     </div>
   );
 }

@@ -3,6 +3,12 @@
   gap: 14px;
 }
 
+.loadingNote {
+  margin: 0;
+  font-size: var(--fs-14);
+  color: var(--text-tertiary);
+}
+
 .rangeCard {
   display: grid;
   gap: 12px;
@@ -10,7 +16,7 @@
 
 .rangeNote {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--text-tertiary);
 }
 
@@ -29,7 +35,7 @@
   border-radius: 8px;
   background: transparent;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   padding: 6px 10px;
   cursor: pointer;
@@ -62,6 +68,9 @@
   z-index: 2;
   width: 22px;
   height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--surface);
@@ -71,6 +80,11 @@
   justify-content: center;
   cursor: help;
   transition: color var(--transition), border-color var(--transition), background-color var(--transition);
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
 }
 
 .kpiInfoBtn:hover,
@@ -83,6 +97,9 @@
 .sectionInfoBtn {
   width: 22px;
   height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--surface);
@@ -92,6 +109,11 @@
   justify-content: center;
   cursor: help;
   transition: color var(--transition), border-color var(--transition), background-color var(--transition);
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
 }
 
 .sectionInfoBtn:hover,
@@ -131,7 +153,7 @@
   place-items: center;
   text-align: center;
   color: var(--text-tertiary);
-  font-size: 13px;
+  font-size: var(--fs-13);
   border: 1px dashed var(--border);
   border-radius: 10px;
   background: var(--surface);
@@ -146,7 +168,7 @@
 .goalValue {
   margin: 0;
   color: var(--text-primary);
-  font-size: 20px;
+  font-size: var(--fs-20);
   font-weight: 700;
 }
 
@@ -168,7 +190,7 @@
 .goalMeta {
   margin: 0;
   color: var(--text-tertiary);
-  font-size: 13px;
+  font-size: var(--fs-13);
 }
 
 .deltaGrid {
@@ -187,13 +209,13 @@
 .deltaLabel {
   margin: 0;
   color: var(--text-tertiary);
-  font-size: 12px;
+  font-size: var(--fs-12);
 }
 
 .deltaValue {
   margin: 6px 0 0;
   color: var(--text-primary);
-  font-size: 15px;
+  font-size: var(--fs-15);
   font-weight: 600;
 }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { ChatUserDto } from '@soenglish/shared-types';
+import type { ChatUserDto } from '@pkg/types';
 import { Button, Field } from '../../components/ui';
 import styles from './page.module.scss';
 

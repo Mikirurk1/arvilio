@@ -1,5 +1,5 @@
 {
-  "name": "@soenglish/data-access-prisma",
+  "name": "@be/prisma",
   "version": "0.0.0",
   "private": true,
   "type": "module",

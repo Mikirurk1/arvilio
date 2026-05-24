@@ -18,17 +18,17 @@
 
 ## Backend packages
 
-- `packages/backend/data-access/data-access-prisma` — Prisma 7, PostgreSQL
-- `packages/backend/modules/module-auth`
-- `packages/backend/modules/module-lessons`
-- `packages/backend/modules/module-vocabulary`
-- `packages/backend/modules/module-flashcards`
-- `packages/backend/modules/module-progress`
+- `packages/backend/data-access/prisma` — Prisma 7, PostgreSQL
+- `packages/backend/modules/auth`
+- `packages/backend/modules/lessons`
+- `packages/backend/modules/vocabulary`
+- `packages/backend/modules/flashcards`
+- `packages/backend/modules/progress`
 - `packages/backend/core` — minimal
 
 ## Frontend packages (scaffold)
 
-- `packages/frontend/shared-ui`, `shared-utils`, `feature-*` — mostly stubs; web app does not import them yet
+- `packages/frontend/ui`, `shared-utils`, `feature-*` — mostly stubs; web app does not import them yet
 
 ## Shared
 

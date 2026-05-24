@@ -21,20 +21,20 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@soenglish/shared-ui": ["../../packages/frontend/shared-ui/src/index.ts"],
-      "@soenglish/shared-utils": ["../../packages/frontend/shared-utils/src/index.ts"],
-      "@soenglish/feature-vocabulary": ["../../packages/frontend/feature-vocabulary/src/index.ts"],
-      "@soenglish/feature-flashcards": ["../../packages/frontend/feature-flashcards/src/index.ts"],
-      "@soenglish/feature-lessons": ["../../packages/frontend/feature-lessons/src/index.ts"],
-      "@soenglish/feature-progress": ["../../packages/frontend/feature-progress/src/index.ts"],
-      "@soenglish/backend-core": ["../../packages/backend/core/src/index.ts"],
-      "@soenglish/module-auth": ["../../packages/backend/modules/module-auth/src/index.ts"],
-      "@soenglish/module-vocabulary": ["../../packages/backend/modules/module-vocabulary/src/index.ts"],
-      "@soenglish/module-flashcards": ["../../packages/backend/modules/module-flashcards/src/index.ts"],
-      "@soenglish/module-lessons": ["../../packages/backend/modules/module-lessons/src/index.ts"],
-      "@soenglish/module-progress": ["../../packages/backend/modules/module-progress/src/index.ts"],
-      "@soenglish/data-access-prisma": ["../../packages/backend/data-access/data-access-prisma/src/index.ts"],
-      "@soenglish/shared-types": ["../../packages/shared/types/src/index.ts"]
+      "@fe/ui": ["../../packages/frontend/shared-ui/src/index.ts"],
+      "@fe/utils": ["../../packages/frontend/shared-utils/src/index.ts"],
+      "@fe/vocabulary": ["../../packages/frontend/feature-vocabulary/src/index.ts"],
+      "@fe/flashcards": ["../../packages/frontend/feature-flashcards/src/index.ts"],
+      "@fe/lessons": ["../../packages/frontend/feature-lessons/src/index.ts"],
+      "@fe/progress": ["../../packages/frontend/feature-progress/src/index.ts"],
+      "@be/graphql": ["../../packages/backend/shared/graphql/src/index.ts"],
+      "@be/auth": ["../../packages/backend/modules/module-auth/src/index.ts"],
+      "@be/vocabulary": ["../../packages/backend/modules/module-vocabulary/src/index.ts"],
+      "@be/flashcards": ["../../packages/backend/modules/module-flashcards/src/index.ts"],
+      "@be/lessons": ["../../packages/backend/modules/module-lessons/src/index.ts"],
+      "@be/progress": ["../../packages/backend/modules/module-progress/src/index.ts"],
+      "@be/prisma": ["../../packages/backend/data-access/data-access-prisma/src/index.ts"],
+      "@pkg/types": ["../../packages/shared/types/src/index.ts"]
     }
   },
   "include": [
@@ -50,9 +50,8 @@
   ],
   "exclude": [
     "node_modules",
-    "jest.config.ts",
-    "jest.config.cts",
-    "**/*.spec.ts",
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts"
   ]
 }

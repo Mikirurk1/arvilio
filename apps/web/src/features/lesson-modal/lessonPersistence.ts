@@ -2,7 +2,7 @@ import type {
   CreateScheduledLessonRequestDto,
   ScheduledLessonDto,
   UpdateScheduledLessonRequestDto,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 import { getIanaForTimeZoneId } from '../../lib/lessonTime';
 import { ApiError } from '../../lib/api';
 import { GraphqlError } from '../../lib/graphql-client';
@@ -10,13 +10,8 @@ import {
   fromLessonFormState,
   nextLessonEntityId,
 } from '../calendar/adapters/lessonCalendarAdapter';
-import { fromBackendLesson } from './scheduledLessonsBackendAdapter';
 import type { LessonFormState } from './types';
-import {
-  hydrateLessonPartyNames,
-  partyStringId,
-  statusFromId,
-} from './scheduledLessonsBackendAdapter';
+import { partyStringId, statusFromId } from './scheduledLessonsBackendAdapter';
 import type { LessonPartyOption } from '../../hooks/use-lesson-party-options';
 
 function mapLessonContentFields(lesson: ScheduledLessonDto) {
@@ -114,12 +109,13 @@ export function toUpdateScheduledLessonBody(
     lessonPlan: lesson.lessonPlan,
     recurrence: lesson.recurrence,
     weeklyDays: lesson.weeklyDays,
-    seriesId: lesson.seriesId,
+    seriesId: lesson.seriesId ?? undefined,
     linkedWordIds: lesson.linkedWordIds?.length ? [...lesson.linkedWordIds] : undefined,
     ...(includeLessonContent ? mapLessonContentFields(lesson) : {}),
   };
 }
 
+/** Keep lesson content from API (`lesson`); overlay display names from local `source`. */
 export function mergeLessonDisplayNames(
   lesson: ScheduledLessonDto,
   source: ScheduledLessonDto,
@@ -128,9 +124,6 @@ export function mergeLessonDisplayNames(
     ...lesson,
     teacherName: source.teacherName || lesson.teacherName,
     studentName: source.studentName || lesson.studentName,
-    materials: source.materials ?? lesson.materials,
-    homework: source.homework ?? lesson.homework,
-    studentResponse: source.studentResponse ?? lesson.studentResponse,
     description: source.description ?? lesson.description,
   };
 }

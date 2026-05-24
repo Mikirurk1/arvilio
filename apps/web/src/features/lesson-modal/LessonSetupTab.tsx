@@ -1,8 +1,9 @@
 'use client';
 
-import type { LessonRecurrence } from '@soenglish/shared-types';
-import { LESSON_STATUS } from '@soenglish/shared-types';
-import { AdaptiveSelect, Button, Field } from '../../components/ui';
+import type { LessonRecurrence } from '@pkg/types';
+import { LESSON_STATUS } from '@pkg/types';
+import { LessonPartyScheduleTimes } from '../../components/lessons/LessonPartyScheduleTimes';
+import { Button, Field } from '../../components/ui';
 import { isAdminOrSuper, USER_ROLE } from '../../mocks';
 import type { SetupTabProps } from './tabTypes';
 import styles from './LessonModal.module.scss';
@@ -15,10 +16,13 @@ export function LessonSetupTab({
   students,
   teachers,
   weekDayOptions,
+  recurrenceAllowed = true,
   onChange,
 }: SetupTabProps) {
   const showTeacherField = isAdminOrSuper(role);
   const canEditWeekDays = canEdit && role !== USER_ROLE.student.id;
+  const selectedStudent = students.find((student) => student.id === form.studentId);
+  const selectedTeacher = teachers.find((teacher) => teacher.id === form.teacherId);
   return (
     <div className={`${styles.modalFieldsGrid} ${styles.modalSetupGrid}`}>
       <div className={styles.fieldGroup}>
@@ -32,6 +36,19 @@ export function LessonSetupTab({
       <div className={styles.fieldGroup}>
         <label className={styles.fieldLabel}>{text.fields.startTime}</label>
         <Field type="time" className={styles.fieldInput} value={form.startTime} readOnly={!canEdit} onChange={(e) => onChange({ ...form, startTime: e.target.value })} />
+        <LessonPartyScheduleTimes
+          wall={{
+            date: form.date,
+            startTime: form.startTime,
+            duration: form.duration,
+            timezoneId: form.timezoneId,
+          }}
+          role={role}
+          teacherTimezoneIana={selectedTeacher?.timezoneIana}
+          studentTimezoneIana={selectedStudent?.timezoneIana}
+          teacherName={form.teacherName}
+          studentName={form.studentName}
+        />
       </div>
       <div className={styles.fieldGroup}>
         <label className={styles.fieldLabel}>{text.fields.duration}</label>
@@ -39,16 +56,24 @@ export function LessonSetupTab({
       </div>
       <div className={styles.fieldGroup}>
         <label className={styles.fieldLabel}>{text.fields.recurrence}</label>
-        <AdaptiveSelect className={styles.fieldInput} value={form.recurrence} readOnly={!canEdit} onChange={(e) => onChange({ ...form, recurrence: e.target.value as LessonRecurrence })}>
+        <Field as="select"
+          className={styles.fieldInput}
+          value={form.recurrence}
+          readOnly={!canEdit || !recurrenceAllowed}
+          onChange={(e) => onChange({ ...form, recurrence: e.target.value as LessonRecurrence })}
+        >
           <option value="none">{text.options.noRepeat}</option>
-          <option value="daily">{text.options.daily}</option>
-          <option value="weekly">{text.options.weekly}</option>
-          <option value="monthly">{text.options.monthly}</option>
-        </AdaptiveSelect>
+          <option value="daily" disabled={!recurrenceAllowed}>{text.options.daily}</option>
+          <option value="weekly" disabled={!recurrenceAllowed}>{text.options.weekly}</option>
+          <option value="monthly" disabled={!recurrenceAllowed}>{text.options.monthly}</option>
+        </Field>
+        {!recurrenceAllowed ? (
+          <p className={styles.fieldHint}>{text.hints.recurrenceFixedOnly}</p>
+        ) : null}
       </div>
       <div className={styles.fieldGroup}>
         <label className={styles.fieldLabel}>{text.fields.status}</label>
-        <AdaptiveSelect className={styles.fieldInput} value={String(form.statusId)} readOnly={!canEdit} onChange={(e) => {
+        <Field as="select" className={styles.fieldInput} value={String(form.statusId)} readOnly={!canEdit} onChange={(e) => {
           const nextStatusId = Number(e.target.value) as typeof form.statusId;
           onChange({
             ...form,
@@ -62,25 +87,25 @@ export function LessonSetupTab({
           <option value={LESSON_STATUS.planned.id}>{text.options.planned}</option>
           <option value={LESSON_STATUS.completed.id}>{text.options.completed}</option>
           <option value={LESSON_STATUS.cancelled.id}>{text.options.cancelled}</option>
-        </AdaptiveSelect>
+        </Field>
       </div>
       {form.statusId === LESSON_STATUS.cancelled.id ? (
         <div className={styles.fieldGroup}>
           <label className={styles.fieldLabel}>{text.fields.cancelReason}</label>
-          <AdaptiveSelect className={styles.fieldInput} value={form.cancelReason ?? 'student_absent'} readOnly={!canEdit} onChange={(e) => onChange({ ...form, cancelReason: e.target.value as NonNullable<typeof form.cancelReason> })}>
+          <Field as="select" className={styles.fieldInput} value={form.cancelReason ?? 'student_absent'} readOnly={!canEdit} onChange={(e) => onChange({ ...form, cancelReason: e.target.value as NonNullable<typeof form.cancelReason> })}>
             <option value="student_absent">{text.options.studentAbsent}</option>
             <option value="student_requested_cancel">{text.options.studentRequestedCancel}</option>
             <option value="teacher_absent">{text.options.teacherAbsent}</option>
-          </AdaptiveSelect>
+          </Field>
         </div>
       ) : null}
       {form.statusId === LESSON_STATUS.cancelled.id ? (
         <div className={styles.fieldGroup}>
           <label className={styles.fieldLabel}>{text.fields.credited}</label>
-          <AdaptiveSelect className={styles.fieldInput} value={form.credited ? 'yes' : 'no'} readOnly={!canEdit} onChange={(e) => onChange({ ...form, credited: e.target.value === 'yes' })}>
+          <Field as="select" className={styles.fieldInput} value={form.credited ? 'yes' : 'no'} readOnly={!canEdit} onChange={(e) => onChange({ ...form, credited: e.target.value === 'yes' })}>
             <option value="yes">{text.options.credited}</option>
             <option value="no">{text.options.notCredited}</option>
-          </AdaptiveSelect>
+          </Field>
         </div>
       ) : null}
       {form.recurrence === 'weekly' ? (
@@ -113,7 +138,7 @@ export function LessonSetupTab({
       {showTeacherField ? (
         <div className={styles.fieldGroup}>
           <label className={styles.fieldLabel}>Teacher</label>
-          <AdaptiveSelect
+          <Field as="select"
             className={styles.fieldInput}
             value={String(form.teacherId)}
             readOnly={!canEdit}
@@ -132,19 +157,22 @@ export function LessonSetupTab({
                 {teacher.fullName}
               </option>
             ))}
-          </AdaptiveSelect>
+          </Field>
         </div>
       ) : null}
       {role !== USER_ROLE.student.id ? (
         <div className={styles.fieldGroup}>
           <label className={styles.fieldLabel}>{text.fields.student}</label>
-          <AdaptiveSelect className={styles.fieldInput} value={String(form.studentId)} readOnly={!canEdit} onChange={(e) => {
+          <Field as="select" className={styles.fieldInput} value={String(form.studentId)} readOnly={!canEdit} onChange={(e) => {
             const nextStudent = students.find((student) => student.id === Number(e.target.value));
             if (!nextStudent) return;
+            const flexible = nextStudent.scheduleType === false;
             onChange({
               ...form,
               studentId: nextStudent.id,
               studentName: nextStudent.fullName,
+              recurrence: flexible ? 'none' : form.recurrence,
+              weeklyDays: flexible ? [] : form.weeklyDays,
             });
           }}>
             {students.map((student) => (
@@ -152,7 +180,7 @@ export function LessonSetupTab({
                 {student.fullName}
               </option>
             ))}
-          </AdaptiveSelect>
+          </Field>
         </div>
       ) : null}
     </div>

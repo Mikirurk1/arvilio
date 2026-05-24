@@ -1,4 +1,4 @@
-import type { WordDetailsDto } from '@soenglish/shared-types';
+import type { WordDetailsDto } from '@pkg/types';
 import type { PhoneticRow } from '../../../lib/word-details-payload';
 import { WordCardAudioButton } from '../WordCardAudioButton';
 import styles from '../word-details-modal.module.scss';

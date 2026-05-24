@@ -24,7 +24,7 @@
   background: transparent;
   color: var(--text-primary);
   padding: 10px 8px;
-  font-size: 14px;
+  font-size: var(--fs-14);
   outline: none;
 }
 
@@ -36,7 +36,7 @@
 }
 
 .filterHeading {
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -54,7 +54,7 @@
   color: var(--text-secondary);
   border-radius: 999px;
   padding: 6px 10px;
-  font-size: 12px;
+  font-size: var(--fs-12);
   cursor: pointer;
 }
 
@@ -70,13 +70,31 @@
 }
 
 .countMuted {
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--text-tertiary);
+}
+
+.listScroll {
+  max-height: min(60vh, 640px);
+  overflow-y: auto;
 }
 
 .list {
   display: grid;
   gap: 10px;
+}
+
+.loadMoreSentinel {
+  width: 100%;
+  height: 1px;
+  flex-shrink: 0;
+}
+
+.loadMoreStatus {
+  margin: 8px 0 0;
+  text-align: center;
+  font-size: var(--fs-12);
+  color: var(--text-tertiary);
 }
 
 .lessonCard {
@@ -121,22 +139,27 @@
 .lessonTitleRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 10px;
 }
 
 .lessonTitle {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--fs-15);
   color: var(--text-primary);
 }
 
 .statusPill {
-  font-size: 11px;
+  font-size: var(--fs-11);
   border-radius: 999px;
   padding: 3px 9px;
   border: 1px solid var(--border);
   text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.statusPillAside {
+  flex-shrink: 0;
+  align-self: center;
 }
 
 .statusPlanned { background: var(--blue-light); color: var(--blue); }
@@ -154,7 +177,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--text-secondary);
 }
 
@@ -175,6 +198,9 @@
 .iconActionBtn {
   width: 30px;
   height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  padding: 0;
   border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--surface);
@@ -183,6 +209,13 @@
   align-items: center;
   justify-content: center;
   text-decoration: none;
+  box-sizing: border-box;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
 }
 
 .iconActionBtn:focus-visible {
@@ -196,5 +229,5 @@
   padding: 20px;
   text-align: center;
   color: var(--text-tertiary);
-  font-size: 13px;
+  font-size: var(--fs-13);
 }

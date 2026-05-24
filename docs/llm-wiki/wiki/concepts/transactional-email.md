@@ -5,7 +5,7 @@ updated: 2026-05-16
 
 # Transactional email
 
-Outbound mail for account lifecycle and profile notifications. Templates are **React Email** components in `packages/backend/email-templates/src/`; built to `dist/` via `npm run build -w @soenglish/email-templates`. Rendered with `@react-email/render` in `@soenglish/module-mail`.
+Outbound mail for account lifecycle and profile notifications. Templates are **React Email** components in `packages/backend/email-templates/src/`; built to `dist/` via `npm run build -w @be/email-templates`. Rendered with `@react-email/render` in `@be/mail`.
 
 ## Welcome account
 
@@ -20,7 +20,7 @@ Sent when an admin creates a user via [[concepts/auth-rbac#Account provisioning]
 | `new-vocabulary` | `word`, `definition`, `appUrl` |
 | `teacher-message` | `teacherName`, `body`, `appUrl` |
 
-Implementation: `renderEmail()` in `@soenglish/email-templates`; `MailService.sendTemplated` / `sendWelcomeAccount` in `@soenglish/module-mail`. Notification cron uses the same renderer via `NotificationsMailService` → `MailService`.
+Implementation: `renderEmail()` in `@be/email-templates`; `MailService.sendTemplated` / `sendWelcomeAccount` in `@be/mail`. Notification cron uses the same renderer via `NotificationsMailService` → `MailService`.
 
 See [[concepts/profile-notifications]] for prefs and schedules.
 

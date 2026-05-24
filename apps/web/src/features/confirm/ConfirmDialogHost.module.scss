@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1100;
+  z-index: var(--z-modal-confirm, 2300);
 }
 
 .modal {
@@ -18,14 +18,14 @@
 
 .title {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--fs-18);
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .body {
   margin: 8px 0 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   line-height: 1.5;
   color: var(--text-secondary);
 }
@@ -42,7 +42,7 @@
 .confirmDanger {
   border-radius: var(--radius-md);
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: var(--fs-13);
   font-weight: 600;
   cursor: pointer;
 }

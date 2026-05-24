@@ -1,7 +1,7 @@
-import type { ProficiencyLevelId, ScheduledLessonDto } from '@soenglish/shared-types';
+import type { ProficiencyLevelId, ScheduledLessonDto } from '@pkg/types';
 
 type LessonSeed = Omit<ScheduledLessonDto, 'timezoneId'>;
-import { LESSON_STATUS, PROFICIENCY_LEVEL, TIME_ZONE, USER_ROLE } from '@soenglish/shared-types';
+import { LESSON_STATUS, PROFICIENCY_LEVEL, TIME_ZONE, USER_ROLE } from '@pkg/types';
 import type { UserRole } from './entities';
 
 const scheduleLessonsSeed: LessonSeed[] = [

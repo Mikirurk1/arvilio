@@ -5,7 +5,7 @@ import type { LessonPartyOption } from '../../hooks/use-lesson-party-options';
 
 export type MaterialKind = 'text' | 'photo' | 'test' | 'file' | 'presentation';
 
-export type FileMeta = { name: string; previewUrl: string | null };
+export type FileMeta = { name: string; previewUrl: string | null; file?: File };
 
 export type MaterialKindOption = {
   value: MaterialKind;
@@ -23,5 +23,6 @@ export type SetupTabProps = {
   students: LessonPartyOption[];
   teachers: LessonPartyOption[];
   weekDayOptions: Array<{ value: number; label: string }>;
+  recurrenceAllowed?: boolean;
   onChange: (next: LessonFormState) => void;
 };

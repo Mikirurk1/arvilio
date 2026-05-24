@@ -1,10 +1,11 @@
 import type {
   LessonCancelReason,
+  LessonFileLinkDto,
   LessonRecurrence,
   LessonStatusId,
   StudentResponseStatus,
   TimeZoneId,
-} from '@soenglish/shared-types';
+} from '@pkg/types';
 
 export type LessonModalMode = 'create' | 'edit';
 
@@ -13,6 +14,7 @@ export type LessonMaterialItem = {
   kind: 'text' | 'photo' | 'test' | 'file' | 'presentation';
   text: string;
   files: string[];
+  fileLinks?: LessonFileLinkDto[];
 };
 
 export type LessonFormState = {
@@ -31,8 +33,10 @@ export type LessonFormState = {
   materials: LessonMaterialItem[];
   homeworkText: string;
   homeworkFiles: string[];
+  homeworkFileLinks?: LessonFileLinkDto[];
   studentResponseText: string;
   studentResponseFiles: string[];
+  studentResponseFileLinks?: LessonFileLinkDto[];
   studentResponseStatus: StudentResponseStatus;
   homeworkChecked: boolean;
   teacherHomeworkFeedback: string;
@@ -41,7 +45,6 @@ export type LessonFormState = {
   credited: boolean;
   recurrence: LessonRecurrence;
   weeklyDays: number[];
-  applyToSeries: boolean;
   /** Global Word ids (backend cuid) linked to this lesson. */
   linkedWordIds: string[];
 };

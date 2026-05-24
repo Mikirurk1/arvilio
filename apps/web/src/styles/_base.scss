@@ -23,7 +23,6 @@
 
 html {
   height: 100%;
-  font-size: var(--fs-base);
   scroll-behavior: smooth;
 
   &.--scroll-lock {
@@ -48,7 +47,7 @@ html {
     color: var(--text-primary);
     overflow: hidden;
     background-color: var(--surface);
-    font-size: var(--fs-base);
+    font-size: 1rem;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

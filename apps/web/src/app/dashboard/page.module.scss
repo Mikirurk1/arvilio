@@ -45,7 +45,7 @@
 
 .heroContent { position: relative; z-index: 1; }
 .heroLabel {
-  font-size: 11px;
+  font-size: var(--fs-11);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.45);
@@ -53,7 +53,7 @@
 }
 .heroTitle {
   font-family: 'Lora', serif;
-  font-size: 24px;
+  font-size: var(--fs-24);
   font-weight: 600;
   color: white;
   margin-bottom: 4px;
@@ -62,7 +62,7 @@
 .heroProgress { display: flex; align-items: center; gap: 12px; }
 .heroBar { width: 200px; height: 4px; background: rgba(255, 255, 255, 0.12); border-radius: 2px; overflow: hidden; }
 .heroBarFill { height: 100%; width: 62%; background: var(--green); border-radius: 2px; }
-.heroPct { font-size: 13px; color: rgba(255, 255, 255, 0.6); }
+.heroPct { font-size: var(--fs-13); color: rgba(255, 255, 255, 0.6); }
 .heroBtn {
   position: relative;
   z-index: 1;
@@ -71,7 +71,7 @@
   border: none;
   padding: 12px 24px;
   border-radius: var(--radius-md);
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   transition: all 0.2s;
   white-space: nowrap;
@@ -95,7 +95,7 @@
   background: var(--card);
   color: var(--text-secondary);
   text-decoration: none;
-  font-size: 13px;
+  font-size: var(--fs-13);
   font-weight: 500;
   transition: border-color var(--transition), transform var(--transition);
   position: relative;
@@ -118,7 +118,7 @@
   border-radius: 999px;
   background: var(--rose);
   color: white;
-  font-size: 10px;
+  font-size: var(--fs-10);
   font-weight: 700;
   text-align: center;
 }
@@ -128,7 +128,7 @@
 }
 
 .panelHint {
-  font-size: 13px;
+  font-size: var(--fs-13);
   color: var(--text-tertiary);
   margin: 0;
   line-height: 1.45;
@@ -160,13 +160,13 @@
 }
 
 .compactTitle {
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .compactMeta {
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--text-tertiary);
 }
 
@@ -181,24 +181,25 @@
 
 .weekRow {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 12px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px 16px;
   align-items: center;
-  padding: 12px 14px;
+  padding: 12px 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--card);
   text-decoration: none;
   color: inherit;
-  transition: border-color var(--transition);
+  transition: border-color var(--transition), box-shadow var(--transition);
 
   &:hover {
     border-color: var(--green);
+    box-shadow: var(--shadow-sm);
   }
 }
 
 .weekDate {
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   color: var(--green-dark);
   white-space: nowrap;
@@ -207,28 +208,43 @@
 
 .weekMain {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .weekTitle {
-  font-size: 14px;
+  display: block;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--text-primary);
+  padding-right: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .weekMeta {
-  font-size: 12px;
+  display: block;
+  font-size: var(--fs-12);
   color: var(--text-tertiary);
-  margin-top: 2px;
+  padding-right: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .weekStatus {
-  font-size: 11px;
+  flex-shrink: 0;
+  font-size: var(--fs-11);
   font-weight: 600;
   text-transform: capitalize;
-  color: var(--text-faint);
-  padding: 4px 8px;
-  border-radius: 6px;
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
   background: var(--surface);
+  white-space: nowrap;
 }
 
 .calLessonDay {
@@ -252,10 +268,10 @@
 }
 .stat:nth-child(2) { animation-delay: 0.05s; }
 .stat:nth-child(3) { animation-delay: 0.1s; }
-.statIcon { font-size: 20px; margin-bottom: 10px; }
-.statLabel { font-size: 13px; color: var(--text-tertiary); margin-bottom: 4px; }
-.statValue { font-size: 28px; font-weight: 600; color: var(--text-primary); line-height: 1; }
-.statSub { font-size: 12px; color: var(--green); margin-top: 4px; }
+.statIcon { font-size: var(--fs-20); margin-bottom: 10px; }
+.statLabel { font-size: var(--fs-13); color: var(--text-tertiary); margin-bottom: 4px; }
+.statValue { font-size: var(--fs-28); font-weight: 600; color: var(--text-primary); line-height: 1; }
+.statSub { font-size: var(--fs-12); color: var(--green); margin-top: 4px; }
 
 .twoCol { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
 .rightCol { display: flex; flex-direction: column; gap: 14px; }
@@ -267,18 +283,18 @@
   margin-bottom: 12px;
 }
 .sectionTitle {
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-tertiary);
 }
-.seeAll { font-size: 13px; color: var(--green); font-weight: 500; transition: opacity var(--transition); }
+.seeAll { font-size: var(--fs-13); color: var(--green); font-weight: 500; transition: opacity var(--transition); }
 .seeAll:hover { opacity: 0.7; }
 
 .lessonList { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
 .lessonLink { display: block; text-decoration: none; color: inherit; }
-.emptyHint { font-size: 13px; color: var(--text-tertiary); margin: 0 0 28px; }
+.emptyHint { font-size: var(--fs-13); color: var(--text-tertiary); margin: 0 0 28px; }
 .emptyLink { color: var(--green); font-weight: 500; }
 .emptyLink:hover { opacity: 0.8; }
 .lessonCard {
@@ -293,10 +309,10 @@
 }
 .lessonCard:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: var(--shadow-md); }
 .locked { opacity: 0.45; pointer-events: none; }
-.lockOverlay { position: absolute; bottom: 12px; right: 14px; font-size: 12px; color: var(--text-tertiary); }
+.lockOverlay { position: absolute; bottom: 12px; right: 14px; font-size: var(--fs-12); color: var(--text-tertiary); }
 .tag {
   display: inline-block;
-  font-size: 10px;
+  font-size: var(--fs-10);
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -308,12 +324,12 @@
 .tagVocab { background: var(--green-light); color: var(--green-dark); }
 .tagSpeaking { background: var(--amber-light); color: #9a6200; }
 .tagListening { background: var(--rose-light); color: #a03050; }
-.lcTitle { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
-.lcDesc { font-size: 13px; color: var(--text-tertiary); line-height: 1.4; margin-bottom: 12px; }
+.lcTitle { font-size: var(--fs-15); font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+.lcDesc { font-size: var(--fs-13); color: var(--text-tertiary); line-height: 1.4; margin-bottom: 12px; }
 .lcFooter { display: flex; align-items: center; justify-content: space-between; }
 .lcMeta { display: flex; gap: 12px; }
-.lcMetaItem { font-size: 12px; color: var(--text-faint); }
-.lcXp { font-size: 12px; font-weight: 600; color: var(--green); background: var(--green-light); padding: 2px 8px; border-radius: 6px; }
+.lcMetaItem { font-size: var(--fs-12); color: var(--text-faint); }
+.lcXp { font-size: var(--fs-12); font-weight: 600; color: var(--green); background: var(--green-light); padding: 2px 8px; border-radius: 6px; }
 
 .vocabRow { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 0; }
 .vocabCard {
@@ -327,15 +343,15 @@
   transition: all var(--transition);
 }
 .vocabCard:hover { border-color: var(--green); }
-.vocabWord { font-family: 'Lora', serif; font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
-.vocabPos { font-size: 11px; color: var(--text-faint); margin-bottom: 5px; }
-.vocabDef { font-size: 12px; color: var(--text-tertiary); line-height: 1.4; }
+.vocabWord { font-family: 'Lora', serif; font-size: var(--fs-15); font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+.vocabPos { font-size: var(--fs-11); color: var(--text-faint); margin-bottom: 5px; }
+.vocabDef { font-size: var(--fs-12); color: var(--text-tertiary); line-height: 1.4; }
 .vocabStatus { margin-top: 8px; display: flex; align-items: center; gap: 5px; }
 .vocabDot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 .new { background: var(--blue); }
 .learning { background: var(--amber); }
 .known { background: var(--green); }
-.vocabStatusLbl { font-size: 11px; color: var(--text-faint); }
+.vocabStatusLbl { font-size: var(--fs-11); color: var(--text-faint); }
 
 .panel {
   background: var(--card);
@@ -343,7 +359,7 @@
   border-radius: var(--radius-md);
   padding: 18px;
 }
-.goalsSubtitle { font-size: 12px; color: var(--text-tertiary); margin: 3px 0 10px; }
+.goalsSubtitle { font-size: var(--fs-12); color: var(--text-tertiary); margin: 3px 0 10px; }
 .goalItem {
   display: flex;
   align-items: center;
@@ -396,15 +412,15 @@
   border-bottom: 2px solid white;
   transform: rotate(-45deg) translate(1px, -1px);
 }
-.goalText { font-size: 13px; color: var(--text-primary); flex: 1; }
+.goalText { font-size: var(--fs-13); color: var(--text-primary); flex: 1; }
 .goalDone { color: var(--text-faint); text-decoration: line-through; }
-.goalReward { font-size: 11px; font-weight: 600; color: var(--green); }
+.goalReward { font-size: var(--fs-11); font-weight: 600; color: var(--green); }
 
 .wordBig { font-family: 'Lora', serif; font-size: var(--fs-page-title); font-weight: 600; color: var(--text-primary); margin: 10px 0 3px; }
-.wordPhonetic { font-size: 13px; color: var(--text-tertiary); margin-bottom: 8px; font-style: italic; }
-.wordDef { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 8px; }
+.wordPhonetic { font-size: var(--fs-13); color: var(--text-tertiary); margin-bottom: 8px; font-style: italic; }
+.wordDef { font-size: var(--fs-13); color: var(--text-secondary); line-height: 1.6; margin-bottom: 8px; }
 .wordExample {
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--text-tertiary);
   font-style: italic;
   border-left: 3px solid var(--green);
@@ -416,7 +432,7 @@
 .btn {
   padding: 8px 16px;
   border-radius: var(--radius-sm);
-  font-size: 13px;
+  font-size: var(--fs-13);
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition);
@@ -428,9 +444,9 @@
 .btnGreen { background: var(--green); color: white; border-color: transparent; flex: 1; text-align: center; }
 .btnGreen:hover { background: var(--green-dark); }
 
-.calSub { font-size: 12px; color: var(--text-tertiary); margin: 3px 0 10px; }
+.calSub { font-size: var(--fs-12); color: var(--text-tertiary); margin: 3px 0 10px; }
 .calGrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
-.calDayName { font-size: 10px; text-align: center; color: var(--text-faint); font-weight: 500; padding: 2px 0; text-transform: uppercase; }
+.calDayName { font-size: var(--fs-10); text-align: center; color: var(--text-faint); font-weight: 500; padding: 2px 0; text-transform: uppercase; }
 .calEmpty { aspect-ratio: 1; }
 .calDay {
   aspect-ratio: 1;
@@ -438,7 +454,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: var(--fs-11);
   color: var(--text-tertiary);
   cursor: pointer;
   transition: all 0.1s;
@@ -446,7 +462,7 @@
 .calDay:hover { background: var(--surface); }
 .calDone { background: var(--green-light); color: var(--green-dark); font-weight: 500; }
 .calToday { background: var(--green) !important; color: white !important; font-weight: 600; }
-.calLink { display: block; text-align: center; margin-top: 12px; font-size: 13px; color: var(--green); font-weight: 500; }
+.calLink { display: block; text-align: center; margin-top: 12px; font-size: var(--fs-13); color: var(--green); font-weight: 500; }
 .calLink:hover { text-decoration: underline; }
 
 @include respond-to(md) {
@@ -476,7 +492,7 @@
 
 @include respond-to(sm) {
   .pageTitle {
-    font-size: clamp(22px, 6vw, var(--fs-page-title));
+    font-size: clamp(var(--fs-22), 6vw, var(--fs-page-title));
     flex-wrap: wrap;
   }
 
@@ -485,7 +501,7 @@
   }
 
   .heroTitle {
-    font-size: 20px;
+    font-size: var(--fs-20);
   }
 
   .heroBar {
