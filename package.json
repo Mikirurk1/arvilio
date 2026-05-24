@@ -33,7 +33,7 @@
     "seed:test-users": "tsx scripts/seed-test-users.ts",
     "coursework:generate": "node scripts/generate-coursework-docx.mjs && node scripts/export-coursework-md.mjs",
     "test": "npm run build:email-templates && jest",
-    "test:unit": "npm run build:email-templates && jest --selectProjects module-auth module-vocabulary module-chat module-lessons module-flashcards module-notifications module-progress module-mail web",
+    "test:unit": "npm run prisma:generate && npm run build:email-templates && jest --selectProjects module-auth module-vocabulary module-chat module-lessons module-flashcards module-notifications module-progress module-mail web",
     "test:coverage": "npm run build:email-templates && jest --coverage --selectProjects module-auth module-vocabulary module-chat module-lessons module-flashcards module-notifications module-progress module-mail web",
     "test:coverage:integration": "npm run build:email-templates && RUN_INTEGRATION_TESTS=1 jest --config jest.integration.config.cjs --coverage",
     "test:integration": "npm run build:email-templates && RUN_INTEGRATION_TESTS=1 jest --config jest.integration.config.cjs",

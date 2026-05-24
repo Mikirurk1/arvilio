@@ -23,6 +23,7 @@ const conversation = mockChatConversation({
 
 const message = mockChatMessage({
   id: 'm1',
+  conversationId: 'c1',
   body: 'Hello',
   createdAt: '2026-05-20T11:00:00.000Z',
   isMine: false,

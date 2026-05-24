@@ -4,6 +4,11 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 ---
 
+## [2026-05-24] fix | CI unit tests — mail, chat-store, profile, word-definitions
+- **Trigger:** CI #21 failed on main after e2a3f73
+- **Pages:** `log.md`, `docs/reference/ci-cd.md` (implicit)
+- **Notes:** `nodemailer` default import; chat message `conversationId`; `nativeLanguageId` in profile test; POS `undefined`; `test:unit` runs `prisma:generate`.
+
 ## [2026-05-24] fix | IDE Problems — tsconfig.ide + Prisma generate
 - **Trigger:** Problems panel (decorators, @be/*, @tests/integration, node_modules noise)
 - **Pages:** `tsconfig.ide.json`, `.vscode/settings.json`, `tsconfig.base.json`, `package.json` (`predev`), `tests/integration/tsconfig.json`

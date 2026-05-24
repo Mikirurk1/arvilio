@@ -6,6 +6,7 @@ const complete = mockProfileCompletenessInput({
   phone: '+123',
   telegram: '@u',
   bio: 'Bio',
+  nativeLanguageId: 'lang-uk',
 });
 
 describe('isMyProfileComplete', () => {

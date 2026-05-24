@@ -61,7 +61,7 @@ describe('word-definitions', () => {
     ];
     const filtered = filterDefinitionRowsByPos(defs, 'verb');
     expect(filtered).toHaveLength(1);
-    expect(filtered[0]?.partOfSpeech).toBeNull();
+    expect(filtered[0]?.partOfSpeech).toBeUndefined();
   });
 
   it('pickWordDefinition respects partOfSpeech filter', () => {
