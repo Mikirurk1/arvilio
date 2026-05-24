@@ -8,10 +8,10 @@ import type { DictionaryLookup } from '../../shared/dictionary-lookup.types';
 import { isUsablePlainText, stripHtml } from '../../domain/strip-html.util';
 
 const WIKTIONARY_DEFINITION_API =
-  process.env.WIKTIONARY_API_URL ?? 'https://en.wiktionary.org/api/rest_v1/page/definition/';
+  process.env['WIKTIONARY_API_URL'] ?? 'https://en.wiktionary.org/api/rest_v1/page/definition/';
 
 const USER_AGENT =
-  process.env.WIKTIONARY_USER_AGENT ?? 'SoEnglish/1.0 (vocabulary; +https://github.com/soenglish)';
+  process.env['WIKTIONARY_USER_AGENT'] ?? 'SoEnglish/1.0 (vocabulary; +https://github.com/soenglish)';
 
 const MAX_DEFINITIONS_PER_POS = 12;
 
@@ -103,7 +103,7 @@ export function wiktionaryToEntries(
   word: string,
   data: WiktionaryDefinitionResponse,
 ): DictionaryApiEntry[] {
-  const enSections = data.en ?? [];
+  const enSections = data['en'] ?? [];
   if (enSections.length === 0) return [];
 
   const meanings: DictionaryMeaning[] = enSections

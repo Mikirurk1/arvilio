@@ -28,7 +28,7 @@ export function loadDotenv(): void {
 
 export function buildPrisma(): PrismaClient {
   const connectionString =
-    process.env.DATABASE_URL ??
+    process.env['DATABASE_URL'] ??
     'postgresql://soenglish:soenglish@localhost:5432/soenglish?schema=public';
   const adapter = new PrismaPg({ connectionString });
   return new PrismaClient({ adapter });

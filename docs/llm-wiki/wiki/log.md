@@ -4,6 +4,26 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 ---
 
+## [2026-05-24] update | Docker dev stack restore
+- **Trigger:** user request (deleted containers)
+- **Pages:** `log.md`, `infra/docker/README.md`
+- **Notes:** Dev stack = `soenglish-postgres`, `soenglish-api`, `soenglish-web` via `infra/docker/docker-compose.yml`. Compose: `env_file` `.env`, `NODE_OPTIONS` 4GB for api/web (avoids tsc OOM in container), `npm run docker:up|down|logs|ps`, `npm run docker:restore` (`scripts/docker-restore-all.sh` scans `~/Programming` for other compose files). Other deleted containers are **not** defined in this repo — recover via remaining volumes/images or project compose paths.
+
+## [2026-05-24] update | Integration tests IDE paths
+- **Trigger:** user request (Problems on `tests/integration/bootstrap.ts`)
+- **Pages:** `concepts/testing.md` (via README), `log.md`
+- **Notes:** `@tests/integration/*` in `tsconfig.base.json`; `tests/integration/tsconfig.json` includes module `tests/integration/**/*.ts`; root `tsconfig.json` solution references; fixed broken `../../../../../` imports in module integration specs.
+
+## [2026-05-24] update | IDE Problems — package tsconfig.lib
+- **Trigger:** user request (fix Problems panel)
+- **Pages:** `log.md`
+- **Notes:** All `tsconfig.lib.json` exclude `*.spec.ts` / `tests/`; strict fixes (`noPropertyAccessFromIndexSignature`, Prisma update types, nodemailer import, `@types/multer`, `@be/graphql` tsconfig); feature-vocabulary fetch without Next-only `next` option.
+
+## [2026-05-24] update | Dependabot vs CI setup-monorepo
+- **Trigger:** debug (Dependabot PRs fail ~30s)
+- **Pages:** `log.md`, `docs/reference/ci-cd.md`
+- **Notes:** `npm ci` in composite action fails when lockfile lacks Linux `@emnapi/*` optional deps, or when grouped dev PR bumps `eslint@10` (peer conflict with `eslint-plugin-import`). `.github/dependabot.yml` — dev group **minor/patch** only; ignore majors for eslint/typescript/jest. Close stale Dependabot PRs after lockfile fix on `main`.
+
 ## [2026-05-24] update | CI/CD pipelines (GitHub Actions)
 - **Trigger:** user request
 - **Pages:** `concepts/testing.md`, `synthesis/tech-stack.md`, `log.md`

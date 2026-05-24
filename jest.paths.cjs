@@ -9,6 +9,7 @@ function abs(relativeFromRepoRoot) {
 
 /** Path aliases aligned with tsconfig.base.json */
 const moduleNameMapper = {
+  '^@tests/integration/(.*)$': abs('tests/integration/$1'),
   '^@fe/ui$': abs('packages/frontend/shared-ui/src/index.ts'),
   '^@fe/utils$': abs('packages/frontend/shared-utils/src/index.ts'),
   '^@fe/vocabulary$': abs('packages/frontend/feature-vocabulary/src/index.ts'),

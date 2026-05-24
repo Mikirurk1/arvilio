@@ -1,6 +1,10 @@
-import { cleanupTestUsers } from '../../../../../tests/integration/seed';
-import { closeIntegrationApp, createIntegrationApp, type IntegrationContext } from '../../../../../tests/integration/bootstrap';
-import { gqlAs } from '../../../../../tests/integration/helpers';
+import { cleanupTestUsers } from '@tests/integration/seed';
+import {
+  closeIntegrationApp,
+  createIntegrationApp,
+  type IntegrationContext,
+} from '@tests/integration/bootstrap';
+import { gqlAs } from '@tests/integration/helpers';
 
 describe('GraphQL profile (integration)', () => {
   let ctx: IntegrationContext;
@@ -21,9 +25,10 @@ describe('GraphQL profile (integration)', () => {
       `query { myProfile { id email displayName role } }`,
     );
     expect(res.status).toBe(200);
-    expect((res.body as { data?: { myProfile: { role: string } } }).data?.myProfile.role).toBe(
-      'student',
-    );
+    expect(
+      (res.body as { data?: { myProfile: { role: string } } }).data?.myProfile
+        .role,
+    ).toBe('student');
   });
 
   it('student can update display name', async () => {
@@ -37,8 +42,8 @@ describe('GraphQL profile (integration)', () => {
     );
     expect(res.status).toBe(200);
     expect(
-      (res.body as { data?: { updateMyProfile: { displayName: string } } }).data?.updateMyProfile
-        .displayName,
+      (res.body as { data?: { updateMyProfile: { displayName: string } } }).data
+        ?.updateMyProfile.displayName,
     ).toBe('Jest Student Updated');
   });
 });

@@ -150,7 +150,7 @@ export async function sendTelegramBotMessage(
     disable_web_page_preview: true,
   };
   if (options?.parseMode) {
-    body.parse_mode = options.parseMode;
+    body['parse_mode'] = options.parseMode;
   }
 
   try {

@@ -1,6 +1,10 @@
-import { cleanupTestUsers } from '../../../../../tests/integration/seed';
-import { closeIntegrationApp, createIntegrationApp, type IntegrationContext } from '../../../../../tests/integration/bootstrap';
-import { gqlAs } from '../../../../../tests/integration/helpers';
+import { cleanupTestUsers } from '@tests/integration/seed';
+import {
+  closeIntegrationApp,
+  createIntegrationApp,
+  type IntegrationContext,
+} from '@tests/integration/bootstrap';
+import { gqlAs } from '@tests/integration/helpers';
 
 describe('GraphQL dashboard (integration)', () => {
   let ctx: IntegrationContext;
@@ -26,10 +30,16 @@ describe('GraphQL dashboard (integration)', () => {
   });
 
   it('student can list dailyGoals', async () => {
-    const res = await gqlAs(ctx.app, 'student', `query { dailyGoals { id text done } }`);
-    expect(res.status).toBe(200);
-    expect(Array.isArray((res.body as { data?: { dailyGoals: unknown[] } }).data?.dailyGoals)).toBe(
-      true,
+    const res = await gqlAs(
+      ctx.app,
+      'student',
+      `query { dailyGoals { id text done } }`,
     );
+    expect(res.status).toBe(200);
+    expect(
+      Array.isArray(
+        (res.body as { data?: { dailyGoals: unknown[] } }).data?.dailyGoals,
+      ),
+    ).toBe(true);
   });
 });

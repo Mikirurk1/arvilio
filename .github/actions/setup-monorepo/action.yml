@@ -23,7 +23,7 @@ runs:
 
     - name: Use npm from packageManager
       shell: bash
-      run: corepack enable && corepack prepare npm@11.6.2 --activate
+      run: corepack enable && corepack prepare npm@11.6.2 --activate && node -v && npm -v
 
     - name: Install dependencies
       shell: bash

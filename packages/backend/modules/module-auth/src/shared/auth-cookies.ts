@@ -11,7 +11,7 @@ export const GOOGLE_OAUTH_INTENT_COOKIE = 'soenglish_google_intent';
 export const GOOGLE_OAUTH_USER_COOKIE = 'soenglish_google_uid';
 
 export function getJwtSecret(): string {
-  return process.env.JWT_SECRET ?? 'soenglish-dev-secret';
+  return process.env['JWT_SECRET'] ?? 'soenglish-dev-secret';
 }
 
 export function hashRefreshToken(token: string): string {
@@ -23,7 +23,7 @@ export function generateRefreshToken(): string {
 }
 
 function isProduction(): boolean {
-  return process.env.NODE_ENV === 'production';
+  return process.env['NODE_ENV'] === 'production';
 }
 
 export function setAuthCookies(res: Response, tokens: { accessToken: string; refreshToken: string }): void {

@@ -1,6 +1,10 @@
 import { mockChatConversation, mockChatMessage } from '../testing/fixtures';
 import { createIdleSlice, sliceSuccess } from './lib/async-slice';
-import { CHAT_MESSAGE_PAGE_SIZE, chatUnreadTotal, useChatStore } from './chat-store';
+import {
+  CHAT_MESSAGE_PAGE_SIZE,
+  chatUnreadTotal,
+  useChatStore,
+} from './chat-store';
 
 const mockGraphql = jest.fn();
 
@@ -50,13 +54,17 @@ describe('chat-store', () => {
   });
 
   it('fetchInbox skips warm cache', async () => {
-    useChatStore.setState({ inbox: sliceSuccess(createIdleSlice(), [conversation]) });
+    useChatStore.setState({
+      inbox: sliceSuccess(createIdleSlice(), [conversation]),
+    });
     await useChatStore.getState().fetchInbox(false);
     expect(mockGraphql).not.toHaveBeenCalled();
   });
 
   it('fetchContacts loads users', async () => {
-    mockGraphql.mockResolvedValue({ chatContacts: [{ id: 'u2', displayName: 'Peer' }] });
+    mockGraphql.mockResolvedValue({
+      chatContacts: [{ id: 'u2', displayName: 'Peer' }],
+    });
     await useChatStore.getState().fetchContacts(true);
     expect(useChatStore.getState().contacts.status).toBe('success');
   });
@@ -81,7 +89,9 @@ describe('chat-store', () => {
       messages: sliceSuccess(createIdleSlice(), [message]),
     });
     mockGraphql.mockResolvedValue({
-      chatMessages: [{ ...message, id: 'm0', createdAt: '2026-05-20T09:00:00.000Z' }],
+      chatMessages: [
+        { ...message, id: 'm0', createdAt: '2026-05-20T09:00:00.000Z' },
+      ],
     });
     await useChatStore.getState().fetchOlderMessages('c1');
     expect(useChatStore.getState().messages.data).toHaveLength(2);
@@ -97,14 +107,21 @@ describe('chat-store', () => {
   });
 
   it('openDirect patches inbox', async () => {
-    mockGraphql.mockResolvedValue({ findOrCreateDirectConversation: conversation });
+    mockGraphql.mockResolvedValue({
+      findOrCreateDirectConversation: conversation,
+    });
     const result = await useChatStore.getState().openDirect('u2');
     expect(result).toEqual(conversation);
     expect(useChatStore.getState().inbox.data?.[0]?.id).toBe('c1');
   });
 
   it('createGroup patches inbox', async () => {
-    const group = { ...conversation, id: 'g1', type: 'group' as const, title: 'Team' };
+    const group = {
+      ...conversation,
+      id: 'g1',
+      type: 'group' as const,
+      title: 'Team',
+    };
     mockGraphql.mockResolvedValue({ createGroupConversation: group });
     const result = await useChatStore.getState().createGroup('Team', ['u2']);
     expect(result.title).toBe('Team');
@@ -113,7 +130,9 @@ describe('chat-store', () => {
 
   it('markRead zeroes unread count locally', async () => {
     useChatStore.setState({
-      inbox: sliceSuccess(createIdleSlice(), [{ ...conversation, unreadCount: 3 }]),
+      inbox: sliceSuccess(createIdleSlice(), [
+        { ...conversation, unreadCount: 3 },
+      ]),
     });
     mockGraphql.mockResolvedValue({});
     await useChatStore.getState().markRead('c1');
@@ -124,7 +143,9 @@ describe('chat-store', () => {
     useChatStore.setState({
       activeConversationId: 'c1',
       messages: sliceSuccess(createIdleSlice(), []),
-      inbox: sliceSuccess(createIdleSlice(), [{ ...conversation, unreadCount: 0 }]),
+      inbox: sliceSuccess(createIdleSlice(), [
+        { ...conversation, unreadCount: 0 },
+      ]),
     });
     useChatStore.getState().appendMessage(message);
     expect(useChatStore.getState().messages.data).toHaveLength(1);
@@ -145,7 +166,11 @@ describe('chat-store', () => {
   it('patchInboxConversation sorts by lastMessageAt', () => {
     useChatStore.setState({
       inbox: sliceSuccess(createIdleSlice(), [
-        { ...conversation, id: 'c-old', lastMessageAt: '2026-05-19T10:00:00.000Z' },
+        {
+          ...conversation,
+          id: 'c-old',
+          lastMessageAt: '2026-05-19T10:00:00.000Z',
+        },
       ]),
     });
     useChatStore.getState().patchInboxConversation({

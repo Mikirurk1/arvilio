@@ -4,5 +4,9 @@
     "types": ["jest", "node"],
     "noEmit": true
   },
-  "include": ["./**/*.ts"]
+  "include": [
+    "./**/*.ts",
+    "../../apps/api/src/**/*.integration.spec.ts",
+    "../../packages/backend/modules/**/tests/integration/**/*.ts"
+  ]
 }

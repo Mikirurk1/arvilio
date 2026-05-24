@@ -30,7 +30,7 @@ function parseCookieHeader(header: string | undefined): Record<string, string> {
 
 @WebSocketGateway({
   cors: {
-    origin: process.env.WEB_ORIGIN ?? 'http://localhost:4200',
+    origin: process.env['WEB_ORIGIN'] ?? 'http://localhost:4200',
     credentials: true,
   },
   namespace: '/chat',

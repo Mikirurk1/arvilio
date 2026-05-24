@@ -71,6 +71,17 @@ docker compose -f infra/docker/docker-compose.prod.yml up -d
 
 **Lockfile / Docker builds:** commit `package-lock.json` from a Linux `npm install` when CD fails with missing optional deps (e.g. `@emnapi/*`). Dockerfiles use `corepack prepare npm@11.6.2` to match root `packageManager`.
 
+### Dependabot PRs failing at `setup-monorepo`
+
+If CI dies in ~30s on **Install dependencies** (`npm ci`), not on lint/tests:
+
+| Symptom | Cause | What to do |
+|---------|--------|------------|
+| `Missing: @emnapi/core@…` / `@emnapi/runtime@…` | Lockfile generated off Linux; optional deps missing | Merge fixed `package-lock.json` on `main`, then **close** old Dependabot PRs and let them reopen/rebase |
+| `ERESOLVE` / `eslint@10` vs `eslint-plugin-import` | Grouped dev PR bumped majors together | Close PR **dev-dependencies**; config in `.github/dependabot.yml` limits the group to **minor/patch** only |
+
+Production dependency PRs (single package) should pass after `main` has a Linux-synced lockfile.
+
 **Release checklist**
 
 1. PR green on **CI**

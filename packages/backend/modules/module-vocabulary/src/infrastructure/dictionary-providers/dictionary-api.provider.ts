@@ -8,7 +8,7 @@ import { normalizeAudioUrl } from '../../shared/dictionary-payload.util';
 import type { DictionaryLookup } from '../../shared/dictionary-lookup.types';
 
 const DICTIONARY_API =
-  process.env.DICTIONARY_API_URL ?? 'https://api.dictionaryapi.dev/api/v2/entries/en/';
+  process.env['DICTIONARY_API_URL'] ?? 'https://api.dictionaryapi.dev/api/v2/entries/en/';
 
 export class DictionaryApiProvider {
   private readonly logger = new Logger(DictionaryApiProvider.name);

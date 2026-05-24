@@ -3,8 +3,12 @@ import { INestApplication } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { PrismaService } from '@be/prisma';
 import { AppModule } from '../../../../../../apps/api/src/app/app.module';
-import { cleanupTestUsers, seedTestUsers, TEST_USERS } from '../../../../../tests/integration/seed';
-import { graphqlUrl, loginAs } from '../../../../../tests/integration/helpers';
+import {
+  cleanupTestUsers,
+  seedTestUsers,
+  TEST_USERS,
+} from '@tests/integration/seed';
+import { graphqlUrl, loginAs } from '@tests/integration/helpers';
 
 async function gql(
   agent: Awaited<ReturnType<typeof loginAs>>,
@@ -21,7 +25,8 @@ describe('GraphQL RBAC (integration)', () => {
   let studentCardId: string;
 
   beforeAll(async () => {
-    process.env.JWT_SECRET = process.env.JWT_SECRET ?? 'integration-test-jwt-secret-32chars';
+    process.env.JWT_SECRET =
+      process.env.JWT_SECRET ?? 'integration-test-jwt-secret-32chars';
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -58,18 +63,19 @@ describe('GraphQL RBAC (integration)', () => {
     await prisma.studentWordCard.deleteMany({
       where: { word: { normalizedText: 'jest-rbac-word' } },
     });
-    await prisma.word.deleteMany({ where: { normalizedText: 'jest-rbac-word' } });
+    await prisma.word.deleteMany({
+      where: { normalizedText: 'jest-rbac-word' },
+    });
     await cleanupTestUsers(prisma);
     await app.close();
   });
 
   it('student cannot query adminUsers', async () => {
     const agent = await loginAs(app, 'student');
-    const body = await gql(
-      agent,
-      `query { adminUsers { id email } }`,
+    const body = await gql(agent, `query { adminUsers { id email } }`);
+    expect(body.errors?.[0]?.message).toMatch(
+      /Only admins can manage accounts/i,
     );
-    expect(body.errors?.[0]?.message).toMatch(/Only admins can manage accounts/i);
   });
 
   it('student cannot createAdminUser', async () => {
@@ -87,7 +93,9 @@ describe('GraphQL RBAC (integration)', () => {
         },
       },
     );
-    expect(body.errors?.[0]?.message).toMatch(/Only admins can manage accounts/i);
+    expect(body.errors?.[0]?.message).toMatch(
+      /Only admins can manage accounts/i,
+    );
   });
 
   it('student cannot deleteStudentWordCard', async () => {
@@ -102,6 +110,8 @@ describe('GraphQL RBAC (integration)', () => {
       }`,
       { cardId: studentCardId, studentId: student.id },
     );
-    expect(body.errors?.[0]?.message).toMatch(/Students cannot delete vocabulary cards/i);
+    expect(body.errors?.[0]?.message).toMatch(
+      /Students cannot delete vocabulary cards/i,
+    );
   });
 });

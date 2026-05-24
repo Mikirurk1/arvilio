@@ -1,6 +1,10 @@
-import { cleanupTestUsers } from '../../../../../tests/integration/seed';
-import { closeIntegrationApp, createIntegrationApp, type IntegrationContext } from '../../../../../tests/integration/bootstrap';
-import { gqlAs } from '../../../../../tests/integration/helpers';
+import { cleanupTestUsers } from '@tests/integration/seed';
+import {
+  closeIntegrationApp,
+  createIntegrationApp,
+  type IntegrationContext,
+} from '@tests/integration/bootstrap';
+import { gqlAs } from '@tests/integration/helpers';
 
 describe('GraphQL admin (integration)', () => {
   let ctx: IntegrationContext;
@@ -21,9 +25,11 @@ describe('GraphQL admin (integration)', () => {
       `query { adminUsers { id email role } }`,
     );
     expect(res.status).toBe(200);
-    expect(Array.isArray((res.body as { data?: { adminUsers: unknown[] } }).data?.adminUsers)).toBe(
-      true,
-    );
+    expect(
+      Array.isArray(
+        (res.body as { data?: { adminUsers: unknown[] } }).data?.adminUsers,
+      ),
+    ).toBe(true);
   });
 
   it('student cannot list adminUsers', async () => {
@@ -39,7 +45,8 @@ describe('GraphQL admin (integration)', () => {
     );
     expect(res.status).toBe(200);
     expect(
-      (res.body as { data?: { systemMailStatus: { configured: boolean } } }).data?.systemMailStatus,
+      (res.body as { data?: { systemMailStatus: { configured: boolean } } })
+        .data?.systemMailStatus,
     ).toBeDefined();
   });
 });

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import nodemailer, { type Transporter } from 'nodemailer';
+import { createTransport, type Transporter } from 'nodemailer';
 import {
   renderEmail,
   renderEmailFromVars,
@@ -29,7 +29,7 @@ export class MailService {
     const port = Number(process.env['SMTP_PORT'] ?? 587);
     const user = process.env['SMTP_USER'];
     const pass = process.env['SMTP_PASS'];
-    this.transporter = nodemailer.createTransport({
+    this.transporter = createTransport({
       host,
       port,
       secure: port === 465,

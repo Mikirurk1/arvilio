@@ -7,7 +7,7 @@ import {
 import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '@be/prisma';
 import { createReadStream, promises as fs } from 'node:fs';
-import path from 'node:path';
+import * as path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { ReadStream } from 'node:fs';
 import { CHAT_ATTACHMENT_TTL_MS } from '../shared/chat-attachment.constants';
@@ -19,7 +19,7 @@ export class ChatAttachmentService {
   constructor(private readonly prisma: PrismaService) {}
 
   getUploadDir(): string {
-    return process.env.CHAT_UPLOAD_DIR ?? path.join(process.cwd(), 'data', 'chat-uploads');
+    return process.env['CHAT_UPLOAD_DIR'] ?? path.join(process.cwd(), 'data', 'chat-uploads');
   }
 
   /** Path relative to API base (`/api`); web uses `${API_BASE}${url}`. */

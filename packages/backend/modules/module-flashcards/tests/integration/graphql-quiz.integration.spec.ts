@@ -1,7 +1,11 @@
-import { cleanupTestUsers } from '../../../../../tests/integration/seed';
-import { closeIntegrationApp, createIntegrationApp, type IntegrationContext } from '../../../../../tests/integration/bootstrap';
-import { getSeededUserIds } from '../../../../../tests/integration/fixtures';
-import { gqlAs } from '../../../../../tests/integration/helpers';
+import { cleanupTestUsers } from '@tests/integration/seed';
+import {
+  closeIntegrationApp,
+  createIntegrationApp,
+  type IntegrationContext,
+} from '@tests/integration/bootstrap';
+import { getSeededUserIds } from '@tests/integration/fixtures';
+import { gqlAs } from '@tests/integration/helpers';
 
 describe('GraphQL quiz (integration)', () => {
   let ctx: IntegrationContext;
@@ -52,15 +56,22 @@ describe('GraphQL quiz (integration)', () => {
       `query { studentQuizzes { id title } }`,
     );
     expect(res.status).toBe(200);
-    const list = (res.body as { data?: { studentQuizzes: { id: string }[] } }).data?.studentQuizzes;
-    expect(list?.some((q) => q.id === quizId)).toBe(true);
+    const list = (res.body as { data?: { studentQuizzes: { id: string }[] } })
+      .data?.studentQuizzes;
+    expect(list?.some(q => q.id === quizId)).toBe(true);
   });
 
   it('teacher lists quizzes', async () => {
-    const res = await gqlAs(ctx.app, 'teacher', `query { quizzes { id title } }`);
+    const res = await gqlAs(
+      ctx.app,
+      'teacher',
+      `query { quizzes { id title } }`,
+    );
     expect(res.status).toBe(200);
     expect(
-      (res.body as { data?: { quizzes: { id: string }[] } }).data?.quizzes.some((q) => q.id === quizId),
+      (res.body as { data?: { quizzes: { id: string }[] } }).data?.quizzes.some(
+        q => q.id === quizId,
+      ),
     ).toBe(true);
   });
 
@@ -71,7 +82,9 @@ describe('GraphQL quiz (integration)', () => {
       `mutation($id: ID!) { deleteQuiz(id: $id) }`,
       { id: quizId },
     );
-    expect(res.body.errors?.[0]?.message).toMatch(/delete quizzes you created/i);
+    expect(res.body.errors?.[0]?.message).toMatch(
+      /delete quizzes you created/i,
+    );
   });
 
   it('student can load quiz detail when assigned', async () => {
@@ -83,6 +96,8 @@ describe('GraphQL quiz (integration)', () => {
     );
     expect(res.status).toBe(200);
     expect((res.body as { errors?: unknown[] }).errors).toBeUndefined();
-    expect((res.body as { data?: { quiz: { id: string } } }).data?.quiz?.id).toBe(quizId);
+    expect(
+      (res.body as { data?: { quiz: { id: string } } }).data?.quiz?.id,
+    ).toBe(quizId);
   });
 });

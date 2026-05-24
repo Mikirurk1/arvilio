@@ -3,12 +3,21 @@
   "compilerOptions": {
     "outDir": "../../../../dist/packages/backend/modules/notifications",
     "declaration": true,
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "target": "es2021",
     "module": "esnext",
     "moduleResolution": "node",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "include": ["src/**/*.ts"]
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/tests/**"
+  ]
 }

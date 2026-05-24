@@ -32,8 +32,8 @@ export class GoogleCalendarService {
   constructor(private readonly prisma: PrismaService) {}
 
   async assertTeacherCalendarReady(teacherId: string): Promise<void> {
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const clientId = process.env['GOOGLE_CLIENT_ID'];
+    const clientSecret = process.env['GOOGLE_CLIENT_SECRET'];
     if (!clientId || !clientSecret) {
       throw new BadRequestException(
         'Google Calendar is not configured on the server. Ask an administrator to set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.',
@@ -48,8 +48,8 @@ export class GoogleCalendarService {
   }
 
   async createMeetEvent(input: CreateMeetEventInput): Promise<CreateMeetEventResult | null> {
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const clientId = process.env['GOOGLE_CLIENT_ID'];
+    const clientSecret = process.env['GOOGLE_CLIENT_SECRET'];
     if (!clientId || !clientSecret) {
       this.logger.warn('Google credentials not configured; skipping Meet creation');
       return null;
@@ -123,8 +123,8 @@ export class GoogleCalendarService {
   }
 
   async getEventMeetUrl(teacherId: string, eventId: string): Promise<string | null> {
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const clientId = process.env['GOOGLE_CLIENT_ID'];
+    const clientSecret = process.env['GOOGLE_CLIENT_SECRET'];
     if (!clientId || !clientSecret) return null;
     const connection = await this.prisma.googleCalendarConnection.findUnique({
       where: { userId: teacherId },
@@ -165,8 +165,8 @@ export class GoogleCalendarService {
   async updateEvent(
     input: CreateMeetEventInput & { eventId: string },
   ): Promise<void> {
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const clientId = process.env['GOOGLE_CLIENT_ID'];
+    const clientSecret = process.env['GOOGLE_CLIENT_SECRET'];
     if (!clientId || !clientSecret) return;
     const connection = await this.prisma.googleCalendarConnection.findUnique({
       where: { userId: input.teacherId },
@@ -219,8 +219,8 @@ export class GoogleCalendarService {
   }
 
   async deleteEvent(teacherId: string, eventId: string): Promise<void> {
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const clientId = process.env['GOOGLE_CLIENT_ID'];
+    const clientSecret = process.env['GOOGLE_CLIENT_SECRET'];
     if (!clientId || !clientSecret) return;
     const connection = await this.prisma.googleCalendarConnection.findUnique({
       where: { userId: teacherId },

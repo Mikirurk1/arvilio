@@ -31,7 +31,7 @@ updated: 2026-05-24
 
 Copy `.env.test.example`. Apply migrations to `soenglish_test`. Run `npm run seed:test-users` before integration/E2E.
 
-Bootstrap: [`tests/integration/bootstrap.ts`](../../../../tests/integration/bootstrap.ts) (`createIntegrationApp`, `gqlAs` in [`helpers.ts`](../../../../tests/integration/helpers.ts)).
+Bootstrap: [`tests/integration/bootstrap.ts`](../../../../tests/integration/bootstrap.ts) (`createIntegrationApp`, `gqlAs` in [`helpers.ts`](../../../../tests/integration/helpers.ts)). Module specs import shared code as `@tests/integration/seed`, `@tests/integration/bootstrap`, etc. (`tsconfig.base.json` paths).
 
 ## E2E
 

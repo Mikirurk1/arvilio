@@ -18,6 +18,8 @@ describe('isMyProfileComplete', () => {
   });
 
   it('returns false when proficiency missing', () => {
-    expect(isMyProfileComplete({ ...complete, proficiencyLevel: null })).toBe(false);
+    expect(isMyProfileComplete({ ...complete, proficiencyLevel: null })).toBe(
+      false,
+    );
   });
 });

@@ -4,6 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '@be/prisma';
 import * as bcrypt from 'bcryptjs';
 import type {
@@ -195,7 +196,7 @@ export class UsersService {
     if ((body as { learningLanguageIds?: unknown }).learningLanguageIds !== undefined) {
       throw new ForbiddenException('Learning languages can only be changed by an admin');
     }
-    const data: Record<string, unknown> = {};
+    const data: Prisma.UserUncheckedUpdateInput = {};
     if (body.displayName !== undefined) data.displayName = body.displayName.trim();
     if (body.timezone !== undefined) data.timezone = body.timezone;
     if (body.avatarUrl !== undefined) data.avatarUrl = body.avatarUrl;

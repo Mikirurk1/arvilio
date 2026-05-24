@@ -15,6 +15,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@tests/integration/*": ["tests/integration/*"],
       "@fe/ui": ["packages/frontend/shared-ui/src/index.ts"],
       "@fe/utils": ["packages/frontend/shared-utils/src/index.ts"],
       "@fe/vocabulary": ["packages/frontend/feature-vocabulary/src/index.ts"],

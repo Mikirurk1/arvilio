@@ -49,7 +49,12 @@ export class AdminResolver {
         | 'C2'
         | null
         | undefined,
-      status: input.status as 'active' | 'paused' | 'leaved' | 'blocked' | null | undefined,
+      status: (input.status ?? undefined) as
+        | 'active'
+        | 'paused'
+        | 'leaved'
+        | 'blocked'
+        | undefined,
       teacherId: input.teacherId,
     });
     return {

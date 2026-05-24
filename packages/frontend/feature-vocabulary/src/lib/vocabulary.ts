@@ -15,11 +15,14 @@ export const vocabularyOverviewCard = createCardSpec(
 );
 
 export async function getVocabularyOverview(): Promise<VocabularyOverview> {
-  const baseUrl = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://api:3000/api';
+  const baseUrl =
+    process.env['API_URL'] ??
+    process.env['NEXT_PUBLIC_API_URL'] ??
+    'http://api:3000/api';
 
   try {
     const response = await fetch(`${baseUrl}/vocabulary/overview`, {
-      next: { revalidate: 60 },
+      cache: 'no-store',
     });
 
     if (!response.ok) {

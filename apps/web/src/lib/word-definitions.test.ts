@@ -25,12 +25,18 @@ describe('word-definitions', () => {
   });
 
   it('glossFromDefinition prefers definition text over lemma', () => {
-    expect(glossFromDefinition(row({ text: 'run', lemmaText: 'бігти' }))).toBe('run');
-    expect(glossFromDefinition(row({ text: '—', lemmaText: 'бігти' }))).toBe('бігти');
+    expect(glossFromDefinition(row({ text: 'run', lemmaText: 'бігти' }))).toBe(
+      'run',
+    );
+    expect(glossFromDefinition(row({ text: '—', lemmaText: 'бігти' }))).toBe(
+      'бігти',
+    );
   });
 
   it('translationFromDefinition prefers lemma over text', () => {
-    expect(translationFromDefinition(row({ text: 'to run', lemmaText: 'бігти' }))).toBe('бігти');
+    expect(
+      translationFromDefinition(row({ text: 'to run', lemmaText: 'бігти' })),
+    ).toBe('бігти');
   });
 
   it('pickWordDefinition prefers native language gloss', () => {
@@ -42,7 +48,9 @@ describe('word-definitions', () => {
   });
 
   it('pickWordTranslation returns lemma translation', () => {
-    const defs = [row({ languageId: 'uk', lemmaText: 'бігти', partOfSpeech: 'verb' })];
+    const defs = [
+      row({ languageId: 'uk', lemmaText: 'бігти', partOfSpeech: 'verb' }),
+    ];
     expect(pickWordTranslation(defs, 'uk', 'en')).toBe('бігти');
   });
 
@@ -61,7 +69,9 @@ describe('word-definitions', () => {
       row({ languageId: 'uk', text: 'бігти', partOfSpeech: 'verb' }),
       row({ languageId: 'uk', text: 'пробіг', partOfSpeech: 'noun' }),
     ];
-    expect(pickWordDefinition(defs, 'uk', 'en', 'fallback', 'verb')).toBe('бігти');
+    expect(pickWordDefinition(defs, 'uk', 'en', 'fallback', 'verb')).toBe(
+      'бігти',
+    );
   });
 
   it('pickWordDefinition falls back to english then any row', () => {
@@ -70,9 +80,14 @@ describe('word-definitions', () => {
       row({ languageId: 'de', text: 'laufen', partOfSpeech: 'verb' }),
     ];
     expect(pickWordDefinition(defs, null, 'en', 'fallback')).toBe('to run');
-    expect(pickWordDefinition([row({ languageId: 'de', text: 'laufen' })], null, null, 'fallback')).toBe(
-      'laufen',
-    );
+    expect(
+      pickWordDefinition(
+        [row({ languageId: 'de', text: 'laufen' })],
+        null,
+        null,
+        'fallback',
+      ),
+    ).toBe('laufen');
   });
 
   it('pickNativeDefinitions sorts by part of speech', () => {
@@ -82,10 +97,20 @@ describe('word-definitions', () => {
       row({ languageId: 'uk', text: 'іменник', partOfSpeech: 'noun' }),
     ];
     const sorted = pickNativeDefinitions(defs, 'uk', 'en');
-    expect(sorted.map((d) => d.partOfSpeech)).toEqual(['noun', 'verb', 'adjective']);
+    expect(sorted.map(d => d.partOfSpeech)).toEqual([
+      'noun',
+      'verb',
+      'adjective',
+    ]);
   });
 
   it('pickNativeDefinitions returns empty when native equals english', () => {
-    expect(pickNativeDefinitions([row({ languageId: 'en', text: 'run' })], 'en', 'en')).toEqual([]);
+    expect(
+      pickNativeDefinitions(
+        [row({ languageId: 'en', text: 'run' })],
+        'en',
+        'en',
+      ),
+    ).toEqual([]);
   });
 });

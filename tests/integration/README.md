@@ -22,6 +22,8 @@ Playwright can use the same users via `.env.test.example`.
 
 Set `RUN_INTEGRATION_TESTS=1` (included in `npm run test:integration`).
 
+Import shared helpers via `@tests/integration/*` (see `tsconfig.base.json` paths), not `../../../../../tests/integration/…`.
+
 Domain GraphQL integration specs live next to modules, e.g. `packages/backend/modules/module-vocabulary/tests/integration/graphql-vocabulary.integration.spec.ts`. They import shared bootstrap/helpers from this folder (`bootstrap.ts`, `fixtures.ts`, `helpers.ts`, `seed.ts`). Cross-cutting smoke: `graphql-product.integration.spec.ts` stays here.
 
 ## What we do not unit-test here

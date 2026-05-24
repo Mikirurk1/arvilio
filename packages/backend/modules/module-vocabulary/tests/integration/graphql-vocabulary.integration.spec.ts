@@ -1,7 +1,11 @@
-import { cleanupTestUsers } from '../../../../../tests/integration/seed';
-import { closeIntegrationApp, createIntegrationApp, type IntegrationContext } from '../../../../../tests/integration/bootstrap';
-import { getSeededUserIds } from '../../../../../tests/integration/fixtures';
-import { gqlAs } from '../../../../../tests/integration/helpers';
+import { cleanupTestUsers } from '@tests/integration/seed';
+import {
+  closeIntegrationApp,
+  createIntegrationApp,
+  type IntegrationContext,
+} from '@tests/integration/bootstrap';
+import { getSeededUserIds } from '@tests/integration/fixtures';
+import { gqlAs } from '@tests/integration/helpers';
 
 describe('GraphQL vocabulary (integration)', () => {
   let ctx: IntegrationContext;
@@ -14,7 +18,9 @@ describe('GraphQL vocabulary (integration)', () => {
     await ctx.prisma.studentWordCard.deleteMany({
       where: { word: { normalizedText: 'jest-vocab-integration' } },
     });
-    await ctx.prisma.word.deleteMany({ where: { normalizedText: 'jest-vocab-integration' } });
+    await ctx.prisma.word.deleteMany({
+      where: { normalizedText: 'jest-vocab-integration' },
+    });
     await cleanupTestUsers(ctx.prisma);
     await closeIntegrationApp(ctx);
   });
@@ -39,8 +45,9 @@ describe('GraphQL vocabulary (integration)', () => {
       { userId: studentId },
     );
     expect(listRes.status).toBe(200);
-    const cards = (listRes.body as { data?: { studentVocabulary: { id: string }[] } }).data
-      ?.studentVocabulary;
+    const cards = (
+      listRes.body as { data?: { studentVocabulary: { id: string }[] } }
+    ).data?.studentVocabulary;
     expect(cards?.length).toBeGreaterThan(0);
   });
 
@@ -59,7 +66,9 @@ describe('GraphQL vocabulary (integration)', () => {
     await ctx.prisma.studentWordCard.deleteMany({
       where: { word: { normalizedText: 'jest-vocab-teacher-add' } },
     });
-    await ctx.prisma.word.deleteMany({ where: { normalizedText: 'jest-vocab-teacher-add' } });
+    await ctx.prisma.word.deleteMany({
+      where: { normalizedText: 'jest-vocab-teacher-add' },
+    });
   });
 
   it('studentVocabularyPage rejects invalid cursor', async () => {

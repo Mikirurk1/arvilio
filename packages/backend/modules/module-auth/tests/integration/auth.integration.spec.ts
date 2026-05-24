@@ -4,8 +4,13 @@ import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { PrismaService } from '@be/prisma';
 import { AuthModule, ACCESS_COOKIE, REFRESH_COOKIE } from '@be/auth';
-import { cleanupTestUsers, seedTestUsers, TEST_PASSWORD, TEST_USERS } from '../../../../../tests/integration/seed';
-import { loginAs } from '../../../../../tests/integration/helpers';
+import {
+  cleanupTestUsers,
+  seedTestUsers,
+  TEST_PASSWORD,
+  TEST_USERS,
+} from '@tests/integration/seed';
+import { loginAs } from '@tests/integration/helpers';
 
 function setCookieHeader(res: { headers: Record<string, unknown> }): string[] {
   const raw = res.headers['set-cookie'];
@@ -18,7 +23,8 @@ describe('Auth API (integration)', () => {
   let prisma: PrismaService;
 
   beforeAll(async () => {
-    process.env.JWT_SECRET = process.env.JWT_SECRET ?? 'integration-test-jwt-secret-32chars';
+    process.env.JWT_SECRET =
+      process.env.JWT_SECRET ?? 'integration-test-jwt-secret-32chars';
     const moduleRef = await Test.createTestingModule({
       imports: [AuthModule],
     }).compile();
@@ -44,8 +50,8 @@ describe('Auth API (integration)', () => {
       .expect(201);
 
     const cookies = setCookieHeader(res);
-    expect(cookies.some((c) => c.startsWith(`${ACCESS_COOKIE}=`))).toBe(true);
-    expect(cookies.some((c) => c.startsWith(`${REFRESH_COOKIE}=`))).toBe(true);
+    expect(cookies.some(c => c.startsWith(`${ACCESS_COOKIE}=`))).toBe(true);
+    expect(cookies.some(c => c.startsWith(`${REFRESH_COOKIE}=`))).toBe(true);
     expect(res.body.user.role).toBe('student');
     expect(res.body.user.email).toBe(TEST_USERS.student.email);
   });
@@ -62,7 +68,7 @@ describe('Auth API (integration)', () => {
     const refreshed = await agent.post('/api/auth/refresh').expect(201);
     expect(refreshed.body.user.email).toBe(TEST_USERS.student.email);
     const cookies = setCookieHeader(refreshed);
-    expect(cookies.some((c) => c.startsWith(`${ACCESS_COOKIE}=`))).toBe(true);
+    expect(cookies.some(c => c.startsWith(`${ACCESS_COOKIE}=`))).toBe(true);
   });
 
   it('POST /api/auth/logout clears session', async () => {

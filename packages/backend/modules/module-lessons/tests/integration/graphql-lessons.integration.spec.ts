@@ -1,7 +1,11 @@
-import { cleanupTestUsers } from '../../../../../tests/integration/seed';
-import { closeIntegrationApp, createIntegrationApp, type IntegrationContext } from '../../../../../tests/integration/bootstrap';
-import { getSeededUserIds } from '../../../../../tests/integration/fixtures';
-import { gqlAs } from '../../../../../tests/integration/helpers';
+import { cleanupTestUsers } from '@tests/integration/seed';
+import {
+  closeIntegrationApp,
+  createIntegrationApp,
+  type IntegrationContext,
+} from '@tests/integration/bootstrap';
+import { getSeededUserIds } from '@tests/integration/fixtures';
+import { gqlAs } from '@tests/integration/helpers';
 
 describe('GraphQL lessons (integration)', () => {
   let ctx: IntegrationContext;
@@ -32,9 +36,12 @@ describe('GraphQL lessons (integration)', () => {
       `query { scheduledLessons { id title } }`,
     );
     expect(res.status).toBe(200);
-    expect(Array.isArray((res.body as { data?: { scheduledLessons: unknown[] } }).data?.scheduledLessons)).toBe(
-      true,
-    );
+    expect(
+      Array.isArray(
+        (res.body as { data?: { scheduledLessons: unknown[] } }).data
+          ?.scheduledLessons,
+      ),
+    ).toBe(true);
   });
 
   it('teacher creates lesson without meet link', async () => {
@@ -81,11 +88,18 @@ describe('GraphQL lessons (integration)', () => {
   });
 
   it('student can list scheduled lessons', async () => {
-    const res = await gqlAs(ctx.app, 'student', `query { scheduledLessons { id title } }`);
-    expect(res.status).toBe(200);
-    expect(Array.isArray((res.body as { data?: { scheduledLessons: unknown[] } }).data?.scheduledLessons)).toBe(
-      true,
+    const res = await gqlAs(
+      ctx.app,
+      'student',
+      `query { scheduledLessons { id title } }`,
     );
+    expect(res.status).toBe(200);
+    expect(
+      Array.isArray(
+        (res.body as { data?: { scheduledLessons: unknown[] } }).data
+          ?.scheduledLessons,
+      ),
+    ).toBe(true);
   });
 
   it('admin can create lesson for student', async () => {

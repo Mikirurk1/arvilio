@@ -36,7 +36,12 @@
     "test:coverage": "npm run build:email-templates && jest --coverage --selectProjects module-auth module-vocabulary module-chat module-lessons module-flashcards module-notifications module-progress module-mail web",
     "test:coverage:integration": "npm run build:email-templates && RUN_INTEGRATION_TESTS=1 jest --config jest.integration.config.cjs --coverage",
     "test:integration": "npm run build:email-templates && RUN_INTEGRATION_TESTS=1 jest --config jest.integration.config.cjs",
-    "test:e2e": "playwright test --config tests/e2e/playwright.config.ts"
+    "test:e2e": "playwright test --config tests/e2e/playwright.config.ts",
+    "docker:restore": "bash scripts/docker-restore-all.sh",
+    "docker:up": "node scripts/free-dev-ports.cjs && docker compose -f infra/docker/docker-compose.yml up -d",
+    "docker:down": "docker compose -f infra/docker/docker-compose.yml down",
+    "docker:logs": "docker compose -f infra/docker/docker-compose.yml logs -f",
+    "docker:ps": "docker compose -f infra/docker/docker-compose.yml ps -a"
   },
   "keywords": [],
   "author": "",
@@ -58,6 +63,7 @@
     "@types/cookie-parser": "^1.4.10",
     "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^1.4.13",
     "@types/node": "20.19.9",
     "@types/nodemailer": "^8.0.0",
     "@types/react": "^19.0.0",

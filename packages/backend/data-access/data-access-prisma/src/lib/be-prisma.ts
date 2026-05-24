@@ -4,7 +4,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 
 function buildAdapter(): PrismaPg {
   const connectionString =
-    process.env.DATABASE_URL ??
+    process.env['DATABASE_URL'] ??
     'postgresql://soenglish:soenglish@localhost:5432/soenglish?schema=public';
   return new PrismaPg({ connectionString });
 }

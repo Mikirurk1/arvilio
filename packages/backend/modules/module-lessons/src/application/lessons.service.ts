@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '@be/prisma';
 import type {
   CreateScheduledLessonRequestDto,
@@ -387,7 +388,7 @@ export class LessonsService {
     lessonId: string,
     body: Pick<UpdateScheduledLessonRequestDto, 'materials' | 'homework' | 'studentResponse'>,
   ): Promise<void> {
-    const updates: Record<string, unknown> = {};
+    const updates: Prisma.ScheduledLessonUpdateInput = {};
     if (body.homework !== undefined) {
       if (body.homework.text !== undefined) updates['homeworkText'] = body.homework.text;
       if (body.homework.files !== undefined) updates['homeworkFiles'] = body.homework.files;
@@ -432,7 +433,7 @@ export class LessonsService {
   ): Promise<ScheduledLessonBackendDto> {
     const lesson = await this.ensureMembership(lessonId, actorUserId);
 
-    const updates: Record<string, unknown> = {};
+    const updates: Prisma.ScheduledLessonUpdateInput = {};
     if (body.title !== undefined) updates['title'] = body.title;
     if (body.description !== undefined) updates['description'] = body.description;
     if (body.notes !== undefined) updates['notes'] = body.notes;

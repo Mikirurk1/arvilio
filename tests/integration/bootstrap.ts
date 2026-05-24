@@ -11,7 +11,8 @@ export type IntegrationContext = {
 };
 
 export async function createIntegrationApp(): Promise<IntegrationContext> {
-  process.env.JWT_SECRET = process.env.JWT_SECRET ?? 'integration-test-jwt-secret-32chars';
+  process.env['JWT_SECRET'] =
+    process.env['JWT_SECRET'] ?? 'integration-test-jwt-secret-32chars';
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule],
   }).compile();

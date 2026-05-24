@@ -6,6 +6,6 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit --project ../../../tsconfig.base.json"
+    "typecheck": "tsc -p tsconfig.lib.json --noEmit"
   }
 }
