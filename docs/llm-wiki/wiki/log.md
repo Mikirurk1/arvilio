@@ -4,6 +4,46 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 ---
 
+## [2026-05-24] fix | IDE Problems — tsconfig.ide + Prisma generate
+- **Trigger:** Problems panel (decorators, @be/*, @tests/integration, node_modules noise)
+- **Pages:** `tsconfig.ide.json`, `.vscode/settings.json`, `tsconfig.base.json`, `package.json` (`predev`), `tests/integration/tsconfig.json`
+- **Notes:** `enableProjectDiagnostics` off; single `typescript.tsconfig` for paths/decorators; `npm run prisma:generate` in `predev` (PrismaService types).
+
+## [2026-05-24] fix | CI npm ci — Linux lockfile + Dependabot
+- **Trigger:** Dependabot PRs fail ~30s at Install dependencies
+- **Pages:** `package-lock.json`, `.github/dependabot.yml`, `docs/reference/ci-cd.md`, `package.json` (`lockfile:linux`)
+- **Notes:** `npm ci` on Linux needed `@emnapi/*` in lockfile; regen via `npm run lockfile:linux`. Removed dev-dependency **group** to avoid bundled eslint/peer breaks.
+
+## [2026-05-24] update | Docker dev — postgres only by default
+- **Trigger:** user prefers host `npm run dev` (visible terminal logs), not api/web in Docker
+- **Pages:** `infra/docker/README.md`, `docker-compose.yml` (profile `stack`), `package.json`, `scripts/docker-restore-all.sh`, `synthesis/tech-stack.md`
+- **Notes:** `docker:up` = Postgres only; `docker:stack` / `docker:restore:stack` = optional full containers; `docker:stack:down` stops api/web.
+
+## [2026-05-24] note | auth/me 500 when Postgres down
+- **Trigger:** debug (recurring `GET /api/auth/me` 500)
+- **Pages:** `synthesis/tech-stack.md`, `package.json` (`docker:postgres`)
+- **Notes:** Prisma `ECONNREFUSED` on refresh-token lookup → Nest 500. Start `soenglish-postgres` before `npm run dev`.
+
+## [2026-05-24] note | Prisma Studio ERR_STREAM_UNABLE_TO_PIPE
+- **Trigger:** debug (terminal log while `npx prisma studio`)
+- **Pages:** `synthesis/tech-stack.md`, `package.json` (`prisma:studio`)
+- **Notes:** Harmless log noise on Prisma 7 + Node 22+; open the printed localhost URL. **"Could not load schema metadata"** is different — Postgres was down on `:5432`; start `soenglish-postgres` and restart Studio.
+
+## [2026-05-24] update | PlatformSettings upsert P2002 race
+- **Trigger:** debug (`platformSettings.upsert` unique on `id`)
+- **Pages:** `log.md`
+- **Notes:** `PlatformSettingsService.ensureSettingsRow` uses findUnique + create + P2002 retry instead of upsert; `setWordDictionaryProvider` uses update after ensure (concurrent first requests on singleton `id=default`).
+
+## [2026-05-24] note | Fresh DB — SUPER_ADMIN CLI
+- **Trigger:** user deleted database
+- **Pages:** `concepts/auth-rbac.md` (existing CLI docs)
+- **Notes:** After `prisma:migrate:deploy` + `prisma:seed:languages`, create via `npm run super-admin -- token` then `create --email … --password …` (requires `SUPER_ADMIN_CLI_SECRET` in `.env`).
+
+## [2026-05-24] update | Web IDE @pkg/types resolution
+- **Trigger:** Problems panel (`moduleResolution`, Map iterator, TIME_ZONE unknown)
+- **Pages:** `log.md`
+- **Notes:** Removed root `tsconfig.json` + `typescript.tsconfig` in VS Code (forced `node` resolution). `@pkg/types` package exports `types` field; `apps/web` `target` ES2022 + `downlevelIteration`; `scheduledLessonsBackendAdapter` uses `Array.from` + typed `TIME_ZONE` keys.
+
 ## [2026-05-24] update | Docker dev stack restore
 - **Trigger:** user request (deleted containers)
 - **Pages:** `log.md`, `infra/docker/README.md`

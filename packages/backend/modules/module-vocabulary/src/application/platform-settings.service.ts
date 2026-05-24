@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@be/prisma';
-import type { WordDictionaryProvider } from '@prisma/client';
+import { Prisma, type PlatformSettings, type WordDictionaryProvider } from '@prisma/client';
 import type { WordDictionaryProviderId, WordDictionarySettingsDto } from '@pkg/types';
 
 const SETTINGS_ID = 'default';
@@ -38,20 +38,36 @@ export class PlatformSettingsService {
 
   async setWordDictionaryProvider(provider: WordDictionaryProviderId): Promise<WordDictionarySettingsDto> {
     const prismaValue = toPrismaProvider(provider);
-    await this.prisma.platformSettings.upsert({
+    await this.ensureSettingsRow();
+    await this.prisma.platformSettings.update({
       where: { id: SETTINGS_ID },
-      create: { id: SETTINGS_ID, wordDictionaryProvider: prismaValue },
-      update: { wordDictionaryProvider: prismaValue },
+      data: { wordDictionaryProvider: prismaValue },
     });
     return this.getWordDictionarySettings();
   }
 
-  private ensureSettingsRow() {
-    return this.prisma.platformSettings.upsert({
+  /** Singleton row; safe under concurrent first requests (no upsert create race on `id`). */
+  private async ensureSettingsRow(): Promise<PlatformSettings> {
+    const existing = await this.prisma.platformSettings.findUnique({
       where: { id: SETTINGS_ID },
-      create: { id: SETTINGS_ID },
-      update: {},
     });
+    if (existing) return existing;
+
+    try {
+      return await this.prisma.platformSettings.create({
+        data: { id: SETTINGS_ID },
+      });
+    } catch (error: unknown) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        return this.prisma.platformSettings.findUniqueOrThrow({
+          where: { id: SETTINGS_ID },
+        });
+      }
+      throw error;
+    }
   }
 }
 

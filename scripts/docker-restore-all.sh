@@ -5,6 +5,13 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT"
 
+WITH_STACK=0
+for arg in "$@"; do
+  if [[ "$arg" == "--stack" ]]; then
+    WITH_STACK=1
+  fi
+done
+
 red() { printf '\033[31m%s\033[0m\n' "$*"; }
 green() { printf '\033[32m%s\033[0m\n' "$*"; }
 yellow() { printf '\033[33m%s\033[0m\n' "$*"; }
@@ -69,14 +76,24 @@ else
   echo "  (no $SEARCH_ROOT)"
 fi
 
-echo ""
-green "=== Restoring SoEnglish (postgres + api + web) ==="
+if (( WITH_STACK )); then
+  green "=== Restoring SoEnglish (postgres + api + web in Docker) ==="
+else
+  green "=== Restoring SoEnglish (postgres only; use npm run dev for api/web) ==="
+  yellow "Full Docker stack: npm run docker:restore:stack"
+fi
+
 if [[ ! -f .env ]]; then
   yellow "Missing .env — copy from .env.example before API will work."
 fi
 
-node scripts/free-dev-ports.cjs
-docker compose -f infra/docker/docker-compose.yml up -d --build
+if (( WITH_STACK )); then
+  node scripts/free-dev-ports.cjs
+  docker compose -f infra/docker/docker-compose.yml --profile stack up -d --build
+else
+  npm run docker:stack:down >/dev/null 2>&1 || true
+  docker compose -f infra/docker/docker-compose.yml up -d
+fi
 
 echo ""
 yellow "Waiting for postgres (healthy)…"
@@ -88,15 +105,20 @@ for _ in $(seq 1 30); do
   sleep 2
 done
 
-echo ""
-yellow "API first start compiles TypeScript (1–3 min). Tail logs: npm run docker:logs"
-sleep 3
+if (( WITH_STACK )); then
+  echo ""
+  yellow "API first start compiles TypeScript (1–3 min). Tail logs: npm run docker:logs"
+fi
+
+sleep 2
 docker compose -f infra/docker/docker-compose.yml ps -a
 
-if docker inspect -f '{{.State.Running}}' soenglish-api 2>/dev/null | grep -q true; then
-  green "soenglish-api is running."
-else
-  yellow "soenglish-api not running yet — check: docker logs soenglish-api --tail 40"
+if (( WITH_STACK )); then
+  if docker inspect -f '{{.State.Running}}' soenglish-api 2>/dev/null | grep -q true; then
+    green "soenglish-api is running."
+  else
+    yellow "soenglish-api not running yet — check: docker logs soenglish-api --tail 40"
+  fi
 fi
 
 echo ""
@@ -104,9 +126,16 @@ yellow "Applying Prisma migrations (host → postgres:5432)…"
 npm run prisma:migrate:deploy
 
 echo ""
-green "SoEnglish stack restore finished."
-echo "  Web:  http://localhost:4200"
-echo "  API:  http://localhost:3000/api"
+if (( WITH_STACK )); then
+  green "SoEnglish Docker stack restore finished."
+  echo "  Web:  http://localhost:4200"
+  echo "  API:  http://localhost:3000/api"
+else
+  green "Postgres restore finished. Start app on host:"
+  echo "  npm run dev"
+  echo "  Web:  http://localhost:4200"
+  echo "  API:  http://localhost:3000/api"
+fi
 echo ""
 yellow "Other projects: cd to a compose folder from the list above and run:"
 echo "  docker compose up -d"

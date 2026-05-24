@@ -19,7 +19,7 @@ updated: 2026-05-20
 | CI/CD | **GitHub Actions** | CI (lint, typecheck, unit, integration, build); CD → GHCR; see `docs/reference/ci-cd.md` |
 | Containers | Docker | Dev: `infra/docker/docker-compose.yml`; prod images: `*.prod.Dockerfile`, `docker-compose.prod.yml` |
 
-**Root scripts:** `dev`, `dev:web`, `dev:api`, `build`, `test`, `test:unit`, `test:integration`, `test:e2e`, `prisma:generate`, `prisma:migrate:dev`, `super-admin`
+**Root scripts:** `dev`, `dev:web`, `dev:api`, `build`, `test`, `test:unit`, `test:integration`, `test:e2e`, `prisma:generate`, `prisma:migrate:dev`, `prisma:studio`, `super-admin`
 
 ## Runtime applications
 
@@ -94,6 +94,21 @@ updated: 2026-05-20
 - **Apply on existing DB (prod/staging):** `npm run prisma:migrate:deploy` then `npm run prisma:generate`
 - **Create migrations locally:** `npm run prisma:migrate:dev` (needs Postgres + shadow DB)
 - **After pull, if `migrate dev` fails and `_prisma_migrations` lists removed migration names:** `npm run prisma:migrate:rebaseline` (marks baseline applied; does not alter app tables)
+
+## Prisma Studio
+
+- **Run:** `npm run prisma:studio` (loads root `prisma.config.ts`; default URL often `http://localhost:5555`, port may vary).
+- **Terminal noise:** Prisma 7 + Node 22+ may log repeated `[Prisma Studio] Error [ERR_STREAM_UNABLE_TO_PIPE]` when the browser cancels favicon/preflight requests. Upstream cosmetic issue ([prisma/studio#1479](https://github.com/prisma/studio/issues/1479)); Studio still serves the UI if HTTP 200 on the printed URL.
+- **If the UI is blank:** open via `http://localhost:<port>` (not LAN IP) so `crypto.randomUUID` works; ensure Postgres is up and `DATABASE_URL` in `.env` matches `soenglish-postgres`.
+- **"Could not load schema metadata":** Postgres not reachable (e.g. `pg_isready -h localhost -p 5432` fails). Start DB: `docker compose -f infra/docker/docker-compose.yml up -d postgres` (Docker Desktop must be running), then **restart** Studio.
+
+## Local dev (recommended)
+
+- **App on host:** `npm run dev` (API :3000, web :4200) — logs in the terminal, hot reload.
+- **DB in Docker only:** `npm run docker:up` (Postgres :5432). Do **not** use `docker:stack` unless you want api/web in containers.
+- If api/web containers were started earlier: `npm run docker:stack:down`.
+- API needs Postgres; if stopped → Prisma `ECONNREFUSED` → **500** on `/api/auth/me`. Check: `pg_isready -h localhost -p 5432 -U soenglish -d soenglish`.
+- Full stack in Docker (optional): `npm run docker:stack` or `npm run docker:restore:stack`.
 
 ## Deployment notes
 

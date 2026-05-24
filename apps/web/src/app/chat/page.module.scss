@@ -1,11 +1,18 @@
 @use '../../styles/mixins' as *;
 
+// Visible gap top/left after pulling into main padding (do not use shorthand margin — it zeroes the inset)
+$chat-page-margin-top: 8px;
+$chat-page-margin-left: 8px;
+
 .page {
   display: flex;
-  height: calc(100vh - var(--header-h, 64px) - var(--main-padding-y) - var(--main-padding-y));
-  height: calc(100dvh - var(--header-h, 64px) - var(--main-padding-y) - var(--main-padding-y));
+  height: calc(100vh - var(--header-h, 64px) - #{$chat-page-margin-top} - var(--main-padding-y));
+  height: calc(100dvh - var(--header-h, 64px) - #{$chat-page-margin-top} - var(--main-padding-y));
   min-height: 480px;
-  margin: calc(-1 * var(--main-padding-y)) calc(-1 * var(--main-padding-x));
+  margin-top: calc(-1 * var(--main-padding-y) + #{$chat-page-margin-top});
+  margin-left: calc(-1 * var(--main-padding-x) + #{$chat-page-margin-left});
+  margin-right: calc(-1 * var(--main-padding-x));
+  margin-bottom: calc(-1 * var(--main-padding-y));
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -559,7 +566,11 @@
 
 @include respond-to(md) {
   .page {
-    margin: calc(-1 * var(--main-padding-y-tablet)) calc(-1 * var(--main-padding-x-tablet));
+    margin-top: calc(-1 * var(--main-padding-y-tablet) + #{$chat-page-margin-top});
+    margin-left: calc(-1 * var(--main-padding-x-tablet) + #{$chat-page-margin-left});
+    margin-right: calc(-1 * var(--main-padding-x-tablet));
+    margin-bottom: calc(-1 * var(--main-padding-y-tablet));
+    height: calc(100dvh - var(--header-h, 64px) - #{$chat-page-margin-top} - var(--main-padding-y-tablet));
   }
 
   .inbox {
@@ -569,10 +580,12 @@
 
 @include respond-to(sm) {
   .page {
-    margin: calc(-1 * var(--main-padding-y-mobile)) calc(-1 * var(--main-padding-x-mobile));
-    min-height: calc(
-      100dvh - var(--header-h, 64px) - var(--main-padding-y-mobile) - var(--main-padding-y-mobile)
-    );
+    margin-top: calc(-1 * var(--main-padding-y-mobile) + #{$chat-page-margin-top});
+    margin-left: calc(-1 * var(--main-padding-x-mobile) + #{$chat-page-margin-left});
+    margin-right: calc(-1 * var(--main-padding-x-mobile));
+    margin-bottom: calc(-1 * var(--main-padding-y-mobile));
+    height: calc(100dvh - var(--header-h, 64px) - #{$chat-page-margin-top} - var(--main-padding-y-mobile));
+    min-height: calc(100dvh - var(--header-h, 64px) - #{$chat-page-margin-top} - var(--main-padding-y-mobile));
     border-radius: 0;
     border-left: none;
     border-right: none;

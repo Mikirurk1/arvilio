@@ -17,8 +17,11 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+    restart: unless-stopped
 
   api:
+    profiles:
+      - stack
     build:
       context: ../..
       dockerfile: infra/docker/api.Dockerfile
@@ -39,6 +42,8 @@ services:
     restart: unless-stopped
 
   web:
+    profiles:
+      - stack
     build:
       context: ../..
       dockerfile: infra/docker/web.Dockerfile

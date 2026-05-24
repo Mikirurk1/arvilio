@@ -4,14 +4,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    groups:
-      dev-dependencies:
-        dependency-type: development
-        patterns: ['*']
-        # Avoid one PR bumping eslint 10, jest 30, typescript 6, etc. together.
-        update-types:
-          - minor
-          - patch
+    # No dev-dependency groups: bundled PRs often break `npm ci` (peer majors) or
+    # desync the lockfile from Linux CI. Dependabot opens one PR per package instead.
     ignore:
       # Majors need explicit ecosystem upgrades (eslint-config-next, plugins, etc.).
       - dependency-name: eslint

@@ -78,9 +78,16 @@ If CI dies in ~30s on **Install dependencies** (`npm ci`), not on lint/tests:
 | Symptom | Cause | What to do |
 |---------|--------|------------|
 | `Missing: @emnapi/core@…` / `@emnapi/runtime@…` | Lockfile generated off Linux; optional deps missing | Merge fixed `package-lock.json` on `main`, then **close** old Dependabot PRs and let them reopen/rebase |
-| `ERESOLVE` / `eslint@10` vs `eslint-plugin-import` | Grouped dev PR bumped majors together | Close PR **dev-dependencies**; config in `.github/dependabot.yml` limits the group to **minor/patch** only |
+| `ERESOLVE` / `eslint@10` vs `eslint-plugin-import` | Old grouped dev PR bumped incompatible majors | **Close** PR **dev-dependencies**; `.github/dependabot.yml` no longer groups dev deps |
 
-Production dependency PRs (single package) should pass after `main` has a Linux-synced lockfile.
+Production and single-package Dependabot PRs need a **Linux-synced** `package-lock.json` on `main`:
+
+```bash
+npm run lockfile:linux
+git add package-lock.json && git commit -m "chore: sync package-lock.json for Linux npm ci"
+```
+
+Then close/reopen or rebase failing Dependabot PRs so they pick up the new lockfile.
 
 **Release checklist**
 

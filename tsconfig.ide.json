@@ -1,0 +1,36 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "target": "ES2021",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false,
+    "skipLibCheck": true,
+    "types": ["node", "jest"]
+  },
+  "include": [
+    "apps/api/src/**/*.ts",
+    "packages/backend/modules/**/src/**/*.ts",
+    "packages/backend/modules/**/tests/integration/**/*.ts",
+    "packages/backend/data-access/data-access-prisma/src/**/*.ts",
+    "packages/backend/shared/**/*.ts",
+    "packages/shared/types/src/**/*.ts",
+    "tests/integration/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".next",
+    "out-tsc",
+    "coverage",
+    "materials",
+    "packages/backend/data-access/data-access-prisma/prisma/**",
+    "packages/backend/email-templates/**",
+    "**/src/**/*.spec.ts",
+    "**/src/**/*.test.ts"
+  ]
+}

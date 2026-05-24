@@ -1,63 +1,63 @@
-# SoEnglish — Docker (local dev)
+# SoEnglish — Docker (local)
 
-## Services (`docker-compose.yml`)
+## Рекомендований локальний dev (без api/web у Docker)
 
-| Container | Image / build | Host port |
-|-----------|---------------|-----------|
-| `soenglish-postgres` | `postgres:16-alpine` | 5432 |
-| `soenglish-api` | `infra/docker/api.Dockerfile` | 3000 |
-| `soenglish-web` | `infra/docker/web.Dockerfile` | 4200 |
+Логи API і web у **терміналі**, hot reload:
 
-Volume: `soenglish_soenglish-postgres-data` (PostgreSQL data).
+```bash
+npm run docker:up      # лише Postgres (порт 5432)
+npm run dev            # API :3000 + Next :4200 на хості
+```
 
-Production stack (GHCR images): `docker-compose.prod.yml` — not used for everyday local dev.
+Якщо раніше піднімали повний стек у Docker — зупиніть api/web:
 
-## Restore after `docker rm` / prune
+```bash
+npm run docker:stack:down
+```
 
-1. Start **Docker Desktop** (wait until fully running).
-2. From repo root — full restore + scan for other compose files on disk:
+## Що в `docker-compose.yml`
+
+| Сервіс | За замовчуванням | Профіль `stack` |
+|--------|------------------|-----------------|
+| `soenglish-postgres` | ✅ `docker:up` | ✅ |
+| `soenglish-api` | ❌ | `npm run docker:stack` |
+| `soenglish-web` | ❌ | `npm run docker:stack` |
+
+Volume: `soenglish-postgres-data`.
+
+Production: `docker-compose.prod.yml` (GHCR) — не для щоденного dev.
+
+## Команди
+
+| npm script | Дія |
+|------------|-----|
+| `docker:up` | Postgres only |
+| `docker:postgres` | Те саме, що `docker:up` |
+| `docker:stack` | Postgres + api + web у контейнерах (логи: `docker:logs`) |
+| `docker:stack:down` | Зупинити лише `soenglish-api` і `soenglish-web` |
+| `docker:down` | Зупинити всі сервіси compose (включно з Postgres) |
+| `docker:ps` / `docker:logs` | Статус / логи |
+
+## Postgres
+
+```bash
+pg_isready -h localhost -p 5432 -U soenglish -d soenglish
+npm run prisma:migrate:deploy   # після нового volume
+```
+
+## Повний restore (опційно, з api/web у Docker)
+
+```bash
+npm run docker:restore:stack
+```
+
+Або лише БД + dev на хості:
 
 ```bash
 npm run docker:restore
-```
-
-Or only SoEnglish:
-
-```bash
-npm run docker:up
-```
-
-Requires `.env` at repo root (copy from `.env.example` if missing).
-
-API image compiles at **build** time (`docker compose build api`). For hot reload use postgres in Docker + `npm run dev` on the host.
-
-If `docker info` fails while Docker Desktop is open: the **engine** is not up — run `open -a Docker` and wait ~30s, or **Restart** from the whale menu. `npm run docker:restore` does this automatically.
-
-3. Apply DB schema (fresh volume):
-
-```bash
-npm run prisma:migrate:deploy
-npm run seed:test-users   # optional test accounts
-```
-
-4. Check:
-
-```bash
-npm run docker:ps
-curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api
-open http://localhost:4200
-```
-
-## Alternative: DB in Docker, app on host
-
-```bash
-docker compose -f infra/docker/docker-compose.yml up -d postgres
 npm run dev
 ```
 
-## Stop
+## Docker Desktop
 
-```bash
-npm run docker:down          # keep DB volume
-npm run docker:down -- -v    # delete volume (all DB data)
-```
+Якщо `Cannot connect to the Docker daemon` — увімкніть Docker Desktop; скрипти `docker:up` / `docker:postgres` чекають engine (`scripts/docker-wait-engine.sh`).

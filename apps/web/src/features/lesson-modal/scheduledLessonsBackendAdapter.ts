@@ -77,7 +77,7 @@ export function dedupeScheduledLessons(lessons: ScheduledLessonDto[]): Scheduled
   }
 
   const byNumericId = new Map<number, ScheduledLessonDto>();
-  for (const lesson of byIdentity.values()) {
+  for (const lesson of Array.from(byIdentity.values())) {
     const existing = byNumericId.get(lesson.id);
     if (!existing) {
       byNumericId.set(lesson.id, lesson);
@@ -87,7 +87,7 @@ export function dedupeScheduledLessons(lessons: ScheduledLessonDto[]): Scheduled
       byNumericId.set(lesson.id, lesson);
     }
   }
-  return [...byNumericId.values()];
+  return Array.from(byNumericId.values());
 }
 
 export function upsertScheduledLesson(
@@ -115,8 +115,11 @@ export function resolveLessonBackendId(id: number | string): string | undefined 
   return lessonStringId(id);
 }
 
-const ianaToTimeZoneId: Record<string, TimeZoneId> = Object.values(TIME_ZONE).reduce(
-  (acc, zone) => {
+const ianaToTimeZoneId: Record<string, TimeZoneId> = (
+  Object.keys(TIME_ZONE) as (keyof typeof TIME_ZONE)[]
+).reduce(
+  (acc, key) => {
+    const zone = TIME_ZONE[key];
     acc[zone.iana] = zone.id;
     return acc;
   },

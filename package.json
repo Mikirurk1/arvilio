@@ -11,7 +11,7 @@
     "packages/*/*"
   ],
   "scripts": {
-    "predev": "node scripts/free-dev-ports.cjs && npm run build:email-templates",
+    "predev": "node scripts/free-dev-ports.cjs && npm run build:email-templates && npm run prisma:generate",
     "dev": "turbo run dev --filter=@app/web --filter=@app/api",
     "dev:web": "turbo run dev --filter=@app/web",
     "dev:api": "turbo run dev --filter=@app/api",
@@ -27,6 +27,7 @@
     "prisma:migrate:native-language": "tsx packages/backend/data-access/data-access-prisma/prisma/migrate-native-language-legacy.ts",
     "prisma:migrate:dev": "prisma migrate dev --schema packages/backend/data-access/data-access-prisma/prisma/schema.prisma",
     "prisma:migrate:deploy": "prisma migrate deploy --schema packages/backend/data-access/data-access-prisma/prisma/schema.prisma",
+    "prisma:studio": "prisma studio",
     "prisma:migrate:rebaseline": "node scripts/prisma-rebaseline-migrations.cjs",
     "super-admin": "tsx scripts/super-admin.ts",
     "seed:test-users": "tsx scripts/seed-test-users.ts",
@@ -38,10 +39,15 @@
     "test:integration": "npm run build:email-templates && RUN_INTEGRATION_TESTS=1 jest --config jest.integration.config.cjs",
     "test:e2e": "playwright test --config tests/e2e/playwright.config.ts",
     "docker:restore": "bash scripts/docker-restore-all.sh",
-    "docker:up": "node scripts/free-dev-ports.cjs && docker compose -f infra/docker/docker-compose.yml up -d",
+    "docker:restore:stack": "bash scripts/docker-restore-all.sh --stack",
+    "docker:up": "bash scripts/docker-wait-engine.sh && docker compose -f infra/docker/docker-compose.yml up -d",
+    "docker:postgres": "npm run docker:up",
+    "docker:stack": "node scripts/free-dev-ports.cjs && bash scripts/docker-wait-engine.sh && docker compose -f infra/docker/docker-compose.yml --profile stack up -d --build",
+    "docker:stack:down": "docker stop soenglish-api soenglish-web 2>/dev/null || true",
     "docker:down": "docker compose -f infra/docker/docker-compose.yml down",
     "docker:logs": "docker compose -f infra/docker/docker-compose.yml logs -f",
-    "docker:ps": "docker compose -f infra/docker/docker-compose.yml ps -a"
+    "docker:ps": "docker compose -f infra/docker/docker-compose.yml ps -a",
+    "lockfile:linux": "docker run --rm -v \"$PWD:/app\" -w /app node:22-bookworm-slim bash -c 'corepack enable && corepack prepare npm@11.6.2 --activate && npm install'"
   },
   "keywords": [],
   "author": "",
