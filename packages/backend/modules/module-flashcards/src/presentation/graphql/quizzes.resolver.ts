@@ -64,9 +64,9 @@ export class QuizzesResolver {
   @Query(() => [StudentQuizCardType], { name: 'studentQuizzes' })
   studentQuizzes(
     @CurrentGqlUser() userId: string,
-    @Args('studentId', { type: () => ID }) studentId: string,
+    @Args('studentId', { nullable: true, type: () => ID }) studentId?: string,
   ) {
-    return this.quizService.listForStudent(userId, studentId);
+    return this.quizService.listForStudent(userId, studentId ?? userId);
   }
 
   @Query(() => StudentQuizzesPageType, { name: 'studentQuizzesPage' })

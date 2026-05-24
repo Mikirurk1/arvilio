@@ -4,6 +4,26 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 ---
 
+## [2026-05-25] fix | GitHub Actions Node 24 + E2E artifact upload
+- **Trigger:** Playwright workflow — Node 20 action deprecation; git exit 128 on artifact upload
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** `checkout@v5`, `setup-node@v5`, `upload-artifact@v5`; `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24`; HTML report at repo-root `playwright-report/`; `if-no-files-found: ignore` + `include-hidden-files` for gitignored report; E2E `cancel-in-progress: false`.
+
+## [2026-05-25] fix | E2E — sidebar locator scope + login wait
+- **Trigger:** Playwright CI — strict mode on duplicate Students links; flaky login
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** `SidebarNav` scopes to `Main navigation`; `LoginPage.login` waits for `/api/auth/login` + dashboard redirect.
+
+## [2026-05-24] fix | CI integration tests — quiz access, RBAC, serial workers
+- **Trigger:** CI #25 integration job (12 failures)
+- **Pages:** `concepts/testing.md`, `log.md`
+- **Notes:** `QuizAccessService.listForWhere` — staff see owned + assigned quizzes; student `deleteQuiz` → ownership message before staff gate; `studentQuizzes` optional `studentId`; `LessonsService.create` staff-only; integration seed adds `superAdmin`; `jest.integration.config.cjs` `maxWorkers: 1`; vocab tests pre-seed words; RBAC expects `RolesGuard` message.
+
+## [2026-05-24] fix | CI typecheck — build email-templates before tsc
+- **Trigger:** CI #25 `@be/email-templates` not found during `@app/api` typecheck
+- **Pages:** `package.json`, `apps/api/package.json`, `docs/reference/ci-cd.md`
+- **Notes:** Path alias targets `dist/`; `typecheck` now runs `build:email-templates` first (same as `build:api`).
+
 ## [2026-05-24] fix | CI unit tests — mail, chat-store, profile, word-definitions
 - **Trigger:** CI #21 failed on main after e2a3f73
 - **Pages:** `log.md`, `docs/reference/ci-cd.md` (implicit)

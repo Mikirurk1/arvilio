@@ -19,7 +19,7 @@
     "build:web": "turbo run build --filter=@app/web",
     "build:api": "turbo run build --filter=@app/api",
     "lint": "turbo run lint",
-    "typecheck": "turbo run typecheck",
+    "typecheck": "npm run build:email-templates && turbo run typecheck",
     "build:email-templates": "npm run build -w @be/email-templates",
     "prisma:generate": "prisma generate --schema packages/backend/data-access/data-access-prisma/prisma/schema.prisma",
     "prisma:seed:languages": "tsx packages/backend/data-access/data-access-prisma/prisma/seed-languages.ts",

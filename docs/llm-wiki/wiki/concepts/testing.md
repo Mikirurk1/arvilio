@@ -1,6 +1,6 @@
 ---
 tags: [concept, testing, dev]
-updated: 2026-05-24
+updated: 2026-05-25
 ---
 
 # Testing
@@ -24,7 +24,7 @@ updated: 2026-05-24
 - [`packages/backend/modules/create-module-jest-config.cjs`](../../../../packages/backend/modules/create-module-jest-config.cjs) — per-module Jest factory
 - Per-module: `packages/backend/modules/module-*/jest.config.cjs`
 - [`apps/web/jest.config.cjs`](../../../../apps/web/jest.config.cjs) — `next/jest`, jsdom, coverage on `lib/`, `stores/`, `components/ui/`, `features/`
-- [`jest.integration.config.cjs`](../../../../jest.integration.config.cjs) — `ts-jest`; see [`tests/integration/README.md`](../../../../tests/integration/README.md)
+- [`jest.integration.config.cjs`](../../../../jest.integration.config.cjs) — `ts-jest`, **`maxWorkers: 1`** (shared DB seed; avoids cross-suite cleanup races); see [`tests/integration/README.md`](../../../../tests/integration/README.md)
 - Shared helpers: [`tests/shared/`](../../../../tests/shared/) (`createMockPrisma`, `gqlAs` via integration re-export)
 
 ## Integration DB
@@ -33,9 +33,15 @@ Copy `.env.test.example`. Apply migrations to `soenglish_test`. Run `npm run see
 
 Bootstrap: [`tests/integration/bootstrap.ts`](../../../../tests/integration/bootstrap.ts) (`createIntegrationApp`, `gqlAs` in [`helpers.ts`](../../../../tests/integration/helpers.ts)). Module specs import shared code as `@tests/integration/seed`, `@tests/integration/bootstrap`, etc. (`tsconfig.base.json` paths).
 
+**Seeded users** (`tests/integration/seed.ts`): `student`, `teacher`, `admin`, **`superAdmin`** (`jest-super-admin@soenglish.test`) — password `TestPass123!`. `superAdmin` is for integration only (e.g. `systemMailStatus`); production SUPER_ADMIN remains CLI-only.
+
+**Vocabulary integration:** pre-upsert `Word` rows in `beforeAll` — `addStudentWordCard` calls dictionary enrichment when the lemma is missing; CI has no external dictionary API.
+
 ## E2E
 
 - Page objects: [`tests/e2e/pages/`](../../../../tests/e2e/pages/) (`LoginPage`, `SidebarNav`, `ChatPage`, `CalendarPage`)
+- `SidebarNav` targets `navigation` with `aria-label="Main navigation"` only (dashboard quick actions can share link labels).
+- `LoginPage.login` waits for `POST /api/auth/login` and `/dashboard` redirect before assertions.
 - Route specs: [`tests/e2e/specs/pages/`](../../../../tests/e2e/specs/pages/) + legacy [`specs/login.spec.ts`](../../../../tests/e2e/specs/login.spec.ts), `navigation`, `product-pages`
 - Env: `PLAYWRIGHT_TEST_EMAIL`, `PLAYWRIGHT_TEST_PASSWORD`, `PLAYWRIGHT_TEACHER_EMAIL`, `PLAYWRIGHT_ADMIN_EMAIL`
 
@@ -69,6 +75,8 @@ Run `npm run test:coverage` locally before merge.
 | **CD** (`.github/workflows/cd.yml`) | GHCR images `api` / `web` on `main` + `v*` tags |
 
 Details: `docs/reference/ci-cd.md`.
+
+**GitHub Actions:** workflows use `checkout@v5`, `setup-node@v5`, `upload-artifact@v5` with `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24` (Node 24 runtime for action JS). Playwright HTML report is written to repo-root `playwright-report/` for artifact upload (`if-no-files-found: ignore` — path is gitignored).
 
 ## Explicit exclusions (unit)
 

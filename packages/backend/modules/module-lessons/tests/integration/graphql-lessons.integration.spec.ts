@@ -84,7 +84,9 @@ describe('GraphQL lessons (integration)', () => {
         },
       },
     );
-    expect(res.body.errors?.[0]?.message).toBeDefined();
+    expect(res.body.errors?.[0]?.message).toMatch(
+      /requires teacher, admin, or super admin role/i,
+    );
   });
 
   it('student can list scheduled lessons', async () => {

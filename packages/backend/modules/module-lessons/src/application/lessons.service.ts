@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -216,6 +217,14 @@ export class LessonsService {
     if (!body.date) throw new BadRequestException('Date is required');
     if (!body.startTime) throw new BadRequestException('Start time is required');
     if (!body.studentId) throw new BadRequestException('Student id is required');
+
+    const actor = await this.prisma.user.findUnique({
+      where: { id: actorUserId },
+      select: { role: true },
+    });
+    if (!actor || actor.role === 'STUDENT') {
+      throw new ForbiddenException('This action requires teacher, admin, or super admin role');
+    }
 
     const teacherId = body.teacherId ?? actorUserId;
     const teacher = await this.prisma.user.findUnique({ where: { id: teacherId } });

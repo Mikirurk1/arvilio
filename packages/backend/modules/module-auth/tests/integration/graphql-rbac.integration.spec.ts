@@ -74,7 +74,7 @@ describe('GraphQL RBAC (integration)', () => {
     const agent = await loginAs(app, 'student');
     const body = await gql(agent, `query { adminUsers { id email } }`);
     expect(body.errors?.[0]?.message).toMatch(
-      /Only admins can manage accounts/i,
+      /Insufficient role for this action/i,
     );
   });
 
@@ -94,7 +94,7 @@ describe('GraphQL RBAC (integration)', () => {
       },
     );
     expect(body.errors?.[0]?.message).toMatch(
-      /Only admins can manage accounts/i,
+      /Insufficient role for this action/i,
     );
   });
 

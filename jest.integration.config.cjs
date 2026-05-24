@@ -12,6 +12,8 @@ module.exports = {
     '<rootDir>/packages/backend/modules/**/tests/integration/**/*.integration.spec.ts',
   ],
   testTimeout: 60_000,
+  /** Shared DB seed — run suites serially to avoid cross-suite user cleanup races. */
+  maxWorkers: 1,
   transform: {
     '^.+\\.tsx?$': [
       'ts-jest',

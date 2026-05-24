@@ -21,7 +21,7 @@ integration
 build ◄─── quality (needs)
 ```
 
-- **quality** — `npm run lint`, `npm run typecheck`
+- **quality** — `npm run lint`, `npm run typecheck` (`build:email-templates` runs first — path alias points at `dist/index.d.ts`)
 - **unit** — `npm run test:unit`
 - **integration** — Postgres service, `prisma migrate deploy`, `npm run test:integration`
 - **build** — `build:api` + `build:web` (validates release artifacts)

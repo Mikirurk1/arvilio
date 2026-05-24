@@ -41,11 +41,7 @@ export class QuizAccessService {
     }
     return {
       OR: [
-        { ownerId: userId, assignments: { none: {} } },
-        {
-          ownerId: userId,
-          assignments: { every: { studentId: userId } },
-        },
+        { ownerId: userId },
         { assignments: { some: { studentId: userId } } },
       ],
     };

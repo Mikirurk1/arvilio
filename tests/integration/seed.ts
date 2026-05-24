@@ -20,6 +20,11 @@ export const TEST_USERS = {
     displayName: 'Jest Admin',
     role: 'ADMIN' as UserRole,
   },
+  superAdmin: {
+    email: 'jest-super-admin@soenglish.test',
+    displayName: 'Jest Super Admin',
+    role: 'SUPER_ADMIN' as UserRole,
+  },
 } as const;
 
 export type TestUserKey = keyof typeof TEST_USERS;
@@ -79,6 +84,23 @@ export async function seedTestUsers(prisma: PrismaClient): Promise<void> {
     update: {
       displayName: TEST_USERS.admin.displayName,
       role: TEST_USERS.admin.role,
+      status: 'ACTIVE',
+      passwordHash,
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email: TEST_USERS.superAdmin.email },
+    create: {
+      email: TEST_USERS.superAdmin.email,
+      displayName: TEST_USERS.superAdmin.displayName,
+      role: TEST_USERS.superAdmin.role,
+      status: 'ACTIVE',
+      passwordHash,
+    },
+    update: {
+      displayName: TEST_USERS.superAdmin.displayName,
+      role: TEST_USERS.superAdmin.role,
       status: 'ACTIVE',
       passwordHash,
     },

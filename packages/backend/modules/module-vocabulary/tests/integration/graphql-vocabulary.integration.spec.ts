@@ -12,14 +12,38 @@ describe('GraphQL vocabulary (integration)', () => {
 
   beforeAll(async () => {
     ctx = await createIntegrationApp();
+    await ctx.prisma.word.upsert({
+      where: { normalizedText: 'jest-vocab-integration' },
+      create: {
+        text: 'jest-vocab-integration',
+        normalizedText: 'jest-vocab-integration',
+        definition: 'integration test word',
+      },
+      update: {},
+    });
+    await ctx.prisma.word.upsert({
+      where: { normalizedText: 'jest-vocab-teacher-add' },
+      create: {
+        text: 'jest-vocab-teacher-add',
+        normalizedText: 'jest-vocab-teacher-add',
+        definition: 'integration test word',
+      },
+      update: {},
+    });
   });
 
   afterAll(async () => {
     await ctx.prisma.studentWordCard.deleteMany({
-      where: { word: { normalizedText: 'jest-vocab-integration' } },
+      where: {
+        word: {
+          normalizedText: { in: ['jest-vocab-integration', 'jest-vocab-teacher-add'] },
+        },
+      },
     });
     await ctx.prisma.word.deleteMany({
-      where: { normalizedText: 'jest-vocab-integration' },
+      where: {
+        normalizedText: { in: ['jest-vocab-integration', 'jest-vocab-teacher-add'] },
+      },
     });
     await cleanupTestUsers(ctx.prisma);
     await closeIntegrationApp(ctx);
@@ -41,8 +65,8 @@ describe('GraphQL vocabulary (integration)', () => {
     const listRes = await gqlAs(
       ctx.app,
       'student',
-      `query($userId: ID!) { studentVocabulary(userId: $userId) { id } }`,
-      { userId: studentId },
+      `query($studentId: ID!) { studentVocabulary(studentId: $studentId) { id } }`,
+      { studentId },
     );
     expect(listRes.status).toBe(200);
     const cards = (

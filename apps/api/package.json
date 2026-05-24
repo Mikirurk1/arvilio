@@ -7,6 +7,6 @@
     "build": "npm run build -w @be/email-templates && tsc -p tsconfig.app.json && tsc-alias -p tsconfig.app.json",
     "start": "node --env-file=../../.env ../../dist/apps/api/apps/api/src/main.js",
     "lint": "eslint .",
-    "typecheck": "tsc -p tsconfig.app.json --noEmit"
+    "typecheck": "npm run build -w @be/email-templates && tsc -p tsconfig.app.json --noEmit"
   }
 }

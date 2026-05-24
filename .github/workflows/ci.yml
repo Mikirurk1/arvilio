@@ -13,6 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   NODE_ENV: test
   JWT_SECRET: ci-jwt-secret-minimum-thirty-two-chars-long
   DATABASE_URL: postgresql://soenglish:soenglish@localhost:5432/soenglish?schema=public
@@ -23,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-monorepo
         with:
           skip-prisma: 'false'
@@ -35,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-monorepo
       - run: npm run build:email-templates
       - run: npm run test:unit
@@ -59,7 +60,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-monorepo
       - run: npm run build:email-templates
       - run: npm run prisma:migrate:deploy
@@ -73,7 +74,7 @@ jobs:
     timeout-minutes: 25
     needs: [quality]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-monorepo
       - run: npm run build:email-templates
       - run: npm run build:api
@@ -91,7 +92,16 @@ jobs:
     steps:
       - name: Require all jobs
         run: |
-          test "${{ needs.quality.result }}" = "success"
-          test "${{ needs.unit.result }}" = "success"
-          test "${{ needs.integration.result }}" = "success"
-          test "${{ needs.build.result }}" = "success"
+          echo "quality:     ${{ needs.quality.result }}"
+          echo "unit:        ${{ needs.unit.result }}"
+          echo "integration: ${{ needs.integration.result }}"
+          echo "build:       ${{ needs.build.result }}"
+          failed=""
+          [ "${{ needs.quality.result }}" = "success" ] || failed="$failed quality"
+          [ "${{ needs.unit.result }}" = "success" ] || failed="$failed unit"
+          [ "${{ needs.integration.result }}" = "success" ] || failed="$failed integration"
+          [ "${{ needs.build.result }}" = "success" ] || failed="$failed build"
+          if [ -n "$failed" ]; then
+            echo "::error::CI gate — failed job(s):$failed (open those jobs in Actions for logs)"
+            exit 1
+          fi

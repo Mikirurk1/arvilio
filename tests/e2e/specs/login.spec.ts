@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { LoginPage } from '../pages/LoginPage';
 
 /**
  * E2E login requires a provisioned user in the running API database.
@@ -9,10 +10,9 @@ const password = process.env.PLAYWRIGHT_TEST_PASSWORD ?? 'TestPass123!';
 
 test.describe('login', () => {
   test('redirects to dashboard after login', async ({ page }) => {
-    await page.goto('/login');
-    await page.getByLabel('Email').fill(email);
-    await page.getByLabel('Password').fill(password);
-    await page.getByRole('button', { name: /sign in|log in|увійти/i }).click();
+    const login = new LoginPage(page);
+    await login.goto();
+    await login.login(email, password);
     await expect(page).toHaveURL(/\/dashboard/);
   });
 });

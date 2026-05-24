@@ -15,13 +15,17 @@ export class QuizListService {
   ) {}
 
   async delete(actorId: string, quizId: string): Promise<boolean> {
-    await this.access.requireStaff(actorId);
     const actor = await this.prisma.user.findUnique({
       where: { id: actorId },
       select: { role: true },
     });
     const quiz = await this.prisma.quiz.findUnique({ where: { id: quizId } });
     if (!quiz) throw new NotFoundException('Quiz not found');
+    if (actor?.role === 'STUDENT') {
+      throw new ForbiddenException(
+        'You can only delete quizzes you created or assigned to your students',
+      );
+    }
     const isOwner = quiz.ownerId === actorId;
     const isAdmin = actor?.role === 'ADMIN' || actor?.role === 'SUPER_ADMIN';
     if (isAdmin || isOwner) {

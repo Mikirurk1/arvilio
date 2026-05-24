@@ -37,10 +37,10 @@ describe('GraphQL admin (integration)', () => {
     expect(res.body.errors?.[0]?.message).toBeDefined();
   });
 
-  it('admin can read systemMailStatus', async () => {
+  it('super admin can read systemMailStatus', async () => {
     const res = await gqlAs(
       ctx.app,
-      'admin',
+      'superAdmin',
       `query { systemMailStatus { configured mailFrom } }`,
     );
     expect(res.status).toBe(200);
