@@ -1,17 +1,18 @@
 # Production Web image (Next.js standalone). Build context: repository root.
 FROM node:22-alpine AS builder
 
+RUN corepack enable && corepack prepare npm@11.6.2 --activate
+
 WORKDIR /app
 
 ARG NEXT_PUBLIC_API_URL=/api
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV API_PROXY_TARGET=http://api:3000
 
-COPY package.json package-lock.json ./
-COPY apps/web/package.json apps/web/
-COPY packages/shared/types/package.json packages/shared/types/
+COPY package.json package-lock.json tsconfig.base.json ./
+COPY apps apps
+COPY packages packages
 
-COPY . .
 RUN npm ci
 
 RUN npm run build -w @app/web

@@ -1,16 +1,15 @@
 # Production API image (NestJS + Prisma). Build context: repository root.
 FROM node:22-alpine AS builder
 
+# Match root packageManager (npm@11.6.2) — avoids lockfile drift vs npm 10 in base image.
+RUN corepack enable && corepack prepare npm@11.6.2 --activate
+
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-COPY apps/api/package.json apps/api/
-COPY packages/backend/email-templates/package.json packages/backend/email-templates/
-COPY packages/backend/data-access/data-access-prisma/package.json packages/backend/data-access/data-access-prisma/
-COPY packages/shared/types/package.json packages/shared/types/
+COPY package.json package-lock.json tsconfig.base.json ./
+COPY apps apps
+COPY packages packages
 
-# Install all workspaces (monorepo); prune is optional for v1.
-COPY . .
 RUN npm ci
 
 RUN npm run build:email-templates \

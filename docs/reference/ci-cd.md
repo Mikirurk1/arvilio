@@ -69,6 +69,8 @@ docker compose -f infra/docker/docker-compose.prod.yml run --rm migrate
 docker compose -f infra/docker/docker-compose.prod.yml up -d
 ```
 
+**Lockfile / Docker builds:** commit `package-lock.json` from a Linux `npm install` when CD fails with missing optional deps (e.g. `@emnapi/*`). Dockerfiles use `corepack prepare npm@11.6.2` to match root `packageManager`.
+
 **Release checklist**
 
 1. PR green on **CI**
