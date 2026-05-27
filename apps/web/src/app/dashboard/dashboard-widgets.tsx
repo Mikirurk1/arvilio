@@ -28,17 +28,20 @@ import {
 import { useViewerTimezone } from '../../hooks/use-viewer-timezone';
 import { useChatNavBadge } from '../../hooks/use-chat-nav-badge';
 import { usePracticeNavBadge } from '../../hooks/use-practice-nav-badge';
+import { useOpenCreateLesson } from '../../features/lesson-modal';
 import { useStudentsStore } from '../../stores/students-store';
 import styles from './page.module.scss';
 
 type QuickAction = {
-  href: string;
+  href?: string;
+  onClick?: () => void;
   label: string;
   icon: React.ReactNode;
   badge?: number;
 };
 
 export function DashboardQuickActions() {
+  const openCreateLesson = useOpenCreateLesson();
   const role = useActiveRoleKey();
   const chatUnread = useChatNavBadge();
   const practicePendingTotal = usePracticeNavBadge();
@@ -75,7 +78,7 @@ export function DashboardQuickActions() {
             icon: <Users size={18} aria-hidden />,
           },
           {
-            href: '/lessons?create=1',
+            onClick: openCreateLesson,
             label: 'New lesson',
             icon: <CalendarPlus size={18} aria-hidden />,
           },
@@ -91,15 +94,30 @@ export function DashboardQuickActions() {
 
   return (
     <div className={styles.quickActions}>
-      {actions.map((action) => (
-        <Link key={action.href} href={action.href} className={styles.quickAction}>
-          <span className={styles.quickActionIcon}>{action.icon}</span>
-          <span className={styles.quickActionLabel}>{action.label}</span>
-          {action.badge !== undefined ? (
-            <span className={styles.quickActionBadge}>{action.badge > 99 ? '99+' : action.badge}</span>
-          ) : null}
-        </Link>
-      ))}
+      {actions.map((action) => {
+        const key = action.href ?? action.label;
+        const content = (
+          <>
+            <span className={styles.quickActionIcon}>{action.icon}</span>
+            <span className={styles.quickActionLabel}>{action.label}</span>
+            {action.badge !== undefined ? (
+              <span className={styles.quickActionBadge}>{action.badge > 99 ? '99+' : action.badge}</span>
+            ) : null}
+          </>
+        );
+        if (action.onClick) {
+          return (
+            <button key={key} type="button" className={styles.quickAction} onClick={action.onClick}>
+              {content}
+            </button>
+          );
+        }
+        return (
+          <Link key={key} href={action.href!} className={styles.quickAction}>
+            {content}
+          </Link>
+        );
+      })}
     </div>
   );
 }

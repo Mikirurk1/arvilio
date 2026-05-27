@@ -387,20 +387,30 @@ export class VocabularyService {
     return cards as StudentCardRow[];
   }
 
-  async listStudentCards(userId: string): Promise<StudentWordCardDto[]> {
-    const cards = await this.loadStudentCardsRows({ userId });
+  async listStudentCards(
+    studentUserId: string,
+    actorUserId: string = studentUserId,
+  ): Promise<StudentWordCardDto[]> {
+    if (actorUserId !== studentUserId) {
+      await this.assertStaffCanManageStudent(actorUserId, studentUserId);
+    }
+    const cards = await this.loadStudentCardsRows({ userId: studentUserId });
     return cards.map((card) => mapStudentCardDto(card));
   }
 
   async listStudentCardsPage(
-    userId: string,
+    studentUserId: string,
     limit = 25,
     cursor?: string,
+    actorUserId: string = studentUserId,
   ): Promise<{
     items: StudentWordCardDto[];
     hasMore: boolean;
     nextCursor: string | null;
   }> {
+    if (actorUserId !== studentUserId) {
+      await this.assertStaffCanManageStudent(actorUserId, studentUserId);
+    }
     const take = Math.min(Math.max(limit, 1), 100);
     const cursorRow = cursor ? decodeCardCursor(cursor) : null;
     const cursorWhere = cursorRow
@@ -414,7 +424,7 @@ export class VocabularyService {
         }
       : {};
 
-    const cards = await this.loadStudentCardsRows({ userId, ...cursorWhere }, take + 1);
+    const cards = await this.loadStudentCardsRows({ userId: studentUserId, ...cursorWhere }, take + 1);
     const hasMore = cards.length > take;
     const page = hasMore ? cards.slice(0, take) : cards;
     const items = page.map((card) => mapStudentCardDto(card));
@@ -428,6 +438,9 @@ export class VocabularyService {
     actorUserId: string,
     body: CreateStudentWordCardRequestDto,
   ): Promise<StudentWordCardDto> {
+    if (actorUserId !== studentUserId) {
+      await this.assertStaffCanManageStudent(actorUserId, studentUserId);
+    }
     const word = await this.findOrCreateWord({ text: body.text });
     const existing = await this.prisma.studentWordCard.findUnique({
       where: { userId_wordId: { userId: studentUserId, wordId: word.id } },
@@ -470,6 +483,9 @@ export class VocabularyService {
     status: StudentWordCardDto['status'],
     actorUserId: string,
   ): Promise<StudentWordCardDto> {
+    if (actorUserId !== studentUserId) {
+      await this.assertStaffCanManageStudent(actorUserId, studentUserId);
+    }
     const card = await this.prisma.studentWordCard.findUnique({ where: { id: cardId } });
     if (!card || card.userId !== studentUserId) throw new NotFoundException('Card not found');
     const next = statusFromDto(status);

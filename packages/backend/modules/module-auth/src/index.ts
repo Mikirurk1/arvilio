@@ -1,4 +1,5 @@
 export { AuthSessionService } from './application/auth-session.service';
+export { AchievementStatsService } from './application/achievement-stats.service';
 export { DashboardService } from './application/dashboard.service';
 export { AuthGuard, OptionalAuthGuard } from './presentation/guards/auth.guard';
 export { CurrentUser } from './presentation/guards/current-user';

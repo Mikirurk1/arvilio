@@ -1,7 +1,13 @@
 import { BadRequestException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '@be/prisma';
 import { MailService } from '@be/mail';
-import type { CreateAdminUserRequestDto, LoginRequestDto } from '@pkg/types';
+import type {
+  CreateAdminUserRequestDto,
+  ForgotPasswordRequestDto,
+  LoginRequestDto,
+  ResetPasswordRequestDto,
+  WebRequestSessionDto,
+} from '@pkg/types';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { AuthSessionService } from './auth-session.service';
@@ -16,6 +22,7 @@ import {
 import { generateTemporaryPassword } from '@be/mail';
 import { deleteAdminUserAccount } from '../infrastructure/delete-admin-user';
 import { linkTelegramAccount } from '../infrastructure/link-telegram-account';
+import { assertAccountStatusAllowsAuth } from '../shared/auth-account-status.util';
 import { randomDisplayColor } from '../shared/display-color';
 import {
   ACCOUNT_STATUSES,
@@ -26,6 +33,8 @@ import {
 import { verifyTelegramLogin, type TelegramLoginPayload } from '../shared/telegram-auth';
 
 export { mapUserToDto, type UserRoleName };
+
+const PASSWORD_RESET_TTL_MINUTES = 60;
 
 @Injectable()
 export class AuthService {
@@ -79,6 +88,36 @@ export class AuthService {
       where: { id: userId },
       include: { oauthAccounts: { select: { provider: true } } },
     });
+  }
+
+  async resolveWebRequestSession(req: {
+    headers: Record<string, string | string[] | undefined>;
+    cookies?: Record<string, string>;
+  }): Promise<WebRequestSessionDto> {
+    const resolved = await this.sessionAuth.resolveWebRequestSessionAuth(req);
+    if (!resolved) {
+      return {
+        authenticated: false,
+        user: null,
+        authStrategy: 'anonymous',
+        scope: 'school',
+        availableScopes: ['school'],
+        tenantKey: null,
+      };
+    }
+
+    const userDto = mapUserToDto(resolved.user);
+    const availableScopes: WebRequestSessionDto['availableScopes'] =
+      userDto.role === 'super_admin' ? ['school', 'platform'] : ['school'];
+
+    return {
+      authenticated: true,
+      user: userDto,
+      authStrategy: resolved.authStrategy,
+      scope: 'school',
+      availableScopes,
+      tenantKey: null,
+    };
   }
 
   async createUserAsAdmin(
@@ -207,6 +246,79 @@ export class AuthService {
     return { user, welcomeEmailSent };
   }
 
+  async requestPasswordReset(
+    body: ForgotPasswordRequestDto,
+    meta: { userAgent?: string; ip?: string },
+  ): Promise<{ ok: true }> {
+    const email = this.normalizeEmail(body.email);
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user?.passwordHash) {
+      return { ok: true };
+    }
+
+    const rawToken = generateRefreshToken();
+    const expiresAt = new Date(Date.now() + PASSWORD_RESET_TTL_MINUTES * 60 * 1000);
+    await this.prisma.passwordResetToken.deleteMany({ where: { userId: user.id } });
+    await this.prisma.passwordResetToken.create({
+      data: {
+        userId: user.id,
+        tokenHash: hashRefreshToken(rawToken),
+        expiresAt,
+        requestedByIp: meta.ip?.slice(0, 64) ?? null,
+        requestedByUserAgent: meta.userAgent?.slice(0, 256) ?? null,
+      },
+    });
+
+    const resetUrl = `${process.env['WEB_ORIGIN'] ?? 'http://localhost:4200'}/reset-password?token=${encodeURIComponent(rawToken)}`;
+    await this.mail.sendPasswordReset({
+      to: email,
+      displayName: user.displayName,
+      resetUrl,
+      expiresInMinutes: PASSWORD_RESET_TTL_MINUTES,
+    });
+
+    return { ok: true };
+  }
+
+  async resetPassword(body: ResetPasswordRequestDto): Promise<{ ok: true }> {
+    const rawToken = body.token?.trim();
+    if (!rawToken) {
+      throw new BadRequestException('Reset token is required');
+    }
+    if (!body?.newPassword || body.newPassword.length < 8) {
+      throw new BadRequestException('New password must be at least 8 characters');
+    }
+
+    const token = await this.prisma.passwordResetToken.findUnique({
+      where: { tokenHash: hashRefreshToken(rawToken) },
+    });
+    if (!token || token.usedAt || token.expiresAt.getTime() < Date.now()) {
+      throw new BadRequestException('Password reset link is invalid or expired');
+    }
+
+    const revokedAt = new Date();
+    const passwordHash = await bcrypt.hash(body.newPassword, 12);
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: token.userId },
+        data: { passwordHash },
+      }),
+      this.prisma.authRefreshToken.updateMany({
+        where: { userId: token.userId, revokedAt: null },
+        data: { revokedAt },
+      }),
+      this.prisma.passwordResetToken.update({
+        where: { id: token.id },
+        data: { usedAt: revokedAt },
+      }),
+      this.prisma.passwordResetToken.deleteMany({
+        where: { userId: token.userId, id: { not: token.id } },
+      }),
+    ]);
+
+    return { ok: true };
+  }
+
   private trimOrNull(value: string | null): string | null {
     if (value === null) return null;
     const trimmed = value.trim();
@@ -239,7 +351,7 @@ export class AuthService {
   }
 
   async login(body: LoginRequestDto) {
-    const email = body.email.trim().toLowerCase();
+    const email = this.normalizeEmail(body.email);
     const user = await this.prisma.user.findUnique({
       where: { email },
       include: { oauthAccounts: { select: { provider: true } } },
@@ -249,6 +361,7 @@ export class AuthService {
     }
     const ok = await bcrypt.compare(body.password, user.passwordHash);
     if (!ok) throw new UnauthorizedException('Invalid credentials');
+    assertAccountStatusAllowsAuth(user.status);
     return user;
   }
 
@@ -274,6 +387,7 @@ export class AuthService {
       },
     });
     if (existingByProvider) {
+      assertAccountStatusAllowsAuth(existingByProvider.user.status);
       await this.prisma.oAuthAccount.update({
         where: { id: existingByProvider.id },
         data: {
@@ -293,6 +407,7 @@ export class AuthService {
       include: { oauthAccounts: { select: { provider: true } } },
     });
     if (existingByEmail) {
+      assertAccountStatusAllowsAuth(existingByEmail.status);
       await this.prisma.oAuthAccount.create({
         data: {
           userId: existingByEmail.id,
@@ -306,10 +421,14 @@ export class AuthService {
         },
       });
       await this.maybeUpsertCalendarConnection(existingByEmail.id, payload);
-      return this.prisma.user.findUnique({
+      const linkedUser = await this.prisma.user.findUnique({
         where: { id: existingByEmail.id },
         include: { oauthAccounts: { select: { provider: true } } },
       });
+      if (linkedUser) {
+        assertAccountStatusAllowsAuth(linkedUser.status);
+      }
+      return linkedUser;
     }
 
     throw new ForbiddenException(
@@ -494,5 +613,13 @@ export class AuthService {
         scopes,
       },
     });
+  }
+
+  private normalizeEmail(value: string): string {
+    const email = value.trim().toLowerCase();
+    if (!email || !email.includes('@')) {
+      throw new BadRequestException('Invalid email');
+    }
+    return email;
   }
 }

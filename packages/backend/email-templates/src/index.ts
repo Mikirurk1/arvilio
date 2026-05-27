@@ -4,6 +4,7 @@ export type {
   EmailTemplatePropsMap,
   RenderedEmail,
   WelcomeAccountEmailProps,
+  PasswordResetEmailProps,
   LessonReminderEmailProps,
   StreakAlertEmailProps,
   WeeklyReportEmailProps,

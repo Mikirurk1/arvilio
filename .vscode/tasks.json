@@ -2,6 +2,57 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "SoEnglish: dev (split terminals)",
+      "dependsOrder": "parallel",
+      "dependsOn": ["SoEnglish: dev web", "SoEnglish: dev api"]
+    },
+    {
+      "label": "SoEnglish: dev web",
+      "type": "shell",
+      "command": "npm run dev:web",
+      "options": { "cwd": "${workspaceFolder}" },
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "soenglish-dev",
+        "clear": true,
+        "showReuseMessage": false
+      },
+      "problemMatcher": {
+        "owner": "custom",
+        "pattern": { "regexp": ".+" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*@app/web:dev: > @app/web@0.0.0 dev.*$",
+          "endsPattern": "^.*@app/web:dev: .*Ready in.*$"
+        }
+      }
+    },
+    {
+      "label": "SoEnglish: dev api",
+      "type": "shell",
+      "command": "npm run dev:api",
+      "options": { "cwd": "${workspaceFolder}" },
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "soenglish-dev",
+        "clear": true,
+        "showReuseMessage": false
+      },
+      "problemMatcher": {
+        "owner": "custom",
+        "pattern": { "regexp": ".+" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*\\[api:dev\\] initial build.*$",
+          "endsPattern": "^.*\\[api:dev\\] watching packages/shared.*$"
+        }
+      }
+    },
+    {
       "label": "SoEnglish: typecheck (all)",
       "type": "shell",
       "command": "npm run typecheck",

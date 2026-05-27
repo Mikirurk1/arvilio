@@ -15,6 +15,7 @@ import { ProgressModule } from '@be/progress';
 import { VocabularyModule } from '@be/vocabulary';
 import { NotificationsModule } from '@be/notifications';
 import { ChatModule } from '@be/chat';
+import { BillingModule } from '@be/billing';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ChatModule } from '@be/chat';
     PrismaModule,
     MailModule,
     AuthModule,
+    BillingModule,
     NotificationsModule,
     ChatModule,
     VocabularyModule,

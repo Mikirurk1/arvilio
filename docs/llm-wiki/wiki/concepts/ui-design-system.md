@@ -55,7 +55,7 @@ In `apps/web`, prefer project primitives over raw HTML: **`Link`** (`next/link`)
 ## Patterns
 
 - `Button` — `data-variant`, `data-active`; optional `classNames` slots. Async `onClick` (returning a Promise) sets `data-loading`, disables the control, and shows a spinner; optional `loading` / `loadingLabel` / `onPendingChange` for controlled or parent-coordinated states (e.g. disable Cancel in a confirm row). **`data-icon-only="true"`** when `children` has no text (Lucide-only children count as icon-only; mixed icon + label does not). Icon-only buttons drop default `6px 12px` padding so fixed-size module classes (e.g. `deleteIconBtn`, `iconBtn`) are not squeezed; pair with explicit `width`/`height`/`padding: 0` and `svg { width; height }` in co-located SCSS when the hit target is smaller than the default button.
-- `Field` — polymorphic `as`: input | textarea | select | checkbox | file-button. **`as="select"`** uses adaptive UI: custom dropdown on desktop, native `<select>` at `≤767px` (see breakpoints below).
+- `Field` — polymorphic `as`: input | textarea | select | checkbox | file-button. **`type="password"`** now renders an inline show/hide eye toggle inside the same control. **`as="select"`** uses adaptive UI: custom dropdown on desktop, native `<select>` at `≤767px` (see breakpoints below).
 - `SurfaceCard` — polymorphic `as` prop
 - `PageHeader` — optional `back` slot renders before title; `actions` stays on the right
 

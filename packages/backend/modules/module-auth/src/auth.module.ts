@@ -3,6 +3,7 @@ import { MailModule } from '@be/mail';
 import { NotificationsModule } from '@be/notifications';
 import { PrismaModule } from '@be/prisma';
 import { AdminUsersGraphqlService } from './application/admin-users-graphql.service';
+import { AchievementStatsService } from './application/achievement-stats.service';
 import { AuthSessionService } from './application/auth-session.service';
 import { AuthService } from './application/auth.service';
 import { DailyGoalsService } from './application/daily-goals.service';
@@ -39,6 +40,7 @@ import { UsersResolver } from './presentation/graphql/users.resolver';
   ],
   providers: [
     AuthService,
+    AchievementStatsService,
     AdminUsersGraphqlService,
     AuthSessionService,
     DashboardService,
@@ -59,6 +61,7 @@ import { UsersResolver } from './presentation/graphql/users.resolver';
   ],
   exports: [
     AuthService,
+    AchievementStatsService,
     AuthSessionService,
     DashboardService,
     DailyGoalsService,

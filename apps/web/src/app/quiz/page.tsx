@@ -20,7 +20,6 @@ import { Button, Field, PageHeader } from '../../components/ui';
 import { confirmDialog } from '../../features/confirm';
 import {
   assignQuizToStudents,
-  canView,
   getAssignableStudentsForUser,
   getLatestQuizForUser,
   getQuizCardsForUser,
@@ -255,8 +254,6 @@ export default function QuizPage() {
   const pct =
     playResult?.score ??
     (questions.length ? Math.round((score / questions.length) * 100) : 0);
-
-  if (!canView('quiz', activeUser.role)) return null;
 
   if (play) {
     return (

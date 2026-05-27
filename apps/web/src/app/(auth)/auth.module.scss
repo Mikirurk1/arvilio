@@ -84,6 +84,38 @@
   gap: 10px;
 }
 
+.linkRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.secondaryLink {
+  color: var(--blue);
+  text-decoration: none;
+  font-size: var(--fs-13);
+  font-weight: 500;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.secondaryLinkButton {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--blue);
+  text-decoration: none;
+  font-size: var(--fs-13);
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .primary {
   background: var(--blue);
   color: #fff;
@@ -151,6 +183,21 @@
   background: var(--rose-light);
   border-radius: var(--radius-sm);
   padding: 8px 10px;
+}
+
+.success {
+  color: var(--green-700, #156f4a);
+  font-size: var(--fs-13);
+  background: var(--green-50, rgba(22, 163, 74, 0.1));
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+}
+
+.helperText {
+  margin: 0;
+  color: var(--text-tertiary);
+  font-size: var(--fs-13);
+  line-height: 1.5;
 }
 
 .footer {

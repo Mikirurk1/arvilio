@@ -53,7 +53,8 @@ export class VocabularyResolver {
     @CurrentGqlUser() userId: string,
     @Args('studentId', { nullable: true, type: () => ID }) studentId?: string,
   ) {
-    return this.vocabulary.listStudentCards(studentId ?? userId);
+    const targetId = studentId ?? userId;
+    return this.vocabulary.listStudentCards(targetId, userId);
   }
 
   @Query(() => StudentVocabularyPageType, { name: 'studentVocabularyPage' })
@@ -63,7 +64,8 @@ export class VocabularyResolver {
     @Args('cursor', { nullable: true }) cursor?: string,
     @Args('limit', { type: () => Int, nullable: true }) limit?: number,
   ) {
-    return this.vocabulary.listStudentCardsPage(studentId ?? userId, limit ?? 25, cursor);
+    const targetId = studentId ?? userId;
+    return this.vocabulary.listStudentCardsPage(targetId, limit ?? 25, cursor, userId);
   }
 
   @Mutation(() => StudentWordCardType, { name: 'addStudentWordCard' })

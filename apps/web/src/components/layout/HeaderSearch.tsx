@@ -76,6 +76,7 @@ export function HeaderSearch() {
           <path d="M10 10l3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
         </svg>
         <Field
+          id="header-search-input"
           type="search"
           className={styles.input}
           placeholder="Search lessons, words, students…"

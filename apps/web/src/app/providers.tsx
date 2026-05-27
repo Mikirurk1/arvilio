@@ -1,12 +1,19 @@
 'use client';
 
+import type { AuthUserDto } from '@pkg/types';
 import { ReactNode, useEffect } from 'react';
 import { AuthProvider } from '../lib/auth-context';
 import { ConfirmDialogHost } from '../features/confirm';
 import { ToastViewport } from '../features/notifications/ToastViewport';
-import { useUiStore, type ThemeMode } from '../stores/ui-store';
+import { useUiStore } from '../stores/ui-store';
+import type { ThemeMode } from '../lib/appearance/initial-appearance';
 
 type ProviderProps = {
+  children: ReactNode;
+  initialAuthUser: AuthUserDto | null;
+};
+
+type AppearanceSyncProps = {
   children: ReactNode;
 };
 
@@ -16,14 +23,16 @@ function resolveSystemTheme(): Exclude<ThemeMode, 'auto'> {
 }
 
 /** Applies theme/font-size from Zustand to the document. */
-function AppearanceSync({ children }: ProviderProps) {
+function AppearanceSync({ children }: AppearanceSyncProps) {
   const theme = useUiStore((state) => state.theme);
   const fontSize = useUiStore((state) => state.fontSize);
 
   useEffect(() => {
     const root = document.documentElement;
     const applyTheme = () => {
-      root.setAttribute('data-theme', theme === 'auto' ? resolveSystemTheme() : theme);
+      const resolvedTheme = theme === 'auto' ? resolveSystemTheme() : theme;
+      root.setAttribute('data-theme', resolvedTheme);
+      root.style.colorScheme = resolvedTheme;
     };
     applyTheme();
     if (theme !== 'auto') return;
@@ -40,9 +49,9 @@ function AppearanceSync({ children }: ProviderProps) {
   return children;
 }
 
-export function AppProviders({ children }: ProviderProps) {
+export function AppProviders({ children, initialAuthUser }: ProviderProps) {
   return (
-    <AuthProvider>
+    <AuthProvider initialUser={initialAuthUser}>
       <AppearanceSync>
         {children}
         <ToastViewport />

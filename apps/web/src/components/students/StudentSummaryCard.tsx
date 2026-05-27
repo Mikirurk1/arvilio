@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import { Badge, SurfaceCard } from '../ui';
 import { getProficiencyLevelById, getUserAccountStatusById, USER_ACCOUNT_STATUS, type MockStudent } from '../../mocks';
@@ -12,6 +15,8 @@ export function StudentSummaryCard({
   /** Backend user id (UUID) when listing from API. */
   profileId?: string;
 }) {
+  const router = useRouter();
+  const profileHref = `/students/${profileId ?? student.id}`;
   const initials = student.fullName
     .split(' ')
     .map((part) => part[0])
@@ -48,7 +53,13 @@ export function StudentSummaryCard({
       </div>
 
       <div className={styles.footer}>
-        <Link href={`/students/${profileId ?? student.id}`} className={styles.openBtn}>
+        <Link
+          href={profileHref}
+          prefetch
+          className={styles.openBtn}
+          onMouseEnter={() => router.prefetch(profileHref)}
+          onFocus={() => router.prefetch(profileHref)}
+        >
           Open profile <ArrowRight size={14} />
         </Link>
       </div>

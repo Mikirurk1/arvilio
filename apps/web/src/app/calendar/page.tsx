@@ -8,7 +8,6 @@ import { LESSON_STATUS } from '@pkg/types';
 import { Button, PageHeader } from '../../components/ui';
 import {
   canSchedule,
-  canView,
   getProfileByUserId,
   getVisibleProfiles,
   isAdminOrSuper,
@@ -168,7 +167,6 @@ export default function CalendarPage() {
   const router = useRouter();
   const activeUser = useActiveUser();
   const auth = useOptionalAuth();
-  if (!canView('calendar', activeUser.role)) return null;
   const { iana: viewerIana, timezoneId: viewerTimezoneId } = useViewerTimezone();
   const {
     studentOptions,

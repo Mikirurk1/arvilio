@@ -46,7 +46,6 @@ import { ProfileViewShell } from '../../components/profile/ProfileViewShell';
 import { Button, type TabsItem } from '../../components/ui';
 import {
   buildProfileAchievements,
-  canView,
   getProficiencyLevelById,
   getUserAccountStatusById,
   getAppearancePrefsForUser,
@@ -63,10 +62,8 @@ import { DEFAULT_NOTIFICATION_PREFS, type ProfileNotificationPrefs } from '@pkg/
 import { toast } from '../../features/notifications';
 import { useActiveUser } from '../../lib/active-user';
 import { useOptionalAuth } from '../../lib/auth-context';
-import { useProfileLiveStats } from '../../hooks/use-profile-live-stats';
-import { isMyProfileComplete } from '../../lib/profile-complete';
+import { useAchievementStats } from '../../hooks/use-achievement-stats';
 import {
-  formToCompletenessInput,
   formToUpdateInput,
   profileToForm,
   type ProfileFormState,
@@ -460,12 +457,8 @@ export default function ProfilePage() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [avatarModalOpen]);
 
-  const { profileStats, loading: liveStatsLoading } = useProfileLiveStats();
-  const profileComplete = useMemo(
-    () => isMyProfileComplete(formToCompletenessInput(form, avatarUrl || profileSlice.data?.avatarUrl)),
-    [avatarUrl, form, profileSlice.data?.avatarUrl],
-  );
-  const profileAchievements = buildProfileAchievements(profileStats, { profileComplete });
+  const { stats: profileStats, loading: liveStatsLoading } = useAchievementStats();
+  const profileAchievements = buildProfileAchievements(profileStats);
 
   const heroBadges = (() => {
     const level = getProficiencyLevelById(activeUser.proficiencyLevelId);
@@ -515,8 +508,6 @@ export default function ProfilePage() {
     unlocked: achievement.unlocked,
   }));
   const recentUnlockedAchievements = allAchievements.filter((achievement) => achievement.unlocked).slice(-10);
-
-  if (!canView('profile', activeUser.role)) return null;
 
   return (
     <>
@@ -665,7 +656,7 @@ export default function ProfilePage() {
           label: 'Lessons',
         },
         {
-          value: liveStatsLoading ? '…' : '—',
+          value: liveStatsLoading ? '…' : (profileStats.streakDays > 0 ? String(profileStats.streakDays) : '—'),
           label: 'Streak',
         },
       ]}
@@ -757,7 +748,6 @@ export default function ProfilePage() {
           handleSaveProfile,
           notifications,
           notifSaved,
-          profileComplete,
           profileError,
           profileLoading,
           profileMutating,

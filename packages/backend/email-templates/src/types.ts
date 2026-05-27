@@ -1,5 +1,6 @@
 export type EmailTemplateId =
   | 'welcome-account'
+  | 'password-reset'
   | 'lesson-reminder'
   | 'streak-alert'
   | 'weekly-report'
@@ -20,6 +21,12 @@ export type LessonReminderEmailProps = {
   startTime: string;
   timezone: string;
   meetUrl: string;
+};
+
+export type PasswordResetEmailProps = {
+  displayName: string;
+  resetUrl: string;
+  expiresInMinutes: string;
 };
 
 export type StreakAlertEmailProps = {
@@ -53,6 +60,7 @@ export type TeacherMessageEmailProps = {
 
 export type EmailTemplatePropsMap = {
   'welcome-account': WelcomeAccountEmailProps;
+  'password-reset': PasswordResetEmailProps;
   'lesson-reminder': LessonReminderEmailProps;
   'streak-alert': StreakAlertEmailProps;
   'weekly-report': WeeklyReportEmailProps;

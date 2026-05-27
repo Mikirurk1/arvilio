@@ -4,10 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { MessageSquarePlus, Users } from 'lucide-react';
 import { useBreakpoint } from '../../hooks/use-breakpoint';
-import { canView } from '../../mocks';
-import { mapAuthRoleToRoleId } from '../../lib/active-user';
 import { isAdminOrSuperKey, useActiveRoleKey } from '../../lib/active-user';
-import { useAuth } from '../../lib/auth-context';
 import { useChatSocket } from '../../hooks/use-chat-socket';
 import { useChatStore } from '../../stores/chat-store';
 import { Button } from '../../components/ui';
@@ -22,8 +19,6 @@ export default function ChatPage() {
   const peerFromUrl = searchParams.get('peer');
   const openedPeerRef = useRef<string | null>(null);
   const { isMobile } = useBreakpoint();
-  const { user } = useAuth();
-  const roleId = mapAuthRoleToRoleId(user?.role);
   const roleKey = useActiveRoleKey();
   const canManageGroups = isAdminOrSuperKey(roleKey);
 
@@ -89,8 +84,6 @@ export default function ChatPage() {
     setShowNewDirect(false);
     handleSelect(conversation.id);
   };
-
-  if (!canView('chat', roleId)) return null;
 
   const headerExtra = (
     <div style={{ display: 'flex', gap: 6 }}>

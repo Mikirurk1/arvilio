@@ -1,3 +1,9 @@
+import type {
+  LessonPriceByCurrencyDto,
+  StudentBillingModeDto,
+  StudentPackageOverrideDto,
+} from './payment-billing';
+
 /** Role catalog: each entry has a stable id and a machine-friendly name (slug). */
 export const USER_ROLE = {
   student: { id: 1, name: 'student' },
@@ -292,9 +298,27 @@ export type AuthSessionDto = {
   user: AuthUserDto;
 };
 
+export type WebRequestSessionDto = {
+  authenticated: boolean;
+  user: AuthUserDto | null;
+  authStrategy: 'access' | 'refresh' | 'anonymous';
+  scope: 'school' | 'platform';
+  availableScopes: Array<'school' | 'platform'>;
+  tenantKey: string | null;
+};
+
 export type LoginRequestDto = {
   email: string;
   password: string;
+};
+
+export type ForgotPasswordRequestDto = {
+  email: string;
+};
+
+export type ResetPasswordRequestDto = {
+  token: string;
+  newPassword: string;
 };
 
 /** Backend-returned summary row for the admin users list. */
@@ -311,6 +335,372 @@ export type LanguageDto = {
   id: string;
   code: string;
   name: string;
+};
+
+export type PaymentMethodKindDto =
+  | 'manual_invoice'
+  | 'stripe'
+  | 'liqpay'
+  | 'wayforpay'
+  | 'lemonsqueezy'
+  | 'paddle'
+  | 'monopay'
+  | 'paypal';
+
+export type LessonPackageDto = {
+  id: string;
+  lessons: number;
+  label: string;
+  /** Per-package currency override; falls back to platform defaultCurrency. */
+  currency?: string;
+};
+
+/** Package with resolved price for a specific student (or platform default). */
+export type ResolvedLessonPackageDto = LessonPackageDto & {
+  amountMinor: number;
+  pricePerLessonMinor: number;
+  currency: string;
+  isCustomPrice: boolean;
+  /** Fixed lesson count for this student; student cannot pick another size. */
+  lessonsLocked: boolean;
+};
+
+export type ManualInvoiceMethodKindDto = 'iban_sepa' | 'swift_wire' | 'card_transfer' | 'custom';
+
+export type ManualInvoiceMethodBaseDto = {
+  id: string;
+  kind: ManualInvoiceMethodKindDto;
+  label: string;
+  description: string;
+  receiptHintUk: string;
+  paymentReferenceHint: string;
+  recipientTaxId: string | null;
+  paymentPurpose: string | null;
+  importantNotes: string[];
+};
+
+export type ManualInvoiceIbanMethodDto = ManualInvoiceMethodBaseDto & {
+  kind: 'iban_sepa';
+  beneficiaryName: string;
+  iban: string;
+  bankName: string | null;
+  bankCountry: string | null;
+  bic: string | null;
+};
+
+export type ManualInvoiceSwiftMethodDto = ManualInvoiceMethodBaseDto & {
+  kind: 'swift_wire';
+  beneficiaryName: string;
+  accountNumber: string;
+  iban: string | null;
+  bankName: string | null;
+  bankAddress: string | null;
+  swiftBic: string;
+  beneficiaryAddress: string | null;
+  intermediaryBankName: string | null;
+  intermediarySwiftBic: string | null;
+};
+
+export type ManualInvoiceCardMethodDto = ManualInvoiceMethodBaseDto & {
+  kind: 'card_transfer';
+  beneficiaryName: string;
+  bankName: string;
+  cardNumber: string;
+};
+
+export type ManualInvoiceCustomMethodDto = ManualInvoiceMethodBaseDto & {
+  kind: 'custom';
+  instructionsUk: string;
+};
+
+export type ManualInvoiceMethodDto =
+  | ManualInvoiceIbanMethodDto
+  | ManualInvoiceSwiftMethodDto
+  | ManualInvoiceCardMethodDto
+  | ManualInvoiceCustomMethodDto;
+
+export type StudentManualInvoiceSelectionDto = {
+  /**
+   * Empty = all platform manual invoice methods are allowed for the student.
+   */
+  allowedMethodIds: string[];
+  /**
+   * Optional recommended/default manual method for the student.
+   */
+  defaultMethodId: string | null;
+};
+
+export type StudentPaymentMethodSelectionDto = {
+  /**
+   * Empty = all platform-enabled payment methods are allowed for the student.
+   */
+  allowedMethods: PaymentMethodKindDto[];
+  /**
+   * When true (set from staff Billing save with a partial allowlist), the student only
+   * sees listed methods. When false, non-empty allowlists still receive newly enabled
+   * platform providers (legacy migration default).
+   */
+  restrictToAllowlistOnly?: boolean;
+};
+
+export type PaymentEnvironmentModeDto = 'live' | 'test';
+
+export const DEFAULT_PAYMENT_ENVIRONMENT_MODE: PaymentEnvironmentModeDto = 'live';
+
+export type StripeConfigDto = {
+  mode: PaymentEnvironmentModeDto;
+  livePublishableKey?: string;
+  testPublishableKey?: string;
+};
+
+export type LiqPayConfigDto = {
+  mode: PaymentEnvironmentModeDto;
+  livePublicKey?: string;
+  testPublicKey?: string;
+};
+
+export type WayForPayConfigDto = {
+  mode: PaymentEnvironmentModeDto;
+  liveMerchantAccount?: string;
+  liveMerchantDomainName?: string;
+  testMerchantAccount?: string;
+  testMerchantDomainName?: string;
+};
+
+export type LemonSqueezyConfigDto = {
+  mode: PaymentEnvironmentModeDto;
+  liveStoreId?: string;
+  liveVariantId?: string;
+  /** ISO currency of the live Lemon Squeezy variant (checkout amount uses variant currency). */
+  liveVariantCurrency?: string;
+  testStoreId?: string;
+  testVariantId?: string;
+  /** ISO currency of the test Lemon Squeezy variant. */
+  testVariantCurrency?: string;
+};
+
+export type PaddleConfigDto = {
+  mode: PaymentEnvironmentModeDto;
+};
+
+export type MonoPayConfigDto = {
+  mode: PaymentEnvironmentModeDto;
+};
+
+export type PayPalConfigDto = {
+  mode: PaymentEnvironmentModeDto;
+  liveClientId?: string;
+  testClientId?: string;
+};
+
+export type PaymentSecretFieldSourceDto = 'system' | 'env' | 'missing';
+
+export type PaymentSecretFieldStatusDto = {
+  configured: boolean;
+  source: PaymentSecretFieldSourceDto;
+};
+
+export type StripeSecretsDto = {
+  liveSecretKey?: string;
+  liveWebhookSecret?: string;
+  testSecretKey?: string;
+  testWebhookSecret?: string;
+};
+
+export type LiqPaySecretsDto = {
+  livePrivateKey?: string;
+  testPrivateKey?: string;
+};
+
+export type WayForPaySecretsDto = {
+  liveSecretKey?: string;
+  testSecretKey?: string;
+};
+
+export type LemonSqueezySecretsDto = {
+  liveApiKey?: string;
+  liveWebhookSecret?: string;
+  testApiKey?: string;
+  testWebhookSecret?: string;
+};
+
+export type PaddleSecretsDto = {
+  liveApiKey?: string;
+  liveWebhookSecret?: string;
+  testApiKey?: string;
+  testWebhookSecret?: string;
+};
+
+export type MonoPaySecretsDto = {
+  liveToken?: string;
+  testToken?: string;
+};
+
+export type PayPalSecretsDto = {
+  liveClientSecret?: string;
+  liveWebhookId?: string;
+  testClientSecret?: string;
+  testWebhookId?: string;
+};
+
+export type PaymentSecretsDto = {
+  stripe?: StripeSecretsDto;
+  liqpay?: LiqPaySecretsDto;
+  wayforpay?: WayForPaySecretsDto;
+  lemonsqueezy?: LemonSqueezySecretsDto;
+  paddle?: PaddleSecretsDto;
+  monopay?: MonoPaySecretsDto;
+  paypal?: PayPalSecretsDto;
+};
+
+export type PaymentSecretStatusesDto = {
+  stripe: {
+    liveSecretKey: PaymentSecretFieldStatusDto;
+    liveWebhookSecret: PaymentSecretFieldStatusDto;
+    testSecretKey: PaymentSecretFieldStatusDto;
+    testWebhookSecret: PaymentSecretFieldStatusDto;
+  };
+  liqpay: {
+    livePrivateKey: PaymentSecretFieldStatusDto;
+    testPrivateKey: PaymentSecretFieldStatusDto;
+  };
+  wayforpay: {
+    liveSecretKey: PaymentSecretFieldStatusDto;
+    testSecretKey: PaymentSecretFieldStatusDto;
+  };
+  lemonsqueezy: {
+    liveApiKey: PaymentSecretFieldStatusDto;
+    liveWebhookSecret: PaymentSecretFieldStatusDto;
+    testApiKey: PaymentSecretFieldStatusDto;
+    testWebhookSecret: PaymentSecretFieldStatusDto;
+  };
+  paddle: {
+    liveApiKey: PaymentSecretFieldStatusDto;
+    liveWebhookSecret: PaymentSecretFieldStatusDto;
+    testApiKey: PaymentSecretFieldStatusDto;
+    testWebhookSecret: PaymentSecretFieldStatusDto;
+  };
+  monopay: {
+    liveToken: PaymentSecretFieldStatusDto;
+    testToken: PaymentSecretFieldStatusDto;
+  };
+  paypal: {
+    liveClientSecret: PaymentSecretFieldStatusDto;
+    liveWebhookId: PaymentSecretFieldStatusDto;
+    testClientSecret: PaymentSecretFieldStatusDto;
+    testWebhookId: PaymentSecretFieldStatusDto;
+  };
+};
+
+export type PaymentConfigDto = {
+  packages: LessonPackageDto[];
+  /** Platform default price for one lesson in `defaultCurrency` (minor units). Kept in sync with pricePerLessonByCurrency. */
+  defaultPricePerLessonMinor: number;
+  /** Per-currency lesson prices for allowed currencies. */
+  pricePerLessonByCurrency: LessonPriceByCurrencyDto[];
+  defaultCurrency: string;
+  /** ISO codes enabled for platform pricing (subset of PAYMENT_CURRENCY_OPTIONS). */
+  allowedCurrencies: string[];
+  /** Minimum lessons in a self-serve package (student checkout). */
+  minPackageLessons: number;
+  manualInvoiceMethods: ManualInvoiceMethodDto[];
+  stripe?: StripeConfigDto;
+  liqpay?: LiqPayConfigDto;
+  wayforpay?: WayForPayConfigDto;
+  lemonsqueezy?: LemonSqueezyConfigDto;
+  paddle?: PaddleConfigDto;
+  monopay?: MonoPayConfigDto;
+  paypal?: PayPalConfigDto;
+};
+
+export type PaymentMethodStatusDto = {
+  id: PaymentMethodKindDto;
+  enabled: boolean;
+  configured: boolean;
+  configuredLabel: string;
+  mode?: PaymentEnvironmentModeDto | null;
+};
+
+export type PaymentSettingsDto = {
+  enabledMethods: PaymentMethodKindDto[];
+  config: PaymentConfigDto;
+  methods: PaymentMethodStatusDto[];
+  secretStatuses: PaymentSecretStatusesDto;
+};
+
+export type UpdateStudentLessonPricingRequestDto = {
+  studentId: string;
+  /** null clears override and uses platform default. */
+  pricePerLessonMinor: number | null;
+};
+
+export type UpdateStudentLessonBillingRequestDto = {
+  studentId: string;
+  billingMode: StudentBillingModeDto;
+  packageOverrides: StudentPackageOverrideDto[];
+  paymentMethodSelection: StudentPaymentMethodSelectionDto;
+  manualInvoiceSelection: StudentManualInvoiceSelectionDto;
+};
+
+export type UpdatePaymentSettingsRequestDto = {
+  enabledMethods: PaymentMethodKindDto[];
+  config: PaymentConfigDto;
+  secrets?: PaymentSecretsDto;
+};
+
+export type LessonBalanceLedgerEntryDto = {
+  id: string;
+  delta: number;
+  balanceAfter: number;
+  kind: string;
+  note: string | null;
+  createdAt: string;
+  scheduledLessonId: string | null;
+};
+
+export type StudentLessonBalanceDto = {
+  balance: number;
+  isDebt: boolean;
+  availableMethods: PaymentMethodKindDto[];
+  /** Platform-enabled methods (for staff assignment UI). */
+  enabledPaymentMethods: PaymentMethodKindDto[];
+  paymentMethodSelection: StudentPaymentMethodSelectionDto;
+  manualInvoiceMethods: ManualInvoiceMethodDto[];
+  /** Full platform manual-invoice list for admin restriction UI. */
+  platformManualInvoiceMethods: ManualInvoiceMethodDto[];
+  manualInvoiceSelection: StudentManualInvoiceSelectionDto;
+  billingMode: StudentBillingModeDto;
+  packageOverrides: StudentPackageOverrideDto[];
+  /** Platform package templates (staff billing UI). */
+  platformPackages: LessonPackageDto[];
+  showPerLessonPricing: boolean;
+  showSelfServePackages: boolean;
+  allowedCurrencies: string[];
+  minPackageLessons: number;
+  pricePerLessonMinor: number | null;
+  defaultPricePerLessonMinor: number;
+  resolvedPricePerLessonMinor: number;
+  defaultCurrency: string;
+  isCustomPrice: boolean;
+  packages: ResolvedLessonPackageDto[];
+  recentLedger: LessonBalanceLedgerEntryDto[];
+  /** Active Lemon Squeezy variant currency for student checkout filtering. */
+  lemonSqueezyVariantCurrency?: string | null;
+};
+
+export type AdjustStudentLessonBalanceRequestDto = {
+  studentId: string;
+  lessons: number;
+  note?: string | null;
+};
+
+export type CreateLessonPurchaseCheckoutRequestDto = {
+  method: PaymentMethodKindDto;
+  packageId: string;
+};
+
+export type LessonPurchaseCheckoutDto = {
+  checkoutUrl: string;
 };
 
 export type UpdateAdminStudentRequestDto = {

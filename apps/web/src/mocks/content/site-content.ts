@@ -44,16 +44,15 @@ export const siteContent = {
     },
     {
       id: 'activity-speaking',
-      href: '#',
+      href: '/practice/speaking',
       title: 'Speaking',
       description:
-        'Guided speaking prompts and pronunciation practice — we are preparing this mode for your level.',
+        'Guided speaking prompts and short reflection practice with live session tracking.',
       icon: 'mic',
-      tag: 'Soon',
-      tagClass: 'tagMuted' as const,
-      disabled: true,
-      stat: '2 pending',
-      ctaLabel: 'Coming soon',
+      tag: 'Live',
+      tagClass: 'tagAmber' as const,
+      stat: '3 prompts',
+      ctaLabel: 'Start speaking',
       accent: 'purple' as const,
     },
     {

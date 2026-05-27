@@ -5,13 +5,11 @@ import { usePathname } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { Tooltip } from '../ui';
 import {
-  isAdminOrSuperKey,
-  isSuperAdminKey,
-  isTeacherAdminOrSuperKey,
   useActiveRoleKey,
 } from '../../lib/active-user';
 import { useChatNavBadge } from '../../hooks/use-chat-nav-badge';
 import { usePracticeNavBadge } from '../../hooks/use-practice-nav-badge';
+import { canRoleAccessPathname } from '../../lib/auth/route-policy';
 import styles from './Sidebar.module.scss';
 
 export type NavItem = {
@@ -42,6 +40,7 @@ export const navSections = [
   {
     section: 'Account',
     items: [
+      { href: '/payment', label: 'Payment', icon: 'payment' },
       { href: '/admin', label: 'Admin', icon: 'admin' },
       { href: '/system', label: 'System', icon: 'system' },
       { href: '/profile', label: 'Profile & Settings', icon: 'profile' },
@@ -121,6 +120,12 @@ export const navIcons: Record<string, React.ReactNode> = {
       <path d="M6 6.5h6M6 9h6M6 11.5h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
     </svg>
   ),
+  payment: (
+    <svg viewBox="0 0 18 18" fill="none">
+      <rect x="2" y="4.5" width="14" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M2 7.5h14" stroke="currentColor" strokeWidth="1.3" />
+    </svg>
+  ),
   admin: (
     <svg viewBox="0 0 18 18" fill="none">
       <path
@@ -163,19 +168,11 @@ export function useVisibleNavSections() {
   const practiceTotal = usePracticeNavBadge();
   const chatUnread = useChatNavBadge();
   const roleKey = useActiveRoleKey();
-  const canSeeStudents = isTeacherAdminOrSuperKey(roleKey);
-  const canSeeAdmin = isAdminOrSuperKey(roleKey);
-  const canSeeSystem = isSuperAdminKey(roleKey);
 
   return navSections.map((section) => ({
     ...section,
     items: section.items
-      .filter((item) => {
-        if (item.href === '/students') return canSeeStudents;
-        if (item.href === '/admin') return canSeeAdmin;
-        if (item.href === '/system') return canSeeSystem;
-        return true;
-      })
+      .filter((item) => canRoleAccessPathname(item.href, roleKey))
       .map((item) => {
         if (item.href === '/practice' && practiceTotal > 0) {
           return { ...item, badge: String(practiceTotal), badgeColor: 'green' as const };

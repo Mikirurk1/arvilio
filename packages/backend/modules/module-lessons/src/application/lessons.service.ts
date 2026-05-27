@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { LessonBalanceService } from '@be/billing';
 import { PrismaService } from '@be/prisma';
 import type {
   CreateScheduledLessonRequestDto,
@@ -45,6 +46,7 @@ const lessonInclude = {
 };
 
 type LessonRecord = Awaited<ReturnType<LessonsService['fetchLesson']>>;
+const TEACHING_ROLES = new Set(['TEACHER', 'ADMIN', 'SUPER_ADMIN']);
 
 @Injectable()
 export class LessonsService {
@@ -52,6 +54,7 @@ export class LessonsService {
     private readonly prisma: PrismaService,
     private readonly googleCalendar: GoogleCalendarService,
     private readonly lessonAttachments: LessonAttachmentService,
+    private readonly lessonBalance: LessonBalanceService,
   ) {}
 
   async fetchLesson(id: string) {
@@ -126,12 +129,8 @@ export class LessonsService {
 
   /** Mark past PLANNED lessons as COMPLETED (not CANCELLED). */
   private async autoCompletePastPlannedLessons(userId: string): Promise<void> {
-    await this.prisma.$executeRaw`
-      UPDATE "ScheduledLesson"
-      SET
-        status = 'COMPLETED'::"LessonStatus",
-        credited = true,
-        "updatedAt" = NOW()
+    const toComplete = await this.prisma.$queryRaw<{ id: string }[]>`
+      SELECT id FROM "ScheduledLesson"
       WHERE status = 'PLANNED'::"LessonStatus"
         AND ("teacherId" = ${userId} OR "studentId" = ${userId})
         AND (
@@ -139,6 +138,15 @@ export class LessonsService {
           < NOW()
         )
     `;
+    if (toComplete.length === 0) return;
+
+    const ids = toComplete.map((r) => r.id);
+    await this.prisma.scheduledLesson.updateMany({
+      where: { id: { in: ids } },
+      data: { status: 'COMPLETED', credited: true },
+    });
+
+    await this.lessonBalance.syncLessonsAfterAutoComplete(ids);
   }
 
   async listFor(userId: string): Promise<ScheduledLessonBackendDto[]> {
@@ -212,6 +220,88 @@ export class LessonsService {
     return lesson;
   }
 
+  private async resolveActorRole(
+    actorUserId: string,
+  ): Promise<'STUDENT' | 'TEACHER' | 'ADMIN' | 'SUPER_ADMIN' | null> {
+    const actor = await this.prisma.user.findUnique({
+      where: { id: actorUserId },
+      select: { role: true },
+    });
+    return actor?.role ?? null;
+  }
+
+  private assertStudentCanOnlyUpdateOwnResponse(
+    lesson: NonNullable<LessonRecord>,
+    body: UpdateScheduledLessonRequestDto,
+  ): void {
+    const current = this.toDto(lesson);
+    const same = (left: unknown, right: unknown) => JSON.stringify(left) === JSON.stringify(right);
+    const forbidden = () =>
+      new ForbiddenException('Students can only update their own lesson response');
+
+    if (body.title !== undefined && body.title !== current.title) throw forbidden();
+    if (body.description !== undefined && body.description !== current.description) throw forbidden();
+    if (body.notes !== undefined && body.notes !== current.notes) throw forbidden();
+    if (body.lessonPlan !== undefined && body.lessonPlan !== current.lessonPlan) throw forbidden();
+    if (body.date !== undefined && body.date !== current.date) throw forbidden();
+    if (body.startTime !== undefined && body.startTime !== current.startTime) throw forbidden();
+    if (body.endTime !== undefined && body.endTime !== current.endTime) throw forbidden();
+    if (body.duration !== undefined && body.duration !== current.duration) throw forbidden();
+    if (body.timezone !== undefined && body.timezone !== current.timezone) throw forbidden();
+    if (body.status !== undefined && body.status !== current.status) throw forbidden();
+    if (body.recurrence !== undefined && body.recurrence !== current.recurrence) throw forbidden();
+    if (body.cancelReason !== undefined && body.cancelReason !== current.cancelReason) throw forbidden();
+    if (body.credited !== undefined && body.credited !== current.credited) throw forbidden();
+    if (body.seriesId !== undefined && (body.seriesId ?? null) !== (current.seriesId ?? null)) {
+      throw forbidden();
+    }
+    if (body.weeklyDays !== undefined && !same(body.weeklyDays, current.weeklyDays ?? [])) {
+      throw forbidden();
+    }
+    if (body.linkedWordIds !== undefined && !same(body.linkedWordIds, current.linkedWordIds ?? [])) {
+      throw forbidden();
+    }
+
+    if (body.materials !== undefined) {
+      const currentMaterials = current.materials.map((material) => ({
+        kind: material.kind,
+        text: material.text ?? '',
+        files: material.files ?? [],
+      }));
+      const nextMaterials = body.materials.map((material) => ({
+        kind: material.kind,
+        text: material.text ?? '',
+        files: material.files ?? [],
+      }));
+      if (!same(nextMaterials, currentMaterials)) throw forbidden();
+    }
+
+    if (body.homework !== undefined) {
+      const currentHomework = {
+        text: current.homework?.text ?? '',
+        files: current.homework?.files ?? [],
+      };
+      const nextHomework = {
+        text: body.homework.text ?? '',
+        files: body.homework.files ?? [],
+      };
+      if (!same(nextHomework, currentHomework)) throw forbidden();
+    }
+
+    if (body.studentResponse?.homeworkChecked !== undefined) {
+      if (body.studentResponse.homeworkChecked !== current.studentResponse.homeworkChecked) {
+        throw forbidden();
+      }
+    }
+    if (body.studentResponse?.teacherHomeworkFeedback !== undefined) {
+      if (
+        body.studentResponse.teacherHomeworkFeedback !== current.studentResponse.teacherHomeworkFeedback
+      ) {
+        throw forbidden();
+      }
+    }
+  }
+
   async create(actorUserId: string, body: CreateScheduledLessonRequestDto): Promise<ScheduledLessonBackendDto> {
     if (!body.title?.trim()) throw new BadRequestException('Title is required');
     if (!body.date) throw new BadRequestException('Date is required');
@@ -227,10 +317,26 @@ export class LessonsService {
     }
 
     const teacherId = body.teacherId ?? actorUserId;
-    const teacher = await this.prisma.user.findUnique({ where: { id: teacherId } });
-    if (!teacher) throw new BadRequestException('Teacher not found');
-    const student = await this.prisma.user.findUnique({ where: { id: body.studentId } });
-    if (!student) throw new BadRequestException('Student not found');
+    const teacher = await this.prisma.user.findUnique({
+      where: { id: teacherId },
+      select: { id: true, role: true, timezone: true },
+    });
+    if (!teacher || !TEACHING_ROLES.has(teacher.role)) {
+      throw new BadRequestException('Teacher not found');
+    }
+    const student = await this.prisma.user.findUnique({
+      where: { id: body.studentId },
+      select: { id: true, role: true, teacherId: true, email: true },
+    });
+    if (!student || student.role !== 'STUDENT') throw new BadRequestException('Student not found');
+    if (actor.role === 'TEACHER') {
+      if (teacherId !== actorUserId) {
+        throw new ForbiddenException('Teachers can only create lessons for themselves');
+      }
+      if (student.teacherId !== actorUserId) {
+        throw new ForbiddenException('Teachers can only create lessons for their own students');
+      }
+    }
 
     const duration = body.duration ?? (body.endTime ? diffMinutes(body.startTime, body.endTime) : 55);
     const endTime = body.endTime ?? addMinutes(body.startTime, duration);
@@ -311,6 +417,10 @@ export class LessonsService {
 
   async ensureMeetLink(lessonId: string, actorUserId: string): Promise<ScheduledLessonBackendDto> {
     const lesson = await this.ensureMembership(lessonId, actorUserId);
+    const actorRole = await this.resolveActorRole(actorUserId);
+    if (actorRole === 'STUDENT') {
+      throw new ForbiddenException('Only staff can create Google Meet links');
+    }
     if (lesson.googleMeetUrl) {
       return this.toDto(lesson);
     }
@@ -441,6 +551,16 @@ export class LessonsService {
     body: UpdateScheduledLessonRequestDto,
   ): Promise<ScheduledLessonBackendDto> {
     const lesson = await this.ensureMembership(lessonId, actorUserId);
+    const actorRole = await this.resolveActorRole(actorUserId);
+    if (!actorRole) {
+      throw new ForbiddenException('Only lesson participants can update lessons');
+    }
+    if (actorRole === 'STUDENT') {
+      if (lesson.studentId !== actorUserId) {
+        throw new ForbiddenException('Students can only update their own lesson response');
+      }
+      this.assertStudentCanOnlyUpdateOwnResponse(lesson, body);
+    }
 
     const updates: Prisma.ScheduledLessonUpdateInput = {};
     if (body.title !== undefined) updates['title'] = body.title;
@@ -514,11 +634,17 @@ export class LessonsService {
       });
     }
 
+    await this.lessonBalance.syncLessonCharge(lessonId);
+
     return this.toDto(full);
   }
 
   async remove(lessonId: string, actorUserId: string): Promise<void> {
     const lesson = await this.ensureMembership(lessonId, actorUserId);
+    const actorRole = await this.resolveActorRole(actorUserId);
+    if (actorRole === 'STUDENT') {
+      throw new ForbiddenException('Only staff can delete lessons');
+    }
     if (lesson.googleCalendarEventId) {
       await this.googleCalendar.deleteEvent(lesson.teacherId, lesson.googleCalendarEventId);
     }

@@ -17,16 +17,16 @@ export type BreakpointState = {
   isDesktop: boolean;
 };
 
+const DEFAULT_BREAKPOINT_STATE: BreakpointState = {
+  width: BREAKPOINTS.md,
+  tier: 'desktop',
+  isMobile: false,
+  isTablet: false,
+  isDesktop: true,
+};
+
 function readBreakpoint(): BreakpointState {
-  if (typeof window === 'undefined') {
-    return {
-      width: BREAKPOINTS.md,
-      tier: 'desktop',
-      isMobile: false,
-      isTablet: false,
-      isDesktop: true,
-    };
-  }
+  if (typeof window === 'undefined') return DEFAULT_BREAKPOINT_STATE;
   const width = window.innerWidth;
   const tier = tierFromWidth(width);
   return {
@@ -39,7 +39,9 @@ function readBreakpoint(): BreakpointState {
 }
 
 export function useBreakpoint(): BreakpointState {
-  const [state, setState] = useState<BreakpointState>(readBreakpoint);
+  // Keep the very first client render identical to SSR. We read the real viewport
+  // only after mount to avoid hydration mismatches in components that branch by breakpoint.
+  const [state, setState] = useState<BreakpointState>(DEFAULT_BREAKPOINT_STATE);
 
   useEffect(() => {
     const mobileMq = window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH}px)`);

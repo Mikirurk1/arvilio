@@ -14,13 +14,14 @@ Sent when an admin creates a user via [[concepts/auth-rbac#Account provisioning]
 | Template ID | Props (main) |
 |-------------|----------------|
 | `welcome-account` | `displayName`, `email`, `password`, `loginUrl` |
+| `password-reset` | `displayName`, `resetUrl`, `expiresInMinutes` |
 | `lesson-reminder` | `lessonTitle`, `lessonDate`, `startTime`, `timezone`, `meetUrl` |
 | `streak-alert` | `streakDays`, `appUrl` |
 | `weekly-report` | `lessonsThisWeek`, `lessonsCompleted`, `vocabularyCount`, `reviewCount`, `appUrl` |
 | `new-vocabulary` | `word`, `definition`, `appUrl` |
 | `teacher-message` | `teacherName`, `body`, `appUrl` |
 
-Implementation: `renderEmail()` in `@be/email-templates`; `MailService.sendTemplated` / `sendWelcomeAccount` in `@be/mail`. Notification cron uses the same renderer via `NotificationsMailService` → `MailService`.
+Implementation: `renderEmail()` in `@be/email-templates`; `MailService.sendTemplated` / `sendWelcomeAccount` / `sendPasswordReset` in `@be/mail`. Notification cron uses the same renderer via `NotificationsMailService` → `MailService`.
 
 See [[concepts/profile-notifications]] for prefs and schedules.
 

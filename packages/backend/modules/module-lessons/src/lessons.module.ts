@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { BillingModule } from '@be/billing';
 import { PrismaModule } from '@be/prisma';
 import { LessonsService } from './application/lessons.service';
 import { LessonAttachmentService } from './application/lesson-attachment.service';
@@ -8,7 +9,7 @@ import { LessonsResolver } from './presentation/graphql/lessons.resolver';
 import { ScheduledLessonsController } from './presentation/rest/scheduled-lessons.controller';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, BillingModule],
   controllers: [ScheduledLessonsController, LessonFilesController],
   providers: [LessonsService, GoogleCalendarService, LessonAttachmentService, LessonsResolver],
   exports: [LessonsService, GoogleCalendarService, LessonAttachmentService, LessonsResolver],

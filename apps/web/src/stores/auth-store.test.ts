@@ -29,8 +29,10 @@ const sampleUser = mockAuthUser({
 describe('auth-store', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    window.__SOENGLISH_AUTH__ = undefined;
     useAuthStore.setState({
       user: null,
+      initialized: false,
       loading: false,
       error: null,
       googleSignInUrl: '/api/auth/google',
@@ -41,6 +43,7 @@ describe('auth-store', () => {
     mockPost.mockResolvedValueOnce({ user: sampleUser });
     await useAuthStore.getState().login({ email: 'student@test.local', password: 'x' });
     expect(useAuthStore.getState().user?.email).toBe('student@test.local');
+    expect(useAuthStore.getState().initialized).toBe(true);
     expect(mockPost).toHaveBeenCalledWith('/auth/login', {
       email: 'student@test.local',
       password: 'x',
@@ -51,52 +54,45 @@ describe('auth-store', () => {
     mockGet.mockResolvedValueOnce({ user: sampleUser });
     await useAuthStore.getState().refresh();
     expect(useAuthStore.getState().user?.id).toBe('u1');
+    expect(useAuthStore.getState().initialized).toBe(true);
     expect(useAuthStore.getState().loading).toBe(false);
   });
 
-  it('refresh tries /auth/refresh on 401', async () => {
+  it('refresh clears user on 401', async () => {
     const { ApiError } = jest.requireMock('../lib/api') as {
       ApiError: new (status: number) => Error;
     };
     mockGet.mockRejectedValueOnce(new ApiError(401));
-    mockPost.mockResolvedValueOnce({ user: sampleUser });
     await useAuthStore.getState().refresh();
-    expect(mockPost).toHaveBeenCalledWith('/auth/refresh');
-    expect(useAuthStore.getState().user?.email).toBe('student@test.local');
+    expect(useAuthStore.getState().user).toBeNull();
+    expect(useAuthStore.getState().initialized).toBe(true);
+    expect(useAuthStore.getState().loading).toBe(false);
   });
 
   it('logout clears user', async () => {
-    useAuthStore.setState({ user: sampleUser });
+    useAuthStore.setState({ user: sampleUser, initialized: true });
     mockPost.mockResolvedValueOnce({ ok: true });
     await useAuthStore.getState().logout();
     expect(useAuthStore.getState().user).toBeNull();
+    expect(useAuthStore.getState().initialized).toBe(true);
   });
 
   it('logout clears user even when API fails', async () => {
-    useAuthStore.setState({ user: sampleUser });
+    useAuthStore.setState({ user: sampleUser, initialized: true });
     mockPost.mockRejectedValueOnce(new Error('network'));
     await useAuthStore.getState().logout();
     expect(useAuthStore.getState().user).toBeNull();
+    expect(useAuthStore.getState().initialized).toBe(true);
   });
 
-  it('refresh rotates session on 403', async () => {
+  it('refresh clears user on 403', async () => {
     const { ApiError } = jest.requireMock('../lib/api') as {
       ApiError: new (status: number) => Error;
     };
     mockGet.mockRejectedValueOnce(new ApiError(403));
-    mockPost.mockResolvedValueOnce({ user: sampleUser });
-    await useAuthStore.getState().refresh();
-    expect(useAuthStore.getState().user?.id).toBe('u1');
-  });
-
-  it('refresh clears user when refresh fails after 401', async () => {
-    const { ApiError } = jest.requireMock('../lib/api') as {
-      ApiError: new (status: number) => Error;
-    };
-    mockGet.mockRejectedValueOnce(new ApiError(401));
-    mockPost.mockRejectedValueOnce(new Error('refresh failed'));
     await useAuthStore.getState().refresh();
     expect(useAuthStore.getState().user).toBeNull();
+    expect(useAuthStore.getState().initialized).toBe(true);
     expect(useAuthStore.getState().loading).toBe(false);
   });
 
@@ -104,6 +100,7 @@ describe('auth-store', () => {
     mockGet.mockRejectedValueOnce(new Error('Server down'));
     await useAuthStore.getState().refresh();
     expect(useAuthStore.getState().user).toBeNull();
+    expect(useAuthStore.getState().initialized).toBe(true);
     expect(useAuthStore.getState().error).toBe('Server down');
   });
 

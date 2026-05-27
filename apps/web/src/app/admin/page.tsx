@@ -2,8 +2,8 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Shield, Trash2, UserPlus } from 'lucide-react';
-import { Button, EmptyStateCard, Field, PageHeader } from '../../components/ui';
-import { useActiveRoleKey, isAdminOrSuperKey } from '../../lib/active-user';
+import { Button, Field, PageHeader } from '../../components/ui';
+import { useActiveRoleKey } from '../../lib/active-user';
 import { useOptionalAuth } from '../../lib/auth-context';
 import type { AdminUserSummaryDto } from '@pkg/types';
 import { selectLanguagesList, useLanguagesStore } from '../../stores/languages-store';
@@ -52,7 +52,6 @@ const TEACHING_ROLES = new Set<AdminUserSummaryDto['role']>(['teacher', 'admin',
 export default function AdminUsersPage() {
   const roleKey = useActiveRoleKey();
   const auth = useOptionalAuth();
-  const canAccess = isAdminOrSuperKey(roleKey);
   const canCreateAdmin = roleKey === 'super_admin';
   const allowedCreatableRoles: CreatableRole[] = canCreateAdmin
     ? ['student', 'teacher', 'admin']
@@ -65,8 +64,8 @@ export default function AdminUsersPage() {
   const deleteUser = useAdminStore((s) => s.deleteUser);
 
   useEffect(() => {
-    if (canAccess) void fetchUsers();
-  }, [canAccess, fetchUsers]);
+    void fetchUsers();
+  }, [fetchUsers]);
 
   const isLoading = usersSlice.status === 'loading' || usersSlice.status === 'idle';
   const isError = usersSlice.status === 'error';
@@ -79,8 +78,8 @@ export default function AdminUsersPage() {
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    if (canAccess) void fetchLanguages();
-  }, [canAccess, fetchLanguages]);
+    void fetchLanguages();
+  }, [fetchLanguages]);
 
   const users = usersSlice.data ?? [];
   const assignableTeachers = useMemo(() => {
@@ -101,17 +100,6 @@ export default function AdminUsersPage() {
     }
     return fromList;
   }, [auth?.user, users]);
-
-  if (!canAccess) {
-    return (
-      <div className={`${styles.page} container container--page`}>
-        <EmptyStateCard
-          title="No permission"
-          description="Admin user management is available only for admins and super-admins."
-        />
-      </div>
-    );
-  }
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

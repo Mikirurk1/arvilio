@@ -1,0 +1,142 @@
+.wrap {
+  min-height: 12rem;
+  padding: 4px 0;
+}
+
+.formGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.fieldGroup {
+  display: grid;
+  gap: 8px;
+}
+
+.labelSkeleton,
+.inputSkeleton,
+.defaultLine,
+.listLinePrimary,
+.listLineSecondary,
+.chartBlock,
+.chartSide,
+.chartMain,
+.gridCell,
+.billingHero,
+.billingCard {
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--border) 42%, transparent);
+  animation: tabPanelPulse 1.2s ease-in-out infinite;
+}
+
+.labelSkeleton {
+  width: 40%;
+  height: 12px;
+}
+
+.inputSkeleton {
+  width: 100%;
+  height: 40px;
+}
+
+.defaultStack {
+  display: grid;
+  gap: 10px;
+}
+
+.defaultLine {
+  width: 100%;
+  height: 14px;
+}
+
+.listStack {
+  display: grid;
+  gap: 12px;
+}
+
+.listRow {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.listLinePrimary {
+  width: 55%;
+  height: 14px;
+}
+
+.listLineSecondary {
+  width: 35%;
+  height: 12px;
+}
+
+.chartStack {
+  display: grid;
+  gap: 12px;
+}
+
+.chartBlock {
+  width: 100%;
+  height: 180px;
+  border-radius: var(--radius-md);
+}
+
+.chartRow {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 12px;
+  min-height: 140px;
+}
+
+.chartSide {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-md);
+}
+
+.chartMain {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-md);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.gridCell {
+  aspect-ratio: 1;
+  border-radius: var(--radius-md);
+}
+
+.billingStack {
+  display: grid;
+  gap: 14px;
+}
+
+.billingHero {
+  width: 100%;
+  height: 72px;
+  border-radius: var(--radius-lg);
+}
+
+.billingCard {
+  width: 100%;
+  height: 96px;
+  border-radius: var(--radius-md);
+}
+
+@keyframes tabPanelPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}

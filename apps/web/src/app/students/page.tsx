@@ -3,11 +3,7 @@
 import { useEffect } from 'react';
 import { EmptyStateCard, PageHeader } from '../../components/ui';
 import { StudentSummaryCard } from '../../components/students';
-import {
-  canView,
-  isTeacherAdminOrSuper,
-  USER_ROLE,
-} from '../../mocks';
+import { USER_ROLE } from '../../mocks';
 import { useActiveUser } from '../../lib/active-user';
 import { mapBackendStudentToProfile } from '../../lib/student-profile';
 import { useStudentsStore } from '../../stores/students-store';
@@ -17,22 +13,10 @@ export default function StudentsPage() {
   const activeUser = useActiveUser();
   const list = useStudentsStore((s) => s.list);
   const fetchStudents = useStudentsStore((s) => s.fetchStudents);
-  const allowedRoles = isTeacherAdminOrSuper(activeUser.role);
 
   useEffect(() => {
-    if (allowedRoles) void fetchStudents();
-  }, [allowedRoles, fetchStudents]);
-
-  if (!allowedRoles || !canView('dashboard', activeUser.role)) {
-    return (
-      <div className={`${styles.page} container container--page`}>
-        <EmptyStateCard
-          title="No permission"
-          description="Students section is available only for teacher, admin, and super admin roles."
-        />
-      </div>
-    );
-  }
+    void fetchStudents();
+  }, [fetchStudents]);
 
   const rows = list.data ?? [];
   const students = rows.map((row) => mapBackendStudentToProfile(row));

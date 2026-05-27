@@ -2,9 +2,15 @@
 
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
+import {
+  DEFAULT_FONT_SIZE_MODE,
+  DEFAULT_THEME_MODE,
+  UI_PERSIST_STORAGE_KEY,
+  type FontSizeMode,
+  type ThemeMode,
+} from '../lib/appearance/initial-appearance';
 
-export type ThemeMode = 'light' | 'dark' | 'auto';
-export type FontSizeMode = 'small' | 'medium' | 'large';
+export type { FontSizeMode, ThemeMode };
 
 type UiState = {
   theme: ThemeMode;
@@ -17,13 +23,13 @@ export const useUiStore = create<UiState>()(
   devtools(
     persist(
       (set) => ({
-        theme: 'auto',
-        fontSize: 'medium',
+        theme: DEFAULT_THEME_MODE,
+        fontSize: DEFAULT_FONT_SIZE_MODE,
         setTheme: (theme) => set({ theme }, false, 'ui/setTheme'),
         setFontSize: (fontSize) => set({ fontSize }, false, 'ui/setFontSize'),
       }),
       {
-        name: 'soenglish.ui',
+        name: UI_PERSIST_STORAGE_KEY,
         partialize: (state) => ({ theme: state.theme, fontSize: state.fontSize }),
       },
     ),

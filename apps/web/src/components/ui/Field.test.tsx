@@ -24,6 +24,23 @@ describe('Field', () => {
     expect(document.getElementById('email')).toBeInTheDocument();
   });
 
+  it('toggles password visibility from the inline action', () => {
+    render(<Field id="password" type="password" value="secret123" onChange={() => {}} />);
+
+    const input = document.getElementById('password') as HTMLInputElement;
+    expect(input.type).toBe('password');
+
+    const toggle = screen.getByRole('button', { name: 'Show password' });
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+
+    fireEvent.click(toggle);
+    expect(input.type).toBe('text');
+    expect(screen.getByRole('button', { name: 'Hide password' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
   it('shows error text', () => {
     render(
       <Field label="Name" id="name" value="" onChange={() => {}} error="Required" />,

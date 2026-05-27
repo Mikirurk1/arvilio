@@ -80,6 +80,7 @@ model User {
 
   oauthAccounts OAuthAccount[]
   refreshTokens AuthRefreshToken[]
+  passwordResetTokens PasswordResetToken[]
 
   vocabularyCards StudentWordCard[]
   progress        Progress[]
@@ -110,6 +111,11 @@ model User {
   chatConversationsCreated ChatConversation[]   @relation("ChatCreatedBy")
   chatParticipants         ChatParticipant[]
   chatMessagesSent           ChatMessage[]
+
+  lessonBalance           StudentLessonBalance?
+  lessonBalanceLedger     LessonBalanceLedger[] @relation("LessonBalanceLedgerUser")
+  lessonBalanceAdjustments LessonBalanceLedger[] @relation("LessonBalanceLedgerCreatedBy")
+  payments                Payment[]
 
   @@index([teacherId])
   @@index([nativeLanguageId])
@@ -257,6 +263,20 @@ model AuthRefreshToken {
   ipAddress String?
   createdAt DateTime  @default(now())
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id                   String   @id @default(cuid())
+  userId               String
+  tokenHash            String   @unique
+  expiresAt            DateTime
+  usedAt               DateTime?
+  requestedByIp        String?
+  requestedByUserAgent String?
+  createdAt            DateTime @default(now())
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -508,6 +528,7 @@ model ScheduledLesson {
   fileAttachments  LessonFileAttachment[]
   linkedWords      StudentWordCard[]
   quizzes          Quiz[]
+  balanceLedger    LessonBalanceLedger[]
 
   @@index([teacherId, date])
   @@index([studentId, date])
@@ -764,5 +785,100 @@ enum WordDictionaryProvider {
 model PlatformSettings {
   id                     String                 @id @default("default")
   wordDictionaryProvider WordDictionaryProvider @default(DICTIONARY_API_DEV)
+  enabledPaymentMethods  PaymentMethodKind[]    @default([])
+  paymentConfig          Json                   @default("{}")
+  paymentSecrets         String?
   updatedAt              DateTime               @updatedAt
+}
+
+// =====================
+// Lesson billing (prepaid balance)
+// =====================
+
+enum PaymentMethodKind {
+  MANUAL_INVOICE
+  STRIPE
+  LIQPAY
+  WAYFORPAY
+  LEMON_SQUEEZY
+  PADDLE
+  MONOPAY
+  PAYPAL
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
+enum LessonBalanceLedgerKind {
+  PURCHASE
+  MANUAL_CREDIT
+  CONSUMPTION
+  REVERSAL
+}
+
+enum StudentBillingMode {
+  PER_LESSON
+  PACKAGES
+  BOTH
+}
+
+/// One row per student; balance may be negative (debt).
+model StudentLessonBalance {
+  userId               String              @id
+  balance              Int                 @default(0)
+  /// Override platform price-per-lesson (minor units); null = use platform default.
+  pricePerLessonMinor  Int?
+  /// How this student is billed (per lesson, packages, or both).
+  billingMode          StudentBillingMode  @default(BOTH)
+  /// Per-student package rules: fixed lesson counts, enabled flags (JSON array).
+  packageOverrides     Json?
+  /// Per-student payment-method restriction: allowlist of enabled platform payment methods.
+  paymentMethodSelection Json?
+  /// Per-student manual invoice restrictions: allowlist + optional default method id.
+  manualInvoiceSelection Json?
+  updatedAt            DateTime            @updatedAt
+  user                 User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LessonBalanceLedger {
+  id                String                  @id @default(cuid())
+  userId            String
+  delta             Int
+  balanceAfter      Int
+  kind              LessonBalanceLedgerKind
+  scheduledLessonId String?
+  paymentId         String?
+  createdById       String?
+  note              String?
+  createdAt         DateTime                @default(now())
+
+  user            User             @relation("LessonBalanceLedgerUser", fields: [userId], references: [id], onDelete: Cascade)
+  scheduledLesson ScheduledLesson? @relation(fields: [scheduledLessonId], references: [id], onDelete: SetNull)
+  payment         Payment?         @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  createdBy       User?            @relation("LessonBalanceLedgerCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@unique([scheduledLessonId, kind])
+  @@index([userId, createdAt])
+}
+
+model Payment {
+  id             String            @id @default(cuid())
+  userId         String
+  method         PaymentMethodKind
+  status         PaymentStatus     @default(PENDING)
+  lessonsGranted Int               @default(0)
+  amountMinor    Int
+  currency       String            @default("UAH")
+  externalId     String?           @unique
+  metadata       Json?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ledgerEntries LessonBalanceLedger[]
+
+  @@index([userId, createdAt])
 }

@@ -1,5 +1,5 @@
 import * as jwt from 'jsonwebtoken';
-import { UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard, OptionalAuthGuard, extractAccessToken, verifyAccessToken } from './auth.guard';
 import { ACCESS_COOKIE, getJwtSecret } from '../../shared/auth-cookies';
 import { getReqRes } from '../../shared/auth-request.util';
@@ -75,6 +75,16 @@ describe('AuthGuard', () => {
     sessionAuth.resolveAuthenticatedUserId.mockResolvedValue(null);
 
     await expect(guard.canActivate({} as never)).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
+  it('canActivate propagates ForbiddenException for blocked sessions', async () => {
+    const req = { headers: {} };
+    (getReqRes as jest.Mock).mockReturnValue({ req, res: {} });
+    sessionAuth.resolveAuthenticatedUserId.mockRejectedValue(
+      new ForbiddenException({ code: 'account_blocked', message: 'Your account is blocked.' }),
+    );
+
+    await expect(guard.canActivate({} as never)).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it('OptionalAuthGuard allows anonymous requests', async () => {

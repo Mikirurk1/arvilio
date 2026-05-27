@@ -1,11 +1,17 @@
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { CurrentGqlUser, DashboardService, GqlAuthGuard } from '@be/auth';
+import {
+  AchievementStatsService,
+  CurrentGqlUser,
+  DashboardService,
+  GqlAuthGuard,
+} from '@be/auth';
 import { DailyGoalsService } from '../../application/daily-goals.service';
 import { PracticeSessionsService } from '../../application/practice-sessions.service';
 import { StreakService } from '@be/notifications';
 import type { RecordPracticeSessionRequestDto } from '@pkg/types';
 import {
+  AchievementStatsType,
   DailyGoalType,
   DashboardSummaryType,
   LearningStreakType,
@@ -19,6 +25,7 @@ import {
 @UseGuards(GqlAuthGuard)
 export class DashboardResolver {
   constructor(
+    private readonly achievements: AchievementStatsService,
     private readonly dashboard: DashboardService,
     private readonly dailyGoalsService: DailyGoalsService,
     private readonly practiceSessions: PracticeSessionsService,
@@ -33,6 +40,14 @@ export class DashboardResolver {
   @Query(() => LearningStreakType, { name: 'learningStreak', nullable: true })
   learningStreak(@CurrentGqlUser() userId: string) {
     return this.streak.learningStreakForDashboard(userId);
+  }
+
+  @Query(() => AchievementStatsType, { name: 'achievementStats' })
+  achievementStats(
+    @CurrentGqlUser() userId: string,
+    @Args('studentId', { nullable: true, type: () => ID }) studentId?: string,
+  ) {
+    return this.achievements.statsFor(userId, studentId);
   }
 
   @Query(() => WordOfDayType, { name: 'wordOfDay', nullable: true })

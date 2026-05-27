@@ -1,0 +1,23 @@
+---
+description: Build current single-school features with a clean path to future multi-tenant SaaS.
+alwaysApply: true
+---
+
+# Future multi-tenant architecture
+
+Today SoEnglish is implemented as a product for one school. Build for that reality by default, but do not make new architecture decisions that force a full rewrite when the product grows into a platform with many schools plus one central platform/admin service.
+
+## Rules
+
+1. **Single-school now, tenant-ready later** — do not over-engineer every feature for SaaS today, but leave clean seams for school context, tenant routing, and platform-vs-school permissions.
+2. **Always classify scope first** — for new auth, billing, settings, storage, and admin features, explicitly think: is this platform-wide, school-wide, membership-wide, or user-wide?
+3. **Do not hide school-scoped data inside platform singletons** unless it is clearly temporary and the code shape still allows extracting a `School` / tenant model later.
+4. **Prefer evolvable names and DTOs** — avoid naming new concepts as globally unique if they are likely to become school-scoped later.
+5. **Auth and routing** — avoid adding more client-only route protection or assumptions that one app context equals one school; keep room for future tenant-aware middleware/server-side auth.
+6. **Settings and secrets** — separate truly platform-global configuration from school-operated configuration whenever practical.
+7. **Permissions** — keep a conceptual distinction between platform operators and school operators, even if the current implementation still maps both onto existing roles.
+8. **If you choose a shortcut for today**, leave the boundary visible in code and mention the future extraction point in your explanation or docs.
+
+## Heuristic
+
+If a change would be annoying but localized to extract later, it is acceptable. If it would force rewriting auth/session shape, routing shape, billing ownership, or core data ownership, redesign it now.

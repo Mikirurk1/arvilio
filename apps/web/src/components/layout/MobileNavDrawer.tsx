@@ -27,7 +27,7 @@ export function MobileNavDrawer() {
   if (!mobileNavOpen) return null;
 
   return (
-    <div className={styles.root} role="presentation">
+    <div className={styles.root} role="presentation" data-mobile-nav-drawer>
       <div className={styles.backdrop} aria-hidden onClick={closeMobileNav} />
       <div className={styles.panel} role="dialog" aria-modal="true" aria-label="Navigation menu">
         <div className={styles.panelHead}>

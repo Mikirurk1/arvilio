@@ -19,6 +19,11 @@ export type TabsProps<T extends string> = {
   triggerClassName?: string;
   activeTriggerClassName?: string;
   panelClassName?: string;
+  /**
+   * When true, render all tab panels (hidden when inactive) so panels don't unmount/remount
+   * while switching tabs. Useful when tab content has expensive mount effects.
+   */
+  keepMounted?: boolean;
 };
 
 export function Tabs<T extends string>({
@@ -31,6 +36,7 @@ export function Tabs<T extends string>({
   triggerClassName,
   activeTriggerClassName,
   panelClassName,
+  keepMounted = false,
 }: TabsProps<T>) {
   const activeItem = items.find((item) => item.value === value) ?? items[0];
   const useCustomTriggerStyles = Boolean(triggerClassName);
@@ -69,16 +75,34 @@ export function Tabs<T extends string>({
           </Button>
         ))}
       </div>
-      {activeItem ? (
-        <div
-          role="tabpanel"
-          id={`panel-${activeItem.value}`}
-          aria-labelledby={`tab-${activeItem.value}`}
-          className={[uiStyles.tabsPanel, panelClassName].filter(Boolean).join(' ')}
-        >
-          {activeItem.panel}
-        </div>
-      ) : null}
+      {keepMounted
+        ? items.map((item) => {
+            const isActive = item.value === activeItem?.value;
+            return (
+              <div
+                key={item.value}
+                role="tabpanel"
+                id={`panel-${item.value}`}
+                aria-labelledby={`tab-${item.value}`}
+                hidden={!isActive}
+                className={[uiStyles.tabsPanel, panelClassName].filter(Boolean).join(' ')}
+              >
+                {item.panel}
+              </div>
+            );
+          })
+        : activeItem
+          ? (
+              <div
+                role="tabpanel"
+                id={`panel-${activeItem.value}`}
+                aria-labelledby={`tab-${activeItem.value}`}
+                className={[uiStyles.tabsPanel, panelClassName].filter(Boolean).join(' ')}
+              >
+                {activeItem.panel}
+              </div>
+            )
+          : null}
     </div>
   );
 }

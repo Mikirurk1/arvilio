@@ -18,8 +18,11 @@ export class StudentVocabularyController {
   constructor(private readonly vocabulary: VocabularyService) {}
 
   @Get(':studentId/vocabulary')
-  async listStudentCards(@Param('studentId') studentId: string): Promise<StudentWordCardDto[]> {
-    return this.vocabulary.listStudentCards(studentId);
+  async listStudentCards(
+    @CurrentUser() actorId: string,
+    @Param('studentId') studentId: string,
+  ): Promise<StudentWordCardDto[]> {
+    return this.vocabulary.listStudentCards(studentId, actorId);
   }
 
   @Post(':studentId/vocabulary')

@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect } from 'react';
+import { createContext, ReactNode, useContext, useMemo } from 'react';
 import type { AuthUserDto, LoginRequestDto } from '@pkg/types';
 import { useShallow } from 'zustand/react/shallow';
 import { useAuthStore } from '../stores/auth-store';
@@ -15,21 +15,24 @@ export type AuthContextValue = {
   googleSignInUrl: string;
 };
 
-/** Bootstraps session on mount; state lives in Zustand (`useAuthStore`). */
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const refresh = useAuthStore((state) => state.refresh);
+const AuthBootstrapContext = createContext<AuthUserDto | null>(null);
 
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
-
-  return children;
+export function AuthProvider({
+  children,
+  initialUser,
+}: {
+  children: ReactNode;
+  initialUser: AuthUserDto | null;
+}) {
+  return <AuthBootstrapContext.Provider value={initialUser}>{children}</AuthBootstrapContext.Provider>;
 }
 
 export function useAuth(): AuthContextValue {
-  return useAuthStore(
+  const initialUser = useContext(AuthBootstrapContext);
+  const authState = useAuthStore(
     useShallow((state) => ({
       user: state.user,
+      initialized: state.initialized,
       loading: state.loading,
       error: state.error,
       login: state.login,
@@ -37,6 +40,18 @@ export function useAuth(): AuthContextValue {
       refresh: state.refresh,
       googleSignInUrl: state.googleSignInUrl,
     })),
+  );
+  return useMemo(
+    () => ({
+      user: authState.initialized ? authState.user : (authState.user ?? initialUser),
+      loading: authState.loading,
+      error: authState.error,
+      login: authState.login,
+      logout: authState.logout,
+      refresh: authState.refresh,
+      googleSignInUrl: authState.googleSignInUrl,
+    }),
+    [authState, initialUser],
   );
 }
 

@@ -1,11 +1,11 @@
 ---
 tags: [concept, auth, security]
-updated: 2026-05-24
+updated: 2026-05-27
 ---
 
 # Auth & RBAC
 
-Authentication and authorization for SoEnglish. **Two parallel systems:** API/DB role checks (partial) and web UI permission matrix (client-side).
+Authentication and authorization for SoEnglish. Auth is now split into **request-time authentication** (Next proxy + server session handoff) and **backend authorization** (Nest guards + service checks).
 
 ## Authentication flow
 
@@ -16,11 +16,15 @@ sequenceDiagram
   participant API as apps/api
   participant DB as PostgreSQL
 
-  Browser->>Web: login
-  Web->>API: POST /api/auth/login
+  Browser->>Web: request /dashboard
+  Web->>API: GET /api/auth/web-session (cookies only)
+  API->>DB: verify access JWT or refresh-token row
+  API->>Web: request-time session snapshot
+  Web->>Browser: proxy allow/redirect + server render
+  Browser->>API: POST /api/auth/login
   API->>DB: verify user refresh row
   API->>Browser: Set-Cookie soenglish_at soenglish_rt
-  Browser->>Web: GraphQL / REST with credentials
+  Browser->>Web: next navigation / GraphQL / REST with credentials
   Web->>API: Cookie or Bearer
   API->>API: AuthGuard / GqlAuthGuard
   API->>DB: load user by sub
@@ -37,6 +41,8 @@ Implementation: [`module-auth/src/shared/auth-cookies.ts`](../../../../packages/
 
 - Access JWT payload: `{ sub: userId }` — **no role in token**
 - Refresh tokens stored as SHA-256 hash in `AuthRefreshToken`
+- Password reset links are stored as SHA-256 one-time tokens in `PasswordResetToken`
+- Reset tokens live for **60 minutes**; each new forgot-password request deletes older reset tokens for that user before issuing a fresh one
 
 ### Account provisioning
 
@@ -45,7 +51,7 @@ Public self-registration is **disabled**. New users are created only by administ
 | Path | Resulting role |
 |------|----------------|
 | Admin `createAdminUser` / `POST /api/admin/users` | STUDENT (ADMIN) or student/teacher/admin (SUPER_ADMIN); optional profile fields; auto-generated password + welcome email |
-| Google OAuth | **Existing users only** — links Google to a pre-provisioned email; unknown emails redirect to `/login?error=no_account` |
+| Google OAuth | **Existing users only** — links Google to a pre-provisioned email; unknown emails redirect to `/login?error=no_account`, and non-`ACTIVE` accounts redirect with `account_paused` / `account_leaved` / `account_blocked` |
 | `npm run super-admin` CLI | **SUPER_ADMIN** only |
 
 Code: `AuthService.createUserAsAdmin`, `AuthService.upsertGoogleUser` in [`module-auth/src/application/auth.service.ts`](../../../../packages/backend/modules/module-auth/src/application/auth.service.ts).
@@ -53,13 +59,22 @@ Code: `AuthService.createUserAsAdmin`, `AuthService.upsertGoogleUser` in [`modul
 ### Session endpoints
 
 - `POST /api/auth/login`, `refresh`, `logout`
-- `GET /api/auth/me` — current user DTO
+- `GET /api/auth/me` — current user DTO; returns `403` with stable `code` for non-`ACTIVE` accounts instead of silently authenticating them
+- `GET /api/auth/web-session` — non-mutating request-time session snapshot for Next middleware / server rendering; returns `authenticated`, `authStrategy` (`access` / `refresh` / `anonymous`), current `user`, default `scope`, `availableScopes`, and future-ready `tenantKey`; returns `403` with `account_*` code for paused/leaved/blocked sessions. Resolved via `AuthSessionService.resolveWebRequestSessionAuth()` — **one** `user.findUnique` (with oauth providers) after access JWT or refresh-row validation; still enforces ACTIVE-only on every navigation (no role/status cached in cookies).
 - Google sign-in: `/api/auth/google`, `/api/auth/google/callback`
 - Google link (logged in): `/api/auth/google/link` → callback → Profile `?tab=connections&google_linked=1`
 - Facebook link: `/api/auth/facebook/link` → callback → `facebook_linked=1` (env: `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`)
 - Telegram link: `GET /api/auth/telegram/widget-config`; production uses Login Widget → `POST /api/auth/telegram/link` (`/setdomain` in @BotFather). **Localhost:** `POST /api/auth/telegram/link/start` → user opens `t.me/bot?start=link_<token>` → API dev long-polling completes link only when `TELEGRAM_DEV_POLLING=true` in `.env` (opt-in; avoids getUpdates 409 if the bot token is used elsewhere).
 - `myProfile.linkedAccounts` — connection status including `calendarConnected` for Google
+- Auth/session boundary now enforces **ACTIVE-only** accounts: password login, Google sign-in, refresh-token rotation, `AuthGuard`, `GqlAuthGuard`, `/auth/me`, and `/auth/web-session` all deny `PAUSED`, `LEAVED`, and `BLOCKED` with `403` while keeping `401` for invalid/missing credentials.
 - **Change password:** GraphQL `changeMyPassword(input: { currentPassword, newPassword })` → `UsersService.changeMyPassword` (min 8 chars; rejects OAuth-only accounts without `passwordHash`). Web: Profile → Account tab → modal (`AccountPanel` in `apps/web/src/app/profile/panels.tsx`, `profile-store.changePassword`). Session user `hasPassword` from `GET /api/auth/me` / login payload — when false, UI shows linked-provider hint instead of the Change button.
+- **Forgot password:** REST `POST /api/auth/forgot-password` accepts `{ email }`, creates a one-time reset token only for password-based accounts, and sends a generic success response so the UI does not reveal whether the email exists.
+- **Reset password:** REST `POST /api/auth/reset-password` accepts `{ token, newPassword }`, validates the token + expiry, writes a new `passwordHash`, marks the token used, and revokes all active refresh tokens for that user.
+- Web auth pages now include `/forgot-password` and `/reset-password?token=...`; `/login` links into the flow and shows a success message after a completed reset.
+- `apps/web/src/proxy.ts` owns public/protected route classification (`/login`, `/register`, `/forgot-password`, `/reset-password` stay public) and redirects anonymous users to a clean `/login` before render instead of relying on hydrated client redirects.
+- Request-time proxy also performs coarse role/scope route gating for high-level surfaces: `/payment` is student-only, `/students/**` is teacher+, `/admin/**` is admin+, `/system/**` is super-admin only, and future `/platform/**` routes require `platform` scope.
+- When proxy hits a request-time account-status denial from `/api/auth/web-session`, it preserves the backend reason and redirects to `/login?error=account_paused|account_leaved|account_blocked` instead of collapsing everything into a generic login redirect.
+- Proxy also stamps the request with normalized auth headers so `apps/web/src/app/layout.tsx` can pick the shell variant (`auth` vs `app`) and bootstrap the client auth store from server-resolved session data.
 - **Delete account:** not exposed in Profile → Account (staff-only via admin panel). `apps/web/src/app/admin/page.tsx` calls `confirmDialog` before `deleteUser` (SUPER_ADMIN rows not deletable in UI).
 
 ## Authorization model (API)
@@ -71,7 +86,8 @@ Code: `AuthService.createUserAsAdmin`, `AuthService.upsertGoogleUser` in [`modul
 | `AdminUsersGraphqlService.assertAdmin` | [`admin-users-graphql.service.ts`](../../../../packages/backend/modules/module-auth/src/application/admin-users-graphql.service.ts), `AdminResolver` | ADMIN, SUPER_ADMIN |
 | `createUserAsAdmin` | [`auth.service.ts`](../../../../packages/backend/modules/module-auth/src/application/auth.service.ts) | ADMIN → student only; SUPER_ADMIN → student/teacher/admin |
 | `UsersService.listStudents` | [`users.service.ts`](../../../../packages/backend/modules/module-auth/src/application/users.service.ts) | TEACHER (own students), ADMIN/SUPER_ADMIN (all) |
-| Lesson membership | [`lessons.service.ts`](../../../../packages/backend/modules/module-lessons/src/application/lessons.service.ts) | teacher or student on lesson |
+| Lesson membership + role rules | [`lessons.service.ts`](../../../../packages/backend/modules/module-lessons/src/application/lessons.service.ts) | staff create lessons; teachers only for their own students; students may update only their own `studentResponse`; students cannot delete lessons or create Meet links |
+| Student vocabulary ownership | [`vocabulary.service.ts`](../../../../packages/backend/modules/module-vocabulary/src/application/vocabulary.service.ts) | self, assigned teacher, ADMIN, SUPER_ADMIN depending on target student |
 | Most GraphQL mutations | `@be/*/presentation/graphql/*` | Authenticated only |
 
 GraphQL admin/system resolvers use **`@Roles()` + `RolesGuard`** (`module-auth/src/presentation/guards/roles.guard.ts`) together with `GqlAuthGuard`. REST handlers still use ad hoc checks in services where not yet migrated.
@@ -85,10 +101,12 @@ GraphQL admin/system resolvers use **`@Roles()` + `RolesGuard`** (`module-auth/s
 
 | Layer | File | Behavior |
 |-------|------|----------|
-| Auth gate | `AuthGate.tsx` | Redirect unauthenticated → `/login` |
+| Request-time auth routing | `apps/web/src/proxy.ts` | Redirect unauthenticated protected requests before render; redirect authenticated `/login` / `/register` to `/dashboard`; coarse role/scope gating for `/payment`, `/students`, `/admin`, `/system`, future `/platform`. Skips `web-session` on anonymous public routes and on `/forgot-password` / `/reset-password` even when cookies exist; fetches same-origin `/api/auth/web-session` (Next rewrite) when a snapshot is required. Repeat navigations reuse an in-process TTL cache keyed by auth cookies (`WEB_SESSION_CACHE_TTL_MS`, default 8s) via `proxy-session-cache.ts`. Dev: `DEBUG_PROXY_TIMING=1` logs duration and sets `x-soenglish-proxy-ms`. |
+| Server layout handoff | `apps/web/src/app/layout.tsx`, `apps/web/src/lib/server/request-auth.ts` | Read middleware auth headers, choose `auth` vs `app` shell, inject initial session into web render; if the explicit shell header is absent but the route is known public, fall back to the `auth` shell so `/login`-style pages do not leak header/sidebar |
+| Client auth cache | `auth-store.ts`, `auth-context.tsx`, `app/providers.tsx` | Holds current user for already-rendered UI, explicit `login/logout/refresh`, but no longer owns first route-access decision; initial auth user is seeded from the server layout/provider so hydrated app-shell UI does not fall back to student role before the client store resolves |
 | Feature matrix | `mocks/roles.ts` | `canView`, `canEdit`, `canSchedule`, `canManage` per scope |
-| Navigation | `Sidebar.tsx` | Hide `/students`, `/admin` by role |
-| Pages | e.g. `admin/page.tsx` | Client empty state if disallowed |
+| Navigation | `sidebar-nav.tsx`, shared route policy | Sidebar visibility now uses the same pathname → role policy as middleware for top-level nav routes |
+| Pages | authenticated app routes | Top-level route-entry guards removed where middleware already owns the same surface; client pages keep nested/per-record checks only |
 
 Role mapping: `lib/active-user.ts` maps API `AuthUserDto.role` (snake string) → numeric `USER_ROLE` id from `@pkg/types`.
 
@@ -106,18 +124,15 @@ See [[concepts/roles-matrix]] for full comparison.
 
 ## Account status
 
-`UserAccountStatus`: ACTIVE, PAUSED, LEAVED, BLOCKED — stored on `User.status` but **not enforced** at login today.
+`UserAccountStatus`: ACTIVE, PAUSED, LEAVED, BLOCKED — stored on `User.status` and now enforced at auth/session boundaries. Non-`ACTIVE` accounts cannot log in, cannot refresh, and cannot resolve request-time proxy session.
 
 ## Known gaps
 
 1. **No centralized RBAC** — duplicated `requireAdmin`; easy to miss on new endpoints
-2. **Lesson create** — any authenticated user can set arbitrary `teacherId`/`studentId` (`be-lessons.ts`)
-3. **Vocabulary** — `studentId` parameter without verifying actor is teacher/admin for that student
-4. **Web routes** — no Next.js `middleware.ts`; `/admin` reachable by URL (API blocks mutations)
-5. **Dashboard for ADMIN** — `DashboardService` filters lessons by `teacherId: user.id`; non-teaching admins get empty stats
-6. **UI vs API mismatch** — matrix grants students `view` on calendar; API does not mirror all matrix rules
-7. **Mocks blended with live auth** — some pages still use mock data paths (`active-user.ts` comments)
-8. **BLOCKED/PAUSED** — no login rejection
+2. **Role-aware middleware is coarse only** — request-time routing now handles top-level role/scope surfaces, but detailed ownership/business authorization still lives in backend guards/services because access JWT contains only `sub`
+3. **Dashboard for ADMIN** — `DashboardService` filters lessons by `teacherId: user.id`; non-teaching admins get empty stats
+4. **UI vs API mismatch** — matrix grants students `view` on calendar; API does not mirror all matrix rules
+5. **Mocks blended with live auth** — some pages still use mock data paths (`active-user.ts` comments)
 
 ## Related
 

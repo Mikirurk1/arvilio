@@ -1,9 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import nodemailer, { type Transporter } from 'nodemailer';
+import * as nodemailer from 'nodemailer';
+import type { Transporter } from 'nodemailer';
 import {
   renderEmail,
   renderEmailFromVars,
   type EmailTemplateId,
+  type PasswordResetEmailProps,
   type WelcomeAccountEmailProps,
 } from '@be/email-templates';
 
@@ -13,6 +15,13 @@ export type WelcomeAccountMailParams = {
   email: string;
   password: string;
   loginUrl: string;
+};
+
+export type PasswordResetMailParams = {
+  to: string;
+  displayName: string;
+  resetUrl: string;
+  expiresInMinutes: number;
 };
 
 const TEMPLATES_SOURCE = '@be/email-templates (React Email)';
@@ -101,6 +110,19 @@ export class MailService {
       params.to,
       await renderEmail('welcome-account', props),
       'welcome-account',
+    );
+  }
+
+  async sendPasswordReset(params: PasswordResetMailParams): Promise<boolean> {
+    const props: PasswordResetEmailProps = {
+      displayName: params.displayName,
+      resetUrl: params.resetUrl,
+      expiresInMinutes: String(params.expiresInMinutes),
+    };
+    return this.sendRendered(
+      params.to,
+      await renderEmail('password-reset', props),
+      'password-reset',
     );
   }
 

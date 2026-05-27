@@ -13,7 +13,13 @@ import {
 } from '@nestjs/common';
 import { getTelegramWidgetConfig } from '@be/notifications/telegram';
 import type { Request, Response } from 'express';
-import type { AuthSessionDto, LoginRequestDto } from '@pkg/types';
+import type {
+  AuthSessionDto,
+  ForgotPasswordRequestDto,
+  LoginRequestDto,
+  ResetPasswordRequestDto,
+  WebRequestSessionDto,
+} from '@pkg/types';
 import { AuthService } from '../../application/auth.service';
 import { TelegramLinkService } from '../../application/telegram-link.service';
 import {
@@ -56,6 +62,22 @@ export class AuthController {
     return { user: mapUserToDto(user) };
   }
 
+  @Post('forgot-password')
+  async forgotPassword(
+    @Body() body: ForgotPasswordRequestDto,
+    @Req() req: Request,
+  ): Promise<{ ok: true }> {
+    return this.authService.requestPasswordReset(body, {
+      userAgent: req.headers['user-agent'] ?? undefined,
+      ip: req.ip,
+    });
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() body: ResetPasswordRequestDto): Promise<{ ok: true }> {
+    return this.authService.resetPassword(body);
+  }
+
   @Post('refresh')
   async refresh(
     @Req() req: Request,
@@ -93,6 +115,13 @@ export class AuthController {
     const user = await this.authService.getUserWithProviders(userId);
     if (!user) throw new UnauthorizedException();
     return { user: mapUserToDto(user) };
+  }
+
+  @Get('web-session')
+  async webSession(@Req() req: Request): Promise<WebRequestSessionDto> {
+    return this.authService.resolveWebRequestSession(req as Request & {
+      cookies?: Record<string, string>;
+    });
   }
 
   @Get('google')
@@ -204,9 +233,10 @@ export class AuthController {
       user = await this.authService.upsertGoogleUser(googlePayload);
     } catch (err) {
       if (err instanceof ForbiddenException) {
+        const loginError = loginErrorParamFromException(err) ?? 'no_account';
         const redirectUrl =
           process.env['GOOGLE_FAILURE_REDIRECT'] ??
-          `${webOrigin()}/login?error=no_account`;
+          `${webOrigin()}/login?error=${encodeURIComponent(loginError)}`;
         res.redirect(redirectUrl);
         return;
       }
@@ -325,4 +355,13 @@ export class AuthController {
     await this.authService.linkTelegramToUser(userId, body);
     return { ok: true };
   }
+}
+
+function loginErrorParamFromException(error: ForbiddenException): string | null {
+  const response = error.getResponse();
+  if (response && typeof response === 'object') {
+    const code = (response as { code?: unknown }).code;
+    if (typeof code === 'string' && code.trim()) return code;
+  }
+  return error.message.includes('No account found') ? 'no_account' : null;
 }

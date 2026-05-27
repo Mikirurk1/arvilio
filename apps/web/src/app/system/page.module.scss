@@ -84,7 +84,9 @@
 
 .input {
   padding: 10px 14px;
+  min-height: 42px;
   border: 1px solid var(--border);
+  box-sizing: border-box;
   border-radius: 10px;
   font-size: var(--fs-15);
   color: var(--text-primary);
@@ -111,6 +113,50 @@
   gap: 10px;
   margin-top: 16px;
   align-items: center;
+}
+
+.actionStatusError,
+.actionStatusSuccess {
+  margin: 0;
+  font-size: var(--fs-12);
+  line-height: 1.4;
+}
+
+.actionStatusError {
+  color: var(--rose);
+}
+
+.actionStatusSuccess {
+  color: var(--green-dark);
+}
+
+.methodChecks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-14);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.textarea {
+  min-height: 88px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: var(--fs-14);
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--field-bg);
+  width: 100%;
+  resize: vertical;
 }
 
 .verifyBtn {
@@ -263,13 +309,1142 @@
   }
 }
 
+.methodSection,
+.pricingSection {
+  margin-top: 24px;
+}
+
+.pricingSectionHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.overviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.overviewCard {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface) 54%, var(--card));
+}
+
+.overviewLabel {
+  font-size: var(--fs-11);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+}
+
+.overviewValue {
+  margin-top: 8px;
+  font-size: var(--fs-18);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.overviewHint {
+  margin-top: 6px;
+  font-size: var(--fs-12);
+  line-height: 1.45;
+  color: var(--text-tertiary);
+}
+
+.sectionTitle {
+  font-size: var(--fs-16);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 12px;
+}
+
+.methodGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.methodCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  transition: border-color 0.15s ease;
+}
+
+.methodCardEnabled {
+  border-color: rgba(59, 130, 196, 0.35);
+}
+
+.methodCardConfigured {
+  box-shadow: inset 3px 0 0 var(--green-dark);
+}
+
+.methodCardUnconfigured {
+  box-shadow: inset 3px 0 0 #d97706;
+}
+
+.methodCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.methodCardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--blue-light);
+  color: var(--blue);
+}
+
+.methodCardGear {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+}
+
+.methodCardTitle {
+  margin: 0;
+  font-size: var(--fs-15);
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+.methodCardDesc {
+  margin: 0;
+  font-size: var(--fs-12);
+  color: var(--text-tertiary);
+  line-height: 1.45;
+  flex: 1;
+}
+
+.methodCardBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.methodCardStatusHint {
+  margin: 0;
+  font-size: var(--fs-11);
+  color: var(--text-tertiary);
+}
+
+.methodCardToggle {
+  margin-top: 4px;
+  align-self: flex-start;
+}
+
+.pricingHero {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.2fr) minmax(220px, 0.8fr);
+  gap: 14px;
+  margin-bottom: 16px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface) 62%, var(--card));
+}
+
+.pricingHeroLabel {
+  font-size: var(--fs-11);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+}
+
+.pricingHeroValue {
+  margin-top: 6px;
+  font-size: var(--fs-22);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.pricingHeroStats {
+  display: grid;
+  gap: 10px;
+}
+
+.pricingHeroStat {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+
+  strong {
+    display: block;
+    margin-top: 4px;
+    font-size: var(--fs-14);
+    color: var(--text-primary);
+  }
+}
+
+.pricingHeroStatLabel {
+  font-size: var(--fs-12);
+  font-weight: 600;
+  color: var(--text-tertiary);
+}
+
+.pricingLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.9fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.pricingMainCard,
+.pricingSidebarCard {
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface) 72%, var(--card));
+}
+
+.pricingControlGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.pricingControlCard {
+  display: grid;
+  gap: 12px;
+  overflow: visible;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--card) 82%, var(--surface));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 4%);
+}
+
+.pricingControlCard:nth-child(1) {
+  border-color: color-mix(in srgb, var(--blue) 22%, var(--border));
+}
+
+.pricingControlCard:nth-child(2) {
+  border-color: color-mix(in srgb, var(--green) 22%, var(--border));
+}
+
+.pricingControlCard:nth-child(3) {
+  border-color: color-mix(in srgb, var(--purple) 22%, var(--border));
+}
+
+.pricingControlTop {
+  display: block;
+}
+
+.pricingControlEyebrow {
+  font-size: var(--fs-11);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+}
+
+.pricingControlTitle {
+  font-size: var(--fs-14);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.pricingControlText {
+  font-size: var(--fs-12);
+  line-height: 1.45;
+  color: var(--text-tertiary);
+}
+
+.currencyWarning {
+  padding: 10px 12px;
+  border: 1px solid rgba(217, 119, 6, 0.28);
+  border-radius: 10px;
+  background: var(--amber-light, #fff7ed);
+  color: var(--amber, #b45309);
+  font-size: var(--fs-12);
+  line-height: 1.45;
+
+  p {
+    margin: 0;
+
+    & + p {
+      margin-top: 6px;
+    }
+  }
+}
+
+.currencyPriceGrid {
+  display: grid;
+  gap: 12px;
+}
+
+.currencyPriceRow {
+  display: grid;
+  gap: 6px;
+}
+
+.currencyPriceLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-13);
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+.providerCurrencyHints {
+  display: grid;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.providerCurrencyHint {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 82%, var(--card));
+  font-size: var(--fs-12);
+  line-height: 1.45;
+  color: var(--text-secondary);
+
+  strong {
+    color: var(--text-primary);
+    text-transform: capitalize;
+  }
+}
+
+.providerCurrencyHintWarn {
+  color: var(--amber, #b45309);
+  font-weight: 600;
+}
+
+.pricingInlineControls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.pricingInlineControls > .fieldGroup {
+  max-width: none;
+  min-width: 0;
+}
+
+.pricingSidebarTitle {
+  margin-bottom: 14px;
+  font-size: var(--fs-14);
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+.pricingSidebarBlock + .pricingSidebarBlock {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.pricingSidebarLabel {
+  font-size: var(--fs-11);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+}
+
+.pricingSidebarValue {
+  margin-top: 8px;
+  font-size: var(--fs-20);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.pricingBadgeList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.pricingPreviewList {
+  margin-top: 10px;
+}
+
+.pricingRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.currencyChecks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+
+.currencyCheck {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.packagesSection,
+.readySection {
+  margin-top: 28px;
+}
+
+.providerCurrencyMatrix {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-elevated);
+}
+
+.providerCurrencyMatrixTitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.providerCurrencyMatrixRows {
+  display: grid;
+  gap: 8px;
+}
+
+.providerCurrencyMatrixRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+
+  strong {
+    color: var(--text-primary);
+    min-width: 7rem;
+  }
+}
+
+.readyPackageList {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.readyPackageItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-subtle);
+  font-size: 0.875rem;
+}
+
+.readyOk {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-success, #15803d);
+}
+
+.packagesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.packagesTitle {
+  margin: 0;
+  font-size: var(--fs-14);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.packagesTable {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.packagesTableWrap {
+  display: grid;
+  gap: 14px;
+}
+
+.packageStatsRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.packageStatCard {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--card) 86%, white);
+
+  strong {
+    display: block;
+    margin-top: 4px;
+    font-size: var(--fs-15);
+    color: var(--text-primary);
+  }
+}
+
+.packageStatLabel {
+  font-size: var(--fs-11);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+}
+
+.packageRow {
+  display: grid;
+  grid-template-columns: 1fr 100px 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.packageRowCard {
+  position: relative;
+  overflow: hidden;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--card) 84%, var(--surface));
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+}
+
+.packageRowAccent {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 6px;
+  background: color-mix(in srgb, var(--blue) 60%, white);
+}
+
+.packageRowCardFeatured {
+  border-color: color-mix(in srgb, var(--green) 42%, var(--border));
+  box-shadow:
+    0 10px 28px rgb(22 101 52 / 8%),
+    0 0 0 1px color-mix(in srgb, var(--green) 20%, transparent);
+  transform: translateY(-1px);
+}
+
+.packageRowCardFeatured .packageRowAccent,
+.packageRowCardPopular .packageRowAccent {
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+}
+
+.packageRowCardStarter .packageRowAccent {
+  background: linear-gradient(90deg, #2563eb, #60a5fa);
+}
+
+.packageRowCardPremium .packageRowAccent {
+  background: linear-gradient(90deg, #9333ea, #ec4899);
+}
+
+.packageRowMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.packageRowTitleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.packageRowEyebrow {
+  font-size: var(--fs-11);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+}
+
+.packageRowTitle {
+  font-size: var(--fs-16);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.packageRowBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.packageTotal {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--card) 72%, var(--surface));
+  font-size: var(--fs-22);
+  font-weight: 800;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.packageRowSubmeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-bottom: 14px;
+  font-size: var(--fs-12);
+  color: var(--text-tertiary);
+}
+
+.packageRowControls {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(160px, 0.7fr) auto;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.packageFieldCard,
+.packageFieldSummary {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 8px;
+  height: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface) 68%, var(--card));
+}
+
+.packageFieldSummary {
+  justify-content: space-between;
+
+  strong {
+    font-size: var(--fs-16);
+    color: var(--text-primary);
+  }
+}
+
+.packageFieldCard > .input,
+.packageFieldSummary > .input,
+.pricingInlineControls .input {
+  width: 100%;
+}
+
+.packageFieldLabel {
+  display: block;
+  margin-bottom: 8px;
+  font-size: var(--fs-11);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+}
+
+.packageHint {
+  font-size: var(--fs-12);
+  color: var(--text-tertiary);
+}
+
+[data-theme='dark'] {
+  .overviewCard,
+  .pricingHero,
+  .pricingMainCard,
+  .pricingSidebarCard,
+  .pricingControlCard,
+  .packageRowCard {
+    background: var(--card);
+  }
+
+  .pricingHeroStat,
+  .packageFieldCard,
+  .packageFieldSummary,
+  .packageTotal {
+    background: color-mix(in srgb, var(--surface) 82%, var(--card));
+  }
+}
+
+.pricingPreviewRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: var(--fs-13);
+  color: var(--text-secondary);
+}
+
+.pricingPreviewEmpty {
+  margin-top: 10px;
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+}
+
+.configModalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top, rgb(59 130 246 / 12%), transparent 40%),
+    rgb(15 23 42 / 56%);
+  backdrop-filter: blur(10px);
+}
+
+.configModal {
+  width: min(680px, 100%);
+  max-height: min(92vh, 760px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--card) 88%, var(--surface)) 0%, var(--card) 100%);
+  border: 1px solid color-mix(in srgb, var(--border-strong) 65%, transparent);
+  box-shadow:
+    0 28px 80px rgb(15 23 42 / 28%),
+    0 10px 28px rgb(15 23 42 / 12%);
+}
+
+.configModalHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 82%, var(--card)) 0%, var(--card) 100%);
+}
+
+.configModalHeading {
+  min-width: 0;
+}
+
+.configModalEyebrow {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgb(59 130 246 / 0.12);
+  color: var(--blue);
+  font-size: var(--fs-11);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.configModalTitle {
+  margin: 0;
+  padding-top: 10px;
+  font-size: var(--fs-20);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.configModalSubtitle {
+  margin: 8px 0 0;
+  max-width: 560px;
+  font-size: var(--fs-13);
+  line-height: 1.5;
+  color: var(--text-tertiary);
+}
+
+.configModalClose {
+  flex-shrink: 0;
+  margin-top: 2px;
+  border-radius: 999px;
+  background: rgb(148 163 184 / 0.12);
+}
+
+.configModalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: auto;
+  padding: 20px 24px 18px;
+}
+
+.configModalBody::-webkit-scrollbar {
+  width: 10px;
+}
+
+.configModalBody::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgb(148 163 184 / 0.28);
+  background-clip: padding-box;
+}
+
+.providerHelpCard {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 74%, var(--card)) 0%, var(--card) 100%);
+  box-shadow: 0 8px 24px rgb(15 23 42 / 0.05);
+}
+
+.providerHelpTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.providerHelpTitle {
+  font-size: var(--fs-15);
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+.providerHelpLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid rgb(59 130 246 / 0.16);
+  border-radius: 999px;
+  background: rgb(59 130 246 / 0.08);
+  font-size: var(--fs-12);
+  font-weight: 600;
+  color: var(--blue);
+  text-decoration: none;
+}
+
+.providerModeHint {
+  margin: 0;
+  font-size: var(--fs-12);
+  line-height: 1.45;
+  color: var(--text-tertiary);
+}
+
+.providerChecklistTitle {
+  font-size: var(--fs-12);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.providerChecklist {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  font-size: var(--fs-12);
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.providerModeSection {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 84%, var(--card));
+}
+
+.providerSectionTitle {
+  margin-top: 2px;
+  font-size: var(--fs-11);
+  font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.providerFieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 84%, var(--card));
+}
+
+.configLabelRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.configInfoButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: help;
+}
+
+.configInfoButton:hover {
+  background: rgb(148 163 184 / 0.12);
+  color: var(--text-secondary);
+}
+
+.configInfoIcon {
+  flex-shrink: 0;
+}
+
+.configTooltip {
+  max-width: min(280px, calc(100vw - 32px));
+  font-size: var(--fs-12);
+  line-height: 1.45;
+  white-space: normal;
+}
+
+.secretStatus {
+  margin-top: 6px;
+  font-size: var(--fs-11);
+  line-height: 1.4;
+}
+
+.secretStatusConfigured {
+  color: var(--green-dark);
+}
+
+.secretStatusMissing {
+  color: #d97706;
+}
+
+.manualMethodToolbar {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 78%, var(--card)) 0%, var(--card) 100%);
+}
+
+.manualMethodToolbarActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.manualMethodCard {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 74%, var(--card)) 0%, var(--card) 100%);
+  box-shadow: 0 10px 28px rgb(15 23 42 / 0.05);
+}
+
+.manualMethodHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.manualMethodKindLabel {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgb(34 197 94 / 0.12);
+  font-size: var(--fs-11);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--green-dark);
+}
+
+.manualMethodId {
+  margin-top: 8px;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: var(--fs-12);
+  color: var(--text-tertiary);
+  word-break: break-all;
+}
+
+.manualMethodSetupHint {
+  margin: 6px 0 0;
+  font-size: var(--fs-12);
+  color: var(--amber-dark, #b45309);
+  line-height: 1.4;
+}
+
+.manualMethodRemove {
+  flex-shrink: 0;
+}
+
+.manualMethodGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.fieldWide {
+  grid-column: 1 / -1;
+}
+
+.manualMethodGrid > .fieldGroup:has(.textarea) {
+  grid-column: 1 / -1;
+}
+
+.configModalActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px 20px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  background:
+    linear-gradient(0deg, color-mix(in srgb, var(--card) 94%, var(--surface)) 0%, var(--card) 100%);
+  backdrop-filter: blur(8px);
+}
+
+[data-theme='dark'] {
+  .configModalBackdrop {
+    background:
+      radial-gradient(circle at top, rgb(59 130 246 / 8%), transparent 42%),
+      rgb(2 6 23 / 72%);
+  }
+
+  .configModal {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--card) 96%, var(--surface)) 0%,
+      var(--card) 100%
+    );
+    border-color: color-mix(in srgb, var(--border-strong) 88%, transparent);
+    box-shadow:
+      0 30px 90px rgb(0 0 0 / 58%),
+      0 12px 32px rgb(0 0 0 / 32%);
+  }
+
+  .configModalHead,
+  .providerHelpCard,
+  .manualMethodToolbar,
+  .manualMethodCard {
+    background: var(--card);
+  }
+
+  .configModalHead {
+    border-bottom-color: color-mix(in srgb, var(--border-strong) 78%, transparent);
+  }
+
+  .providerModeSection,
+  .providerFieldGrid,
+  .configModalActions {
+    background: color-mix(in srgb, var(--surface) 78%, var(--card));
+  }
+
+  .providerHelpCard,
+  .providerModeSection,
+  .providerFieldGrid,
+  .manualMethodToolbar,
+  .manualMethodCard,
+  .configModalActions {
+    border-color: color-mix(in srgb, var(--border-strong) 72%, transparent);
+  }
+
+  .configModalClose {
+    background: color-mix(in srgb, var(--surface) 72%, var(--card));
+  }
+
+  .providerHelpLink {
+    background: color-mix(in srgb, var(--blue-light) 72%, var(--card));
+    border-color: color-mix(in srgb, var(--blue) 34%, var(--border));
+  }
+
+  .manualMethodKindLabel {
+    background: color-mix(in srgb, var(--green-light) 88%, var(--card));
+  }
+}
+
 @include respond-to(sm) {
   .card {
     padding: 14px 16px;
   }
 
+  .pricingLayout,
+  .pricingHero,
+  .pricingRow,
+  .pricingInlineControls,
+  .packageRowControls,
+  .packageRow {
+    grid-template-columns: 1fr;
+  }
+
   .statusGrid {
     grid-template-columns: 1fr;
+  }
+
+  .manualMethodGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .providerFieldGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .configModalBackdrop {
+    padding: 12px;
+  }
+
+  .configModal {
+    width: 100%;
+    max-height: min(94vh, 820px);
+    border-radius: 18px;
+  }
+
+  .configModalHead {
+    padding: 18px 18px 14px;
+  }
+
+  .configModalBody {
+    padding: 16px 18px 16px;
+  }
+
+  .configModalActions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    padding: 14px 18px 18px;
+  }
+
+  .configModalActions button {
+    width: 100%;
   }
 
   .actions {

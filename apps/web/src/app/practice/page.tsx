@@ -2,9 +2,7 @@
 
 import { useEffect, useMemo } from 'react';
 import { PageHeader } from '../../components/ui';
-import { canView, mockPracticeActivities, siteContent } from '../../mocks';
-import { mapAuthRoleToRoleId } from '../../lib/active-user';
-import { useAuth } from '../../lib/auth-context';
+import { mockPracticeActivities, siteContent } from '../../mocks';
 import { usePracticePendingCounts } from '../../hooks/use-practice-nav-badge';
 import { PRACTICE_SESSION_LOGGED_EVENT } from '../../lib/practice-session-tracker';
 import { useDashboardStore } from '../../stores/dashboard-store';
@@ -22,8 +20,6 @@ function quizStatLabel(count: number): string {
 }
 
 export default function PracticePage() {
-  const { user } = useAuth();
-  const roleId = mapAuthRoleToRoleId(user?.role);
   const summary = useDashboardStore((s) => s.summary);
   const weekSummary = usePracticeStore((s) => s.weekSummary);
   const vocabOverview = useVocabularyStore((s) => s.overview);
@@ -64,8 +60,6 @@ export default function PracticePage() {
     window.addEventListener(PRACTICE_SESSION_LOGGED_EVENT, onSessionLogged);
     return () => window.removeEventListener(PRACTICE_SESSION_LOGGED_EVENT, onSessionLogged);
   }, [fetchWeekSummary]);
-
-  if (!canView('practice', roleId)) return null;
 
   const summaryTitle = 'Practice this week';
   const metrics = weekSummary.data?.metrics ?? [];

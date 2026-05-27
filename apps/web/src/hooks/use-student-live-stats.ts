@@ -13,19 +13,25 @@ import { useVocabularyStore } from '../stores/vocabulary-store';
 export function useStudentLiveStats(studentId: string | undefined) {
   const lessonsSlice = useLessonsStore((s) => s.backendLessons);
   const cardsSlice = useVocabularyStore((s) => s.cards);
+  const cardsStudentId = useVocabularyStore((s) => s.cardsStudentId);
   const fetchLessons = useLessonsStore((s) => s.fetchScheduledLessons);
   const fetchCards = useVocabularyStore((s) => s.fetchCards);
-
-  useEffect(() => {
-    if (!studentId) return;
-    void fetchLessons(true);
-    void fetchCards(studentId, true);
-  }, [fetchCards, fetchLessons, studentId]);
-
-  const studentLessons = useMemo(
+  const studentLessonsFromCache = useMemo(
     () => (studentId ? filterLessonsForStudent(lessonsSlice.data, studentId) : []),
     [lessonsSlice.data, studentId],
   );
+
+  useEffect(() => {
+    if (!studentId) return;
+    const hasLessonsForStudent = studentLessonsFromCache.length > 0;
+    const hasCardsForStudent =
+      cardsStudentId === studentId && cardsSlice.status === 'success' && Boolean(cardsSlice.data);
+
+    void fetchLessons(!hasLessonsForStudent);
+    void fetchCards(studentId, !hasCardsForStudent);
+  }, [cardsSlice.data, cardsSlice.status, cardsStudentId, fetchCards, fetchLessons, studentId, studentLessonsFromCache.length]);
+
+  const studentLessons = studentLessonsFromCache;
 
   const studentCards = useMemo(() => {
     if (!studentId) return [];

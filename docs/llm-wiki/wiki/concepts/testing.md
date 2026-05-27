@@ -1,6 +1,6 @@
 ---
 tags: [concept, testing, dev]
-updated: 2026-05-25
+updated: 2026-05-26
 ---
 
 # Testing
@@ -46,6 +46,19 @@ Bootstrap: [`tests/integration/bootstrap.ts`](../../../../tests/integration/boot
 - Route specs: [`tests/e2e/specs/pages/`](../../../../tests/e2e/specs/pages/) + legacy [`specs/login.spec.ts`](../../../../tests/e2e/specs/login.spec.ts), `navigation`, `product-pages`
 - Env: `PLAYWRIGHT_TEST_EMAIL`, `PLAYWRIGHT_TEST_PASSWORD`, `PLAYWRIGHT_TEACHER_EMAIL`, `PLAYWRIGHT_ADMIN_EMAIL`
 
+## Agent-browser smoke tour (manual / AI)
+
+Exploratory UI pass via [agent-browser](https://agent-browser.dev/) CLI (not CI). Script: [`scripts/agent-browser-all-pages.sh`](../../../../scripts/agent-browser-all-pages.sh).
+
+**Prereqs:** `npm run dev`, `npm run seed:test-users`, `agent-browser` on PATH.
+
+```bash
+bash scripts/agent-browser-all-pages.sh
+# report: tmp/agent-browser-tour/report.md (+ screenshots/, gitignored)
+```
+
+Visits public auth routes, then student / teacher / admin / super-admin app paths (dynamic `/students/:id` when a list link exists). Uses the same jest-*@soenglish.test users as Playwright (`TestPass123!`).
+
 ## Current scale (2026-05-20)
 
 | Layer | Approx. count |
@@ -55,6 +68,11 @@ Bootstrap: [`tests/integration/bootstrap.ts`](../../../../tests/integration/boot
 | E2E route specs | **14** files (login/nav/product + per-route under `specs/pages/`) |
 
 Backend: unit specs co-located under `application/`, `domain/`, `shared/` (and legacy `src/lib/` during migration). Module integration: `packages/backend/modules/module-*/tests/integration/`. App integration: `tests/integration/`. Prefer testing `application/*.service.ts` and `domain/*.logic.ts` — not monolithic module entry files.
+
+## Typecheck notes
+
+- Nested backend packages can be checked directly from their own folder with `npm run typecheck` (for example `packages/backend/modules/module-auth`, `module-billing`, `module-lessons`) when you want focused verification instead of the whole turbo graph.
+- Under the current backend TS settings, env/index-signature objects should use bracket access (`process.env['FOO']`, `raw['key']`) in strict modules like billing helpers/checkouts; this matters for keeping focused module typechecks green.
 
 ## Coverage targets (local)
 

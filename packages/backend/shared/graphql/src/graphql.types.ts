@@ -64,6 +64,39 @@ export class LearningStreakType {
 }
 
 @ObjectType()
+export class AchievementStatsType {
+  @Field(() => Int)
+  wordsLearned!: number;
+
+  @Field(() => Int)
+  lessonsCompleted!: number;
+
+  @Field(() => Int)
+  streakDays!: number;
+
+  @Field(() => Int)
+  quizzesCompleted!: number;
+
+  @Field(() => Int)
+  perfectQuizCount!: number;
+
+  @Field(() => Int)
+  speakingSessions!: number;
+
+  @Field(() => Int)
+  practiceMinutesTotal!: number;
+
+  @Field(() => Int)
+  lessonMinutesTotal!: number;
+
+  @Field(() => Int)
+  weeklyGoalsCompleted!: number;
+
+  @Field(() => [String])
+  unlockedAchievementIds!: string[];
+}
+
+@ObjectType()
 export class WordOfDayType {
   @Field(() => ID)
   wordId!: string;
@@ -1396,4 +1429,896 @@ export class CreateGroupConversationInput {
 
   @Field(() => [ID])
   memberIds!: string[];
+}
+
+@ObjectType()
+export class LessonPackageType {
+  @Field()
+  id!: string;
+
+  @Field(() => Int)
+  lessons!: number;
+
+  @Field()
+  label!: string;
+
+  @Field({ nullable: true })
+  currency?: string | null;
+}
+
+@ObjectType()
+export class ResolvedLessonPackageType {
+  @Field()
+  id!: string;
+
+  @Field(() => Int)
+  lessons!: number;
+
+  @Field()
+  label!: string;
+
+  @Field()
+  currency!: string;
+
+  @Field(() => Int)
+  amountMinor!: number;
+
+  @Field(() => Int)
+  pricePerLessonMinor!: number;
+
+  @Field()
+  isCustomPrice!: boolean;
+
+  @Field()
+  lessonsLocked!: boolean;
+}
+
+@ObjectType()
+export class StudentPackageOverrideType {
+  @Field()
+  packageId!: string;
+
+  @Field(() => Int, { nullable: true })
+  lessons?: number | null;
+
+  @Field()
+  lessonsLocked!: boolean;
+
+  @Field()
+  enabled!: boolean;
+}
+
+@ObjectType()
+export class PaymentMethodStatusType {
+  @Field()
+  id!: string;
+
+  @Field()
+  enabled!: boolean;
+
+  @Field()
+  configured!: boolean;
+
+  @Field()
+  configuredLabel!: string;
+
+  @Field({ nullable: true })
+  mode?: string | null;
+}
+
+@ObjectType()
+export class ManualInvoiceMethodType {
+  @Field()
+  id!: string;
+
+  @Field()
+  kind!: string;
+
+  @Field()
+  label!: string;
+
+  @Field()
+  description!: string;
+
+  @Field()
+  receiptHintUk!: string;
+
+  @Field()
+  paymentReferenceHint!: string;
+
+  @Field({ nullable: true })
+  recipientTaxId?: string | null;
+
+  @Field({ nullable: true })
+  paymentPurpose?: string | null;
+
+  @Field(() => [String], { nullable: true })
+  importantNotes?: string[] | null;
+
+  @Field({ nullable: true })
+  beneficiaryName?: string | null;
+
+  @Field({ nullable: true })
+  iban?: string | null;
+
+  @Field({ nullable: true })
+  bankName?: string | null;
+
+  @Field({ nullable: true })
+  bankCountry?: string | null;
+
+  @Field({ nullable: true })
+  bic?: string | null;
+
+  @Field({ nullable: true })
+  accountNumber?: string | null;
+
+  @Field({ nullable: true })
+  bankAddress?: string | null;
+
+  @Field({ nullable: true })
+  swiftBic?: string | null;
+
+  @Field({ nullable: true })
+  beneficiaryAddress?: string | null;
+
+  @Field({ nullable: true })
+  intermediaryBankName?: string | null;
+
+  @Field({ nullable: true })
+  intermediarySwiftBic?: string | null;
+
+  @Field({ nullable: true })
+  cardNumber?: string | null;
+
+  @Field({ nullable: true })
+  instructionsUk?: string | null;
+}
+
+@ObjectType()
+export class StudentManualInvoiceSelectionType {
+  @Field(() => [String])
+  allowedMethodIds!: string[];
+
+  @Field({ nullable: true })
+  defaultMethodId?: string | null;
+}
+
+@ObjectType()
+export class StudentPaymentMethodSelectionType {
+  @Field(() => [String])
+  allowedMethods!: string[];
+
+  @Field({ nullable: true, defaultValue: false })
+  restrictToAllowlistOnly?: boolean;
+}
+
+@ObjectType()
+export class PaymentSecretFieldStatusType {
+  @Field()
+  configured!: boolean;
+
+  @Field()
+  source!: string;
+}
+
+@ObjectType()
+export class StripeSecretsStatusType {
+  @Field(() => PaymentSecretFieldStatusType)
+  liveSecretKey!: PaymentSecretFieldStatusType;
+
+  @Field(() => PaymentSecretFieldStatusType)
+  liveWebhookSecret!: PaymentSecretFieldStatusType;
+
+  @Field(() => PaymentSecretFieldStatusType)
+  testSecretKey!: PaymentSecretFieldStatusType;
+
+  @Field(() => PaymentSecretFieldStatusType)
+  testWebhookSecret!: PaymentSecretFieldStatusType;
+}
+
+@ObjectType()
+export class LiqPaySecretsStatusType {
+  @Field(() => PaymentSecretFieldStatusType)
+  livePrivateKey!: PaymentSecretFieldStatusType;
+
+  @Field(() => PaymentSecretFieldStatusType)
+  testPrivateKey!: PaymentSecretFieldStatusType;
+}
+
+@ObjectType()
+export class WayForPaySecretsStatusType {
+  @Field(() => PaymentSecretFieldStatusType)
+  liveSecretKey!: PaymentSecretFieldStatusType;
+
+  @Field(() => PaymentSecretFieldStatusType)
+  testSecretKey!: PaymentSecretFieldStatusType;
+}
+
+@ObjectType()
+export class LemonSqueezySecretsStatusType {
+  @Field(() => PaymentSecretFieldStatusType)
+  liveApiKey!: PaymentSecretFieldStatusType;
+
+  @Field(() => PaymentSecretFieldStatusType)
+  liveWebhookSecret!: PaymentSecretFieldStatusType;
+
+  @Field(() => PaymentSecretFieldStatusType)
+  testApiKey!: PaymentSecretFieldStatusType;
+
+  @Field(() => PaymentSecretFieldStatusType)
+  testWebhookSecret!: PaymentSecretFieldStatusType;
+}
+
+@ObjectType()
+export class PaddleSecretsStatusType {
+  @Field(() => PaymentSecretFieldStatusType)
+  liveApiKey!: PaymentSecretFieldStatusType;
+
+  @Field(() => PaymentSecretFieldStatusType)
+  liveWebhookSecret!: PaymentSecretFieldStatusType;
+
+  @Field(() => PaymentSecretFieldStatusType)
+  testApiKey!: PaymentSecretFieldStatusType;
+
+  @Field(() => PaymentSecretFieldStatusType)
+  testWebhookSecret!: PaymentSecretFieldStatusType;
+}
+
+@ObjectType()
+export class MonoPaySecretsStatusType {
+  @Field(() => PaymentSecretFieldStatusType)
+  liveToken!: PaymentSecretFieldStatusType;
+
+  @Field(() => PaymentSecretFieldStatusType)
+  testToken!: PaymentSecretFieldStatusType;
+}
+
+@ObjectType()
+export class PayPalSecretsStatusType {
+  @Field(() => PaymentSecretFieldStatusType)
+  liveClientSecret!: PaymentSecretFieldStatusType;
+
+  @Field(() => PaymentSecretFieldStatusType)
+  liveWebhookId!: PaymentSecretFieldStatusType;
+
+  @Field(() => PaymentSecretFieldStatusType)
+  testClientSecret!: PaymentSecretFieldStatusType;
+
+  @Field(() => PaymentSecretFieldStatusType)
+  testWebhookId!: PaymentSecretFieldStatusType;
+}
+
+@ObjectType()
+export class PaymentSecretsStatusType {
+  @Field(() => StripeSecretsStatusType)
+  stripe!: StripeSecretsStatusType;
+
+  @Field(() => LiqPaySecretsStatusType)
+  liqpay!: LiqPaySecretsStatusType;
+
+  @Field(() => WayForPaySecretsStatusType)
+  wayforpay!: WayForPaySecretsStatusType;
+
+  @Field(() => LemonSqueezySecretsStatusType)
+  lemonsqueezy!: LemonSqueezySecretsStatusType;
+
+  @Field(() => PaddleSecretsStatusType)
+  paddle!: PaddleSecretsStatusType;
+
+  @Field(() => MonoPaySecretsStatusType)
+  monopay!: MonoPaySecretsStatusType;
+
+  @Field(() => PayPalSecretsStatusType)
+  paypal!: PayPalSecretsStatusType;
+}
+
+@ObjectType()
+export class LessonPriceByCurrencyType {
+  @Field()
+  currency!: string;
+
+  @Field(() => Int)
+  pricePerLessonMinor!: number;
+}
+
+@ObjectType()
+export class PaymentConfigType {
+  @Field(() => [LessonPackageType])
+  packages!: LessonPackageType[];
+
+  @Field(() => Int)
+  defaultPricePerLessonMinor!: number;
+
+  @Field(() => [LessonPriceByCurrencyType])
+  pricePerLessonByCurrency!: LessonPriceByCurrencyType[];
+
+  @Field()
+  defaultCurrency!: string;
+
+  @Field(() => [String])
+  allowedCurrencies!: string[];
+
+  @Field(() => Int)
+  minPackageLessons!: number;
+
+  @Field(() => [ManualInvoiceMethodType])
+  manualInvoiceMethods!: ManualInvoiceMethodType[];
+
+  @Field({ nullable: true })
+  stripeMode?: string | null;
+
+  @Field({ nullable: true })
+  stripeLivePublishableKey?: string | null;
+
+  @Field({ nullable: true })
+  stripeTestPublishableKey?: string | null;
+
+  @Field({ nullable: true })
+  liqpayMode?: string | null;
+
+  @Field({ nullable: true })
+  liqpayLivePublicKey?: string | null;
+
+  @Field({ nullable: true })
+  liqpayTestPublicKey?: string | null;
+
+  @Field({ nullable: true })
+  wayforpayMode?: string | null;
+
+  @Field({ nullable: true })
+  wayforpayLiveMerchantAccount?: string | null;
+
+  @Field({ nullable: true })
+  wayforpayLiveMerchantDomainName?: string | null;
+
+  @Field({ nullable: true })
+  wayforpayTestMerchantAccount?: string | null;
+
+  @Field({ nullable: true })
+  wayforpayTestMerchantDomainName?: string | null;
+
+  @Field({ nullable: true })
+  lemonsqueezyMode?: string | null;
+
+  @Field({ nullable: true })
+  lemonsqueezyLiveStoreId?: string | null;
+
+  @Field({ nullable: true })
+  lemonsqueezyLiveVariantId?: string | null;
+
+  @Field({ nullable: true })
+  lemonsqueezyTestStoreId?: string | null;
+
+  @Field({ nullable: true })
+  lemonsqueezyTestVariantId?: string | null;
+
+  @Field({ nullable: true })
+  lemonsqueezyLiveVariantCurrency?: string | null;
+
+  @Field({ nullable: true })
+  lemonsqueezyTestVariantCurrency?: string | null;
+
+  @Field({ nullable: true })
+  paddleMode?: string | null;
+
+  @Field({ nullable: true })
+  monopayMode?: string | null;
+
+  @Field({ nullable: true })
+  paypalMode?: string | null;
+
+  @Field({ nullable: true })
+  paypalLiveClientId?: string | null;
+
+  @Field({ nullable: true })
+  paypalTestClientId?: string | null;
+}
+
+@ObjectType()
+export class PaymentSettingsType {
+  @Field(() => [String])
+  enabledMethods!: string[];
+
+  @Field(() => PaymentConfigType)
+  config!: PaymentConfigType;
+
+  @Field(() => [PaymentMethodStatusType])
+  methods!: PaymentMethodStatusType[];
+
+  @Field(() => PaymentSecretsStatusType)
+  secretStatuses!: PaymentSecretsStatusType;
+}
+
+@InputType()
+export class LessonPackageInput {
+  @Field()
+  id!: string;
+
+  @Field(() => Int)
+  lessons!: number;
+
+  @Field()
+  label!: string;
+
+  @Field({ nullable: true })
+  currency?: string | null;
+}
+
+@InputType()
+export class ManualInvoiceMethodInput {
+  @Field()
+  id!: string;
+
+  @Field()
+  kind!: string;
+
+  @Field()
+  label!: string;
+
+  @Field()
+  description!: string;
+
+  @Field()
+  receiptHintUk!: string;
+
+  @Field()
+  paymentReferenceHint!: string;
+
+  @Field({ nullable: true })
+  recipientTaxId?: string | null;
+
+  @Field({ nullable: true })
+  paymentPurpose?: string | null;
+
+  @Field(() => [String], { nullable: true })
+  importantNotes?: string[] | null;
+
+  @Field({ nullable: true })
+  beneficiaryName?: string | null;
+
+  @Field({ nullable: true })
+  iban?: string | null;
+
+  @Field({ nullable: true })
+  bankName?: string | null;
+
+  @Field({ nullable: true })
+  bankCountry?: string | null;
+
+  @Field({ nullable: true })
+  bic?: string | null;
+
+  @Field({ nullable: true })
+  accountNumber?: string | null;
+
+  @Field({ nullable: true })
+  bankAddress?: string | null;
+
+  @Field({ nullable: true })
+  swiftBic?: string | null;
+
+  @Field({ nullable: true })
+  beneficiaryAddress?: string | null;
+
+  @Field({ nullable: true })
+  intermediaryBankName?: string | null;
+
+  @Field({ nullable: true })
+  intermediarySwiftBic?: string | null;
+
+  @Field({ nullable: true })
+  cardNumber?: string | null;
+
+  @Field({ nullable: true })
+  instructionsUk?: string | null;
+}
+
+@InputType()
+export class StudentManualInvoiceSelectionInput {
+  @Field(() => [String])
+  allowedMethodIds!: string[];
+
+  @Field({ nullable: true })
+  defaultMethodId?: string | null;
+}
+
+@InputType()
+export class StudentPaymentMethodSelectionInput {
+  @Field(() => [String])
+  allowedMethods!: string[];
+
+  @Field({ nullable: true, defaultValue: false })
+  restrictToAllowlistOnly?: boolean;
+}
+
+@InputType()
+export class LessonPriceByCurrencyInput {
+  @Field()
+  currency!: string;
+
+  @Field(() => Int)
+  pricePerLessonMinor!: number;
+}
+
+@InputType()
+export class PaymentConfigInput {
+  @Field(() => [LessonPackageInput])
+  packages!: LessonPackageInput[];
+
+  @Field(() => Int)
+  defaultPricePerLessonMinor!: number;
+
+  @Field(() => [LessonPriceByCurrencyInput], { nullable: true })
+  pricePerLessonByCurrency?: LessonPriceByCurrencyInput[];
+
+  @Field()
+  defaultCurrency!: string;
+
+  @Field(() => [String])
+  allowedCurrencies!: string[];
+
+  @Field(() => Int)
+  minPackageLessons!: number;
+
+  @Field(() => [ManualInvoiceMethodInput])
+  manualInvoiceMethods!: ManualInvoiceMethodInput[];
+
+  @Field({ nullable: true })
+  stripeMode?: string | null;
+
+  @Field({ nullable: true })
+  stripeLivePublishableKey?: string | null;
+
+  @Field({ nullable: true })
+  stripeTestPublishableKey?: string | null;
+
+  @Field({ nullable: true })
+  liqpayMode?: string | null;
+
+  @Field({ nullable: true })
+  liqpayLivePublicKey?: string | null;
+
+  @Field({ nullable: true })
+  liqpayTestPublicKey?: string | null;
+
+  @Field({ nullable: true })
+  wayforpayMode?: string | null;
+
+  @Field({ nullable: true })
+  wayforpayLiveMerchantAccount?: string | null;
+
+  @Field({ nullable: true })
+  wayforpayLiveMerchantDomainName?: string | null;
+
+  @Field({ nullable: true })
+  wayforpayTestMerchantAccount?: string | null;
+
+  @Field({ nullable: true })
+  wayforpayTestMerchantDomainName?: string | null;
+
+  @Field({ nullable: true })
+  lemonsqueezyMode?: string | null;
+
+  @Field({ nullable: true })
+  lemonsqueezyLiveStoreId?: string | null;
+
+  @Field({ nullable: true })
+  lemonsqueezyLiveVariantId?: string | null;
+
+  @Field({ nullable: true })
+  lemonsqueezyTestStoreId?: string | null;
+
+  @Field({ nullable: true })
+  lemonsqueezyTestVariantId?: string | null;
+
+  @Field({ nullable: true })
+  lemonsqueezyLiveVariantCurrency?: string | null;
+
+  @Field({ nullable: true })
+  lemonsqueezyTestVariantCurrency?: string | null;
+
+  @Field({ nullable: true })
+  paddleMode?: string | null;
+
+  @Field({ nullable: true })
+  monopayMode?: string | null;
+
+  @Field({ nullable: true })
+  paypalMode?: string | null;
+
+  @Field({ nullable: true })
+  paypalLiveClientId?: string | null;
+
+  @Field({ nullable: true })
+  paypalTestClientId?: string | null;
+}
+
+@InputType()
+export class StripeSecretsInput {
+  @Field({ nullable: true })
+  liveSecretKey?: string | null;
+
+  @Field({ nullable: true })
+  liveWebhookSecret?: string | null;
+
+  @Field({ nullable: true })
+  testSecretKey?: string | null;
+
+  @Field({ nullable: true })
+  testWebhookSecret?: string | null;
+}
+
+@InputType()
+export class LiqPaySecretsInput {
+  @Field({ nullable: true })
+  livePrivateKey?: string | null;
+
+  @Field({ nullable: true })
+  testPrivateKey?: string | null;
+}
+
+@InputType()
+export class WayForPaySecretsInput {
+  @Field({ nullable: true })
+  liveSecretKey?: string | null;
+
+  @Field({ nullable: true })
+  testSecretKey?: string | null;
+}
+
+@InputType()
+export class LemonSqueezySecretsInput {
+  @Field({ nullable: true })
+  liveApiKey?: string | null;
+
+  @Field({ nullable: true })
+  liveWebhookSecret?: string | null;
+
+  @Field({ nullable: true })
+  testApiKey?: string | null;
+
+  @Field({ nullable: true })
+  testWebhookSecret?: string | null;
+}
+
+@InputType()
+export class PaddleSecretsInput {
+  @Field({ nullable: true })
+  liveApiKey?: string | null;
+
+  @Field({ nullable: true })
+  liveWebhookSecret?: string | null;
+
+  @Field({ nullable: true })
+  testApiKey?: string | null;
+
+  @Field({ nullable: true })
+  testWebhookSecret?: string | null;
+}
+
+@InputType()
+export class MonoPaySecretsInput {
+  @Field({ nullable: true })
+  liveToken?: string | null;
+
+  @Field({ nullable: true })
+  testToken?: string | null;
+}
+
+@InputType()
+export class PayPalSecretsInput {
+  @Field({ nullable: true })
+  liveClientSecret?: string | null;
+
+  @Field({ nullable: true })
+  liveWebhookId?: string | null;
+
+  @Field({ nullable: true })
+  testClientSecret?: string | null;
+
+  @Field({ nullable: true })
+  testWebhookId?: string | null;
+}
+
+@InputType()
+export class PaymentSecretsInput {
+  @Field(() => StripeSecretsInput, { nullable: true })
+  stripe?: StripeSecretsInput | null;
+
+  @Field(() => LiqPaySecretsInput, { nullable: true })
+  liqpay?: LiqPaySecretsInput | null;
+
+  @Field(() => WayForPaySecretsInput, { nullable: true })
+  wayforpay?: WayForPaySecretsInput | null;
+
+  @Field(() => LemonSqueezySecretsInput, { nullable: true })
+  lemonsqueezy?: LemonSqueezySecretsInput | null;
+
+  @Field(() => PaddleSecretsInput, { nullable: true })
+  paddle?: PaddleSecretsInput | null;
+
+  @Field(() => MonoPaySecretsInput, { nullable: true })
+  monopay?: MonoPaySecretsInput | null;
+
+  @Field(() => PayPalSecretsInput, { nullable: true })
+  paypal?: PayPalSecretsInput | null;
+}
+
+@InputType()
+export class UpdatePaymentSettingsInput {
+  @Field(() => [String])
+  enabledMethods!: string[];
+
+  @Field(() => PaymentConfigInput)
+  config!: PaymentConfigInput;
+
+  @Field(() => PaymentSecretsInput, { nullable: true })
+  secrets?: PaymentSecretsInput | null;
+}
+
+@ObjectType()
+export class LessonBalanceLedgerEntryType {
+  @Field(() => ID)
+  id!: string;
+
+  @Field(() => Int)
+  delta!: number;
+
+  @Field(() => Int)
+  balanceAfter!: number;
+
+  @Field()
+  kind!: string;
+
+  @Field({ nullable: true })
+  note?: string | null;
+
+  @Field()
+  createdAt!: string;
+
+  @Field({ nullable: true })
+  scheduledLessonId?: string | null;
+}
+
+@ObjectType()
+export class StudentLessonBalanceType {
+  @Field(() => Int)
+  balance!: number;
+
+  @Field()
+  isDebt!: boolean;
+
+  @Field(() => [String])
+  availableMethods!: string[];
+
+  @Field(() => [String])
+  enabledPaymentMethods!: string[];
+
+  @Field(() => StudentPaymentMethodSelectionType)
+  paymentMethodSelection!: StudentPaymentMethodSelectionType;
+
+  @Field(() => [ManualInvoiceMethodType])
+  manualInvoiceMethods!: ManualInvoiceMethodType[];
+
+  @Field(() => [ManualInvoiceMethodType])
+  platformManualInvoiceMethods!: ManualInvoiceMethodType[];
+
+  @Field(() => StudentManualInvoiceSelectionType)
+  manualInvoiceSelection!: StudentManualInvoiceSelectionType;
+
+  @Field()
+  billingMode!: string;
+
+  @Field(() => [StudentPackageOverrideType])
+  packageOverrides!: StudentPackageOverrideType[];
+
+  @Field(() => [LessonPackageType])
+  platformPackages!: LessonPackageType[];
+
+  @Field()
+  showPerLessonPricing!: boolean;
+
+  @Field()
+  showSelfServePackages!: boolean;
+
+  @Field(() => [String])
+  allowedCurrencies!: string[];
+
+  @Field(() => Int)
+  minPackageLessons!: number;
+
+  @Field(() => Int, { nullable: true })
+  pricePerLessonMinor?: number | null;
+
+  @Field(() => Int)
+  defaultPricePerLessonMinor!: number;
+
+  @Field(() => Int)
+  resolvedPricePerLessonMinor!: number;
+
+  @Field()
+  defaultCurrency!: string;
+
+  @Field()
+  isCustomPrice!: boolean;
+
+  @Field(() => [ResolvedLessonPackageType])
+  packages!: ResolvedLessonPackageType[];
+
+  @Field(() => [LessonBalanceLedgerEntryType])
+  recentLedger!: LessonBalanceLedgerEntryType[];
+
+  /** Active Lemon Squeezy variant currency for checkout filtering (when enabled). */
+  @Field({ nullable: true })
+  lemonSqueezyVariantCurrency?: string | null;
+}
+
+@InputType()
+export class UpdateStudentLessonPricingInput {
+  @Field(() => ID)
+  studentId!: string;
+
+  @Field(() => Int, { nullable: true })
+  pricePerLessonMinor?: number | null;
+}
+
+@InputType()
+export class StudentPackageOverrideInput {
+  @Field()
+  packageId!: string;
+
+  @Field(() => Int, { nullable: true })
+  lessons?: number | null;
+
+  @Field({ nullable: true })
+  lessonsLocked?: boolean;
+
+  @Field({ nullable: true })
+  enabled?: boolean;
+}
+
+@InputType()
+export class UpdateStudentLessonBillingInput {
+  @Field(() => ID)
+  studentId!: string;
+
+  @Field()
+  billingMode!: string;
+
+  @Field(() => [StudentPackageOverrideInput])
+  packageOverrides!: StudentPackageOverrideInput[];
+
+  @Field(() => StudentPaymentMethodSelectionInput)
+  paymentMethodSelection!: StudentPaymentMethodSelectionInput;
+
+  @Field(() => StudentManualInvoiceSelectionInput)
+  manualInvoiceSelection!: StudentManualInvoiceSelectionInput;
+}
+
+@InputType()
+export class AdjustStudentLessonBalanceInput {
+  @Field(() => ID)
+  studentId!: string;
+
+  @Field(() => Int)
+  lessons!: number;
+
+  @Field({ nullable: true })
+  note?: string | null;
+}
+
+@InputType()
+export class CreateLessonPurchaseCheckoutInput {
+  @Field()
+  method!: string;
+
+  @Field()
+  packageId!: string;
+}
+
+@ObjectType()
+export class LessonPurchaseCheckoutType {
+  @Field()
+  checkoutUrl!: string;
 }

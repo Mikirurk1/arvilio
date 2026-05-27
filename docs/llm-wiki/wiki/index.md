@@ -25,6 +25,8 @@ Catalog of all wiki pages. Updated: 2026-05-16 (full project bootstrap).
 - [[entities/quiz-attempt]] — student quiz run
 - [[entities/progress]] — catalog lesson completion
 - [[entities/google-calendar-connection]] — Google Calendar OAuth
+- [[entities/student-lesson-balance]] — prepaid lesson credits per student
+- [[entities/lesson-balance-ledger]] — balance audit (purchase, consumption, reversal)
 
 ## Concepts
 
@@ -41,10 +43,13 @@ Catalog of all wiki pages. Updated: 2026-05-16 (full project bootstrap).
 - [[concepts/quizzes-flashcards]] — quizzes, assignments, attempts
 - [[concepts/chat]] — realtime messaging, Socket.IO, visibility rules
 - [[concepts/progress-tracking]] — catalog + dashboard progress
+- [[concepts/achievements]] — live achievement counters and unlock rules
 - [[concepts/daily-goals]] — dashboard daily goals (student)
 - [[concepts/web-app]] — Next routes, stores, API clients
 - [[concepts/ui-design-system]] — `components/ui` primitives, SCSS tokens
+- [[concepts/redesign-plan]] — Preply/Edvibe-style UI refresh; `docs/redesign/plan.md` step IDs
 - [[concepts/frontend-packages]] — planned `packages/frontend` migration
+- [[concepts/billing-payments]] — lesson balance, Stripe/LiqPay/WayForPay/Lemon Squeezy/Paddle/MonoPay/PayPal, multi-method manual invoice
 
 ## Sources
 

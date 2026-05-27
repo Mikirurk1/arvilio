@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo } from 'react';
 import { BookOpen, CheckCircle2, Clock3, Hand, Users } from 'lucide-react';
 import { DashboardLessonCard, PageHeader, SectionHeader, StatTile } from '../../components/ui';
-import { canView, siteContent } from '../../mocks';
+import { siteContent } from '../../mocks';
 import { isTeacherAdminOrSuperKey, useActiveUser, useActiveRoleKey } from '../../lib/active-user';
 import {
   formatDashboardSubtitle,
@@ -58,8 +58,6 @@ export default function DashboardPage() {
   useEffect(() => {
     if (isStaff) void fetchStudents();
   }, [isStaff, fetchStudents]);
-
-  if (!canView('dashboard', activeUser.role)) return null;
 
   const liveSummary = summary.data;
   const isLoading = summary.status === 'loading' || summary.status === 'idle';

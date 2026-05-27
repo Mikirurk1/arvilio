@@ -4,6 +4,414 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 ---
 
+## [2026-05-27] update | Redesign plan: structure and component reuse
+- **Trigger:** user request
+- **Pages:** `concepts/redesign-plan`, `log.md`
+- **Notes:** plan §1.4 layered UI + reuse checklist; R-00-08 layout recipes.
+
+## [2026-05-27] update | Redesign plan: motion (CSS, GSAP, Three.js)
+- **Trigger:** user request
+- **Pages:** `concepts/redesign-plan`, `log.md`
+- **Notes:** plan §1.3 learning-first motion; optional R-00-07; GSAP/Three deferred until needed.
+
+## [2026-05-27] update | Redesign plan: shared theme, SCSS rules, SaaS note
+- **Trigger:** user request
+- **Pages:** `concepts/redesign-plan`, `docs/redesign/plan.md` (via repo), `log.md`
+- **Notes:** §1.1 shared theme, §1.2 SCSS/`respond-to`; single-school now, SaaS later; steps R-00-05, R-00-06.
+
+## [2026-05-27] update | UI redesign master plan (Preply × Edvibe)
+- **Trigger:** user request
+- **Pages:** `concepts/redesign-plan`, `index.md`, `log.md`
+- **Notes:** `docs/redesign/plan.md` — phased steps R-00…R-90 (pages, tabs, modals); `.cursor/skills/soenglish-redesign/SKILL.md` for agent runs.
+
+## [2026-05-27] update | agent-browser all-pages smoke script
+- **Trigger:** user request
+- **Pages:** `concepts/testing`, `log.md`
+- **Notes:** `scripts/agent-browser-all-pages.sh` tours public + role-scoped routes; output under `tmp/agent-browser-tour/`. `/register` currently redirects to `/login`.
+
+## [2026-05-27] update | Fix API build after per-currency pricing
+- **Trigger:** debug
+- **Pages:** `log.md`
+- **Notes:** `billing.resolver` maps GraphQL currency strings to `PaymentCurrencyCode`; API tsc was failing so `paymentSettings` query errored in browser console.
+- **Trigger:** user request
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** `pricePerLessonByCurrency` in config + GraphQL; admin UI per-currency fields; save validation via `getPaymentSettingsCurrencyIssues`; package resolution uses `getPricePerLessonForCurrency`.
+
+## [2026-05-27] update | Clarify single-currency lesson rate in admin UI
+- **Trigger:** user question
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** `System → Payments` now explicitly warns that lesson price is stored for default currency only and is not auto-converted for other allowed currencies.
+
+## [2026-05-27] update | Provider currency support audit
+- **Trigger:** user question
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** Documented per-provider currency matrix; only MonoPay validates in code; Lemon Squeezy ignores platform currency (variant-driven).
+
+## [2026-05-27] update | Ledger activity UI on payment page
+- **Trigger:** user request
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** `LessonBalanceLedgerActivity` with kind labels, day groups, relative dates; reused on student Billing tab.
+
+## [2026-05-27] update | Payment page clearer two-step UX
+- **Trigger:** user request
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** `/payment` shows balance once, one package grid with selection, then checkout providers for the selected package only; manual invoice in its own section with steps; status banners for checkout return.
+
+## [2026-05-27] update | Manual invoice configured count clarity
+- **Trigger:** user question
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** `configuredLabel` counts only templates with required fields filled (`isManualInvoiceMethodConfigured`); UI shows `X of Y manual methods ready` and per-template missing fields in System → Payments modal.
+
+## [2026-05-27] update | Student payment methods include newly enabled providers
+- **Trigger:** bug report
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** `resolveStudentPaymentMethods` now merges platform methods enabled after the student's saved allowlist when that allowlist is still fully valid school-wide (fixes `/payment` missing new methods for migrated or legacy-restricted students).
+
+## [2026-05-27] update | Student route without segment loading.tsx
+- **Trigger:** debug
+- **Pages:** `concepts/web-app`, `log.md`
+- **Notes:** removed `students/[studentId]/loading.tsx`; server `page.tsx` + client `StudentDetailsPage.tsx` to avoid Suspense fallback swap when entering student profile.
+
+## [2026-05-27] update | Fix Suspense cleanup on nav (Practice, etc.)
+- **Trigger:** debug
+- **Pages:** `concepts/web-app`, `log.md`
+- **Notes:** removed root `app/loading.tsx` and `RequestAuthShell` Suspense wrapper; auth inlined in async `layout.tsx`. Student tabs use `createLazyPanel` instead of `next/dynamic` to avoid lazy Suspense trees during route exit.
+
+## [2026-05-27] update | Fix Suspense boundary mismatch on nav
+- **Trigger:** debug
+- **Pages:** `concepts/web-app`, `log.md`
+- **Notes:** removed nested `TabPanelSuspense` around `next/dynamic` tabs; student profile `keepMountedTabs={false}`; moved route `<Suspense>` to wrap only `children` inside `RequestAuthShell` (superseded by layout inline + lazy-panel).
+
+## [2026-05-27] update | Proxy web-session cache + route loading
+- **Trigger:** code change
+- **Pages:** `concepts/web-app`, `concepts/auth-rbac`, `log.md`
+- **Notes:** TTL cache (`WEB_SESSION_CACHE_TTL_MS`, default 8s) for repeat `web-session` during navigations; `app/loading.tsx` + student skeleton on cold client load; hover/focus prefetch on student cards.
+
+## [2026-05-27] update | Student tab panel Suspense skeletons
+- **Trigger:** code change
+- **Pages:** `concepts/web-app`, `log.md`
+- **Notes:** `TabPanelLoading` + per-tab `next/dynamic` loading fallbacks and `TabPanelSuspense` on student profile tabs so first-open lazy tabs show in-panel skeletons instead of empty panels or root Suspense flash.
+
+## [2026-05-27] update | Student details navigation speed
+- **Trigger:** code change + perf follow-up
+- **Pages:** `concepts/web-app`, `log.md`
+- **Notes:** reduced `/students/[studentId]` mount work: removed duplicate lessons fetch from page, changed `useStudentLiveStats` to prefer warm cache (no force refetch unless student-specific cache is missing), split heavy student tabs with `next/dynamic`, added route-level loading fallback, and enabled explicit prefetch on `StudentSummaryCard` links. Follow-up: tab dynamic imports use client-only loading (`ssr: false`) to avoid root Suspense full-page flash on first tab open.
+
+## [2026-05-27] update | Create lesson stays on current page
+- **Trigger:** code change
+- **Pages:** `concepts/web-app`, `log.md`
+- **Notes:** Header “Create lesson” and dashboard “New lesson” call `useOpenCreateLesson()` (`LessonEditorHost` context) — modal opens on the current page without `?create=1` or redirect to `/lessons`.
+
+## [2026-05-27] update | Secure navigation latency
+- **Trigger:** code change
+- **Pages:** `concepts/auth-rbac`, `concepts/web-app`, `log.md`
+- **Notes:** `web-session` now uses one Prisma user read via `resolveWebRequestSessionAuth`; proxy skips session fetch on anonymous public routes and password-recovery pages, calls same-origin `/api/auth/web-session`, and supports `DEBUG_PROXY_TIMING=1` plus `x-soenglish-proxy-hit` for duplicate-invocation checks. Removed route `loading.tsx` files; sync root `layout.tsx` + `RequestAuthShell` under `<Suspense>` fixes Suspense boundary mismatch on navigation. Dashboard and student detail stop force-refetching warm lesson/summary caches. Integration tests cover anonymous + access-backed `web-session`.
+
+## [2026-05-26] update | Restore request-time auth on Next 16
+- **Trigger:** debug + code change
+- **Pages:** `concepts/auth-rbac`, `concepts/web-app`, `synthesis/architecture`, `log.md`
+- **Notes:** anonymous users could still load protected routes like `/dashboard` because the request-time auth gate lived in the deprecated/wrong file path for the current Next 16 `src/app` setup. Moved the guard to `apps/web/src/proxy.ts`, restarted dev, and verified `/dashboard` now redirects to `/login` while public auth routes stay accessible.
+
+## [2026-05-26] update | Password field visibility toggle
+- **Trigger:** code change
+- **Pages:** `concepts/auth-rbac`, `concepts/ui-design-system`, `log.md`
+- **Notes:** confirmed password reset links stay valid for 60 minutes and each new forgot-password request replaces older reset tokens for that user. Added a shared password visibility eye-toggle to `apps/web/src/components/ui/Field.tsx`, so login, reset-password, profile, and other password-backed forms can reveal or hide the current value without duplicating per-page logic.
+
+## [2026-05-26] update | Richer manual invoice templates
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** expanded `manualInvoiceMethods` so `IBAN / SEPA` and `SWIFT` entries can store structured recipient tax id, explicit payment purpose, and student-facing `importantNotes[]`. Relaxed manual-method validation so local UAH / EUR SEPA instructions no longer require artificial bank-name/country fields, and updated `System → Payments`, student billing summaries, and `/payment` cards to render the richer transfer details cleanly.
+
+## [2026-05-26] update | Added card transfer manual invoice method
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** added first-class `card_transfer` support to `manualInvoiceMethods` so admins can save direct bank-card instructions as structured `beneficiaryName + bankName + cardNumber` data instead of a legacy custom text block; updated GraphQL/contracts, System payment settings, student billing summaries, `/payment`, and manual-invoice validation/tests accordingly.
+
+## [2026-05-26] update | Payment settings modal bigger and new manual methods first
+- **Trigger:** user request
+- **Pages:** `log.md`
+- **Notes:** increased the `System → Payments` provider settings modal size for denser billing forms, and changed manual-invoice method creation so newly added methods are inserted at the top of the list instead of below older entries.
+
+## [2026-05-26] update | Manual invoice add flow and imported custom label
+- **Trigger:** debug + code change
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** changed the `PaymentsPanel` modal config updater to use a functional draft state update so newly added manual invoice entries are not lost through stale modal state, and renamed compatibility `custom` manual methods in the UI from `Legacy custom` to `Imported instructions` because they exist only as migration fallback for older installs.
+
+## [2026-05-26] update | Manual settings modal save button and neutral custom label
+- **Trigger:** user request
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** removed the visible `Imported instructions` wording from manual-invoice UI so compatibility `custom` entries now fall back to `Manual invoice` or their own saved label, and added a dedicated `Save` button inside the `System → Payments` manual settings modal that triggers the same payment-settings persistence flow as the page-level save action.
+
+## [2026-05-26] update | Payment method modal visual polish
+- **Trigger:** user request
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** refreshed the `System → Payments` method modal with a more descriptive header, softer blurred backdrop, card-like section styling for provider/manual content, and a stronger footer action area so large payment configuration forms feel cleaner and easier to scan.
+
+## [2026-05-26] update | Payment method modal dark-theme cleanup
+- **Trigger:** user request
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** removed white-tinted gradients and light-mix surfaces from the `System → Payments` method modal, then added dark-theme-safe card/surface backgrounds plus stronger dark borders/shadows so the dialog no longer looks muddy in dark mode.
+
+## [2026-05-26] update | Student Billing single manual invoice shortcut
+- **Trigger:** user request
+- **Pages:** `concepts/billing-payments`, `entities/student-lesson-balance`, `log.md`
+- **Notes:** added a direct `Use only this method` action on manual invoice cards in `/students/[id] → Billing`, so staff can assign one concrete manual invoice option to a student in one click while keeping the older allowlist + recommended-method controls for advanced cases.
+
+## [2026-05-26] update | Student payment allowlist replaces singular assignment
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments`, `entities/student-lesson-balance`, `log.md`
+- **Notes:** moved per-student payment restrictions from legacy `User.assignedPaymentMethod` into `StudentLessonBalance.paymentMethodSelection.allowedMethods[]`, added a Prisma migration that backfills existing single-method assignments into the new JSON allowlist, updated billing GraphQL/contracts/backend resolution to treat empty allowlists as “all enabled methods”, and refactored `/students/[id] → Billing` so admins save payment-method allowlists and manual invoice subsets/defaults together in one flow.
+
+## [2026-05-26] update | Billing runtime failed until new migration was applied
+- **Trigger:** debug
+- **Pages:** `log.md`
+- **Notes:** runtime `studentLessonBalance.upsert()` started failing on `StudentLessonBalance.paymentMethodSelection` because the new allowlist migration existed locally but had not yet been applied to the active PostgreSQL database. Applied `20260526210000_student_payment_method_selection` with `prisma migrate deploy`; schema is now up to date.
+
+## [2026-05-26] update | Student Billing layout made more intuitive
+- **Trigger:** user request
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** reorganized `/students/[id] → Billing` into a clearer workspace with a top overview banner, icon-led section headers, nested rule cards for billing mode/payment methods/manual invoice restrictions, and more readable pricing, manual-credit, and ledger activity cards so staff can locate the right billing action faster.
+
+## [2026-05-26] update | Student Billing dark-theme cleanup and clearer manual invoice choice
+- **Trigger:** user request
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** removed white-mixed/gradient-heavy billing card backgrounds that looked wrong in dark theme, flattened package accents to solid colors, and made `Manual invoice` more explicit in the student Billing UI by showing template-count/default summaries plus clearer copy that staff can choose one or several concrete manual invoice templates for the student.
+
+## [2026-05-26] update | Inline manual invoice template picker in Billing
+- **Trigger:** user request
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** changed student Billing so all created manual invoice templates from `System → Payments` are available in the admin restriction UI, then moved the template-selection logic directly into the `Manual invoice` card inside `Allowed payment methods`; student-facing payment data still returns only templates that are actually configured and allowed for that student.
+
+## [2026-05-26] update | Recommended manual template shown only when needed
+- **Trigger:** user request
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** kept the `Recommended template` selector inside the inline `Manual invoice` picker in `Allowed payment methods`, but now show it only when more than one manual invoice template is available for the student so single-template setups stay compact.
+
+## [2026-05-26] update | Manual invoice picker simplified to direct multi-select
+- **Trigger:** user request
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** removed the extra `Choose specific manual invoice templates` toggle and `Only this` shortcut from the inline `Manual invoice` picker in student Billing; staff now directly select one or several templates with checkboxes, which matches the intended multi-choice flow more clearly.
+
+## [2026-05-26] update | Payment method picker simplified to direct multi-select
+- **Trigger:** user request
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** removed the extra `Choose specific payment methods for this student` toggle from `Allowed payment methods` in student Billing; staff now directly select one or several payment methods with checkboxes, while “all methods selected” still persists as the compatibility empty-allowlist shape in backend storage.
+
+## [2026-05-26] update | Preserve server auth role through hydration
+- **Trigger:** code change
+- **Pages:** `concepts/auth-rbac`, `log.md`
+- **Notes:** fixed web auth bootstrap so the client auth cache can use the server-provided session user before Zustand finishes initializing; this prevents authenticated users such as `SUPER_ADMIN` from temporarily or persistently falling back to student-shaped UI/navigation when the client store starts empty.
+
+## [2026-05-26] update | Hydration-safe breakpoint hook
+- **Trigger:** code change
+- **Pages:** `concepts/web-app`, `log.md`
+- **Notes:** changed `useBreakpoint()` so SSR and the first client render share the same desktop fallback state, then apply the real viewport after mount; this prevents responsive client components like `Header`, `Sidebar`, and `/chat` from rendering different trees during hydration.
+
+## [2026-05-26] update | Header search hydration id fix
+- **Trigger:** code change
+- **Pages:** `concepts/web-app`, `log.md`
+- **Notes:** pinned the persistent header search input to a stable DOM id instead of generated `useId()` output so the app shell no longer throws a hydration attribute mismatch for the search field on SSR refreshes.
+
+## [2026-05-26] update | Pre-hydration appearance bootstrap
+- **Trigger:** code change
+- **Pages:** `concepts/web-app`, `log.md`
+- **Notes:** moved web theme/font-size initialization earlier into a tiny inline bootstrap script in `app/layout.tsx` so persisted dark mode is applied on `<html>` before hydration, eliminating the light-to-dark flash on refresh while keeping Zustand/localStorage as the source of truth.
+
+## [2026-05-26] update | Public auth shell fallback and green repo typecheck
+- **Trigger:** code change
+- **Pages:** `concepts/auth-rbac`, `log.md`
+- **Notes:** fixed request-auth shell fallback so public auth routes still resolve to the `auth` shell even when the explicit shell header is missing, preventing header/sidebar bleed onto `/login`; also cleaned the remaining web test helper typing so full repo `npm run typecheck` is green again.
+
+## [2026-05-26] update | Restored clean auth and billing module typechecks
+- **Trigger:** code change
+- **Pages:** `concepts/testing`, `log.md`
+- **Notes:** fixed `@be/mail` nodemailer import typing so `module-auth` no longer failed through `module-mail`, and normalized billing env/index-signature access plus manual-invoice GraphQL mapping so focused `module-billing` and downstream `module-lessons` typechecks pass cleanly again.
+
+## [2026-05-26] update | Middleware follow-up: account status and backend auth gaps
+- **Trigger:** code change
+- **Pages:** `concepts/auth-rbac`, `synthesis/architecture`, `log.md`
+- **Notes:** enforced `ACTIVE`-only auth/session boundaries across password login, Google sign-in, refresh rotation, guards, and `GET /api/auth/web-session`; middleware now preserves `account_paused` / `account_leaved` / `account_blocked` redirects into `/login`; removed redundant top-level web route guards plus the dead `AuthGate`; tightened student-scoped vocabulary access and lesson create/update/delete rules so ownership stays enforced in backend services instead of middleware.
+
+## [2026-05-26] update | Role-aware request-time route gating
+- **Trigger:** code change
+- **Pages:** `concepts/auth-rbac`, `synthesis/architecture`, `log.md`
+- **Notes:** extended `GET /api/auth/web-session` with `availableScopes`, added shared pathname route policy for middleware + sidebar visibility, and moved top-level role/scope gating for `/payment`, `/students`, `/admin`, `/system`, and future `/platform` routes into request-time middleware while leaving detailed ownership/business authorization in backend/page logic.
+
+## [2026-05-26] update | Request-time middleware auth architecture
+- **Trigger:** code change
+- **Pages:** `concepts/auth-rbac`, `synthesis/architecture`, `log.md`
+- **Notes:** added `apps/web/middleware.ts` to own public/protected auth routing before render, introduced backend `GET /api/auth/web-session` as a non-mutating session snapshot for middleware/server layouts, moved shell selection into request-time layout state, demoted `AuthGate`/client bootstrap from redirect ownership to UI-only session cache, and added future-ready `scope` / `tenantKey` seams for later platform-vs-school routing.
+
+## [2026-05-26] update | Cursor rule for future multi-tenant architecture
+- **Trigger:** user request
+- **Pages:** `synthesis/architecture`, `log.md`
+- **Notes:** added an always-apply Cursor rule that keeps current implementation biased toward one-school product scope while requiring new architectural decisions to preserve a clean path to future platform-level and school-level multi-tenant separation.
+
+## [2026-05-26] update | Login URL stays clean for dashboard redirect
+- **Trigger:** user request
+- **Pages:** `log.md`
+- **Notes:** unauthenticated visits to the default protected route `/dashboard` now redirect to plain `/login` instead of `/login?next=%2Fdashboard`; `next` is still preserved for non-default protected pages where post-login return routing matters.
+
+## [2026-05-26] update | Forgot password and reset-password flow
+- **Trigger:** code change
+- **Pages:** `concepts/auth-rbac`, `concepts/transactional-email`, `log.md`
+- **Notes:** added hashed one-time `PasswordResetToken` persistence, new REST endpoints `POST /api/auth/forgot-password` and `POST /api/auth/reset-password`, a `password-reset` transactional email template, and new web auth pages `/forgot-password` + `/reset-password` with a login-page recovery link.
+
+## [2026-05-26] update | Added MonoPay and PayPal billing providers
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments`, `index.md`, `log.md`
+- **Notes:** expanded billing provider contracts and `PaymentMethodKind` with `monopay` and `paypal`, added secure school secrets + mode-aware runtime for both providers, implemented MonoPay invoice/webhook flow and PayPal Orders/webhook verification flow, and exposed both providers in `System → Payments` plus the student `/payment` page.
+
+## [2026-05-26] update | Environment switcher no longer stretches full width
+- **Trigger:** user request
+- **Pages:** `log.md`
+- **Notes:** `ui.module.scss` `segmentedRoot` now uses inline fit-content sizing so the `Environment` switcher in payment method modals stays compact instead of stretching across the whole row.
+
+## [2026-05-26] update | Payment method cards and environment switcher clarity
+- **Trigger:** user request
+- **Pages:** `log.md`
+- **Notes:** `System → Payments` cards now update the `Live mode` / `Test mode` badge immediately from local draft config after modal edits, the enabled-state `Disable` action uses a danger/red button style, and the shared segmented environment switcher was restyled for stronger active/inactive contrast.
+
+## [2026-05-26] update | Billing console errors were pending migrations
+- **Trigger:** debug
+- **Pages:** `log.md`
+- **Notes:** after adding `PlatformSettings.paymentSecrets`, the local API could throw Prisma `ColumnNotFound` for `PlatformSettings.paymentSecrets` until `npm run prisma:migrate:deploy` applied the latest billing migrations; GraphQL endpoint recovered immediately after migrations were deployed.
+
+## [2026-05-26] update | Payment env example trimmed to platform minimum
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** removed legacy provider fallback vars from `.env.example`; the example now documents only platform-wide billing env (`WEB_APP_URL`, `API_PUBLIC_URL`, `PAYMENT_SECRETS_ENCRYPTION_KEY`) while provider secrets are expected to be managed from `System → Payments`.
+
+## [2026-05-26] update | School-level payment secrets in System
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** added encrypted `PlatformSettings.paymentSecrets` storage for the current school/system payment credentials, introduced `PAYMENT_SECRETS_ENCRYPTION_KEY`, changed checkout/webhook runtime to prefer stored school secrets over legacy env fallbacks, and extended `System → Payments` so each provider modal can edit secure school secrets while exposing only safe field-status metadata back to the frontend.
+
+## [2026-05-26] update | Payment provider test-live switching and onboarding
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** added persisted per-provider `live/test` mode to billing settings, runtime credential/environment selection for Stripe/LiqPay/WayForPay/Lemon Squeezy/Paddle, paired env documentation in `.env.example`, mode-aware status labels on payment cards, and a refactored payment-method modal with docs links, setup checklists, and field-level tooltip guidance.
+
+## [2026-05-26] update | Manual invoice methods and student allowlists
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments`, `entities/student-lesson-balance`, `index.md`, `log.md`
+- **Notes:** replaced singleton manual invoice copy with typed `manualInvoiceMethods[]` (`IBAN/SEPA`, `SWIFT`, legacy `custom` fallback), added `StudentLessonBalance.manualInvoiceSelection` for per-student allowlist/default, updated `System → Payments`, student Billing rules, and `/payment` to render the new method cards and restrictions.
+
+## [2026-05-26] update | Added WayForPay, Lemon Squeezy, and Paddle
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments`, `index.md`, `log.md`
+- **Notes:** expanded `PaymentMethodKind` and Payments UI to include `wayforpay`, `lemonsqueezy`, and `paddle`; added provider-specific checkout services and webhook/callback endpoints, plus new admin config fields for WayForPay merchant settings and Lemon Squeezy store/variant ids.
+
+## [2026-05-26] update | Speaking practice flow for achievements
+- **Trigger:** code change
+- **Pages:** `concepts/achievements`, `concepts/web-app`, `log.md`
+- **Notes:** enabled `/practice/speaking` with live session tracking via `usePracticeSessionTracker`, and re-enabled the Speaking activity card so speaking achievements now have a real user-facing source of progress.
+
+## [2026-05-26] update | Live backend achievements
+- **Trigger:** code change
+- **Pages:** `concepts/achievements`, `concepts/web-app`, `index.md`, `log.md`
+- **Notes:** added server-side `achievementStats(studentId?)` query in `module-auth`; shared achievement catalog/rules moved to `packages/shared/types`; `/profile` and student achievements now render from live backend counters and unlocked ids instead of mock-only client wiring.
+
+## [2026-05-26] update | Pricing control chips removed
+- **Trigger:** user request
+- **Pages:** `log.md`
+- **Notes:** `System → Payments` pricing control cards no longer render `pricingControlChip`; the card headers were simplified and related chip styles were removed.
+
+## [2026-05-26] update | Pricing chip text no longer breaks awkwardly
+- **Trigger:** user request
+- **Pages:** `log.md`
+- **Notes:** `System → Payments` `pricingControlChip` now keeps its label on one line, while the chip itself can wrap below the title row if space is tight.
+
+## [2026-05-26] update | Pricing control cards use softer accents
+- **Trigger:** user request
+- **Pages:** `log.md`
+- **Notes:** `System → Payments` `pricingControlCard` no longer uses the top `::before` accent bar; cards now use softer per-card border tinting and colored chips instead.
+
+## [2026-05-26] update | Pricing select dropdown no longer clipped
+- **Trigger:** user request
+- **Pages:** `log.md`
+- **Notes:** `System → Payments` `pricingControlCard` no longer uses `overflow: hidden`, so the custom select dropdown can render outside the card instead of being clipped.
+
+## [2026-05-26] update | Select and input heights aligned
+- **Trigger:** user request
+- **Pages:** `log.md`
+- **Notes:** desktop `Field` select trigger now matches standard input sizing more closely (`min-height`, padding, inherited typography), and the System/Student page `.input` styles now enforce consistent field height with `min-height` + `box-sizing`.
+
+## [2026-05-25] update | Billing form fields stretch consistently
+- **Trigger:** user request
+- **Pages:** `log.md`
+- **Notes:** `System → Payments` now removes inherited width caps inside `pricingInlineControls`, stretches package control cards to equal height inside `packageRowControls`, and student `formGrid` inputs now use full width instead of native browser sizing.
+
+## [2026-05-25] update | Payments cards dark-theme cleanup
+- **Trigger:** user request
+- **Pages:** `log.md`
+- **Notes:** `System → Payments` dropped the problematic dark-theme gradients, `pricingControlCard` was redesigned into flatter accent cards, package template cards now match student package styling more closely, and Header lesson badges now have explicit dark-theme warning/danger states.
+
+## [2026-05-25] update | Billing package cards made more visible
+- **Trigger:** user request
+- **Pages:** `concepts/billing-payments`, `log.md`
+- **Notes:** `/payment` and student Billing package cards now use stronger accent bars, larger price blocks, and `Starter` / `Popular choice` / `Premium` visual states so package differences are obvious at a glance.
+
+## [2026-05-25] update | Featured package accents on student/payment cards
+- **Trigger:** user note + UI change
+- **Pages:** `log.md`
+- **Notes:** package cards on `Student Billing` and `/payment` now highlight a visually featured mid-sized package and add richer helper copy.
+
+## [2026-05-25] update | Student and payment package card redesign
+- **Trigger:** user note + UI change
+- **Pages:** `log.md`
+- **Notes:** package presentation on `Student Billing` and `/payment` now uses richer cards with price, lesson count, badges, and clearer checkout/status hierarchy.
+
+## [2026-05-25] update | Payments package cards redesign
+- **Trigger:** user note + UI change
+- **Pages:** `log.md`
+- **Notes:** `System → Payments` self-serve package templates now have summary stats, richer card metadata, badges, and clearer edit controls.
+
+## [2026-05-25] update | Package rules card redesign
+- **Trigger:** user note + UI change
+- **Pages:** `log.md`
+- **Notes:** `Student Billing` package rules now include summary stats, status badges, richer package metadata, and clearer toggle/control grouping.
+
+## [2026-05-25] update | Default pricing block redesign
+- **Trigger:** user note + UI change
+- **Pages:** `log.md`
+- **Notes:** `System → Payments` `Default pricing` now uses a configurator layout with a stronger hero, control cards, live summary, and package preview.
+
+## [2026-05-25] update | Billing action feedback and loading states
+- **Trigger:** user note + code change
+- **Pages:** `log.md`
+- **Notes:** backend action buttons in billing UI use `Button.loading`; success/error feedback is rendered near the action area instead of only at the top; added `.cursor/rules/web-async-actions.mdc`.
+
+## [2026-05-25] update | Billing currencies, student billing mode, package locks
+- **Trigger:** user note + code change
+- **Pages:** `concepts/billing-payments.md`, `entities/student-lesson-balance.md`, `log.md`
+- **Notes:** `allowedCurrencies` + default select; `minPackageLessons`; `billingMode` + `packageOverrides`; migration `20260525200000_student_billing_mode`; `updateStudentLessonBilling`.
+
+## [2026-05-25] fix | ensureBalanceRow upsert (P2002 on userId)
+- **Trigger:** debug — concurrent create vs `resolvePricePerLessonMinor` upsert
+- **Pages:** `log.md`
+- **Notes:** `ensureBalanceRow` uses `upsert` instead of find-then-create.
+
+## [2026-05-25] fix | Billing GraphQL CurrentGqlUser + enabledPaymentMethods on balance
+- **Trigger:** debug — `Cannot read properties of undefined (reading 'user')` on student Billing tab
+- **Pages:** `log.md`
+- **Notes:** `billing.resolver` used `@CurrentUser()` (HTTP-only); switched to `@CurrentGqlUser()`. Staff assignment dropdown uses `enabledPaymentMethods` on balance instead of super-admin `paymentSettings` query.
+
+## [2026-05-25] fix | studentLessonBalance GraphQL studentId type
+- **Trigger:** debug — `Variable "$studentId" of type "ID!" used in position expecting type "String!"`
+- **Pages:** `log.md`
+- **Notes:** `billing.resolver` `@Args('studentId', { type: () => ID })` to match client `STUDENT_LESSON_BALANCE` query.
+
+## [2026-05-25] update | Per-lesson pricing + Payments method cards UI
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments.md`, `entities/student-lesson-balance.md`, `log.md`
+- **Notes:** `defaultPricePerLessonMinor` + `StudentLessonBalance.pricePerLessonMinor`; package totals = lessons × price; System Payments cards with gear modal; `updateStudentLessonPricing`.
+
+## [2026-05-25] update | Lesson billing & payments (Stripe, LiqPay, manual invoice)
+- **Trigger:** code change — payment system plan
+- **Pages:** `concepts/billing-payments.md`, `entities/student-lesson-balance.md`, `entities/lesson-balance-ledger.md`, `index.md`
+- **Notes:** `@be/billing`, Prisma migration `20260525000000_lesson_billing`, `/payment`, System Payments tab, Header balance badge, student Billing tab; consumption on COMPLETED or CANCELLED+credited.
+
 ## [2026-05-25] fix | E2E webServer cwd — script path from repo root
 - **Trigger:** Playwright CI exit 127 — `scripts/e2e-web-server.sh: No such file or directory`
 - **Pages:** `log.md`
@@ -943,6 +1351,16 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 - **Trigger:** user request
 - **Pages:** `entities/word.md`, `concepts/vocabulary.md`, `log.md`
 - **Notes:** Dropped `CefrLookupService`, `cefr-lemmas.json`, `Word.cefrLevel`, GraphQL/UI fields.
+
+## [2026-05-27] update | Payments panel — remove A–D step badges
+- **Trigger:** user feedback
+- **Pages:** `concepts/billing-payments.md`, `log.md`
+- **Notes:** System → Payments uses section titles only (no letter badges).
+
+## [2026-05-27] update | Payment flow UX — per-package currency
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments.md`, `log.md`
+- **Notes:** Admin Payments A–D sections; package currency select; Lemon Squeezy variant currency; student order summary + provider filter; checkout currency guards on all online providers.
 
 ## [2026-05-16] update | Word audio + dictionary enrichment
 

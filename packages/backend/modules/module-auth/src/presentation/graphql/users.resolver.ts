@@ -91,7 +91,13 @@ export class UsersResolver {
     @Args('studentId', { type: () => ID }) studentId: string,
     @Args('input') input: UpdateAdminStudentInput,
   ) {
-    return this.studentsAdmin.updateStudentLanguages(userId, studentId, input);
+    return this.studentsAdmin.updateStudentLanguages(userId, studentId, {
+      nativeLanguageId: input.nativeLanguageId,
+      learningLanguageIds: input.learningLanguageIds,
+      teacherId: input.teacherId,
+      scheduleType: input.scheduleType,
+      displayColor: input.displayColor,
+    });
   }
 
   @Mutation(() => TeacherMessageType, { name: 'sendTeacherMessage' })

@@ -2,6 +2,7 @@ import { render } from '@react-email/render';
 import type { ReactElement } from 'react';
 import { LessonReminderEmail } from './templates/lesson-reminder';
 import { NewVocabularyEmail } from './templates/new-vocabulary';
+import { PasswordResetEmail } from './templates/password-reset';
 import { StreakAlertEmail } from './templates/streak-alert';
 import { TeacherMessageEmail } from './templates/teacher-message';
 import { WeeklyReportEmail } from './templates/weekly-report';
@@ -19,6 +20,8 @@ function subjectFor<T extends EmailTemplateId>(
   switch (templateId) {
     case 'welcome-account':
       return 'Welcome to SoEnglish';
+    case 'password-reset':
+      return 'Reset your SoEnglish password';
     case 'lesson-reminder':
       return `Reminder: ${(props as EmailTemplatePropsMap['lesson-reminder']).lessonTitle} starts in 30 minutes`;
     case 'streak-alert':
@@ -41,6 +44,8 @@ function elementFor<T extends EmailTemplateId>(
   switch (templateId) {
     case 'welcome-account':
       return <WelcomeAccountEmail {...(props as EmailTemplatePropsMap['welcome-account'])} />;
+    case 'password-reset':
+      return <PasswordResetEmail {...(props as EmailTemplatePropsMap['password-reset'])} />;
     case 'lesson-reminder':
       return <LessonReminderEmail {...(props as EmailTemplatePropsMap['lesson-reminder'])} />;
     case 'streak-alert':

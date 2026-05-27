@@ -20,7 +20,6 @@ import {
 import { Button, Field, PageHeader, SurfaceCard } from '../../../components/ui';
 import {
   canSchedule,
-  canView,
   siteContent,
   USER_ROLE,
 } from '../../../mocks';
@@ -74,7 +73,6 @@ export default function LessonPage() {
   const auth = useOptionalAuth();
   const role = activeUser.role;
   const viewerPartyNumericId = useViewerPartyNumericId();
-  const hasAccess = canView('dashboard', role);
   const canManageLessons = canSchedule('lessons', role);
   const { lessons, setLessons } = useScheduledLessons();
   const [draft, setDraft] = useState<(typeof lessons)[number] | null>(null);
@@ -202,7 +200,7 @@ export default function LessonPage() {
     role === USER_ROLE.student.id &&
     draft?.statusId === LESSON_STATUS.completed.id;
 
-  if (!hasAccess || !lesson || !draft) return null;
+  if (!lesson || !draft) return null;
 
   const lessonStudentBackendId =
     role === USER_ROLE.student.id

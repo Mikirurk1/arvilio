@@ -1,12 +1,20 @@
 'use client';
 
-import { FormEvent, Suspense, useEffect, useState } from 'react';
+import { FormEvent, Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../../lib/auth-context';
 import { BrandLogo } from '../../../components/brand/BrandLogo';
 import { Button, Field } from '../../../components/ui';
 import styles from '../auth.module.scss';
+
+const LOGIN_ERROR_MESSAGES: Record<string, string> = {
+  no_account: 'No account exists for that Google email. Ask an administrator to create one.',
+  account_paused: 'Your account is paused. Contact your administrator to reactivate it.',
+  account_leaved:
+    'Your account is no longer active at this school. Contact your administrator if this is a mistake.',
+  account_blocked: 'Your account is blocked. Contact support or your administrator.',
+};
 
 export default function LoginPage() {
   return (
@@ -19,7 +27,7 @@ export default function LoginPage() {
 function LoginPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, loading, login, googleSignInUrl } = useAuth();
+  const { login, googleSignInUrl } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -27,12 +35,7 @@ function LoginPageInner() {
 
   const next = searchParams.get('next') ?? '/dashboard';
   const accountError = searchParams.get('error');
-
-  useEffect(() => {
-    if (!loading && user) {
-      router.replace(next);
-    }
-  }, [loading, user, router, next]);
+  const resetStatus = searchParams.get('reset');
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -59,9 +62,12 @@ function LoginPageInner() {
           <p className={styles.subtitle}>Welcome back! Continue your English journey.</p>
         </div>
         {formError ? <div className={styles.error}>{formError}</div> : null}
-        {accountError === 'no_account' ? (
-          <div className={styles.error}>
-            No account exists for that Google email. Ask an administrator to create one.
+        {accountError && LOGIN_ERROR_MESSAGES[accountError] ? (
+          <div className={styles.error}>{LOGIN_ERROR_MESSAGES[accountError]}</div>
+        ) : null}
+        {resetStatus === 'success' ? (
+          <div className={styles.success}>
+            Password updated. You can now sign in with your new password.
           </div>
         ) : null}
         <Link className={styles.googleBtn} href={googleSignInUrl}>
@@ -92,6 +98,15 @@ function LoginPageInner() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />
+          </div>
+          <div className={styles.linkRow}>
+            <button
+              type="button"
+              className={styles.secondaryLinkButton}
+              onClick={() => router.push('/forgot-password')}
+            >
+              Forgot password?
+            </button>
           </div>
           <Button className={styles.primary} type="submit" disabled={submitting}>
             {submitting ? 'Signing in…' : 'Sign in'}

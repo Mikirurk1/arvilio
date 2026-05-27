@@ -28,7 +28,7 @@ function isThenable(value: unknown): value is PromiseLike<unknown> {
 }
 
 export type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onClick' | 'style'> & {
-  variant?: 'default' | 'ghost' | 'dashed';
+  variant?: 'default' | 'ghost' | 'dashed' | 'danger';
   active?: boolean;
   startIcon?: ReactNode;
   endIcon?: ReactNode;

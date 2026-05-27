@@ -1,6 +1,6 @@
 ---
 tags: [synthesis, architecture]
-updated: 2026-05-24
+updated: 2026-05-26
 ---
 
 # Architecture synthesis
@@ -90,11 +90,16 @@ flowchart LR
 - App Router under `apps/web/src/app/`
 - Shared UI primitives: `apps/web/src/components/ui/` — [[concepts/ui-design-system]]
 - Feature modules: `apps/web/src/features/` (lesson-modal, calendar)
-- Auth: client `AuthGate` + cookie credentials — [[concepts/web-app]]
+- Auth routing is request-time now: `apps/web/src/proxy.ts` classifies route surfaces, asks backend `GET /api/auth/web-session`, redirects anonymous protected requests before render, performs coarse role/scope gating for top-level route surfaces, and forwards normalized auth headers into the server render pass.
+- The same request-time path now carries account-status denial codes (`account_paused`, `account_leaved`, `account_blocked`) from backend `web-session` to middleware redirects, so blocked sessions land on `/login` with a specific reason instead of a generic auth failure.
+- Root layout reads that request auth state and chooses shell structure server-side (`auth` pages render without `AppShell`; protected routes render inside it), so layout ownership no longer depends on pathname checks inside a client shell component.
+- Client auth remains a UI cache/store seeded from server-resolved session data; it still owns explicit `login/logout/refresh` actions but not first navigation access control.
+- Route visibility for high-level app sections now shares the same pathname policy between middleware and sidebar navigation, reducing drift between request-time redirects and client nav hiding; redundant top-level page-entry guards and the old `AuthGate` shim were removed where middleware already owns the surface.
+- Product scope is still effectively single-school today, but new architecture work is expected to preserve a clean future path toward platform-level control plus school-level tenant contexts instead of baking one-school assumptions deeper into auth, settings, billing, and routing.
 
 ## Auth architecture (summary)
 
-JWT in httpOnly cookies; guards attach `user.id` only. Role checks are **ad hoc** per endpoint — [[concepts/auth-rbac]].
+JWT in httpOnly cookies; guards attach `user.id` only. Request-time auth uses a non-mutating backend `web-session` snapshot to decide coarse route access without rotating cookies in middleware. The snapshot now also exposes `availableScopes` so future platform-vs-school routing can be additive. Auth/session boundaries enforce `User.status === ACTIVE`, while detailed ownership checks remain in backend services (for example student-scoped vocabulary access and lesson create/update rules) because JWT access tokens still carry only `sub` — [[concepts/auth-rbac]].
 
 ## Known architectural gaps
 

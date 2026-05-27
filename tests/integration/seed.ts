@@ -152,6 +152,7 @@ export async function cleanupTestUsers(prisma: PrismaClient): Promise<void> {
 
   await prisma.studentWordCard.deleteMany({ where: { userId: { in: ids } } });
   await prisma.authRefreshToken.deleteMany({ where: { userId: { in: ids } } });
+  await prisma.passwordResetToken.deleteMany({ where: { userId: { in: ids } } });
   await prisma.oAuthAccount.deleteMany({ where: { userId: { in: ids } } });
   await prisma.practiceSession.deleteMany({ where: { userId: { in: ids } } });
   await prisma.dailyGoalCompletion.deleteMany({ where: { userId: { in: ids } } });

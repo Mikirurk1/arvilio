@@ -29,6 +29,11 @@ export type ProfileViewShellProps<T extends string> = {
   tab: T;
   onTabChange: (next: T) => void;
   tabs: TabsItem<T>[];
+  /**
+   * Keep inactive tab panels mounted. Disable when panels use `next/dynamic` lazy
+   * chunks — hidden lazy trees break React Suspense boundaries on navigation.
+   */
+  keepMountedTabs?: boolean;
 };
 
 export function ProfileViewShell<T extends string>({
@@ -44,6 +49,7 @@ export function ProfileViewShell<T extends string>({
   tab,
   onTabChange,
   tabs,
+  keepMountedTabs = true,
 }: ProfileViewShellProps<T>) {
   return (
     <div className={`${styles.page} container container--page`}>
@@ -118,6 +124,7 @@ export function ProfileViewShell<T extends string>({
         triggerClassName={styles.tabBtn}
         activeTriggerClassName={styles.tabActive}
         panelClassName={styles.tabPanel}
+        keepMounted={keepMountedTabs}
         items={tabs}
       />
     </div>

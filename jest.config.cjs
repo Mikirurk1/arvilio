@@ -10,6 +10,7 @@ const unitProjects = [
   '<rootDir>/packages/backend/modules/module-notifications/jest.config.cjs',
   '<rootDir>/packages/backend/modules/module-progress/jest.config.cjs',
   '<rootDir>/packages/backend/modules/module-mail/jest.config.cjs',
+  '<rootDir>/packages/backend/modules/module-billing/jest.config.cjs',
   '<rootDir>/apps/web/jest.config.cjs',
 ];
 

@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { PageHeader } from '../../components/ui';
 import { siteContent } from '../../mocks/content/site-content';
-import { canEdit, canView } from '../../lib/roles';
+import { canEdit } from '../../lib/roles';
 import { mapAuthRoleToRoleId } from '../../lib/active-user';
 import { usePracticeSessionTracker } from '../../lib/practice-session-tracker';
 import { useAuth } from '../../lib/auth-context';
@@ -50,7 +50,6 @@ export default function VocabularyPage() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const roleId = mapAuthRoleToRoleId(user?.role);
-  if (!canView('vocabulary', roleId)) return null;
 
   const isStudent = user?.role === 'student';
   const canSetLearned = canEdit('vocabulary', roleId);

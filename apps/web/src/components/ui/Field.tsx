@@ -1,5 +1,6 @@
 'use client';
 
+import { Eye, EyeOff } from 'lucide-react';
 import {
   Children,
   forwardRef,
@@ -427,6 +428,8 @@ export const Field = forwardRef<
   void _formatValue;
 
   const isTelInput = i.type === 'tel';
+  const isPasswordInput = i.type === 'password';
+  const [showPassword, setShowPassword] = useState(false);
   const telOnChange = isTelInput
     ? (event: ChangeEvent<HTMLInputElement>) => {
         const masked = formatTelMask(event.target.value);
@@ -436,20 +439,44 @@ export const Field = forwardRef<
         i.onChange?.(event);
       }
     : i.onChange;
+  const inputType = isTelInput ? 'tel' : isPasswordInput && showPassword ? 'text' : i.type;
+  const inputClassName = [i.className, isPasswordInput ? uiStyles.passwordToggleInput : '']
+    .filter(Boolean)
+    .join(' ');
+  const inputControl = (
+    <input
+      ref={ref as React.ForwardedRef<HTMLInputElement>}
+      id={id}
+      aria-invalid={props.error ? true : undefined}
+      aria-describedby={describedBy}
+      {...i}
+      className={inputClassName || undefined}
+      type={inputType}
+      inputMode={isTelInput ? 'tel' : i.inputMode}
+      autoComplete={isTelInput ? (i.autoComplete ?? 'tel') : i.autoComplete}
+      onChange={telOnChange}
+    />
+  );
 
   return (
     <>
-      <input
-        ref={ref as React.ForwardedRef<HTMLInputElement>}
-        id={id}
-        type={isTelInput ? 'tel' : i.type}
-        inputMode={isTelInput ? 'tel' : i.inputMode}
-        autoComplete={isTelInput ? (i.autoComplete ?? 'tel') : i.autoComplete}
-        aria-invalid={props.error ? true : undefined}
-        aria-describedby={describedBy}
-        {...i}
-        onChange={telOnChange}
-      />
+      {isPasswordInput ? (
+        <div className={uiStyles.passwordToggleWrap}>
+          {inputControl}
+          <button
+            type="button"
+            className={uiStyles.passwordToggleButton}
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+            aria-pressed={showPassword}
+            disabled={Boolean(i.disabled)}
+            onClick={() => setShowPassword((value) => !value)}
+          >
+            {showPassword ? <EyeOff size={16} aria-hidden /> : <Eye size={16} aria-hidden />}
+          </button>
+        </div>
+      ) : (
+        inputControl
+      )}
       {props.error ? <small id={errorId}>{props.error}</small> : null}
       {props.hint && !props.error ? <small id={hintId}>{props.hint}</small> : null}
     </>

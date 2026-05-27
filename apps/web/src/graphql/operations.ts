@@ -74,6 +74,23 @@ export const LEARNING_STREAK = `
   }
 `;
 
+export const ACHIEVEMENT_STATS = `
+  query AchievementStats($studentId: ID) {
+    achievementStats(studentId: $studentId) {
+      wordsLearned
+      lessonsCompleted
+      streakDays
+      quizzesCompleted
+      perfectQuizCount
+      speakingSessions
+      practiceMinutesTotal
+      lessonMinutesTotal
+      weeklyGoalsCompleted
+      unlockedAchievementIds
+    }
+  }
+`;
+
 export const WORD_OF_DAY = `
   query WordOfDay {
     wordOfDay {
@@ -795,6 +812,363 @@ export const MARK_CONVERSATION_READ = `
   mutation MarkConversationRead($conversationId: ID!) {
     markConversationRead(conversationId: $conversationId) {
       ok
+    }
+  }
+`;
+
+const LESSON_BALANCE_FIELDS = `
+  balance
+  isDebt
+  availableMethods
+  enabledPaymentMethods
+  paymentMethodSelection {
+    allowedMethods
+    restrictToAllowlistOnly
+  }
+  manualInvoiceMethods {
+    id
+    kind
+    label
+    description
+    receiptHintUk
+    paymentReferenceHint
+    recipientTaxId
+    paymentPurpose
+    importantNotes
+    beneficiaryName
+    iban
+    bankName
+    bankCountry
+    bic
+    accountNumber
+    bankAddress
+    swiftBic
+    beneficiaryAddress
+    intermediaryBankName
+    intermediarySwiftBic
+    cardNumber
+    instructionsUk
+  }
+  platformManualInvoiceMethods {
+    id
+    kind
+    label
+    description
+    receiptHintUk
+    paymentReferenceHint
+    recipientTaxId
+    paymentPurpose
+    importantNotes
+    beneficiaryName
+    iban
+    bankName
+    bankCountry
+    bic
+    accountNumber
+    bankAddress
+    swiftBic
+    beneficiaryAddress
+    intermediaryBankName
+    intermediarySwiftBic
+    cardNumber
+    instructionsUk
+  }
+  manualInvoiceSelection {
+    allowedMethodIds
+    defaultMethodId
+  }
+  billingMode
+  showPerLessonPricing
+  showSelfServePackages
+  allowedCurrencies
+  minPackageLessons
+  packageOverrides {
+    packageId
+    lessons
+    lessonsLocked
+    enabled
+  }
+  platformPackages {
+    id
+    lessons
+    label
+    currency
+  }
+  pricePerLessonMinor
+  defaultPricePerLessonMinor
+  resolvedPricePerLessonMinor
+  defaultCurrency
+  isCustomPrice
+  packages {
+    id
+    lessons
+    label
+    currency
+    amountMinor
+    pricePerLessonMinor
+    isCustomPrice
+    lessonsLocked
+  }
+  recentLedger {
+    id
+    delta
+    balanceAfter
+    kind
+    note
+    createdAt
+    scheduledLessonId
+  }
+  lemonSqueezyVariantCurrency
+`;
+
+export const MY_LESSON_BALANCE = `
+  query MyLessonBalance {
+    myLessonBalance {
+      ${LESSON_BALANCE_FIELDS}
+    }
+  }
+`;
+
+export const STUDENT_LESSON_BALANCE = `
+  query StudentLessonBalance($studentId: ID!) {
+    studentLessonBalance(studentId: $studentId) {
+      ${LESSON_BALANCE_FIELDS}
+    }
+  }
+`;
+
+export const PAYMENT_SETTINGS = `
+  query PaymentSettings {
+    paymentSettings {
+      enabledMethods
+      methods { id enabled configured configuredLabel mode }
+      secretStatuses {
+        stripe {
+          liveSecretKey { configured source }
+          liveWebhookSecret { configured source }
+          testSecretKey { configured source }
+          testWebhookSecret { configured source }
+        }
+        liqpay {
+          livePrivateKey { configured source }
+          testPrivateKey { configured source }
+        }
+        wayforpay {
+          liveSecretKey { configured source }
+          testSecretKey { configured source }
+        }
+        lemonsqueezy {
+          liveApiKey { configured source }
+          liveWebhookSecret { configured source }
+          testApiKey { configured source }
+          testWebhookSecret { configured source }
+        }
+        paddle {
+          liveApiKey { configured source }
+          liveWebhookSecret { configured source }
+          testApiKey { configured source }
+          testWebhookSecret { configured source }
+        }
+        monopay {
+          liveToken { configured source }
+          testToken { configured source }
+        }
+        paypal {
+          liveClientSecret { configured source }
+          liveWebhookId { configured source }
+          testClientSecret { configured source }
+          testWebhookId { configured source }
+        }
+      }
+      config {
+        defaultPricePerLessonMinor
+        pricePerLessonByCurrency { currency pricePerLessonMinor }
+        defaultCurrency
+        allowedCurrencies
+        minPackageLessons
+        packages { id lessons label currency }
+        manualInvoiceMethods {
+          id
+          kind
+          label
+          description
+          receiptHintUk
+          paymentReferenceHint
+          recipientTaxId
+          paymentPurpose
+          importantNotes
+          beneficiaryName
+          iban
+          bankName
+          bankCountry
+          bic
+          accountNumber
+          bankAddress
+          swiftBic
+          beneficiaryAddress
+          intermediaryBankName
+          intermediarySwiftBic
+          cardNumber
+          instructionsUk
+        }
+        stripeMode
+        stripeLivePublishableKey
+        stripeTestPublishableKey
+        liqpayMode
+        liqpayLivePublicKey
+        liqpayTestPublicKey
+        wayforpayMode
+        wayforpayLiveMerchantAccount
+        wayforpayLiveMerchantDomainName
+        wayforpayTestMerchantAccount
+        wayforpayTestMerchantDomainName
+        lemonsqueezyMode
+        lemonsqueezyLiveStoreId
+        lemonsqueezyLiveVariantId
+        lemonsqueezyTestStoreId
+        lemonsqueezyTestVariantId
+        lemonsqueezyLiveVariantCurrency
+        lemonsqueezyTestVariantCurrency
+        paddleMode
+        monopayMode
+        paypalMode
+        paypalLiveClientId
+        paypalTestClientId
+      }
+    }
+  }
+`;
+
+export const UPDATE_PAYMENT_SETTINGS = `
+  mutation UpdatePaymentSettings($input: UpdatePaymentSettingsInput!) {
+    updatePaymentSettings(input: $input) {
+      enabledMethods
+      methods { id enabled configured configuredLabel mode }
+      secretStatuses {
+        stripe {
+          liveSecretKey { configured source }
+          liveWebhookSecret { configured source }
+          testSecretKey { configured source }
+          testWebhookSecret { configured source }
+        }
+        liqpay {
+          livePrivateKey { configured source }
+          testPrivateKey { configured source }
+        }
+        wayforpay {
+          liveSecretKey { configured source }
+          testSecretKey { configured source }
+        }
+        lemonsqueezy {
+          liveApiKey { configured source }
+          liveWebhookSecret { configured source }
+          testApiKey { configured source }
+          testWebhookSecret { configured source }
+        }
+        paddle {
+          liveApiKey { configured source }
+          liveWebhookSecret { configured source }
+          testApiKey { configured source }
+          testWebhookSecret { configured source }
+        }
+        monopay {
+          liveToken { configured source }
+          testToken { configured source }
+        }
+        paypal {
+          liveClientSecret { configured source }
+          liveWebhookId { configured source }
+          testClientSecret { configured source }
+          testWebhookId { configured source }
+        }
+      }
+      config {
+        defaultPricePerLessonMinor
+        pricePerLessonByCurrency { currency pricePerLessonMinor }
+        defaultCurrency
+        allowedCurrencies
+        minPackageLessons
+        packages { id lessons label currency }
+        manualInvoiceMethods {
+          id
+          kind
+          label
+          description
+          receiptHintUk
+          paymentReferenceHint
+          recipientTaxId
+          paymentPurpose
+          importantNotes
+          beneficiaryName
+          iban
+          bankName
+          bankCountry
+          bic
+          accountNumber
+          bankAddress
+          swiftBic
+          beneficiaryAddress
+          intermediaryBankName
+          intermediarySwiftBic
+          cardNumber
+          instructionsUk
+        }
+        stripeMode
+        stripeLivePublishableKey
+        stripeTestPublishableKey
+        liqpayMode
+        liqpayLivePublicKey
+        liqpayTestPublicKey
+        wayforpayMode
+        wayforpayLiveMerchantAccount
+        wayforpayLiveMerchantDomainName
+        wayforpayTestMerchantAccount
+        wayforpayTestMerchantDomainName
+        lemonsqueezyMode
+        lemonsqueezyLiveStoreId
+        lemonsqueezyLiveVariantId
+        lemonsqueezyTestStoreId
+        lemonsqueezyTestVariantId
+        lemonsqueezyLiveVariantCurrency
+        lemonsqueezyTestVariantCurrency
+        paddleMode
+        monopayMode
+        paypalMode
+        paypalLiveClientId
+        paypalTestClientId
+      }
+    }
+  }
+`;
+
+export const UPDATE_STUDENT_LESSON_PRICING = `
+  mutation UpdateStudentLessonPricing($input: UpdateStudentLessonPricingInput!) {
+    updateStudentLessonPricing(input: $input) {
+      ${LESSON_BALANCE_FIELDS}
+    }
+  }
+`;
+
+export const UPDATE_STUDENT_LESSON_BILLING = `
+  mutation UpdateStudentLessonBilling($input: UpdateStudentLessonBillingInput!) {
+    updateStudentLessonBilling(input: $input) {
+      ${LESSON_BALANCE_FIELDS}
+    }
+  }
+`;
+
+export const ADJUST_STUDENT_LESSON_BALANCE = `
+  mutation AdjustStudentLessonBalance($input: AdjustStudentLessonBalanceInput!) {
+    adjustStudentLessonBalance(input: $input) {
+      ${LESSON_BALANCE_FIELDS}
+    }
+  }
+`;
+
+export const CREATE_LESSON_PURCHASE_CHECKOUT = `
+  mutation CreateLessonPurchaseCheckout($input: CreateLessonPurchaseCheckoutInput!) {
+    createLessonPurchaseCheckout(input: $input) {
+      checkoutUrl
     }
   }
 `;

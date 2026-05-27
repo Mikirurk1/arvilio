@@ -9,6 +9,7 @@ import { gqlAs } from '@tests/integration/helpers';
 
 describe('GraphQL vocabulary (integration)', () => {
   let ctx: IntegrationContext;
+  let outsiderStudentId: string;
 
   beforeAll(async () => {
     ctx = await createIntegrationApp();
@@ -30,9 +31,21 @@ describe('GraphQL vocabulary (integration)', () => {
       },
       update: {},
     });
+    const outsider = await ctx.prisma.user.create({
+      data: {
+        email: 'jest-outsider-vocab@soenglish.test',
+        displayName: 'Jest Outsider Vocab',
+        role: 'STUDENT',
+        status: 'ACTIVE',
+      },
+      select: { id: true },
+    });
+    outsiderStudentId = outsider.id;
   });
 
   afterAll(async () => {
+    await ctx.prisma.studentWordCard.deleteMany({ where: { userId: outsiderStudentId } });
+    await ctx.prisma.user.deleteMany({ where: { id: outsiderStudentId } });
     await ctx.prisma.studentWordCard.deleteMany({
       where: {
         word: {
@@ -93,6 +106,26 @@ describe('GraphQL vocabulary (integration)', () => {
     await ctx.prisma.word.deleteMany({
       where: { normalizedText: 'jest-vocab-teacher-add' },
     });
+  });
+
+  it('teacher cannot query or add vocabulary for an unassigned student', async () => {
+    const listRes = await gqlAs(
+      ctx.app,
+      'teacher',
+      `query($studentId: ID!) { studentVocabulary(studentId: $studentId) { id } }`,
+      { studentId: outsiderStudentId },
+    );
+    expect(listRes.body.errors?.[0]?.message).toMatch(/your students/i);
+
+    const addRes = await gqlAs(
+      ctx.app,
+      'teacher',
+      `mutation($input: CreateStudentWordCardInput!, $studentId: ID!) {
+        addStudentWordCard(input: $input, studentId: $studentId) { id }
+      }`,
+      { input: { text: 'jest-vocab-integration' }, studentId: outsiderStudentId },
+    );
+    expect(addRes.body.errors?.[0]?.message).toMatch(/your students/i);
   });
 
   it('studentVocabularyPage rejects invalid cursor', async () => {

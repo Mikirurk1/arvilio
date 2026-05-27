@@ -112,17 +112,17 @@ export const useDashboardStore = create<DashboardState>()(
       },
 
       fetchDashboard: async (isStudent) => {
-        await get().fetchSummary(true);
+        await get().fetchSummary(false);
         const tasks: Promise<void>[] = [
-          useLessonsStore.getState().fetchScheduledLessons(true),
+          useLessonsStore.getState().fetchScheduledLessons(false),
         ];
         if (isStudent) {
           tasks.push(
-            get().fetchGoals(true),
-            get().fetchStreak(true),
-            get().fetchWordOfDay(true),
-            useVocabularyStore.getState().fetchOverview(true),
-            useVocabularyStore.getState().fetchCards(undefined, true),
+            get().fetchGoals(false),
+            get().fetchStreak(false),
+            get().fetchWordOfDay(false),
+            useVocabularyStore.getState().fetchOverview(false),
+            useVocabularyStore.getState().fetchCards(undefined, false),
           );
         }
         await Promise.all(tasks);

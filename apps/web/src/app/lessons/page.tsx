@@ -1,12 +1,12 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import type { ScheduledLessonDto } from '@pkg/types';
 import { LESSON_STATUS } from '@pkg/types';
 import { BookOpen, Calendar, CheckCircle2, CircleAlert, Clock, FileText, Users } from 'lucide-react';
 import { PageHeader, SurfaceCard } from '../../components/ui';
-import { canView, USER_ROLE, type UserRole } from '../../mocks';
+import { USER_ROLE, type UserRole } from '../../mocks';
 import { useActiveUser } from '../../lib/active-user';
 import {
   fromBackendLessons,
@@ -21,12 +21,6 @@ import { LessonModal, useLessonEditor } from '../../features/lesson-modal';
 import { LessonsListPanel } from '../../components/lessons/LessonsListPanel';
 import { useLessonsStore } from '../../stores/lessons-store';
 import styles from './page.module.scss';
-
-function toDateString(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
-    date.getDate(),
-  ).padStart(2, '0')}`;
-}
 
 function statusLabel(statusId: ScheduledLessonDto['statusId']) {
   if (statusId === LESSON_STATUS.planned.id) return 'Planned';
@@ -101,21 +95,17 @@ export default function LessonsPage() {
 
 function LessonsPageInner() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const activeUser = useActiveUser();
   const role = activeUser.role;
   const viewerPartyNumericId = useViewerPartyNumericId();
-  const hasAccess = canView('dashboard', role);
 
   const {
     lessons,
     canManageLessons,
-    canCreateLesson,
     modalMode,
     editingLesson,
     form,
     setForm,
-    openCreateModal,
     openEditModal,
     closeModal,
     submitModal,
@@ -199,20 +189,6 @@ function LessonsPageInner() {
     () => (previousLesson ? homeworkHighlightStatus(previousLesson, role) : null),
     [previousLesson, role],
   );
-
-  const createFromQueryDone = useRef(false);
-  useEffect(() => {
-    if (searchParams.get('create') !== '1' || !canCreateLesson) {
-      createFromQueryDone.current = false;
-      return;
-    }
-    if (createFromQueryDone.current) return;
-    createFromQueryDone.current = true;
-    openCreateModal(toDateString(new Date()));
-    router.replace('/lessons', { scroll: false });
-  }, [canCreateLesson, searchParams, openCreateModal, router]);
-
-  if (!hasAccess) return null;
 
   return (
     <div className={`${styles.page} container container--page`}>
