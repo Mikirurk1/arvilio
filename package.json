@@ -133,7 +133,7 @@
     "graphql-request": "^7.2.0",
     "jsonwebtoken": "^9.0.3",
     "livekit-server-sdk": "^2.15.4",
-    "lucide-react": "^1.14.0",
+    "lucide-react": "^1.18.0",
     "next": "~16.1.6",
     "nodemailer": "^8.0.7",
     "react": "^19.0.0",
