@@ -45,6 +45,32 @@ function freePort() {
   }
 }
 
+function isPortInUse() {
+  try {
+    const out = execSync(`lsof -ti :${port}`, {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    return Boolean(out);
+  } catch {
+    return false;
+  }
+}
+
+async function waitForPortFree(maxMs = 5000) {
+  const deadline = Date.now() + maxMs;
+  while (Date.now() < deadline) {
+    if (!isPortInUse()) return;
+    freePort();
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  if (isPortInUse()) {
+    console.warn(`[api:dev] port ${port} still in use after ${maxMs}ms — forcing kill`);
+    freePort();
+    await new Promise((r) => setTimeout(r, 300));
+  }
+}
+
 let rebuildInFlight = false;
 
 function rebuild() {
@@ -95,8 +121,7 @@ async function stopApi() {
 async function startApi() {
   if (stopping) return;
   await stopApi();
-  freePort();
-  await new Promise((r) => setTimeout(r, 250));
+  await waitForPortFree();
   if (stopping) return;
 
   apiChild = spawn('node', nodeArgsFor(distMain), {

@@ -195,6 +195,45 @@ describe('AuthSessionService', () => {
       expect(res.cookie).toHaveBeenCalled();
     });
 
+    it('authenticates via refresh peek when response is unavailable', async () => {
+      const rawRefresh = generateRefreshToken();
+      prisma.authRefreshToken.findFirst.mockResolvedValue({
+        id: 'rt-3',
+        userId: 'user-peek',
+      });
+
+      const userId = await service.resolveAuthenticatedUserId({
+        headers: {},
+        cookies: { [REFRESH_COOKIE]: rawRefresh },
+      });
+
+      expect(userId).toBe('user-peek');
+    });
+
+    it('still authenticates when concurrent refresh rotation already consumed the token', async () => {
+      const expired = jwt.sign({ sub: 'old' }, getJwtSecret(), { expiresIn: -1 });
+      const rawRefresh = generateRefreshToken();
+      prisma.authRefreshToken.findFirst
+        .mockResolvedValueOnce({
+          id: 'rt-4',
+          userId: 'user-race',
+        })
+        .mockResolvedValueOnce(null);
+      prisma.authRefreshToken.update.mockResolvedValue({});
+      prisma.authRefreshToken.create.mockResolvedValue({});
+
+      const res = { cookie: jest.fn(), clearCookie: jest.fn() };
+      const userId = await service.resolveAuthenticatedUserId(
+        {
+          headers: {},
+          cookies: { [ACCESS_COOKIE]: expired, [REFRESH_COOKIE]: rawRefresh },
+        },
+        res as never,
+      );
+
+      expect(userId).toBe('user-race');
+    });
+
     it('rejects blocked users even with a valid access cookie', async () => {
       const token = jwt.sign({ sub: 'blocked-user' }, getJwtSecret(), {
         expiresIn: ACCESS_TOKEN_TTL_SECONDS,

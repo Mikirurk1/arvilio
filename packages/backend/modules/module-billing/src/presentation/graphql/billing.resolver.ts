@@ -8,6 +8,7 @@ import {
   LessonPurchaseCheckoutType,
   PaymentConfigType,
   PaymentSettingsType,
+  SchoolGroupLessonsSettingsType,
   StudentLessonBalanceType,
   UpdatePaymentSettingsInput,
   UpdateStudentLessonBillingInput,
@@ -70,6 +71,20 @@ export class BillingResolver {
   async getPaymentSettings() {
     const settings = await this.paymentSettings.getPaymentSettings();
     return toPaymentSettingsType(settings);
+  }
+
+  @Query(() => SchoolGroupLessonsSettingsType, { name: 'schoolGroupLessonsSettings' })
+  @Roles('TEACHER', 'ADMIN', 'SUPER_ADMIN')
+  async schoolGroupLessonsSettings() {
+    const { config } = await this.paymentSettings.getRuntimePaymentSettings();
+    const groupLessons = config.groupLessons!;
+    return {
+      enabled: groupLessons.enabled,
+      defaultBillingMode: groupLessons.defaultBillingMode,
+      defaultPriceMinor: groupLessons.defaultPriceMinor,
+      defaultCurrency: groupLessons.defaultCurrency,
+      defaultSplitMode: groupLessons.defaultSplitMode,
+    };
   }
 
   @Mutation(() => PaymentSettingsType, { name: 'updatePaymentSettings' })
@@ -150,6 +165,17 @@ export class BillingResolver {
           liveClientId: input.config.paypalLiveClientId ?? undefined,
           testClientId: input.config.paypalTestClientId ?? undefined,
         },
+        groupLessons: input.config.groupLessons
+          ? {
+              enabled: input.config.groupLessons.enabled,
+              defaultBillingMode: input.config.groupLessons
+                .defaultBillingMode as import('@pkg/types').GroupLessonBillingMode,
+              defaultPriceMinor: input.config.groupLessons.defaultPriceMinor,
+              defaultCurrency: input.config.groupLessons.defaultCurrency,
+              defaultSplitMode: input.config.groupLessons
+                .defaultSplitMode as import('@pkg/types').GroupFixedSplitMode,
+            }
+          : undefined,
       },
       secrets: input.secrets
         ? {
@@ -220,6 +246,7 @@ export class BillingResolver {
       actor,
       input.studentId,
       input.pricePerLessonMinor ?? null,
+      input.groupPricePerLessonMinor,
     );
   }
 
@@ -264,6 +291,10 @@ export class BillingResolver {
       studentId: input.studentId,
       lessons: input.lessons,
       note: input.note,
+      creditTrack:
+        input.creditTrack === 'group' || input.creditTrack === 'individual'
+          ? input.creditTrack
+          : undefined,
     });
   }
 
@@ -354,6 +385,15 @@ function toPaymentSettingsType(settings: Awaited<
       paypalMode: settings.config.paypal?.mode ?? null,
       paypalLiveClientId: settings.config.paypal?.liveClientId ?? null,
       paypalTestClientId: settings.config.paypal?.testClientId ?? null,
+      groupLessons: settings.config.groupLessons
+        ? {
+            enabled: settings.config.groupLessons.enabled,
+            defaultBillingMode: settings.config.groupLessons.defaultBillingMode,
+            defaultPriceMinor: settings.config.groupLessons.defaultPriceMinor,
+            defaultCurrency: settings.config.groupLessons.defaultCurrency,
+            defaultSplitMode: settings.config.groupLessons.defaultSplitMode,
+          }
+        : null,
     } as PaymentConfigType,
   };
 }

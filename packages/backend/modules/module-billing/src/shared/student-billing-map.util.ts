@@ -5,7 +5,12 @@ import type {
   StudentBillingModeDto,
   StudentPackageOverrideDto,
 } from '@pkg/types';
-import { DEFAULT_MIN_PACKAGE_LESSONS, getPricePerLessonForCurrency } from '@pkg/types';
+import {
+  DEFAULT_MIN_PACKAGE_LESSONS,
+  getDefaultGroupPricePerLessonMinor,
+  getPricePerLessonForCurrency,
+  parseLessonCreditTrack,
+} from '@pkg/types';
 
 type StudentBillingModeDb = 'PER_LESSON' | 'PACKAGES' | 'BOTH';
 
@@ -50,8 +55,12 @@ export function packageOverridesToJson(
 
 export function resolveStudentPackages(
   config: PaymentConfigDto,
-  pricePerLessonMinor: number,
-  isCustomPrice: boolean,
+  pricing: {
+    individualPricePerLessonMinor: number;
+    individualIsCustomPrice: boolean;
+    groupPricePerLessonMinor: number;
+    groupIsCustomPrice: boolean;
+  },
   billingMode: StudentBillingModeDto,
   overrides: StudentPackageOverrideDto[],
 ): ResolvedLessonPackageDto[] {
@@ -59,6 +68,8 @@ export function resolveStudentPackages(
 
   const minLessons = config['minPackageLessons'] ?? DEFAULT_MIN_PACKAGE_LESSONS;
   const overrideById = new Map(overrides.map((o) => [o.packageId, o]));
+  const defaultGroupCurrency =
+    config.groupLessons?.defaultCurrency?.trim().toUpperCase() || config['defaultCurrency'];
 
   return config['packages']
     .map((platformPkg) => {
@@ -68,17 +79,29 @@ export function resolveStudentPackages(
       const lessons = ov?.lessons ?? platformPkg.lessons;
       if (lessons < minLessons) return null;
 
-      const currency = platformPkg.currency ?? config['defaultCurrency'];
+      const creditTrack = parseLessonCreditTrack(platformPkg.creditTrack);
+      const currency =
+        creditTrack === 'group'
+          ? (platformPkg.currency ?? defaultGroupCurrency)
+          : (platformPkg.currency ?? config['defaultCurrency']);
       const lessonsLocked = ov?.lessonsLocked === true;
-      const resolvedPricePerLessonMinor = isCustomPrice
-        ? pricePerLessonMinor
-        : getPricePerLessonForCurrency(config, currency);
+      const resolvedPricePerLessonMinor =
+        creditTrack === 'group'
+          ? pricing.groupIsCustomPrice
+            ? pricing.groupPricePerLessonMinor
+            : getDefaultGroupPricePerLessonMinor(config)
+          : pricing.individualIsCustomPrice
+            ? pricing.individualPricePerLessonMinor
+            : getPricePerLessonForCurrency(config, currency);
+      const isCustomPrice =
+        creditTrack === 'group' ? pricing.groupIsCustomPrice : pricing.individualIsCustomPrice;
 
       return {
         id: platformPkg.id,
         lessons,
         label: platformPkg.label,
         currency,
+        creditTrack,
         pricePerLessonMinor: resolvedPricePerLessonMinor,
         amountMinor: lessons * resolvedPricePerLessonMinor,
         isCustomPrice,

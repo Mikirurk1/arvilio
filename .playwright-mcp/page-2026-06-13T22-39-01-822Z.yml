@@ -1,0 +1,111 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to main content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=e5]:
+      - link "SoEnglish — go to dashboard" [ref=e7] [cursor=pointer]:
+        - /url: /dashboard
+        - img [ref=e9]
+        - generic [ref=e11]:
+          - generic [ref=e12]: SoEnglish
+          - generic [ref=e13]: English Platform
+      - search [ref=e16]:
+        - img [ref=e17]
+        - searchbox "Search" [ref=e21]
+      - generic [ref=e22]:
+        - button "Create lesson" [ref=e23] [cursor=pointer]
+        - generic [ref=e24]:
+          - 'link "My: 0 today · 0 left" [ref=e25] [cursor=pointer]':
+            - /url: /lessons
+            - img [ref=e26]
+            - generic [ref=e28]: "My: 0 today"
+            - generic [ref=e29]: · 0 left
+          - link "Messages" [ref=e31] [cursor=pointer]:
+            - /url: /chat
+            - img [ref=e32]
+          - link "Profile & settings" [ref=e34] [cursor=pointer]:
+            - /url: /profile
+    - generic [ref=e35]:
+      - complementary [ref=e36]:
+        - navigation "Main navigation" [ref=e37]:
+          - generic [ref=e38]:
+            - generic [ref=e39]: Learn
+            - link "Dashboard" [ref=e41] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e44]
+              - generic [ref=e49]: Dashboard
+            - link "Lessons" [ref=e51] [cursor=pointer]:
+              - /url: /lessons
+              - img [ref=e54]
+              - generic [ref=e56]: Lessons
+            - link "Practice" [ref=e58] [cursor=pointer]:
+              - /url: /practice
+              - img [ref=e61]
+              - generic [ref=e65]: Practice
+            - link "Materials" [ref=e67] [cursor=pointer]:
+              - /url: /materials
+              - img [ref=e70]
+              - generic [ref=e72]: Materials
+          - generic [ref=e73]:
+            - generic [ref=e74]: Schedule
+            - link "Calendar" [ref=e76] [cursor=pointer]:
+              - /url: /calendar
+              - img [ref=e79]
+              - generic [ref=e81]: Calendar
+          - generic [ref=e82]:
+            - generic [ref=e83]: Connect
+            - link "Chat" [ref=e85] [cursor=pointer]:
+              - /url: /chat
+              - img [ref=e88]
+              - generic [ref=e90]: Chat
+            - link "Students" [ref=e92] [cursor=pointer]:
+              - /url: /students
+              - img [ref=e95]
+              - generic [ref=e100]: Students
+            - link "Staff" [ref=e102] [cursor=pointer]:
+              - /url: /staff
+              - img [ref=e105]
+              - generic [ref=e117]: Staff
+          - generic [ref=e118]:
+            - generic [ref=e119]: Account
+            - link "Finance" [ref=e121] [cursor=pointer]:
+              - /url: /finance
+              - img [ref=e124]
+              - generic [ref=e127]: Finance
+            - link "Profile & Settings" [ref=e129] [cursor=pointer]:
+              - /url: /profile
+              - img [ref=e132]
+              - generic [ref=e135]: Profile & Settings
+          - generic [ref=e136]:
+            - generic [ref=e137]: Platform
+            - link "Admin" [ref=e139] [cursor=pointer]:
+              - /url: /admin
+              - img [ref=e142]
+              - generic [ref=e145]: Admin
+            - link "System" [ref=e147] [cursor=pointer]:
+              - /url: /system
+              - img [ref=e150]
+              - generic [ref=e153]: System
+        - button "Collapse sidebar" [expanded] [ref=e155] [cursor=pointer]:
+          - img [ref=e156]
+      - main [ref=e159]:
+        - generic [ref=e162]:
+          - complementary [ref=e163]:
+            - generic [ref=e164]:
+              - generic [ref=e165]:
+                - heading "Messages" [level=2] [ref=e166]
+                - generic [ref=e167]:
+                  - button "New message" [ref=e168] [cursor=pointer]:
+                    - img [ref=e169]
+                  - button "Create group" [ref=e171] [cursor=pointer]:
+                    - img [ref=e172]
+              - generic [ref=e177]:
+                - img
+                - searchbox "Search conversations" [ref=e178]
+          - region "Conversation" [ref=e180]:
+            - generic [ref=e181]:
+              - img [ref=e183]
+              - paragraph [ref=e186]: Your messages
+              - paragraph [ref=e187]: Choose a conversation from the inbox to continue.
+  - button "Open Next.js Dev Tools" [ref=e193] [cursor=pointer]:
+    - img [ref=e194]

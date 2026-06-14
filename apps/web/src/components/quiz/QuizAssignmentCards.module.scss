@@ -1,3 +1,5 @@
+@use '../../styles/mixins' as *;
+
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -22,7 +24,7 @@
   grid-column: 1 / -1;
 }
 
-@media (max-width: 767px) {
+@include respond-to(sm) {
   .grid {
     grid-template-columns: 1fr;
   }
@@ -36,6 +38,49 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 16px;
+}
+
+.cardEmbedded {
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 14px;
+
+  .title {
+    font-size: var(--fs-15);
+    line-height: 1.3;
+  }
+
+  .head {
+    margin-bottom: 8px;
+  }
+
+  .meta {
+    margin-bottom: 6px;
+    gap: 8px;
+    font-size: var(--fs-12);
+  }
+
+  .createdAt {
+    margin: 0 0 8px;
+    font-size: var(--fs-11);
+    color: var(--text-faint);
+  }
+
+  .scoreBox,
+  .pendingBox {
+    margin-bottom: 8px;
+    padding: 8px 10px;
+  }
+
+  .scoreBox strong {
+    font-size: var(--fs-17);
+  }
+
+  .actions {
+    padding-top: 8px;
+    gap: 8px;
+  }
 }
 
 .cardCompleted {
@@ -160,6 +205,17 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
+}
+
+.metaDot {
+  color: var(--text-faint);
+  user-select: none;
+}
+
+.createdAt {
+  margin: 0 0 10px;
+  font-size: var(--fs-12);
+  color: var(--text-tertiary);
 }
 
 .scoreBox {

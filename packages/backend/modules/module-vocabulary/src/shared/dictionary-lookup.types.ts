@@ -1,4 +1,12 @@
 import type { DictionaryApiEntry } from './dictionary-payload.util';
+import type { ReversoContextExample } from '../infrastructure/reverso/reverso.client';
+
+export type ReversoDictionaryRaw = {
+  targetLang: string;
+  translations: string[];
+  examples: ReversoContextExample[];
+  detectedLanguage: string | null;
+};
 
 export type DictionaryLookup = {
   text: string;
@@ -14,4 +22,6 @@ export type DictionaryLookup = {
   payload: DictionaryApiEntry[];
   /** Original Wiktionary REST JSON when source is wiktionary. */
   wiktionaryRaw?: unknown;
+  /** Reverso translate API context when source is reverso. */
+  reversoRaw?: ReversoDictionaryRaw | null;
 };

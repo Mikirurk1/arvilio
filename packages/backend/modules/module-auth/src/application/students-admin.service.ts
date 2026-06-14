@@ -5,9 +5,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@be/prisma';
-import type { UpdateAdminStudentRequestDto } from '@pkg/types';
+import type { StudentLessonFormat, UpdateAdminStudentRequestDto } from '@pkg/types';
 import { LanguagesService } from './languages.service';
 import { normalizeDisplayColor } from '../shared/display-color';
+
+function lessonFormatFromDto(value: StudentLessonFormat): 'INDIVIDUAL_ONLY' | 'GROUP_ONLY' | 'MIXED' {
+  if (value === 'individual_only') return 'INDIVIDUAL_ONLY';
+  if (value === 'group_only') return 'GROUP_ONLY';
+  return 'MIXED';
+}
 
 const TEACHING_ROLES = ['TEACHER', 'ADMIN', 'SUPER_ADMIN'] as const;
 type StaffActorRole = 'ADMIN' | 'SUPER_ADMIN' | 'TEACHER';
@@ -69,7 +75,8 @@ export class StudentsAdminService {
         body.nativeLanguageId !== undefined ||
         body.learningLanguageIds !== undefined ||
         body.teacherId !== undefined ||
-        body.scheduleType !== undefined;
+        body.scheduleType !== undefined ||
+        body.lessonFormat !== undefined;
       if (hasRestrictedField) {
         throw new ForbiddenException('Teachers can only update user color');
       }
@@ -128,6 +135,12 @@ export class StudentsAdminService {
         await tx.user.update({
           where: { id: studentId },
           data: { scheduleType: body.scheduleType },
+        });
+      }
+      if (body.lessonFormat !== undefined) {
+        await tx.user.update({
+          where: { id: studentId },
+          data: { lessonFormat: lessonFormatFromDto(body.lessonFormat) },
         });
       }
       if (displayColor !== undefined) {

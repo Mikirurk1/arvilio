@@ -87,6 +87,8 @@ export function mockScheduledLessonBackend(
       teacherHomeworkFeedback: '',
     },
     linkedWordIds: [],
+    kind: 'individual',
+    participants: [],
     ...overrides,
   };
 }
@@ -288,6 +290,7 @@ export function mockStudentSummary(
     nativeLanguageId: null,
     learningLanguageIds: [],
     scheduleType: true,
+    lessonFormat: 'mixed',
     displayColor: null,
     createdAt: '2026-01-01T00:00:00.000Z',
     ...overrides,

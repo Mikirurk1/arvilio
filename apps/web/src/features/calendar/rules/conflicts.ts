@@ -3,6 +3,18 @@ import { lessonEndUtc, lessonStartUtc } from '../../../lib/lessonTime';
 
 type ConflictStrategy = 'any-overlap' | 'same-teacher-overlap';
 
+function lessonStudentIds(lesson: ScheduledLessonDto): number[] {
+  if (lesson.participantIds?.length) return lesson.participantIds;
+  return [lesson.studentId];
+}
+
+function lessonsShareParty(a: ScheduledLessonDto, b: ScheduledLessonDto): boolean {
+  if (a.teacherId === b.teacherId) return true;
+  const aStudents = lessonStudentIds(a);
+  const bStudents = lessonStudentIds(b);
+  return aStudents.some((id) => bStudents.includes(id));
+}
+
 export function hasTimeConflict(
   lessons: ScheduledLessonDto[],
   candidate: ScheduledLessonDto,
@@ -14,7 +26,9 @@ export function hasTimeConflict(
   return lessons
     .filter((lesson) => lesson.id !== ignoreLessonId)
     .filter((lesson) =>
-      strategy === 'same-teacher-overlap' ? lesson.teacherId === candidate.teacherId : true,
+      strategy === 'same-teacher-overlap'
+        ? lesson.teacherId === candidate.teacherId
+        : lessonsShareParty(lesson, candidate),
     )
     .some((lesson) => {
       const l0 = lessonStartUtc(lesson).getTime();
@@ -47,6 +61,9 @@ export function findScheduleConflictsForUpdates(
     for (const lesson of lessons) {
       if (updateIds.has(lesson.id)) continue;
       if (strategy === 'same-teacher-overlap' && lesson.teacherId !== candidate.teacherId) {
+        continue;
+      }
+      if (strategy === 'any-overlap' && !lessonsShareParty(lesson, candidate)) {
         continue;
       }
       const l0 = lessonStartUtc(lesson).getTime();

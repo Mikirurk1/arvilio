@@ -1,4 +1,5 @@
 import { forwardRef, Global, Module } from '@nestjs/common';
+import { BillingModule } from '@be/billing';
 import { MailModule } from '@be/mail';
 import { NotificationsModule } from '@be/notifications';
 import { PrismaModule } from '@be/prisma';
@@ -6,7 +7,9 @@ import { AdminUsersGraphqlService } from './application/admin-users-graphql.serv
 import { AchievementStatsService } from './application/achievement-stats.service';
 import { AuthSessionService } from './application/auth-session.service';
 import { AuthService } from './application/auth.service';
+import { DailyGoalProgressService } from './application/daily-goal-progress.service';
 import { DailyGoalsService } from './application/daily-goals.service';
+import { StatisticsDashboardService } from './application/statistics-dashboard.service';
 import { DashboardService } from './application/dashboard.service';
 import { LanguagesService } from './application/languages.service';
 import { PracticeSessionsService } from './application/practice-sessions.service';
@@ -29,7 +32,7 @@ import { UsersResolver } from './presentation/graphql/users.resolver';
 
 @Global()
 @Module({
-  imports: [PrismaModule, MailModule, forwardRef(() => NotificationsModule)],
+  imports: [PrismaModule, MailModule, BillingModule, forwardRef(() => NotificationsModule)],
   controllers: [
     AuthController,
     AdminUsersController,
@@ -44,7 +47,9 @@ import { UsersResolver } from './presentation/graphql/users.resolver';
     AdminUsersGraphqlService,
     AuthSessionService,
     DashboardService,
+    DailyGoalProgressService,
     DailyGoalsService,
+    StatisticsDashboardService,
     PracticeSessionsService,
     LanguagesService,
     StudentsAdminService,

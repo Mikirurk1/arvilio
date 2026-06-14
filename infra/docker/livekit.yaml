@@ -1,0 +1,26 @@
+# LiveKit server configuration for SoEnglish
+# Used by docker-compose.livekit.yml
+#
+# IMPORTANT: change the key/secret before deploying to production.
+# Format: "apikey: apisecret" (one or more, space after colon)
+
+port: 7880
+rtc:
+  tcp_port: 7881
+  udp_port: 7882
+  use_external_ip: true   # auto-detect public IP for STUN/TURN candidates
+
+# API keys — must match System → Connections → LiveKit in the admin UI
+keys:
+  devkey: devsecret
+
+logging:
+  level: info
+
+# Uncomment to add a TURN server relay (needed when UDP is firewalled):
+# turn:
+#   enabled: true
+#   domain: livekit.your-domain.com
+#   tls_port: 5349
+#   udp_port: 3478
+#   external_tls: true

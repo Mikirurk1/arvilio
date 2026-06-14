@@ -7,6 +7,8 @@ const unitProjects = [
   '<rootDir>/packages/backend/modules/module-chat/jest.config.cjs',
   '<rootDir>/packages/backend/modules/module-lessons/jest.config.cjs',
   '<rootDir>/packages/backend/modules/module-flashcards/jest.config.cjs',
+  '<rootDir>/packages/backend/modules/module-speaking/jest.config.cjs',
+  '<rootDir>/packages/backend/modules/module-materials/jest.config.cjs',
   '<rootDir>/packages/backend/modules/module-notifications/jest.config.cjs',
   '<rootDir>/packages/backend/modules/module-progress/jest.config.cjs',
   '<rootDir>/packages/backend/modules/module-mail/jest.config.cjs',

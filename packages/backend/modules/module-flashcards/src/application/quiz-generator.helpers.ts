@@ -2,7 +2,12 @@ import { BadRequestException } from '@nestjs/common';
 import type { GenerateQuizRequestDto, QuizDetailDto } from '@pkg/types';
 import { listIrregularVerbs, resolveVerbForms } from '@pkg/types';
 import { decodeQuizCursor, dedupeById, maskWordInExample, shuffle } from '../domain/quiz-generator.logic';
+import { validateGeneratedQuestion } from '../domain/quiz-question-validator';
+import { isEnglishLemmaForQuiz } from '../shared/english-lemma.util';
+import { normalizeMcqAnswerText } from '../shared/mcq.util';
 import type { CardWithWord, WordRow } from './quiz-generator.types';
+
+export { normalizeMcqAnswerText } from '../shared/mcq.util';
 
 export function parseQuizCursor(cursor: string): { createdAt: Date; id: string } {
   try {
@@ -37,16 +42,71 @@ export function statusWeight(status: CardWithWord['status']): number {
   }
 }
 
+function normalizePosKey(pos?: string | null): string {
+  return pos?.trim().toLowerCase() ?? '';
+}
+
+function isUsableGloss(text?: string | null): boolean {
+  const t = text?.trim();
+  return Boolean(t && t !== '—' && t !== '-');
+}
+
 export function pickTranslation(
   definitions: CardWithWord['word']['definitions'],
   nativeLanguageId: string | null,
+  partOfSpeech?: string | null,
 ): string | null {
   if (!nativeLanguageId) return null;
-  const native = definitions.find((row) => row.languageId === nativeLanguageId);
-  const lemma = native?.lemmaText?.trim();
-  if (lemma) return lemma;
-  const gloss = native?.text?.trim();
-  return gloss || null;
+  const posKey = normalizePosKey(partOfSpeech);
+  let nativeRows = definitions.filter((row) => row.languageId === nativeLanguageId);
+  if (posKey) {
+    const matching = nativeRows.filter((row) => normalizePosKey(row.partOfSpeech) === posKey);
+    if (matching.length > 0) nativeRows = matching;
+  }
+  for (const row of nativeRows) {
+    if (isUsableGloss(row.lemmaText)) return row.lemmaText!.trim();
+    if (isUsableGloss(row.text)) return row.text.trim();
+  }
+  return null;
+}
+
+function pickScopedEnglishDefinition(
+  word: CardWithWord['word'],
+  partOfSpeech: string | null,
+): string {
+  const fallback = word.definition?.trim() || '—';
+  const posKey = normalizePosKey(partOfSpeech);
+  const rows = word.definitions.filter((row) => isUsableGloss(row.text));
+  if (posKey) {
+    const matching = rows.filter((row) => normalizePosKey(row.partOfSpeech) === posKey);
+    if (matching.length > 0) return matching[0]!.text.trim();
+  }
+  return rows[0]?.text.trim() || fallback;
+}
+
+export function buildMcqOptions(
+  correct: string,
+  distractorTexts: string[],
+): { options: string[]; correctIndex: number } | null {
+  const correctTrimmed = correct.trim();
+  if (!correctTrimmed) return null;
+  const correctNorm = normalizeMcqAnswerText(correctTrimmed);
+  const uniqueDistractors: string[] = [];
+  const seen = new Set<string>([correctNorm]);
+  for (const distractor of distractorTexts) {
+    const trimmed = distractor.trim();
+    if (!trimmed || trimmed === '—') continue;
+    const norm = normalizeMcqAnswerText(trimmed);
+    if (seen.has(norm)) continue;
+    seen.add(norm);
+    uniqueDistractors.push(trimmed);
+    if (uniqueDistractors.length >= 3) break;
+  }
+  if (uniqueDistractors.length < 3) return null;
+  const options = shuffle([correctTrimmed, ...uniqueDistractors.slice(0, 3)]);
+  const correctIndex = options.findIndex((opt) => normalizeMcqAnswerText(opt) === correctNorm);
+  if (correctIndex < 0) return null;
+  return { options, correctIndex };
 }
 
 export function wordRowFromCard(card: CardWithWord, nativeLanguageId: string | null): WordRow {
@@ -57,11 +117,8 @@ export function wordRowFromCard(card: CardWithWord, nativeLanguageId: string | n
     card.word.partOfSpeech?.trim() ||
     card.word.definitions.find((row) => row.partOfSpeech.trim())?.partOfSpeech ||
     null;
-  const translation = pickTranslation(card.word.definitions, nativeLanguageId);
-  const definition =
-    card.word.definition?.trim() ||
-    card.word.definitions.find((row) => row.text.trim())?.text.trim() ||
-    '—';
+  const translation = pickTranslation(card.word.definitions, nativeLanguageId, partOfSpeech);
+  const definition = pickScopedEnglishDefinition(card.word, partOfSpeech);
 
   return {
     id: card.word.id,
@@ -109,7 +166,9 @@ export function weightedShuffleWords(items: WordRow[]): WordRow[] {
 }
 
 export function defaultTitle(body: GenerateQuizRequestDto, poolSize: number): string {
-  if (body.lessonId) return `Lesson quiz (${poolSize} words)`;
+  if (body.source === 'lesson' || body.source === 'mixed') {
+    return `Lesson quiz (${poolSize} words)`;
+  }
   if (body.source === 'vocabulary') return `Vocabulary quiz (${poolSize} words)`;
   return 'Generated quiz';
 }
@@ -155,18 +214,31 @@ export function toDetail(quiz: {
   };
 }
 
-type GeneratedQuestion = {
+type QuestionTemplate =
+  | 'definitionMcq'
+  | 'reverseMcq'
+  | 'cloze'
+  | 'translationMcq'
+  | 'pastSimpleMcq'
+  | 'pastParticipleMcq';
+
+export type GeneratedQuestion = {
   type: 'multiple-choice' | 'fill-in';
   question: string;
   options?: string[];
   correct: number | string;
   explanation: string;
   wordId: string;
+  template?: QuestionTemplate;
 };
 
 type BuildQuestionOptions = {
   includeIrregularVerbDrills: boolean;
+  relaxedDistractors?: boolean;
+  synonymHintsByWordId?: Map<string, WordRow[]>;
 };
+
+export const MIN_QUIZ_QUESTION_RATIO = 0.8;
 
 export function buildQuestions(
   pool: WordRow[],
@@ -176,17 +248,36 @@ export function buildQuestions(
   options: BuildQuestionOptions,
 ): GeneratedQuestion[] {
   const ordered = pool.slice(0, count);
-  const out: GeneratedQuestion[] = [];
+  let out = buildQuestionsPass(ordered, distractorPool, difficulty, options, false);
+  if (out.length < count) {
+    out = buildQuestionsPass(ordered, distractorPool, difficulty, options, true);
+  }
+  return out;
+}
 
+function buildQuestionsPass(
+  ordered: WordRow[],
+  distractorPool: WordRow[],
+  difficulty: 'easy' | 'medium' | 'hard',
+  options: BuildQuestionOptions,
+  relaxedDistractors: boolean,
+): GeneratedQuestion[] {
+  const passOptions: BuildQuestionOptions = { ...options, relaxedDistractors };
+  const out: GeneratedQuestion[] = [];
   ordered.forEach((word, index) => {
-    const question = buildQuestionWithFallback(word, index, difficulty, distractorPool, options);
+    const question = buildQuestionWithFallback(
+      word,
+      index,
+      difficulty,
+      distractorPool,
+      passOptions,
+    );
     if (question) out.push(question);
   });
-
   if (out.length === 0) {
     for (const word of ordered) {
-      const fallback = buildSingle('definitionMcq', word, distractorPool, options);
-      if (fallback) {
+      const fallback = buildSingle('definitionMcq', word, distractorPool, passOptions);
+      if (fallback && isValidGeneratedQuestion(fallback)) {
         out.push(fallback);
         break;
       }
@@ -194,14 +285,6 @@ export function buildQuestions(
   }
   return out;
 }
-
-type QuestionTemplate =
-  | 'definitionMcq'
-  | 'reverseMcq'
-  | 'cloze'
-  | 'translationMcq'
-  | 'pastSimpleMcq'
-  | 'pastParticipleMcq';
 
 export function templateCycle(
   index: number,
@@ -244,41 +327,66 @@ export function buildQuestionWithFallback(
     if (seen.has(template)) continue;
     seen.add(template);
     const question = buildSingle(template, word, pool, options);
-    if (question) return question;
+    if (question && isValidGeneratedQuestion(question)) return question;
   }
-  return buildSingle('definitionMcq', word, pool, options);
+  const fallback = buildSingle('definitionMcq', word, pool, options);
+  return fallback && isValidGeneratedQuestion(fallback) ? fallback : null;
+}
+
+function isValidGeneratedQuestion(question: GeneratedQuestion): boolean {
+  return validateGeneratedQuestion({
+    type: question.type,
+    question: question.question,
+    options: question.options,
+    correct: question.correct,
+    template: question.template,
+  });
 }
 
 export function buildSingle(
   template: QuestionTemplate,
   word: WordRow,
   pool: WordRow[],
-  _options: BuildQuestionOptions,
+  options: BuildQuestionOptions,
 ): GeneratedQuestion | null {
   if (template === 'definitionMcq') {
-    const distractors = pickDistractors(pool, word, (candidate) => candidate.definition).slice(0, 3);
-    if (distractors.length < 3) return null;
-    const options = shuffle([word.definition, ...distractors.map((row) => row.definition)]);
+    const distractors = pickDistractors(pool, word, (candidate) => candidate.definition, {
+      relaxed: options.relaxedDistractors,
+      excludeAnswer: word.definition,
+    });
+    const built = buildMcqOptions(
+      word.definition,
+      distractors.map((row) => row.definition),
+    );
+    if (!built) return null;
     return {
       type: 'multiple-choice',
       question: `Choose the correct definition for "${word.text}":`,
-      options,
-      correct: options.indexOf(word.definition),
+      options: built.options,
+      correct: built.correctIndex,
       explanation: word.example ? `Example: ${word.example}` : `Definition: ${word.definition}`,
       wordId: word.id,
+      template: 'definitionMcq',
     };
   }
   if (template === 'reverseMcq') {
-    const distractors = pickDistractors(pool, word, (candidate) => candidate.text).slice(0, 3);
-    if (distractors.length < 3) return null;
-    const options = shuffle([word.text, ...distractors.map((row) => row.text)]);
+    const distractors = pickDistractors(pool, word, (candidate) => candidate.text, {
+      relaxed: options.relaxedDistractors,
+      excludeAnswer: word.text,
+    });
+    const built = buildMcqOptions(
+      word.text,
+      distractors.map((row) => row.text),
+    );
+    if (!built) return null;
     return {
       type: 'multiple-choice',
       question: `Which word matches: "${word.definition}"?`,
-      options,
-      correct: options.indexOf(word.text),
+      options: built.options,
+      correct: built.correctIndex,
       explanation: word.example ? `Example: ${word.example}` : `Definition: ${word.definition}`,
       wordId: word.id,
+      template: 'reverseMcq',
     };
   }
   if (template === 'cloze' && word.example) {
@@ -290,52 +398,66 @@ export function buildSingle(
       correct: word.text,
       explanation: `Original sentence: "${word.example}"`,
       wordId: word.id,
+      template: 'cloze',
     };
   }
   if (template === 'translationMcq' && word.translation) {
-    const distractors = pickDistractors(pool, word, (candidate) => candidate.translation ?? '')
-      .filter((candidate) => candidate.translation)
-      .slice(0, 3);
-    if (distractors.length < 3) return null;
-    const options = shuffle([
-      word.translation,
-      ...distractors.map((row) => row.translation as string),
-    ]);
+    if (!isEnglishLemmaForQuiz(word.text)) return null;
+    if (normalizeMcqAnswerText(word.text) === normalizeMcqAnswerText(word.translation)) {
+      return null;
+    }
+    const englishPool = pool.filter((candidate) => isEnglishLemmaForQuiz(candidate.text));
+    const synonymHints =
+      options.synonymHintsByWordId?.get(word.id)?.filter((row) => isEnglishLemmaForQuiz(row.text)) ??
+      [];
+    const distractors = pickDistractors(englishPool, word, (candidate) => candidate.text, {
+      relaxed: options.relaxedDistractors,
+      excludeAnswer: word.text,
+      preferred: synonymHints,
+    });
+    const built = buildMcqOptions(
+      word.text,
+      distractors.map((row) => row.text),
+    );
+    if (!built) return null;
     return {
       type: 'multiple-choice',
       question: `Which word matches the translation "${word.translation}"?`,
-      options,
-      correct: options.indexOf(word.translation),
+      options: built.options,
+      correct: built.correctIndex,
       explanation: word.example ? `Example: ${word.example}` : `Definition: ${word.definition}`,
       wordId: word.id,
+      template: 'translationMcq',
     };
   }
   if (template === 'pastSimpleMcq' && word.verbForms) {
     const correct = word.verbForms.pastSimple;
     const distractors = pickIrregularFormDistractors(pool, word, 'pastSimple');
-    if (distractors.length < 3) return null;
-    const options = shuffle([correct, ...distractors]);
+    const built = buildMcqOptions(correct, distractors);
+    if (!built) return null;
     return {
       type: 'multiple-choice',
       question: `What is the past tense of "${word.text}"?`,
-      options,
-      correct: options.indexOf(correct),
+      options: built.options,
+      correct: built.correctIndex,
       explanation: `Past participle: ${word.verbForms.pastParticiple}`,
       wordId: word.id,
+      template: 'pastSimpleMcq',
     };
   }
   if (template === 'pastParticipleMcq' && word.verbForms) {
     const correct = word.verbForms.pastParticiple;
     const distractors = pickIrregularFormDistractors(pool, word, 'pastParticiple');
-    if (distractors.length < 3) return null;
-    const options = shuffle([correct, ...distractors]);
+    const built = buildMcqOptions(correct, distractors);
+    if (!built) return null;
     return {
       type: 'multiple-choice',
       question: `What is the past participle of "${word.text}"?`,
-      options,
-      correct: options.indexOf(correct),
+      options: built.options,
+      correct: built.correctIndex,
       explanation: `Past tense: ${word.verbForms.pastSimple}`,
       wordId: word.id,
+      template: 'pastParticipleMcq',
     };
   }
   return null;
@@ -360,27 +482,43 @@ export function pickIrregularFormDistractors(
   return shuffle(unique).slice(0, 3);
 }
 
+type PickDistractorOptions = {
+  relaxed?: boolean;
+  excludeAnswer?: string;
+  preferred?: WordRow[];
+};
+
 export function pickDistractors(
   pool: WordRow[],
   word: WordRow,
   selector: (row: WordRow) => string,
+  pickOptions?: PickDistractorOptions,
 ): WordRow[] {
+  const excludeNorm = pickOptions?.excludeAnswer
+    ? normalizeMcqAnswerText(pickOptions.excludeAnswer)
+    : null;
+  const isCandidate = (candidate: WordRow) => {
+    if (candidate.id === word.id) return false;
+    const text = selector(candidate).trim();
+    if (!text || text === '—') return false;
+    if (excludeNorm && normalizeMcqAnswerText(text) === excludeNorm) return false;
+    return true;
+  };
+  const preferred = (pickOptions?.preferred ?? []).filter(isCandidate);
+  const samePos = pool.filter(
+    (candidate) => isCandidate(candidate) && candidate.partOfSpeech === word.partOfSpeech,
+  );
+  const fallback = pool.filter((candidate) => isCandidate(candidate));
+  if (pickOptions?.relaxed) {
+    return shuffle(dedupeWordRows([...preferred, ...samePos, ...fallback]));
+  }
   const sameCategory = pool.filter(
     (candidate) =>
-      candidate.id !== word.id &&
-      selector(candidate).trim().length > 0 &&
+      isCandidate(candidate) &&
+      word.category &&
       candidate.category === word.category,
   );
-  const samePos = pool.filter(
-    (candidate) =>
-      candidate.id !== word.id &&
-      selector(candidate).trim().length > 0 &&
-      candidate.partOfSpeech === word.partOfSpeech,
-  );
-  const fallback = pool.filter(
-    (candidate) => candidate.id !== word.id && selector(candidate).trim().length > 0,
-  );
-  const merged = dedupeWordRows([...sameCategory, ...samePos, ...fallback]);
+  const merged = dedupeWordRows([...preferred, ...sameCategory, ...samePos, ...fallback]);
   return shuffle(merged);
 }
 

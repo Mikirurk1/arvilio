@@ -1,0 +1,130 @@
+@use '../../styles/mixins' as *;
+
+.result {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 24px;
+}
+
+.resultCard {
+  width: min(100%, 640px);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px 28px;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+}
+
+.resultEmoji {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+  color: var(--accent-primary);
+}
+
+.resultTitle {
+  margin: 0 0 8px;
+  font-size: var(--fs-22);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.resultScore {
+  font-size: 42px;
+  line-height: 1;
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+}
+
+.resultPct {
+  margin-top: 4px;
+  font-size: var(--fs-15);
+  color: var(--text-secondary);
+}
+
+.resultHint {
+  margin: 12px 0 0;
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+}
+
+.mistakesSection {
+  margin-top: 24px;
+  text-align: left;
+}
+
+.mistakesTitle {
+  margin: 0 0 10px;
+  font-size: var(--fs-15);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.mistakesList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.mistakeRow {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.mistakeIcon {
+  color: var(--accent-danger);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.mistakeBody {
+  min-width: 0;
+  flex: 1;
+}
+
+.mistakePrompt {
+  margin: 0 0 6px;
+  font-size: var(--fs-14);
+  color: var(--text-primary);
+}
+
+.mistakeAnswer {
+  margin: 0 0 4px;
+  font-size: var(--fs-13);
+  color: var(--text-secondary);
+}
+
+.wordLinkBtn {
+  margin-top: 6px;
+  padding: 0;
+  min-height: auto;
+  font-size: var(--fs-13);
+}
+
+.allCorrect {
+  margin-top: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-14);
+  color: var(--accent-primary);
+}
+
+.resultActions {
+  margin-top: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.retryBtn {
+  border: 1px solid var(--border);
+}

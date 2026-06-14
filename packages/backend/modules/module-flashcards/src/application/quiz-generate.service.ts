@@ -6,10 +6,12 @@ import {
   buildQuestions,
   defaultTitle,
   difficultyFromDto,
+  MIN_QUIZ_QUESTION_RATIO,
   sourceFromDto,
   toDetail,
 } from './quiz-generator.helpers';
 import { QuizRepository } from '../infrastructure/quiz.repository';
+import { QuizDistractorService } from './quiz-distractor.service';
 
 @Injectable()
 export class QuizGenerateService {
@@ -17,6 +19,7 @@ export class QuizGenerateService {
     private readonly prisma: PrismaService,
     private readonly access: QuizAccessService,
     private readonly repo: QuizRepository,
+    private readonly distractorHints: QuizDistractorService,
   ) {}
 
   async generate(actorId: string, body: GenerateQuizRequestDto): Promise<QuizDetailDto> {
@@ -32,6 +35,7 @@ export class QuizGenerateService {
       body.lessonId,
       source,
       nativeLanguageId,
+      body.mistakesOnly === true,
     );
     if (pool.length === 0) {
       const forStudent = targetStudentId !== actorId;
@@ -47,18 +51,36 @@ export class QuizGenerateService {
       targetStudentId,
       nativeLanguageId,
     );
+    const targets = pool.slice(0, questionCount);
+    const synonymHintsByWordId = await this.distractorHints.synonymPoolRowsByWordId(
+      targets,
+      distractorsBase,
+    );
     const questionsData = buildQuestions(pool, distractorsBase, questionCount, difficulty, {
       includeIrregularVerbDrills: body.includeIrregularVerbDrills !== false,
+      synonymHintsByWordId,
     });
+
+    const minRequired = Math.max(3, Math.ceil(questionCount * MIN_QUIZ_QUESTION_RATIO));
+    if (questionsData.length < minRequired) {
+      throw new BadRequestException(
+        body.mistakesOnly
+          ? `Not enough words marked for mistakes work to build ${questionCount} questions. Add more practice or lower the question count.`
+          : `Could only build ${questionsData.length} of ${questionCount} questions. Add more vocabulary words or lower the question count.`,
+      );
+    }
 
     const quiz = await this.prisma.quiz.create({
       data: {
         title: body.title ?? defaultTitle(body, pool.length),
-        category: body.category ?? (body.lessonId ? 'Lesson' : 'Vocabulary'),
+        category:
+          body.category ??
+          (source === 'lesson' || source === 'mixed' ? 'Lesson' : 'Vocabulary'),
         difficulty: difficultyFromDto(difficulty),
         source: sourceFromDto(source),
         ownerId: actorId,
-        lessonId: body.lessonId ?? null,
+        lessonId:
+          source === 'lesson' || source === 'mixed' ? (body.lessonId ?? null) : null,
         questions: {
           create: questionsData.map((question, index) => ({
             order: index,

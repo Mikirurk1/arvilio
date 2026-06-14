@@ -50,7 +50,8 @@ export class LessonReminderJob {
       ).getTime();
       if (startMs < windowStart || startMs > windowEnd) continue;
 
-      const meetUrl = lesson.googleMeetUrl ?? this.mail.appUrl();
+      const meetUrl =
+        lesson.videoMeetingUrl ?? lesson.googleMeetUrl ?? this.mail.appUrl();
       const dedupeKey = `lesson:${lesson.id}:t-30`;
 
       const recipients = [lesson.student, lesson.teacher];

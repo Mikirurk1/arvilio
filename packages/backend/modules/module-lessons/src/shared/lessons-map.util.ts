@@ -1,5 +1,11 @@
 import { BadRequestException } from '@nestjs/common';
-import type { LessonFileLinkDto, ScheduledLessonBackendDto } from '@pkg/types';
+import type {
+  GroupFixedSplitMode,
+  GroupLessonBillingMode,
+  LessonFileLinkDto,
+  ScheduledLessonBackendDto,
+  ScheduledLessonKind,
+} from '@pkg/types';
 import { lessonFileAttachmentId } from './lesson-attachment-ref.util';
 
 export function encodeLessonCursor(row: { date: string; startTime: string; id: string }): string {
@@ -52,15 +58,36 @@ export function recurrenceFromDto(
 }
 
 export function materialKindToDto(
-  kind: 'TEXT' | 'PHOTO' | 'TEST' | 'FILE' | 'PRESENTATION',
-): 'text' | 'photo' | 'test' | 'file' | 'presentation' {
-  return kind.toLowerCase() as 'text' | 'photo' | 'test' | 'file' | 'presentation';
+  kind: 'TEXT' | 'PHOTO' | 'TEST' | 'FILE' | 'PRESENTATION' | 'BOOK' | 'BOARD',
+): 'text' | 'photo' | 'test' | 'file' | 'presentation' | 'book' | 'board' {
+  return kind.toLowerCase() as
+    | 'text'
+    | 'photo'
+    | 'test'
+    | 'file'
+    | 'presentation'
+    | 'book'
+    | 'board';
 }
 
 export function materialKindFromDto(
-  kind: 'text' | 'photo' | 'test' | 'file' | 'presentation',
-): 'TEXT' | 'PHOTO' | 'TEST' | 'FILE' | 'PRESENTATION' {
-  return kind.toUpperCase() as 'TEXT' | 'PHOTO' | 'TEST' | 'FILE' | 'PRESENTATION';
+  kind:
+    | 'text'
+    | 'photo'
+    | 'test'
+    | 'file'
+    | 'presentation'
+    | 'book'
+    | 'board',
+): 'TEXT' | 'PHOTO' | 'TEST' | 'FILE' | 'PRESENTATION' | 'BOOK' | 'BOARD' {
+  return kind.toUpperCase() as
+    | 'TEXT'
+    | 'PHOTO'
+    | 'TEST'
+    | 'FILE'
+    | 'PRESENTATION'
+    | 'BOOK'
+    | 'BOARD';
 }
 
 export function studentResponseStatusToDto(
@@ -111,4 +138,37 @@ export function mapLessonFileLinks(
     }
     return { ref: file, fileName: file, downloadPath: null };
   });
+}
+
+export function lessonKindToDto(kind: 'INDIVIDUAL' | 'GROUP'): ScheduledLessonKind {
+  return kind.toLowerCase() as ScheduledLessonKind;
+}
+
+export function lessonKindFromDto(kind: ScheduledLessonKind): 'INDIVIDUAL' | 'GROUP' {
+  return kind.toUpperCase() as 'INDIVIDUAL' | 'GROUP';
+}
+
+export function groupBillingModeToDto(
+  mode: 'PER_MEMBER' | 'FIXED_TOTAL',
+): GroupLessonBillingMode {
+  return mode.toLowerCase() as GroupLessonBillingMode;
+}
+
+export function groupBillingModeFromDto(
+  mode: GroupLessonBillingMode,
+): 'PER_MEMBER' | 'FIXED_TOTAL' {
+  return mode.toUpperCase() as 'PER_MEMBER' | 'FIXED_TOTAL';
+}
+
+export function groupSplitModeToDto(
+  mode: 'SINGLE_PAYER' | 'EQUAL_SPLIT' | null,
+): GroupFixedSplitMode | null {
+  if (!mode) return null;
+  return mode.toLowerCase() as GroupFixedSplitMode;
+}
+
+export function groupSplitModeFromDto(
+  mode: GroupFixedSplitMode,
+): 'SINGLE_PAYER' | 'EQUAL_SPLIT' {
+  return mode.toUpperCase() as 'SINGLE_PAYER' | 'EQUAL_SPLIT';
 }

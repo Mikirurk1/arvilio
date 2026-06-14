@@ -24,7 +24,16 @@ export function HeaderSearch() {
   const cards = useVocabularyStore((s) => s.cards.data);
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
+  const [kbdHint, setKbdHint] = useState('⌘K');
   const rootRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const isTouch = window.matchMedia('(pointer: coarse)').matches;
+    if (isTouch) { setKbdHint(''); return; }
+    const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform ?? navigator.userAgent);
+    setKbdHint(isMac ? '⌘K' : 'Ctrl K');
+  }, []);
 
   const includeStudents = isTeacherAdminOrSuper(activeUser.role);
 
@@ -40,6 +49,22 @@ export function HeaderSearch() {
     };
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+        event.preventDefault();
+        inputRef.current?.focus();
+        setOpen(true);
+      }
+      if (event.key === 'Escape') {
+        setOpen(false);
+        inputRef.current?.blur();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
   }, []);
 
   const results = useMemo(
@@ -76,6 +101,7 @@ export function HeaderSearch() {
           <path d="M10 10l3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
         </svg>
         <Field
+          ref={inputRef}
           id="header-search-input"
           type="search"
           className={styles.input}
@@ -90,6 +116,7 @@ export function HeaderSearch() {
           aria-expanded={open && query.trim().length > 0}
           aria-controls="header-search-results"
         />
+        {!query ? <span className={styles.kbd}>{kbdHint}</span> : null}
       </form>
       {open && query.trim() ? (
         <div id="header-search-results" className={styles.dropdown} role="listbox">

@@ -95,7 +95,7 @@ flowchart LR
 - Root layout reads that request auth state and chooses shell structure server-side (`auth` pages render without `AppShell`; protected routes render inside it), so layout ownership no longer depends on pathname checks inside a client shell component.
 - Client auth remains a UI cache/store seeded from server-resolved session data; it still owns explicit `login/logout/refresh` actions but not first navigation access control.
 - Route visibility for high-level app sections now shares the same pathname policy between middleware and sidebar navigation, reducing drift between request-time redirects and client nav hiding; redundant top-level page-entry guards and the old `AuthGate` shim were removed where middleware already owns the surface.
-- Product scope is still effectively single-school today, but new architecture work is expected to preserve a clean future path toward platform-level control plus school-level tenant contexts instead of baking one-school assumptions deeper into auth, settings, billing, and routing.
+- Product scope is still effectively single-school today, but new architecture work is expected to preserve a clean future path toward **platform-level control** (marketplace, subscriptions, commission) plus **school-level tenant contexts** — see [[synthesis/product#Today vs target platform]] and `.cursor/rules/future-multitenant-architecture.mdc`.
 
 ## Auth architecture (summary)
 

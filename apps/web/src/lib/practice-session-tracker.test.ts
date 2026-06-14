@@ -1,6 +1,11 @@
-import { act, renderHook } from '@testing-library/react';
+import { act, fireEvent, renderHook } from '@testing-library/react';
 import { usePracticeStore } from '../stores/practice-store';
-import { recordPracticeSession, usePracticeSessionTracker } from './practice-session-tracker';
+import {
+  DEFAULT_PRACTICE_IDLE_TIMEOUT_MS,
+  recordPracticeSession,
+  recordPracticeSessionDuration,
+  usePracticeSessionTracker,
+} from './practice-session-tracker';
 
 jest.mock('../stores/practice-store', () => ({
   usePracticeStore: {
@@ -22,8 +27,7 @@ describe('practice-session-tracker', () => {
   });
 
   it('skips sessions shorter than 30 seconds', async () => {
-    const end = Date.now();
-    await recordPracticeSession('u1', 'quiz', end - 10_000, end);
+    await recordPracticeSessionDuration('u1', 'quiz', 10_000);
     expect(recordSession).not.toHaveBeenCalled();
   });
 
@@ -55,13 +59,32 @@ describe('usePracticeSessionTracker', () => {
     (usePracticeStore.getState as jest.Mock).mockReturnValue({ recordSession });
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2026-05-20T12:00:00.000Z'));
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      get: () => 'visible',
+    });
   });
 
   afterEach(() => {
     jest.useRealTimers();
   });
 
-  it('records session when active flips to false', async () => {
+  it('records wall-clock session when idle tracking is disabled', async () => {
+    const { rerender } = renderHook(
+      ({ active }) => usePracticeSessionTracker('u1', 'speaking', active, { idleTimeoutMs: false }),
+      { initialProps: { active: true } },
+    );
+    act(() => {
+      jest.advanceTimersByTime(60_000);
+    });
+    rerender({ active: false });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(recordSession).toHaveBeenCalled();
+  });
+
+  it('records engaged session when active flips to false', async () => {
     const { rerender } = renderHook(
       ({ active }) => usePracticeSessionTracker('u1', 'vocabulary', active),
       { initialProps: { active: true } },
@@ -76,15 +99,47 @@ describe('usePracticeSessionTracker', () => {
     expect(recordSession).toHaveBeenCalled();
   });
 
-  it('records session on unmount while active', async () => {
-    const { unmount } = renderHook(() => usePracticeSessionTracker('u1', 'quiz', true));
+  it('does not record when idle longer than engaged time', async () => {
+    const { unmount } = renderHook(() =>
+      usePracticeSessionTracker('u1', 'quiz', true, { idleTimeoutMs: 60_000 }),
+    );
     act(() => {
-      jest.advanceTimersByTime(60_000);
+      jest.advanceTimersByTime(DEFAULT_PRACTICE_IDLE_TIMEOUT_MS);
+    });
+    act(() => {
+      jest.advanceTimersByTime(120_000);
     });
     unmount();
     await act(async () => {
       await Promise.resolve();
     });
-    expect(recordSession).toHaveBeenCalled();
+    expect(recordSession).toHaveBeenCalledTimes(1);
+    const payload = recordSession.mock.calls[0]?.[0];
+    expect(payload).toBeDefined();
+    const durationSec =
+      (new Date(payload.endedAt).getTime() - new Date(payload.startedAt).getTime()) / 1000;
+    expect(durationSec).toBeGreaterThanOrEqual(30);
+    expect(durationSec).toBeLessThanOrEqual(61);
+  });
+
+  it('extends engaged time when user interacts', async () => {
+    const { unmount } = renderHook(() => usePracticeSessionTracker('u1', 'games', true));
+    act(() => {
+      jest.advanceTimersByTime(30_000);
+    });
+    act(() => {
+      fireEvent.pointerDown(window);
+    });
+    act(() => {
+      jest.advanceTimersByTime(35_000);
+    });
+    unmount();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    const payload = recordSession.mock.calls[0]?.[0];
+    const durationSec =
+      (new Date(payload.endedAt).getTime() - new Date(payload.startedAt).getTime()) / 1000;
+    expect(durationSec).toBeGreaterThanOrEqual(60);
   });
 });

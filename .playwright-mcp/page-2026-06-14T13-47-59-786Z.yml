@@ -1,0 +1,139 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to main content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=e4]:
+      - link "SoEnglish — go to dashboard" [ref=e6] [cursor=pointer]:
+        - /url: /dashboard
+        - img [ref=e8]
+        - generic [ref=e10]:
+          - generic [ref=e11]: SoEnglish
+          - generic [ref=e12]: English Platform
+      - search [ref=e15]:
+        - img [ref=e16]
+        - searchbox "Search" [ref=e19]
+        - generic: ⌘K
+      - generic [ref=e20]:
+        - button "Create lesson" [ref=e21] [cursor=pointer]
+        - 'link "My: 0 today · 0 left" [ref=e22] [cursor=pointer]':
+          - /url: /lessons
+          - img [ref=e23]
+          - generic [ref=e26]: "My: 0 today"
+          - generic [ref=e27]: · 0 left
+        - link [ref=e28] [cursor=pointer]:
+          - /url: /profile
+    - generic [ref=e29]:
+      - complementary [ref=e30]:
+        - navigation "Main navigation" [ref=e31]:
+          - generic [ref=e32]:
+            - generic [ref=e33]: Learn
+            - link "Dashboard" [ref=e35] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e38]
+              - generic [ref=e43]: Dashboard
+            - link "Lessons" [ref=e45] [cursor=pointer]:
+              - /url: /lessons
+              - img [ref=e48]
+              - generic [ref=e50]: Lessons
+            - link "Practice" [ref=e52] [cursor=pointer]:
+              - /url: /practice
+              - img [ref=e55]
+              - generic [ref=e59]: Practice
+            - link "Materials" [ref=e61] [cursor=pointer]:
+              - /url: /materials
+              - img [ref=e64]
+              - generic [ref=e66]: Materials
+          - generic [ref=e67]:
+            - generic [ref=e68]: Schedule
+            - link "Calendar" [ref=e70] [cursor=pointer]:
+              - /url: /calendar
+              - img [ref=e73]
+              - generic [ref=e75]: Calendar
+          - generic [ref=e76]:
+            - generic [ref=e77]: Connect
+            - link "Chat" [ref=e79] [cursor=pointer]:
+              - /url: /chat
+              - img [ref=e82]
+              - generic [ref=e84]: Chat
+            - link "Students" [ref=e86] [cursor=pointer]:
+              - /url: /students
+              - img [ref=e89]
+              - generic [ref=e94]: Students
+            - link "Staff" [ref=e96] [cursor=pointer]:
+              - /url: /staff
+              - img [ref=e99]
+              - generic [ref=e111]: Staff
+          - generic [ref=e112]:
+            - generic [ref=e113]: Account
+            - link "Finance" [ref=e115] [cursor=pointer]:
+              - /url: /finance
+              - img [ref=e118]
+              - generic [ref=e121]: Finance
+            - link "Profile & Settings" [ref=e123] [cursor=pointer]:
+              - /url: /profile
+              - img [ref=e126]
+              - generic [ref=e129]: Profile & Settings
+          - generic [ref=e130]:
+            - generic [ref=e131]: Platform
+            - link "Admin" [ref=e133] [cursor=pointer]:
+              - /url: /admin
+              - img [ref=e136]
+              - generic [ref=e139]: Admin
+            - link "System" [ref=e141] [cursor=pointer]:
+              - /url: /system
+              - img [ref=e144]
+              - generic [ref=e147]: System
+        - button "Collapse sidebar" [expanded] [ref=e149] [cursor=pointer]:
+          - img [ref=e150]
+      - main [ref=e153]:
+        - generic [ref=e157]:
+          - generic [ref=e158]:
+            - generic [ref=e159]:
+              - generic [ref=e160]:
+                - link "Back to practice" [ref=e162] [cursor=pointer]:
+                  - /url: /practice
+                  - img [ref=e163]
+                - heading "Vocabulary" [level=1] [ref=e165]
+              - radiogroup "Vocabulary mode" [ref=e167]:
+                - radio "List" [checked] [ref=e168] [cursor=pointer]:
+                  - img [ref=e170]
+                  - text: List
+                - radio "Flashcards" [ref=e172] [cursor=pointer]:
+                  - img [ref=e174]
+                  - text: Flashcards
+                - radio "Play" [ref=e177] [cursor=pointer]:
+                  - img [ref=e179]
+                  - text: Play
+            - paragraph [ref=e181]: Loading your word library…
+          - group "Filter words by status" [ref=e182]:
+            - generic [ref=e183] [cursor=pointer]:
+              - generic [ref=e184]: Total
+              - generic [ref=e185]: "0"
+            - generic [ref=e186] [cursor=pointer]:
+              - generic [ref=e187]: New
+              - generic [ref=e188]: "0"
+            - generic [ref=e189] [cursor=pointer]:
+              - generic [ref=e190]: Repeated
+              - generic [ref=e191]: "0"
+            - generic [ref=e192] [cursor=pointer]:
+              - generic [ref=e193]: Review
+              - generic [ref=e194]: "0"
+            - generic [ref=e195] [cursor=pointer]:
+              - generic [ref=e196]: Learned
+              - generic [ref=e197]: "0"
+          - generic [ref=e198]:
+            - generic [ref=e199]:
+              - textbox "Search words..." [ref=e200]
+              - button "All lessons" [ref=e202] [cursor=pointer]:
+                - generic [ref=e203]: All lessons
+                - img [ref=e205]
+            - radiogroup "Part of speech" [ref=e207]:
+              - radio "All" [checked] [ref=e208] [cursor=pointer]
+          - generic [ref=e211]:
+            - textbox "Add a word or phrase (English), e.g. touch base" [disabled] [ref=e212]
+            - button "Add word" [disabled] [ref=e213]
+          - generic [ref=e214]:
+            - generic [ref=e215]: Loading vocabulary…
+            - generic [ref=e216]: Fetching your words.
+  - button "Open Next.js Dev Tools" [ref=e222] [cursor=pointer]:
+    - img [ref=e223]

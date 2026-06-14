@@ -1,6 +1,6 @@
 /** OAuth / messenger links for notifications, calendar sync, etc. */
 
-export const LINKED_ACCOUNT_PROVIDERS = ['google', 'facebook', 'telegram'] as const;
+export const LINKED_ACCOUNT_PROVIDERS = ['google', 'facebook', 'telegram', 'zoom'] as const;
 
 export type LinkedAccountProvider = (typeof LINKED_ACCOUNT_PROVIDERS)[number];
 

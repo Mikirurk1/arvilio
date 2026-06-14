@@ -1,6 +1,6 @@
 ---
 tags: [concept, auth, security]
-updated: 2026-05-27
+updated: 2026-05-28
 ---
 
 # Auth & RBAC
@@ -64,6 +64,8 @@ Code: `AuthService.createUserAsAdmin`, `AuthService.upsertGoogleUser` in [`modul
 - Google sign-in: `/api/auth/google`, `/api/auth/google/callback`
 - Google link (logged in): `/api/auth/google/link` → callback → Profile `?tab=connections&google_linked=1`
 - Facebook link: `/api/auth/facebook/link` → callback → `facebook_linked=1` (env: `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`)
+- **Zoom link** (logged in): `/api/auth/zoom/link` → `/api/auth/zoom/callback` → Profile `?zoom_linked=1`. Persists `ZoomConnection` with rotating refresh token (Zoom rotates on every refresh — `ZoomService` writes the new value atomically). Cookie-state mirrors Google flow. Used by the Zoom video provider when `useServerToServer` is disabled. Env: `ZOOM_CLIENT_ID`, `ZOOM_CLIENT_SECRET`, `ZOOM_WEBHOOK_SECRET_TOKEN`, optional `ZOOM_ACCOUNT_ID` (S2S mode).
+- **Zoom webhook**: `POST /api/integrations/zoom/webhook` — handles `endpoint.url_validation` handshake (HMAC-SHA256 of `plainToken`) and `meeting.started` / `meeting.ended` events; responds **HTTP 200** (`@HttpCode(200)`); signature verified via `x-zm-signature` + `x-zm-request-timestamp` against stored webhook secret. See [[concepts/video-meeting-providers]].
 - Telegram link: `GET /api/auth/telegram/widget-config`; production uses Login Widget → `POST /api/auth/telegram/link` (`/setdomain` in @BotFather). **Localhost:** `POST /api/auth/telegram/link/start` → user opens `t.me/bot?start=link_<token>` → API dev long-polling completes link only when `TELEGRAM_DEV_POLLING=true` in `.env` (opt-in; avoids getUpdates 409 if the bot token is used elsewhere).
 - `myProfile.linkedAccounts` — connection status including `calendarConnected` for Google
 - Auth/session boundary now enforces **ACTIVE-only** accounts: password login, Google sign-in, refresh-token rotation, `AuthGuard`, `GqlAuthGuard`, `/auth/me`, and `/auth/web-session` all deny `PAUSED`, `LEAVED`, and `BLOCKED` with `403` while keeping `401` for invalid/missing credentials.
@@ -71,10 +73,12 @@ Code: `AuthService.createUserAsAdmin`, `AuthService.upsertGoogleUser` in [`modul
 - **Forgot password:** REST `POST /api/auth/forgot-password` accepts `{ email }`, creates a one-time reset token only for password-based accounts, and sends a generic success response so the UI does not reveal whether the email exists.
 - **Reset password:** REST `POST /api/auth/reset-password` accepts `{ token, newPassword }`, validates the token + expiry, writes a new `passwordHash`, marks the token used, and revokes all active refresh tokens for that user.
 - Web auth pages now include `/forgot-password` and `/reset-password?token=...`; `/login` links into the flow and shows a success message after a completed reset.
-- `apps/web/src/proxy.ts` owns public/protected route classification (`/login`, `/register`, `/forgot-password`, `/reset-password` stay public) and redirects anonymous users to a clean `/login` before render instead of relying on hydrated client redirects.
+- `apps/web/src/proxy.ts` owns public/protected route classification (`/login`, `/forgot-password`, `/reset-password` stay public) and redirects anonymous users to a clean `/login` before render instead of relying on hydrated client redirects.
 - Request-time proxy also performs coarse role/scope route gating for high-level surfaces: `/payment` is student-only, `/students/**` is teacher+, `/admin/**` is admin+, `/system/**` is super-admin only, and future `/platform/**` routes require `platform` scope.
 - When proxy hits a request-time account-status denial from `/api/auth/web-session`, it preserves the backend reason and redirects to `/login?error=account_paused|account_leaved|account_blocked` instead of collapsing everything into a generic login redirect.
 - Proxy also stamps the request with normalized auth headers so `apps/web/src/app/layout.tsx` can pick the shell variant (`auth` vs `app`) and bootstrap the client auth store from server-resolved session data.
+- `GqlAuthGuard` uses `AuthSessionService.resolveAuthenticatedUserId()`: valid refresh peek still authenticates when rotation loses a race (concurrent GraphQL with expired access), so parallel staff/finance queries do not surface spurious `Unauthorized`.
+- Frontend GraphQL requests perform one shared refresh attempt (`POST /api/auth/refresh`) and replay once after HTTP `401/403` or GraphQL `Unauthorized/Forbidden` responses. `/staff`, `/finance`, and `/staff/[userId]` defer finance GraphQL until the client auth user is present and the route role allows access.
 - **Delete account:** not exposed in Profile → Account (staff-only via admin panel). `apps/web/src/app/admin/page.tsx` calls `confirmDialog` before `deleteUser` (SUPER_ADMIN rows not deletable in UI).
 
 ## Authorization model (API)
@@ -101,7 +105,7 @@ GraphQL admin/system resolvers use **`@Roles()` + `RolesGuard`** (`module-auth/s
 
 | Layer | File | Behavior |
 |-------|------|----------|
-| Request-time auth routing | `apps/web/src/proxy.ts` | Redirect unauthenticated protected requests before render; redirect authenticated `/login` / `/register` to `/dashboard`; coarse role/scope gating for `/payment`, `/students`, `/admin`, `/system`, future `/platform`. Skips `web-session` on anonymous public routes and on `/forgot-password` / `/reset-password` even when cookies exist; fetches same-origin `/api/auth/web-session` (Next rewrite) when a snapshot is required. Repeat navigations reuse an in-process TTL cache keyed by auth cookies (`WEB_SESSION_CACHE_TTL_MS`, default 8s) via `proxy-session-cache.ts`. Dev: `DEBUG_PROXY_TIMING=1` logs duration and sets `x-soenglish-proxy-ms`. |
+| Request-time auth routing | `apps/web/src/proxy.ts` | Redirect unauthenticated protected requests before render; redirect authenticated `/login` to `/dashboard`; coarse role/scope gating for `/payment`, `/students`, `/admin`, `/system`, future `/platform`. Skips `web-session` on anonymous public routes and on `/forgot-password` / `/reset-password` even when cookies exist; fetches same-origin `/api/auth/web-session` (Next rewrite) when a snapshot is required. Repeat navigations reuse an in-process TTL cache keyed by auth cookies (`WEB_SESSION_CACHE_TTL_MS`, default 8s) via `proxy-session-cache.ts`. Dev: `DEBUG_PROXY_TIMING=1` logs duration and sets `x-soenglish-proxy-ms`. |
 | Server layout handoff | `apps/web/src/app/layout.tsx`, `apps/web/src/lib/server/request-auth.ts` | Read middleware auth headers, choose `auth` vs `app` shell, inject initial session into web render; if the explicit shell header is absent but the route is known public, fall back to the `auth` shell so `/login`-style pages do not leak header/sidebar |
 | Client auth cache | `auth-store.ts`, `auth-context.tsx`, `app/providers.tsx` | Holds current user for already-rendered UI, explicit `login/logout/refresh`, but no longer owns first route-access decision; initial auth user is seeded from the server layout/provider so hydrated app-shell UI does not fall back to student role before the client store resolves |
 | Feature matrix | `mocks/roles.ts` | `canView`, `canEdit`, `canSchedule`, `canManage` per scope |

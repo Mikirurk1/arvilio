@@ -1,3 +1,6 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
 .section {
   display: grid;
   gap: 14px;
@@ -168,7 +171,7 @@
   color: var(--text-tertiary);
 }
 
-@media (max-width: 560px) {
+@include respond-max($breakpoint-tight) {
   .row {
     grid-template-columns: auto 1fr;
     grid-template-rows: auto auto;

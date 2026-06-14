@@ -3,15 +3,13 @@ import type { LessonFormState } from './types';
 import type { UserRole } from '../../mocks';
 import type { LessonPartyOption } from '../../hooks/use-lesson-party-options';
 
-export type MaterialKind = 'text' | 'photo' | 'test' | 'file' | 'presentation';
+export type { MaterialKind, MaterialKindOption } from './lesson-material-kinds';
+export {
+  LESSON_MATERIAL_KIND_OPTIONS,
+  lessonMaterialKindOption,
+} from './lesson-material-kinds';
 
 export type FileMeta = { name: string; previewUrl: string | null; file?: File };
-
-export type MaterialKindOption = {
-  value: MaterialKind;
-  label: string;
-  icon: ComponentType<{ size?: number }>;
-};
 
 export type LessonModalText = typeof import('../../mocks').siteContent.calendar.lessonModal;
 

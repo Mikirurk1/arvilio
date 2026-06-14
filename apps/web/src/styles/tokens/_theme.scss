@@ -1,73 +1,182 @@
 /**
- * Semantic colors + layout. Light default on :root.
+ * Semantic colors + elevation. Light default on :root.
  * Dark: set data-theme="dark" on <html>.
  *
  * Text vs fill: --text-* for typography, --fill-* for surfaces/buttons.
+ * Role aliases (--accent-*) map to palette vars for SaaS / school theming later.
  */
 
 @mixin light-theme {
+  /* Ink navy — brand neutral (not pure black) */
   --text-primary: #1a1a2e;
   --text-secondary: #3d3d55;
   --text-tertiary: #7a7a9a;
   --text-faint: #b4b4cc;
 
   --fill-strong: #1a1a2e;
-  --fill-strong-hover: #363652;
+  --fill-strong-hover: #2e2e48;
   --fill-hero: #1a1a2e;
 
-  --green: #16a97a;
-  --green-light: #e8f7f2;
-  --green-mid: #a8dece;
-  --green-dark: #0c6e52;
+  /* Primary accent — progress, success, main CTA */
+  --green: #159970;
+  --green-light: #e6f5f0;
+  --green-mid: #9fd4c4;
+  --green-dark: #0d6b50;
 
-  --amber: #f59c30;
-  --amber-light: #fef3e2;
+  --amber: #e8942e;
+  --amber-light: #fdf4e8;
 
-  --blue: #3b82c4;
-  --blue-light: #e8f0fb;
-  --aqua: #2f9fb3;
-  --aqua-light: #e6f6f8;
+  --blue: #3a75b5;
+  --blue-light: #e8f1fa;
+  --aqua: #2d94a6;
+  --aqua-light: #e5f4f7;
 
-  --rose: #e05c7a;
-  --rose-light: #fdedf1;
+  --rose: #d95674;
+  --rose-light: #fceef2;
 
-  --purple: #7c6ee6;
-  --purple-light: #eeedfe;
-  --lilac: #8b7bf0;
-  --lilac-light: #f1eeff;
+  /* Premium / rare — desaturated vs legacy neon purple */
+  --purple: #6b62c4;
+  --purple-light: #eeecfa;
+  --lilac: #7a6fd4;
+  --lilac-light: #f0eef9;
 
-  --surface: #f7f6f3;
+  /* Surfaces — clean neutral canvas; dark header frame provides the visual character. */
+  --surface: #f0f2f5;
+  --surface-raised: #f5f6f8;
   --card: #ffffff;
-  /** Text fields / selects — same as cards in light mode */
   --field-bg: var(--card);
 
-  --border: rgba(26, 26, 46, 0.08);
-  --border-strong: rgba(26, 26, 46, 0.16);
+  --border: rgba(26, 26, 80, 0.12);
+  --border-strong: rgba(26, 26, 80, 0.22);
+  /* Hairline — default divider in component recipes (Design language v2). */
+  --border-subtle: rgba(26, 26, 80, 0.07);
+  --border-hairline: var(--border-subtle);
 
-  --shadow-sm: 0 2px 8px rgba(26, 26, 46, 0.06);
-  --shadow-md: 0 8px 24px rgba(26, 26, 46, 0.08);
+  /* Elevation — tinted shadows (single light source, navy hue) */
+  --shadow-xs:
+    0 1px 3px rgba(26, 26, 46, 0.07),
+    0 4px 14px rgba(26, 26, 46, 0.08);
+  --shadow-sm:
+    0 10px 24px rgba(26, 26, 46, 0.12),
+    0 3px 10px rgba(26, 26, 46, 0.06);
+  --shadow-md:
+    0 22px 52px rgba(26, 26, 46, 0.15),
+    0 8px 24px rgba(26, 26, 46, 0.09);
+  --shadow-lg:
+    0 40px 96px rgba(26, 26, 46, 0.20),
+    0 14px 34px rgba(26, 26, 46, 0.11);
+  --shadow-focus: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 24%, transparent);
 
-  --toast-success-bg: rgba(240, 253, 244, 0.72);
-  --toast-success-border: rgba(134, 239, 172, 0.65);
-  --toast-success-accent: #16a34a;
-  --toast-success-icon-bg: #dcfce7;
-  --toast-success-icon-fg: #166534;
-  --toast-info-bg: rgba(239, 246, 255, 0.72);
-  --toast-info-border: rgba(191, 219, 254, 0.65);
-  --toast-info-accent: #2563eb;
-  --toast-info-icon-bg: #dbeafe;
-  --toast-info-icon-fg: #1e3a8a;
-  --toast-warning-bg: rgba(255, 251, 235, 0.72);
-  --toast-warning-border: rgba(253, 230, 138, 0.65);
-  --toast-warning-accent: #f59e0b;
-  --toast-warning-icon-bg: #fef3c7;
-  --toast-warning-icon-fg: #92400e;
-  --toast-error-bg: rgba(254, 242, 242, 0.72);
-  --toast-error-border: rgba(254, 202, 202, 0.65);
+  --overlay-backdrop: rgba(26, 26, 46, 0.42);
+
+  /* Layered surfaces (SaaS: remap per school theme) */
+  --surface-elevated: color-mix(in srgb, var(--surface) 40%, var(--card));
+  --surface-panel: color-mix(in srgb, var(--surface) 50%, var(--card));
+  --surface-panel-muted: var(--surface);
+  --surface-inset: color-mix(in srgb, var(--surface) 82%, var(--card));
+  --surface-offer: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-primary) 8%, var(--card)) 0%,
+    var(--card) 60%
+  );
+  --inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  --badge-warning-bg: color-mix(in srgb, var(--amber-light) 94%, var(--card));
+  --badge-danger-bg: color-mix(in srgb, var(--rose-light) 94%, var(--card));
+  --on-inverse: #ffffff;
+
+  /* Modals */
+  --backdrop-modal:
+    radial-gradient(circle at top, color-mix(in srgb, var(--accent-info) 12%, transparent) 0%, transparent 40%),
+    var(--overlay-backdrop);
+  --modal-bg: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--card) 88%, var(--surface)) 0%,
+    var(--card) 100%
+  );
+  --modal-header-bg: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface) 82%, var(--card)) 0%,
+    var(--card) 100%
+  );
+  --shadow-modal:
+    0 28px 80px rgba(26, 26, 46, 0.14),
+    0 10px 28px rgba(26, 26, 46, 0.08);
+  --modal-section-bg: color-mix(in srgb, var(--surface) 84%, var(--card));
+  --modal-section-gradient: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface) 78%, var(--card)) 0%,
+    var(--card) 100%
+  );
+  --modal-chip-bg: color-mix(in srgb, var(--accent-info-muted) 72%, var(--card));
+  --modal-chip-border: color-mix(in srgb, var(--accent-info) 34%, var(--border));
+  --modal-close-bg: color-mix(in srgb, var(--border) 55%, transparent);
+  --modal-success-chip-bg: color-mix(in srgb, var(--accent-primary-muted) 88%, var(--card));
+
+  /* Semantic roles (prefer these in new code) */
+  --accent-primary: var(--green);
+  --accent-primary-hover: var(--green-dark);
+  --accent-primary-muted: var(--green-light);
+  --accent-info: var(--blue);
+  --accent-info-muted: var(--blue-light);
+  --accent-warning: var(--amber);
+  --accent-warning-muted: var(--amber-light);
+  --accent-danger: var(--rose);
+  --accent-danger-muted: var(--rose-light);
+  --accent-warning-strong: #8a5606;
+  --accent-danger-strong: #9c1f3a;
+  --accent-premium: var(--purple);
+  --accent-premium-muted: var(--purple-light);
+  --status-info-bg: var(--accent-info-muted);
+  --status-info-text: var(--accent-info);
+  --status-success-bg: var(--accent-primary-muted);
+  --status-success-text: var(--accent-primary);
+  --status-warning-bg: var(--accent-warning-muted);
+  --status-warning-text: var(--accent-warning-strong);
+  --status-danger-bg: var(--accent-danger-muted);
+  --status-danger-text: var(--accent-danger-strong);
+
+  --toast-success-bg: rgba(230, 245, 240, 0.88);
+  --toast-success-border: rgba(21, 153, 112, 0.28);
+  --toast-success-accent: var(--green);
+  --toast-success-icon-bg: var(--green-light);
+  --toast-success-icon-fg: var(--green-dark);
+  --toast-info-bg: rgba(232, 241, 250, 0.88);
+  --toast-info-border: rgba(58, 117, 181, 0.28);
+  --toast-info-accent: var(--blue);
+  --toast-info-icon-bg: var(--blue-light);
+  --toast-info-icon-fg: #1e3a5f;
+  --toast-warning-bg: rgba(253, 244, 232, 0.9);
+  --toast-warning-border: rgba(232, 148, 46, 0.32);
+  --toast-warning-accent: var(--amber);
+  --toast-warning-icon-bg: var(--amber-light);
+  --toast-warning-icon-fg: #7c4a12;
+  --toast-error-bg: rgba(252, 238, 242, 0.9);
+  --toast-error-border: rgba(217, 86, 116, 0.3);
   --toast-error-accent: var(--rose);
-  --toast-error-icon-bg: #fee2e2;
-  --toast-error-icon-fg: #991b1b;
-  --toast-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 65%);
+  --toast-error-icon-bg: var(--rose-light);
+  --toast-error-icon-fg: #8b2d42;
+  --toast-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 65%);
+
+  /* Shell chrome — navy sidebar + header form a dark frame around content */
+  --sidebar-bg: #1a1a2e;
+  --sidebar-item-color: rgba(255, 255, 255, 0.55);
+  --sidebar-item-hover-bg: rgba(255, 255, 255, 0.07);
+  --sidebar-item-hover-color: rgba(255, 255, 255, 0.88);
+  --sidebar-active-bg: rgba(255, 255, 255, 0.09);
+  --sidebar-active-color: #ffffff;
+  --sidebar-section-color: rgba(255, 255, 255, 0.28);
+  --sidebar-divider: rgba(255, 255, 255, 0.08);
+  --sidebar-icon-color: rgba(255, 255, 255, 0.4);
+  --sidebar-badge-dot-border: #1a1a2e;
+
+  --header-bg: #1a1a2e;
+  --header-border: rgba(255, 255, 255, 0.08);
+  --header-icon-color: rgba(255, 255, 255, 0.6);
+  --header-icon-hover-bg: rgba(255, 255, 255, 0.08);
+  --header-icon-hover-color: rgba(255, 255, 255, 0.92);
+  --header-search-bg: rgba(255, 255, 255, 0.08);
+  --header-search-border: rgba(255, 255, 255, 0.12);
+  --header-search-placeholder: rgba(255, 255, 255, 0.38);
 
   color-scheme: light;
 }
@@ -79,62 +188,153 @@
   --text-faint: #6e6e88;
 
   --fill-strong: #2a2a38;
-  --fill-strong-hover: #3d3d50;
-  --fill-hero: #12121a;
+  --fill-strong-hover: #3a3a4c;
+  --fill-hero: #101018;
 
   --green: #3ecf9e;
-  --green-light: rgba(22, 169, 122, 0.2);
-  --green-mid: rgba(62, 207, 158, 0.35);
+  --green-light: rgba(21, 153, 112, 0.18);
+  --green-mid: rgba(62, 207, 158, 0.32);
   --green-dark: #8fe0c8;
 
-  --amber: #ffb84d;
-  --amber-light: rgba(245, 156, 48, 0.15);
+  --amber: #f0ad4a;
+  --amber-light: rgba(232, 148, 46, 0.14);
 
-  --blue: #6ba8e8;
-  --blue-light: rgba(59, 130, 196, 0.18);
-  --aqua: #66c5d4;
-  --aqua-light: rgba(47, 159, 179, 0.2);
+  --blue: #6ba3e0;
+  --blue-light: rgba(58, 117, 181, 0.18);
+  --aqua: #5ebdcc;
+  --aqua-light: rgba(45, 148, 166, 0.18);
 
-  --rose: #ff8ba3;
-  --rose-light: rgba(224, 92, 122, 0.18);
+  --rose: #f08a9f;
+  --rose-light: rgba(217, 86, 116, 0.16);
 
-  --purple: #a598ff;
-  --purple-light: rgba(124, 110, 230, 0.2);
-  --lilac: #b9adff;
-  --lilac-light: rgba(139, 123, 240, 0.22);
+  --purple: #9d94e8;
+  --purple-light: rgba(107, 98, 196, 0.2);
+  --lilac: #b0a6f0;
+  --lilac-light: rgba(122, 111, 212, 0.18);
 
-  --surface: #0f0f14;
-  --card: #16161f;
-  /** Recessed fields: align with page surface so inputs are not a second “card gray” */
+  --surface: #12121a;
+  --surface-raised: #16161f;
+  --card: #1c1c28;
   --field-bg: var(--surface);
 
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.14);
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.13);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-hairline: var(--border-subtle);
 
-  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.35);
-  --shadow-md: 0 12px 36px rgba(0, 0, 0, 0.45);
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.28);
+  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.32);
+  --shadow-md: 0 10px 32px rgba(0, 0, 0, 0.38);
+  --shadow-lg: 0 20px 52px rgba(0, 0, 0, 0.45);
+  --shadow-focus: 0 0 0 3px rgba(62, 207, 158, 0.28);
 
-  --toast-success-bg: rgba(22, 169, 122, 0.16);
-  --toast-success-border: rgba(62, 207, 158, 0.45);
+  --overlay-backdrop: rgba(8, 8, 14, 0.62);
+
+  --surface-elevated: var(--card);
+  --surface-panel: var(--card);
+  --surface-panel-muted: color-mix(in srgb, var(--surface) 82%, var(--card));
+  --surface-inset: color-mix(in srgb, var(--surface) 82%, var(--card));
+  --surface-offer: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-primary) 10%, var(--card)) 0%,
+    var(--card) 60%
+  );
+  --inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --badge-warning-bg: color-mix(in srgb, var(--amber-light) 100%, var(--card));
+  --badge-danger-bg: color-mix(in srgb, var(--rose-light) 100%, var(--card));
+  --on-inverse: #ffffff;
+
+  --backdrop-modal:
+    radial-gradient(circle at top, color-mix(in srgb, var(--accent-info) 8%, transparent) 0%, transparent 42%),
+    rgba(8, 8, 14, 0.72);
+  --modal-bg: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--card) 96%, var(--surface)) 0%,
+    var(--card) 100%
+  );
+  --modal-header-bg: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface) 82%, var(--card)) 0%,
+    var(--card) 100%
+  );
+  --shadow-modal:
+    0 30px 90px rgba(0, 0, 0, 0.58),
+    0 12px 32px rgba(0, 0, 0, 0.32);
+  --modal-section-bg: color-mix(in srgb, var(--surface) 84%, var(--card));
+  --modal-section-gradient: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface) 78%, var(--card)) 0%,
+    var(--card) 100%
+  );
+  --modal-chip-bg: color-mix(in srgb, var(--accent-info-muted) 72%, var(--card));
+  --modal-chip-border: color-mix(in srgb, var(--accent-info) 34%, var(--border));
+  --modal-close-bg: color-mix(in srgb, var(--surface) 72%, var(--card));
+  --modal-success-chip-bg: color-mix(in srgb, var(--accent-primary-muted) 88%, var(--card));
+
+  --accent-primary: var(--green);
+  --accent-primary-hover: var(--green-dark);
+  --accent-primary-muted: var(--green-light);
+  --accent-info: var(--blue);
+  --accent-info-muted: var(--blue-light);
+  --accent-warning: var(--amber);
+  --accent-warning-muted: var(--amber-light);
+  --accent-danger: var(--rose);
+  --accent-danger-muted: var(--rose-light);
+  --accent-warning-strong: #ffe0b0;
+  --accent-danger-strong: #ffc4d2;
+  --accent-premium: var(--purple);
+  --accent-premium-muted: var(--purple-light);
+  --status-info-bg: var(--accent-info-muted);
+  --status-info-text: #c5dff8;
+  --status-success-bg: var(--accent-primary-muted);
+  --status-success-text: #b8f0dc;
+  --status-warning-bg: var(--accent-warning-muted);
+  --status-warning-text: var(--accent-warning-strong);
+  --status-danger-bg: var(--accent-danger-muted);
+  --status-danger-text: var(--accent-danger-strong);
+
+  --toast-success-bg: rgba(21, 153, 112, 0.14);
+  --toast-success-border: rgba(62, 207, 158, 0.4);
   --toast-success-accent: var(--green);
-  --toast-success-icon-bg: rgba(22, 169, 122, 0.28);
+  --toast-success-icon-bg: rgba(21, 153, 112, 0.26);
   --toast-success-icon-fg: #b8f0dc;
-  --toast-info-bg: rgba(59, 130, 196, 0.16);
-  --toast-info-border: rgba(107, 168, 232, 0.45);
+  --toast-info-bg: rgba(58, 117, 181, 0.14);
+  --toast-info-border: rgba(107, 163, 224, 0.4);
   --toast-info-accent: var(--blue);
-  --toast-info-icon-bg: rgba(59, 130, 196, 0.28);
+  --toast-info-icon-bg: rgba(58, 117, 181, 0.26);
   --toast-info-icon-fg: #c5dff8;
-  --toast-warning-bg: rgba(245, 156, 48, 0.14);
-  --toast-warning-border: rgba(255, 184, 77, 0.45);
+  --toast-warning-bg: rgba(232, 148, 46, 0.12);
+  --toast-warning-border: rgba(240, 173, 74, 0.42);
   --toast-warning-accent: var(--amber);
-  --toast-warning-icon-bg: rgba(245, 156, 48, 0.24);
+  --toast-warning-icon-bg: rgba(232, 148, 46, 0.22);
   --toast-warning-icon-fg: #ffe0b0;
-  --toast-error-bg: rgba(224, 92, 122, 0.16);
-  --toast-error-border: rgba(255, 139, 163, 0.45);
+  --toast-error-bg: rgba(217, 86, 116, 0.14);
+  --toast-error-border: rgba(240, 138, 159, 0.42);
   --toast-error-accent: var(--rose);
-  --toast-error-icon-bg: rgba(224, 92, 122, 0.28);
+  --toast-error-icon-bg: rgba(217, 86, 116, 0.26);
   --toast-error-icon-fg: #ffc4d2;
-  --toast-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
+  --toast-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0) 70%);
+
+  /* Shell chrome — dark sidebar + header in dark mode */
+  --sidebar-bg: #0e0e1a;
+  --sidebar-item-color: rgba(255, 255, 255, 0.45);
+  --sidebar-item-hover-bg: rgba(255, 255, 255, 0.06);
+  --sidebar-item-hover-color: rgba(255, 255, 255, 0.82);
+  --sidebar-active-bg: rgba(255, 255, 255, 0.07);
+  --sidebar-active-color: #ffffff;
+  --sidebar-section-color: rgba(255, 255, 255, 0.22);
+  --sidebar-divider: rgba(255, 255, 255, 0.06);
+  --sidebar-icon-color: rgba(255, 255, 255, 0.35);
+  --sidebar-badge-dot-border: #0e0e1a;
+
+  --header-bg: #0e0e1a;
+  --header-border: rgba(255, 255, 255, 0.06);
+  --header-icon-color: rgba(255, 255, 255, 0.5);
+  --header-icon-hover-bg: rgba(255, 255, 255, 0.07);
+  --header-icon-hover-color: rgba(255, 255, 255, 0.88);
+  --header-search-bg: rgba(255, 255, 255, 0.07);
+  --header-search-border: rgba(255, 255, 255, 0.09);
+  --header-search-placeholder: rgba(255, 255, 255, 0.3);
 
   color-scheme: dark;
 }
@@ -142,12 +342,14 @@
 :root {
   @include light-theme;
 
-  --sidebar-w: 240px;
+  --sidebar-w: var(--sidebar-w-expanded);
   --header-h: 60px;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
-  --transition: 0.18s ease;
+  --radius-xl: 20px;
+  --transition: 0.18s cubic-bezier(0.23, 1, 0.32, 1);
+  --transition-slow: 0.28s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 [data-theme='light'] {

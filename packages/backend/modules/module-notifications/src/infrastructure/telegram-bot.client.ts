@@ -2,23 +2,22 @@
  * Minimal Telegram Bot API client (no Nest). Shared by notifications jobs and auth link welcome.
  */
 
+import { getPlatformIntegrationRuntime } from '@be/platform-integration';
+
 export function getTelegramBotToken(): string | null {
-  const token = process.env['TELEGRAM_BOT_TOKEN']?.trim();
-  return token || null;
+  return getPlatformIntegrationRuntime().telegram.botToken;
 }
 
-function botUsernameFromEnv(): string | null {
-  const raw =
-    process.env['TELEGRAM_BOT_USERNAME']?.trim() ??
-    process.env['NEXT_PUBLIC_TELEGRAM_BOT_USERNAME']?.trim();
+function botUsernameFromRuntime(): string | null {
+  const raw = getPlatformIntegrationRuntime().telegram.botUsername;
   if (!raw) return null;
   return raw.replace(/^@/, '');
 }
 
 /** Resolve @username for Login Widget (env or Telegram getMe). */
 export async function resolveTelegramBotUsername(): Promise<string | null> {
-  const fromEnv = botUsernameFromEnv();
-  if (fromEnv) return fromEnv;
+  const fromConfig = botUsernameFromRuntime();
+  if (fromConfig) return fromConfig;
 
   const token = getTelegramBotToken();
   if (!token) return null;
@@ -43,7 +42,7 @@ export function isLocalWebOrigin(): boolean {
 export function shouldTelegramDevPolling(): boolean {
   if (!getTelegramBotToken()) return false;
   if (process.env['TELEGRAM_DEV_POLLING'] === 'false') return false;
-  return process.env['TELEGRAM_DEV_POLLING'] === 'true';
+  return getPlatformIntegrationRuntime().telegram.devPolling;
 }
 
 export async function getTelegramWidgetConfig(): Promise<{

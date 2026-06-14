@@ -1,18 +1,16 @@
 @use '../../styles/mixins' as *;
 
 .page {
-  animation: slideUp 0.3s ease;
+  /* entrance-анімацію сторінки володіє app/template.tsx (V1-04) */
+  min-width: 0;
 }
 
 .pageHeader {
-  margin-bottom: 20px;
+  margin-bottom: var(--space-section-sm);
 }
 
 .pageTitle {
-  font-family: 'Lora', serif;
-  font-size: var(--fs-page-title);
-  font-weight: 600;
-  color: var(--text-primary);
+  @include page-title-display;
 }
 
 .pageSub {
@@ -21,10 +19,385 @@
   margin-top: 4px;
 }
 
+.loadingHint {
+  margin: 0 0 16px;
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+}
+
+.viewSwitcher {
+  margin-bottom: var(--space-section-sm);
+  max-width: 360px;
+}
+
+.viewShell {
+  position: relative;
+}
+
+.viewPane[hidden] {
+  display: none;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-section-sm);
+}
+
+.groupsPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-section-sm);
+}
+
+.groupsToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 16px;
+}
+
+.groupsToolbarCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.groupsIntro {
+  margin: 0;
+  max-width: 56ch;
+  font-size: var(--fs-14);
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.groupsMeta {
+  margin: 0;
+  font-size: var(--fs-12);
+  font-weight: var(--fw-medium);
+  color: var(--text-tertiary);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.groupsLoadError {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--accent-danger) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent-danger-muted) 40%, var(--surface));
+  color: var(--accent-danger);
+  font-size: var(--fs-13);
+}
+
+.groupsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-section-sm);
+}
+
+.groupCard {
+  padding: 1.1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.groupCard:hover {
+  border-color: color-mix(in srgb, var(--accent-info) 22%, var(--border));
+  box-shadow: var(--shadow-sm);
+}
+
+.groupCardHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.groupCardIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent-info-muted) 50%, var(--surface));
+  color: var(--accent-info);
+  flex-shrink: 0;
+}
+
+.groupCardHeadCopy {
+  min-width: 0;
+  flex: 1;
+}
+
+.groupCardTitle {
+  margin: 0;
+  font-size: var(--fs-16);
+  font-weight: var(--fw-semibold);
+  line-height: 1.25;
+}
+
+.groupCardMeta {
+  margin: 4px 0 0;
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+}
+
+.groupCardStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  font-size: var(--fs-13);
+  color: var(--text-secondary);
+}
+
+.groupCardMembersPreview {
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+  line-height: 1.45;
+}
+
+.groupCardActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.groupEditorCard {
+  padding: 0;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--accent-info) 18%, var(--border));
+  box-shadow: var(--shadow-sm);
+}
+
+.groupEditorHeader {
+  display: flex;
+  gap: 14px;
+  padding: 1.15rem 1.25rem 0;
+}
+
+.groupEditorHeaderIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent-info-muted) 55%, var(--surface));
+  color: var(--accent-info);
+  flex-shrink: 0;
+}
+
+.groupEditorTitle {
+  margin: 0;
+  font-size: var(--fs-18);
+  font-weight: var(--fw-semibold);
+  line-height: 1.25;
+}
+
+.groupEditorSubtitle {
+  margin: 6px 0 0;
+  font-size: var(--fs-13);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  max-width: 62ch;
+}
+
+.groupEditorError {
+  margin: 14px 1.25rem 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--accent-danger) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent-danger-muted) 42%, var(--surface));
+  color: var(--accent-danger);
+  font-size: var(--fs-13);
+  line-height: 1.45;
+}
+
+.groupEditorBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 1rem 1.25rem 0;
+}
+
+.groupEditorSection {
+  padding: 16px 0;
+  border-top: 1px solid var(--border-hairline);
+
+  &:first-child {
+    border-top: none;
+    padding-top: 8px;
+  }
+}
+
+.groupEditorSectionTitle {
+  margin: 0;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.groupEditorSectionHint {
+  margin: 6px 0 0;
+  font-size: var(--fs-12);
+  color: var(--text-tertiary);
+  line-height: 1.45;
+}
+
+.groupEditorFieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+  margin-top: 14px;
+}
+
+.groupEditorField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+
+  /* Inputs, native selects, and custom select triggers share one row height via fieldControl. */
+  > :not(label) {
+    width: 100%;
+  }
+}
+
+.groupEditorLabel {
+  font-size: var(--fs-12);
+  font-weight: var(--fw-medium);
+  color: var(--text-secondary);
+}
+
+.groupEditorInput {
+  width: 100%;
+}
+
+.groupMembersHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.groupMemberChips {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.groupMemberChip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface-muted) 55%, var(--card));
+}
+
+.groupMemberChipName {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+}
+
+.groupMemberChipMeta {
+  margin-left: auto;
+  font-size: var(--fs-12);
+  color: var(--text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 180px;
+}
+
+.groupMemberChipRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: 4px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    background: color-mix(in srgb, var(--accent-danger-muted) 50%, transparent);
+    color: var(--accent-danger);
+  }
+}
+
+.groupMembersEmpty {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+.groupAddMemberTrigger {
+  margin-top: 14px;
+}
+
+.groupAddMemberPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface-muted) 40%, var(--card));
+  max-width: 420px;
+  width: 100%;
+}
+
+.groupAddMemberPanel .groupEditorInput {
+  width: 100%;
+}
+
+.groupEditorFooter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 1rem 1.25rem 1.15rem;
+  margin-top: 4px;
+  border-top: 1px solid var(--border-hairline);
+  background: color-mix(in srgb, var(--surface-muted) 35%, var(--card));
+}
+
+@include respond-to(sm) {
+  .groupEditorFieldGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .groupMemberChipMeta {
+    display: none;
+  }
 }
 
 @include respond-to(sm) {

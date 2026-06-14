@@ -40,19 +40,27 @@ describe('dashboard-store', () => {
   });
 
   it('fetchGoals loads daily goals', async () => {
-    mockGraphql.mockResolvedValue({ dailyGoals: [{ id: 'g1', done: false }] });
+    mockGraphql.mockResolvedValue({
+      dailyGoals: [
+        {
+          id: 'g1',
+          templateId: 'vocab-cards-5',
+          kind: 'vocabulary',
+          text: 'Review 5 vocabulary flashcards today',
+          difficulty: 1,
+          done: false,
+          progressCurrent: 2,
+          progressTarget: 5,
+          progressLabel: 'cards',
+          actionPath: '/vocabulary/play',
+          dateKey: '2026-05-20',
+        },
+      ],
+    });
     await useDashboardStore.getState().fetchGoals(true);
     expect(useDashboardStore.getState().goals.status).toBe('success');
     expect(useDashboardStore.getState().goals.data).toHaveLength(1);
-  });
-
-  it('toggleGoal updates goals slice', async () => {
-    useDashboardStore.setState({
-      goals: { ...createIdleSlice(), status: 'success', data: [{ id: 'g1', done: false }] as never },
-    });
-    mockGraphql.mockResolvedValue({ setDailyGoalDone: [{ id: 'g1', done: true }] });
-    await useDashboardStore.getState().toggleGoal('g1', true);
-    expect(useDashboardStore.getState().goals.data?.[0]?.done).toBe(true);
+    expect(useDashboardStore.getState().goals.data?.[0]?.progressCurrent).toBe(2);
   });
 
   it('fetchDashboard loads student-specific slices', async () => {

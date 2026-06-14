@@ -3,7 +3,14 @@
 import Link from 'next/link';
 import { useEffect, useMemo } from 'react';
 import { BookOpen, CheckCircle2, Clock3, Hand, Users } from 'lucide-react';
-import { DashboardLessonCard, PageHeader, SectionHeader, StatTile } from '../../components/ui';
+import {
+  Button,
+  DashboardLessonCard,
+  EmptyStateCard,
+  PageHeader,
+  SectionHeader,
+  StatTile,
+} from '../../components/ui';
 import { siteContent } from '../../mocks';
 import { isTeacherAdminOrSuperKey, useActiveUser, useActiveRoleKey } from '../../lib/active-user';
 import {
@@ -25,7 +32,7 @@ import {
   TeacherStudentsPanel,
   WeekLessonsList,
 } from './dashboard-widgets';
-import { DailyGoalsCard, StreakCalendarCard, WordOfDayCard } from './sections';
+import { DailyGoalsCard, IrregularVerbOfDayCard, StreakCalendarCard, WordOfDayCard } from './sections';
 import { useStudentsStore } from '../../stores/students-store';
 import styles from './page.module.scss';
 
@@ -101,58 +108,69 @@ export default function DashboardPage() {
   const subtitle = formatDashboardSubtitle(streak.data);
   const heroProgressPct =
     hero.kind === 'vocabulary' ? hero.progressPct : hero.progressPct ?? null;
-  const heroLabel =
-    hero.kind === 'lesson' ? "Today's lesson" : hero.kind === 'vocabulary' ? 'Up next' : 'Practice';
+  const heroLabel = isStudent
+    ? 'Today in your learning'
+    : hero.kind === 'lesson'
+      ? 'Next on your schedule'
+      : hero.kind === 'vocabulary'
+        ? 'Vocabulary focus'
+        : 'Quick action';
   const heroCta =
-    hero.kind === 'lesson' ? 'Open lesson →' : hero.kind === 'vocabulary' ? 'Review →' : 'Start →';
+    hero.kind === 'lesson' ? 'Open lesson' : hero.kind === 'vocabulary' ? 'Review words' : 'Go to practice';
 
   const lessonsLoading =
     backendLessons.status === 'loading' || backendLessons.status === 'idle';
 
   return (
     <div className={`${styles.page} container container--page`}>
-      <PageHeader
-        className={styles.pageHeader}
-        titleClassName={styles.pageTitle}
-        subtitleClassName={styles.pageSub}
-        title={
-          <>
-            {siteContent.dashboard.greeting}, <em>{activeUser.fullName.split(' ')[0]}</em>{' '}
-            <Hand size={18} style={{ verticalAlign: 'text-bottom' }} />
-          </>
-        }
-        subtitle={subtitle}
-      />
+      <div className={styles.stack}>
+        <PageHeader
+          className={styles.pageHeader}
+          titleClassName={styles.pageTitle}
+          subtitleClassName={styles.pageSub}
+          title={
+            <>
+              {siteContent.dashboard.greeting}, <em>{activeUser.fullName.split(' ')[0]}</em>{' '}
+              <Hand size={18} aria-hidden className={styles.pageTitleIcon} />
+            </>
+          }
+          subtitle={subtitle}
+        />
 
-      <div className={styles.heroBanner}>
-        <div className={styles.heroContent}>
-          <div className={styles.heroLabel}>{heroLabel}</div>
-          <div className={styles.heroTitle}>{hero.title}</div>
-          <div className={styles.heroSub}>{hero.subtitle}</div>
-          {heroProgressPct !== null ? (
-            <div className={styles.heroProgress}>
-              <div className={styles.heroBar}>
-                <div
-                  className={styles.heroBarFill}
-                  style={{ width: `${heroProgressPct}%` }}
-                />
+        <section className={styles.heroBanner} aria-labelledby="dashboard-hero-title">
+          <div className={styles.heroContent}>
+            <p className={styles.heroLabel}>{heroLabel}</p>
+            {heroProgressPct !== null ? (
+              /* Editorial display number — Lora, tabular-nums */
+              <p className={styles.heroNumber} aria-hidden="true">{heroProgressPct}%</p>
+            ) : null}
+            <h2 id="dashboard-hero-title" className={styles.heroTitle}>
+              {hero.title}
+            </h2>
+            <p className={styles.heroSub}>{hero.subtitle}</p>
+            {heroProgressPct !== null ? (
+              <div className={styles.heroProgress}>
+                <div className={styles.heroBar}>
+                  <div
+                    className={styles.heroBarFill}
+                    style={{ width: `${heroProgressPct}%` }}
+                  />
+                </div>
+                <span className={styles.heroPct}>{heroProgressPct}% mastered</span>
               </div>
-              <span className={styles.heroPct}>{heroProgressPct}% mastered</span>
-            </div>
-          ) : null}
-        </div>
-        <Link href={hero.href} className={styles.heroBtn}>
-          {heroCta}
-        </Link>
-      </div>
+            ) : null}
+          </div>
+          <Button variant="primary" href={hero.href} className={styles.heroCta}>
+            {heroCta}
+          </Button>
+        </section>
 
-      <DashboardQuickActions />
-
-      <div className={styles.statsGrid}>
+        <div className={styles.statsGrid}>
         {isStudent ? (
         <>
         <StatTile
           className={styles.stat}
+          data-value={liveSummary ? String(liveSummary.vocabularyCount) : ''}
           icon={
             <div className={`${styles.statIcon} ${styles.amber}`}>
               <BookOpen size={16} />
@@ -167,6 +185,7 @@ export default function DashboardPage() {
         />
         <StatTile
           className={styles.stat}
+          data-value={liveSummary ? String(liveSummary.lessonsToday) : ''}
           icon={
             <div className={`${styles.statIcon} ${styles.green}`}>
               <Clock3 size={16} />
@@ -181,6 +200,7 @@ export default function DashboardPage() {
         />
         <StatTile
           className={styles.stat}
+          data-value={liveSummary ? String(liveSummary.lessonsCompleted) : ''}
           icon={
             <div className={`${styles.statIcon} ${styles.blue}`}>
               <CheckCircle2 size={16} />
@@ -198,6 +218,7 @@ export default function DashboardPage() {
           <>
             <StatTile
               className={styles.stat}
+              data-value={studentsList.data ? String(studentsList.data.length) : ''}
               icon={
                 <div className={`${styles.statIcon} ${styles.amber}`}>
                   <Users size={16} />
@@ -214,6 +235,7 @@ export default function DashboardPage() {
             />
             <StatTile
               className={styles.stat}
+              data-value={liveSummary ? String(liveSummary.lessonsToday) : ''}
               icon={
                 <div className={`${styles.statIcon} ${styles.green}`}>
                   <Clock3 size={16} />
@@ -230,6 +252,7 @@ export default function DashboardPage() {
             />
             <StatTile
               className={styles.stat}
+              data-value={String(pendingHomeworkCount)}
               icon={
                 <div className={`${styles.statIcon} ${styles.blue}`}>
                   <CheckCircle2 size={16} />
@@ -244,28 +267,38 @@ export default function DashboardPage() {
             />
           </>
         )}
-      </div>
+        </div>
 
-      <div className={styles.twoCol}>
+        <DashboardQuickActions />
+
+        <div className={styles.twoCol}>
         <div className={styles.leftCol}>
           <SectionHeader
             className={styles.sectionHead}
             titleClassName={styles.sectionTitle}
-            title="Today's lessons"
+            title={<h2>Today&apos;s lessons</h2>}
             actionHref="/calendar"
             actionLabel="Calendar →"
             actionClassName={styles.seeAll}
           />
           <div className={styles.lessonList}>
             {lessonsLoading ? (
-              <p className={styles.emptyHint}>Loading lessons…</p>
+              <EmptyStateCard
+                className={styles.emptyState}
+                title="Loading lessons…"
+                description="Fetching your schedule."
+              />
             ) : todayLessons.length === 0 ? (
-              <p className={styles.emptyHint}>
-                No lessons scheduled for today.{' '}
-                <Link href="/calendar" className={styles.emptyLink}>
-                  Open calendar
-                </Link>
-              </p>
+              <EmptyStateCard
+                className={styles.emptyState}
+                title="No lessons today"
+                description="Your calendar is clear for today."
+                action={
+                  <Link href="/calendar" className={styles.emptyLink}>
+                    Open calendar
+                  </Link>
+                }
+              />
             ) : (
               todayLessons.map((lesson, i) => (
                 <Link key={lesson.id} href={`/lessons/${lesson.id}`} className={styles.lessonLink}>
@@ -303,17 +336,30 @@ export default function DashboardPage() {
               <SectionHeader
                 className={styles.sectionHead}
                 titleClassName={styles.sectionTitle}
-                title="Review words"
+                title={<h2>Review words</h2>}
                 actionHref="/practice/vocabulary"
                 actionLabel="All words →"
                 actionClassName={styles.seeAll}
               />
               {reviewWords.length === 0 ? (
-                <p className={styles.emptyHint}>You&apos;re all caught up — no words due for review.</p>
+                <EmptyStateCard
+                  className={styles.emptyState}
+                  title="All caught up"
+                  description="No words due for review right now."
+                  action={
+                    <Link href="/practice/vocabulary" className={styles.emptyLink}>
+                      Open vocabulary
+                    </Link>
+                  }
+                />
               ) : (
                 <div className={styles.vocabRow}>
                   {reviewWords.map((card) => (
-                    <div key={card.id} className={styles.vocabCard}>
+                    <Link
+                      key={card.id}
+                      href="/practice/vocabulary"
+                      className={styles.vocabCard}
+                    >
                       <div className={styles.vocabWord}>{card.word.text}</div>
                       <div className={styles.vocabPos}>{card.word.partOfSpeech ?? '—'}</div>
                       <div className={styles.vocabDef}>{card.word.definition}</div>
@@ -325,7 +371,7 @@ export default function DashboardPage() {
                           {vocabStatusLabel(card.status)}
                         </span>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               )}
@@ -344,9 +390,11 @@ export default function DashboardPage() {
             <>
               <DailyGoalsCard />
               <WordOfDayCard />
+              <IrregularVerbOfDayCard />
               <StreakCalendarCard />
             </>
           )}
+        </div>
         </div>
       </div>
     </div>

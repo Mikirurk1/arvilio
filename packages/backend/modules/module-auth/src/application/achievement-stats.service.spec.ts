@@ -23,6 +23,9 @@ describe('AchievementStatsService', () => {
       count: jest.fn(),
       aggregate: jest.fn(),
     },
+    speakingSubmission: {
+      count: jest.fn(),
+    },
     dailyGoalCompletion: {
       count: jest.fn(),
     },
@@ -66,8 +69,15 @@ describe('AchievementStatsService', () => {
     prisma.quizAttempt.count
       .mockResolvedValueOnce(14)
       .mockResolvedValueOnce(3);
-    prisma.practiceSession.count.mockResolvedValue(3);
-    prisma.practiceSession.aggregate.mockResolvedValue({ _sum: { durationSec: 2700 } });
+    prisma.practiceSession.count
+      .mockResolvedValueOnce(3)
+      .mockResolvedValueOnce(5);
+    prisma.speakingSubmission.count
+      .mockResolvedValueOnce(5)
+      .mockResolvedValueOnce(1);
+    prisma.practiceSession.aggregate
+      .mockResolvedValueOnce({ _sum: { durationSec: 4200 } })
+      .mockResolvedValueOnce({ _sum: { durationSec: 2700 } });
     prisma.dailyGoalCompletion.count.mockResolvedValue(2);
 
     const stats = await service.statsFor('student-1');
@@ -79,6 +89,10 @@ describe('AchievementStatsService', () => {
       quizzesCompleted: 14,
       perfectQuizCount: 3,
       speakingSessions: 3,
+      speakingSubmissions: 5,
+      speakingReviewsReceived: 1,
+      speakingMinutesTotal: 70,
+      gamesSessions: 5,
       practiceMinutesTotal: 45,
       lessonMinutesTotal: 1125,
       weeklyGoalsCompleted: 2,
@@ -92,6 +106,12 @@ describe('AchievementStatsService', () => {
         'ach_quizzes_10',
         'ach_perfect_quiz_3',
         'ach_speaking_3',
+        'ach_speaking_record_1',
+        'ach_speaking_record_5',
+        'ach_speaking_feedback_1',
+        'ach_speaking_minutes_60',
+        'ach_irregular_drills_3',
+        'ach_irregular_drills_5',
         'ach_consistency_master',
         'ach_profile_complete',
       ]),
@@ -135,8 +155,15 @@ describe('AchievementStatsService', () => {
     prisma.quizAttempt.count
       .mockResolvedValueOnce(0)
       .mockResolvedValueOnce(0);
-    prisma.practiceSession.count.mockResolvedValue(0);
-    prisma.practiceSession.aggregate.mockResolvedValue({ _sum: { durationSec: null } });
+    prisma.practiceSession.count
+      .mockResolvedValueOnce(0)
+      .mockResolvedValueOnce(0);
+    prisma.speakingSubmission.count
+      .mockResolvedValueOnce(0)
+      .mockResolvedValueOnce(0);
+    prisma.practiceSession.aggregate
+      .mockResolvedValueOnce({ _sum: { durationSec: null } })
+      .mockResolvedValueOnce({ _sum: { durationSec: null } });
     prisma.dailyGoalCompletion.count.mockResolvedValue(0);
 
     await expect(service.statsFor('teacher-1', 'student-1')).resolves.toMatchObject({

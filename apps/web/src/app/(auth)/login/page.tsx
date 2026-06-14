@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '../../../lib/auth-context';
 import { BrandLogo } from '../../../components/brand/BrandLogo';
 import { Button, Field } from '../../../components/ui';
+import { AuthCardFallback } from '../auth-loading';
 import styles from '../auth.module.scss';
 
 const LOGIN_ERROR_MESSAGES: Record<string, string> = {
@@ -18,7 +19,7 @@ const LOGIN_ERROR_MESSAGES: Record<string, string> = {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<AuthCardFallback />}>
       <LoginPageInner />
     </Suspense>
   );
@@ -55,64 +56,75 @@ function LoginPageInner() {
     <div className={styles.shell}>
       <div className={styles.card}>
         <div className={styles.brand}>
-          <BrandLogo size="lg" className={styles.brandLogo} />
+          <BrandLogo size="lg" href={null} className={styles.brandLogo} />
         </div>
-        <div>
+
+        <div className={styles.intro}>
           <h1 className={styles.title}>Sign in</h1>
-          <p className={styles.subtitle}>Welcome back! Continue your English journey.</p>
+          <p className={styles.subtitle}>
+            Welcome back. Pick up your lessons, practice, and messages in one place.
+          </p>
         </div>
-        {formError ? <div className={styles.error}>{formError}</div> : null}
+
+        {formError ? (
+          <div className={styles.error} role="alert">
+            {formError}
+          </div>
+        ) : null}
         {accountError && LOGIN_ERROR_MESSAGES[accountError] ? (
-          <div className={styles.error}>{LOGIN_ERROR_MESSAGES[accountError]}</div>
+          <div className={styles.error} role="alert">
+            {LOGIN_ERROR_MESSAGES[accountError]}
+          </div>
         ) : null}
         {resetStatus === 'success' ? (
           <div className={styles.success}>
             Password updated. You can now sign in with your new password.
           </div>
         ) : null}
+
         <Link className={styles.googleBtn} href={googleSignInUrl}>
           <GoogleIcon />
           Continue with Google
         </Link>
+
         <div className={styles.divider}>or</div>
-        <form className={styles.actions} onSubmit={onSubmit}>
-          <div className={styles.field}>
-            <label htmlFor="login-email">Email</label>
-            <Field
-              id="login-email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-          </div>
-          <div className={styles.field}>
-            <label htmlFor="login-password">Password</label>
-            <Field
-              id="login-password"
-              type="password"
-              autoComplete="current-password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
-          </div>
+
+        <form className={styles.actions} onSubmit={onSubmit} noValidate>
+          <Field
+            id="login-email"
+            label="Email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+          />
+          <Field
+            id="login-password"
+            label="Password"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+          />
           <div className={styles.linkRow}>
-            <button
-              type="button"
-              className={styles.secondaryLinkButton}
-              onClick={() => router.push('/forgot-password')}
-            >
+            <Link className={styles.secondaryLink} href="/forgot-password">
               Forgot password?
-            </button>
+            </Link>
           </div>
-          <Button className={styles.primary} type="submit" disabled={submitting}>
-            {submitting ? 'Signing in…' : 'Sign in'}
+          <Button
+            variant="primary"
+            className={styles.submitBtn}
+            type="submit"
+            loading={submitting}
+            loadingLabel="Signing in…"
+          >
+            Sign in
           </Button>
         </form>
-        <p className={styles.footer}>Need an account? Contact your administrator.</p>
+
+        <p className={styles.footer}>
+          Need an account? <span className={styles.footerMuted}>Contact your administrator.</span>
+        </p>
       </div>
     </div>
   );

@@ -63,5 +63,33 @@ services:
       - api
     restart: unless-stopped
 
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: soenglish-livekit
+    command: --config /etc/livekit/livekit.yaml
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "50000-50200:50000-50200/udp"
+    volumes:
+      - ./livekit.yaml:/etc/livekit/livekit.yaml:ro
+    restart: unless-stopped
+
+  libretranslate:
+    image: libretranslate/libretranslate:v1.6.4
+    container_name: soenglish-libretranslate
+    ports:
+      - '5001:5000'
+    environment:
+      # English + Ukrainian only — faster first start and lower RAM in dev
+      LT_LOAD_ONLY: en,uk
+    healthcheck:
+      test: ['CMD-SHELL', 'python3 -c "import urllib.request; urllib.request.urlopen(\"http://127.0.0.1:5000/languages\")"']
+      interval: 15s
+      timeout: 10s
+      retries: 30
+      start_period: 120s
+    restart: unless-stopped
+
 volumes:
   soenglish-postgres-data:

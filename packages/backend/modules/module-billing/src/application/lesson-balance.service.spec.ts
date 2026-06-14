@@ -5,6 +5,7 @@ describe('LessonBalanceService', () => {
   const prisma = {
     scheduledLesson: { findUnique: jest.fn() },
     lessonBalanceLedger: { findUnique: jest.fn(), findMany: jest.fn() },
+    studentGroupMember: { findMany: jest.fn().mockResolvedValue([]) },
     studentLessonBalance: { findUnique: jest.fn(), upsert: jest.fn(), update: jest.fn(), create: jest.fn() },
     $transaction: jest.fn((fn: (tx: unknown) => Promise<void>) =>
       fn({
@@ -21,6 +22,7 @@ describe('LessonBalanceService', () => {
   const paymentSettingsMock = {
     getPaymentSettings: jest.fn(),
     resolvePricePerLessonMinor: jest.fn(),
+    resolveGroupPricePerLessonMinor: jest.fn(),
   };
   const paymentSettings = paymentSettingsMock as unknown as PaymentSettingsService;
 
@@ -85,10 +87,12 @@ describe('LessonBalanceService', () => {
         paddle: { mode: 'live' },
         monopay: { mode: 'live' },
         paypal: { mode: 'live' },
+        groupLessons: { enabled: true, defaultBillingMode: 'per_member', defaultPriceMinor: 0, defaultCurrency: 'UAH', defaultSplitMode: 'equal_split' },
       },
       methods: [],
       secretStatuses: {} as never,
     });
+    prisma.studentGroupMember.findMany.mockResolvedValue([]);
     paymentSettingsMock.resolvePricePerLessonMinor.mockResolvedValue({
       defaultPricePerLessonMinor: 2000,
       pricePerLessonMinor: null,
@@ -96,14 +100,49 @@ describe('LessonBalanceService', () => {
       isCustomPrice: false,
       defaultCurrency: 'UAH',
     });
+    paymentSettingsMock.resolveGroupPricePerLessonMinor.mockResolvedValue({
+      defaultGroupPricePerLessonMinor: 800,
+      groupPricePerLessonMinor: null,
+      resolvedGroupPricePerLessonMinor: 800,
+      isCustomGroupPrice: false,
+      groupCurrency: 'UAH',
+    });
+  });
+
+  it('syncLessonCharge creates group consumption for per-member group lesson', async () => {
+    prisma.scheduledLesson.findUnique.mockResolvedValue({
+      id: 'l1',
+      kind: 'GROUP',
+      studentId: 's1',
+      status: 'COMPLETED',
+      credited: true,
+      groupBillingMode: 'PER_MEMBER',
+      groupPriceMinor: null,
+      groupCurrency: null,
+      groupSplitMode: null,
+      groupPayerUserId: null,
+      participants: [{ userId: 's1' }],
+    });
+    prisma.lessonBalanceLedger.findUnique.mockResolvedValue(null);
+
+    await service.syncLessonCharge('l1');
+
+    expect(prisma.$transaction).toHaveBeenCalled();
   });
 
   it('syncLessonCharge creates consumption for completed lesson', async () => {
     prisma.scheduledLesson.findUnique.mockResolvedValue({
       id: 'l1',
+      kind: 'INDIVIDUAL',
       studentId: 's1',
       status: 'COMPLETED',
       credited: true,
+      groupBillingMode: null,
+      groupPriceMinor: null,
+      groupCurrency: null,
+      groupSplitMode: null,
+      groupPayerUserId: null,
+      participants: [],
     });
     prisma.lessonBalanceLedger.findUnique.mockResolvedValue(null);
 
@@ -115,9 +154,16 @@ describe('LessonBalanceService', () => {
   it('syncLessonCharge skips when already consumed', async () => {
     prisma.scheduledLesson.findUnique.mockResolvedValue({
       id: 'l1',
+      kind: 'INDIVIDUAL',
       studentId: 's1',
       status: 'COMPLETED',
       credited: true,
+      groupBillingMode: null,
+      groupPriceMinor: null,
+      groupCurrency: null,
+      groupSplitMode: null,
+      groupPayerUserId: null,
+      participants: [],
     });
     prisma.lessonBalanceLedger.findUnique.mockResolvedValue({ id: 'existing' });
 
@@ -129,20 +175,39 @@ describe('LessonBalanceService', () => {
   it('returns all enabled methods when the student payment allowlist is empty', async () => {
     prisma.user.findUnique
       .mockResolvedValueOnce({ role: 'STUDENT', teacherId: 't1' })
-      .mockResolvedValueOnce({ role: 'STUDENT' });
+      .mockResolvedValueOnce({ role: 'STUDENT' })
+      .mockResolvedValueOnce({ lessonFormat: 'MIXED' });
     prisma.studentLessonBalance.upsert.mockResolvedValue({
       userId: 's1',
       balance: 2,
+      groupBalance: 0,
       pricePerLessonMinor: null,
+      groupPricePerLessonMinor: null,
       billingMode: 'BOTH',
       packageOverrides: null,
       paymentMethodSelection: { allowedMethods: [] },
       manualInvoiceSelection: { allowedMethodIds: ['bank-b'], defaultMethodId: 'bank-b' },
       updatedAt: new Date(),
     });
+    prisma.lessonBalanceLedger.findMany.mockResolvedValue([
+      {
+        id: 'le1',
+        delta: 0,
+        balanceAfter: 2,
+        kind: 'GROUP_CHARGE',
+        note: null,
+        createdAt: new Date(),
+        scheduledLessonId: 'l2',
+        amountMinor: 5000,
+        currency: 'UAH',
+      },
+    ]);
 
     const result = await service.getStudentBalance({ id: 't1', role: 'ADMIN' }, 's1');
 
+    expect(result.lessonFormat).toBe('mixed');
+    expect(result.groupMemberships).toEqual([]);
+    expect(result.recentLedger[0]?.amountMinor).toBe(5000);
     expect(result.availableMethods).toEqual(['stripe', 'manual_invoice', 'paypal']);
     expect(result.paymentMethodSelection).toEqual({
       allowedMethods: [],
@@ -158,7 +223,9 @@ describe('LessonBalanceService', () => {
     prisma.studentLessonBalance.upsert.mockResolvedValue({
       userId: 's1',
       balance: 2,
+      groupBalance: 0,
       pricePerLessonMinor: null,
+      groupPricePerLessonMinor: null,
       billingMode: 'BOTH',
       packageOverrides: null,
       paymentMethodSelection: { allowedMethods: ['stripe'] },
@@ -178,7 +245,9 @@ describe('LessonBalanceService', () => {
     prisma.studentLessonBalance.upsert.mockResolvedValue({
       userId: 's1',
       balance: 2,
+      groupBalance: 0,
       pricePerLessonMinor: null,
+      groupPricePerLessonMinor: null,
       billingMode: 'BOTH',
       packageOverrides: null,
       paymentMethodSelection: {
@@ -206,7 +275,9 @@ describe('LessonBalanceService', () => {
     prisma.studentLessonBalance.upsert.mockResolvedValue({
       userId: 's1',
       balance: 2,
+      groupBalance: 0,
       pricePerLessonMinor: null,
+      groupPricePerLessonMinor: null,
       billingMode: 'BOTH',
       packageOverrides: null,
       paymentMethodSelection: { allowedMethods: ['manual_invoice'] },
@@ -222,5 +293,50 @@ describe('LessonBalanceService', () => {
       'bank-c',
     ]);
     expect(result.manualInvoiceMethods.map((method) => method.id)).toEqual(['bank-a']);
+  });
+
+  it('redacts student pricing fields for teacher viewers', async () => {
+    prisma.user.findUnique
+      .mockResolvedValueOnce({ role: 'STUDENT', teacherId: 't1' })
+      .mockResolvedValueOnce({ role: 'STUDENT' });
+    prisma.studentLessonBalance.upsert.mockResolvedValue({
+      userId: 's1',
+      balance: 2,
+      pricePerLessonMinor: 3500,
+      billingMode: 'BOTH',
+      packageOverrides: [{ packageId: 'p1', enabled: true }],
+      paymentMethodSelection: { allowedMethods: [] },
+      manualInvoiceSelection: { allowedMethodIds: [], defaultMethodId: null },
+      updatedAt: new Date(),
+    });
+    paymentSettingsMock.resolvePricePerLessonMinor.mockResolvedValue({
+      pricePerLessonMinor: 3500,
+      defaultPricePerLessonMinor: 2000,
+      resolvedPricePerLessonMinor: 3500,
+      defaultCurrency: 'UAH',
+      isCustomPrice: true,
+    });
+    prisma.lessonBalanceLedger.findMany.mockResolvedValue([
+      {
+        id: 'l1',
+        delta: -1,
+        balanceAfter: 1,
+        kind: 'LESSON',
+        note: null,
+        createdAt: new Date(),
+        scheduledLessonId: 'sl1',
+        amountMinor: 3500,
+        currency: 'UAH',
+      },
+    ]);
+
+    const result = await service.getStudentBalance({ id: 't1', role: 'TEACHER' }, 's1');
+
+    expect(result.showPerLessonPricing).toBe(false);
+    expect(result.pricePerLessonMinor).toBeNull();
+    expect(result.resolvedPricePerLessonMinor).toBe(0);
+    expect(result.packages).toEqual([]);
+    expect(result.recentLedger[0]?.amountMinor).toBeNull();
+    expect(result.balance).toBe(2);
   });
 });

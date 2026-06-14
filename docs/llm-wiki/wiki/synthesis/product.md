@@ -1,11 +1,22 @@
 ---
 tags: [synthesis, product]
-updated: 2026-05-16
+updated: 2026-05-28
 ---
 
 # Product synthesis — SoEnglish
 
 SoEnglish is an **English learning platform** for structured 1:1 teaching: scheduled live lessons (with Google Meet), vocabulary tracking, quizzes/flashcards, homework flow, and curriculum-style lesson catalog.
+
+## Today vs target platform
+
+| | **Today** | **Target (vision)** |
+|---|-----------|---------------------|
+| Tenants | One school per deployment | Many schools on one platform |
+| Who pays whom | Student → school (lesson packages); school configures providers | Same + **school → platform subscription** + **platform commission** on platform-sourced students |
+| Student acquisition | School / admin provisions accounts | Optional **platform marketplace**: students register to find a tutor; platform may assign leads to schools |
+| Comparison | School product (Edvibe-style ops) | **Hybrid**: school SaaS + marketplace take rate (Preply-like acquisition, not Preply’s tutor-only model) |
+
+Cursor rule: `.cursor/rules/future-multitenant-architecture.mdc` (always apply).
 
 ## Primary users
 
@@ -51,9 +62,9 @@ See [[concepts/roles-matrix]] and [[concepts/auth-rbac]].
 
 ## What is out of scope (today)
 
-- **Stripe / billing** — not in codebase (wiki mentions only as future)
-- **Facebook / Telegram OAuth** — enum in schema; Google is wired
-- **Server-side route RBAC on web** — client matrix only — see [[concepts/auth-rbac#Known gaps]]
+- **Multi-tenant schools**, **subscription to open a school**, **student marketplace**, **commission ledger** — vision only; see table above
+- **Facebook / Telegram OAuth** — configurable in System → Connections; Google wired for calendar/auth
+- Fine-grained **platform vs school** admin surfaces — coarse `scope` / `/platform` seams exist; see [[concepts/auth-rbac]]
 
 ## Related
 

@@ -12,5 +12,10 @@ export {
   REFRESH_COOKIE,
   GOOGLE_OAUTH_INTENT_COOKIE,
   GOOGLE_OAUTH_USER_COOKIE,
+  ZOOM_OAUTH_INTENT_COOKIE,
+  ZOOM_OAUTH_USER_COOKIE,
+  setZoomLinkCookies,
+  clearZoomOAuthCookies,
+  readZoomLinkUserId,
 } from './shared/auth-cookies';
 export { AuthModule } from './auth.module';

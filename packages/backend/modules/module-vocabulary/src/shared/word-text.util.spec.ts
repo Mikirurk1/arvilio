@@ -8,10 +8,16 @@ describe('word-text.util', () => {
     expect(isEnglishLemma('well-known')).toBe(true);
   });
 
+  it('accepts short English phrases', () => {
+    expect(isEnglishLemma('touch base')).toBe(true);
+    expect(isEnglishLemma('  circle   back  ')).toBe(true);
+  });
+
   it('rejects empty and non-English', () => {
     expect(isEnglishLemma('')).toBe(false);
     expect(isEnglishLemma('привіт')).toBe(false);
     expect(isEnglishLemma('hello123')).toBe(false);
+    expect(isEnglishLemma('touch base!')).toBe(false);
   });
 
   it('assertEnglishLemma throws BadRequestException', () => {

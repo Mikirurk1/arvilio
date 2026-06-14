@@ -27,8 +27,8 @@ export function QuizTopicsGrid({ topics }: { topics: MockQuizTopic[] }) {
           title={topic.title}
           description={topic.desc}
           icon={topicIcon(topic.tag)}
-          tag={topic.tag}
-          tagVariant={topic.tag.toLowerCase().includes('grammar') ? 'blue' : 'green'}
+          tag="Quiz"
+          tagVariant="blue"
         />
       ))}
     </div>

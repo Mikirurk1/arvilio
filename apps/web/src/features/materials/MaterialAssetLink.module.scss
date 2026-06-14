@@ -1,0 +1,19 @@
+.mediaOpenBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: inherit;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+  text-decoration: inherit;
+  max-width: 100%;
+}
+
+.mediaOpenBtn:hover {
+  color: inherit;
+}

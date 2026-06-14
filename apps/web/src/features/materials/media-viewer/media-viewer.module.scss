@@ -1,0 +1,374 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+@use '../../../styles/modal-recipe' as modal;
+
+.viewerRoot {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - var(--header-height, 56px));
+  margin: calc(-1 * var(--space-6, 1.5rem));
+  background: var(--surface);
+}
+
+.viewerHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+  padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-elevated);
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: var(--text-sm, 0.875rem);
+  white-space: nowrap;
+}
+
+.backLink:hover {
+  color: var(--text-primary);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-base, 1rem);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.viewerBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
+  gap: var(--space-4, 1rem);
+  padding: var(--space-4, 1rem);
+  flex: 1;
+}
+
+.modalBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(14rem, 18rem);
+  gap: var(--space-4, 1rem);
+  padding: var(--space-4, 1rem);
+  flex: 1;
+  min-height: 0;
+  overflow: visible;
+}
+
+.playerColumn {
+  min-width: 0;
+  overflow: visible;
+  position: relative;
+  z-index: 2;
+}
+
+.plyrWrap {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  background: #000;
+  overflow: visible;
+
+  :global(.plyr) {
+    --plyr-color-main: var(--accent-primary, var(--green));
+    --plyr-video-background: #000;
+    border-radius: 12px;
+    overflow: visible;
+  }
+
+  :global(.plyr__controls) {
+    overflow: visible;
+  }
+
+  :global(.plyr__menu__container) {
+    z-index: 30;
+    /* Open downward so speed menu is not clipped by modal overflow. */
+    bottom: auto !important;
+    top: 100% !important;
+    margin-top: 6px;
+  }
+
+  :global(.plyr__menu) {
+    z-index: 31;
+    overflow: visible;
+  }
+
+  :global(.plyr--video .plyr__video-wrapper) {
+    overflow: hidden;
+    border-radius: 12px 12px 0 0;
+    background: #000;
+  }
+
+  :global(.plyr--video .plyr__video-wrapper video) {
+    display: block;
+    width: 100%;
+    max-height: min(70vh, 720px);
+    height: auto;
+  }
+
+  :global(.plyr--video .plyr__controls) {
+    border-radius: 0 0 12px 12px;
+  }
+
+  :global(.plyr--audio .plyr__controls) {
+    border-radius: 12px;
+    background: var(--surface-elevated);
+  }
+}
+
+.plyrVideo {
+  /* Controls sit below the video wrapper — do not clip with max-height here. */
+}
+
+.plyrAudio {
+  max-width: 100%;
+}
+
+.playerWrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.75rem);
+}
+
+.mediaElement {
+  display: block;
+  width: 100%;
+}
+
+.audio {
+  width: 100%;
+}
+
+.captionControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+}
+
+.captionLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--text-secondary);
+}
+
+.captionSelect {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--field-bg);
+  color: var(--text-primary);
+}
+
+.captionHint {
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.captionFeedback {
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--text-primary);
+}
+
+.generateCaptionsBtn {
+  flex-shrink: 0;
+}
+
+.notesPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.75rem);
+  padding: var(--space-3, 0.75rem);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--surface-elevated);
+  min-height: 12rem;
+}
+
+.notesPanelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2, 0.5rem);
+}
+
+.notesTitle {
+  margin: 0;
+  font-size: var(--text-sm, 0.875rem);
+  font-weight: 600;
+}
+
+.addNoteBtn {
+  flex-shrink: 0;
+}
+
+.notesBanner {
+  margin: 0;
+  padding: 0.5rem 0.625rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--amber, #f59e0b) 16%, var(--surface));
+  color: var(--text-secondary);
+  font-size: var(--text-sm, 0.875rem);
+  line-height: 1.45;
+}
+
+.notesEmpty {
+  margin: 0;
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--text-secondary);
+}
+
+.notesList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+}
+
+.noteItem {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.5rem;
+  align-items: start;
+}
+
+.noteTimeBtn {
+  border: none;
+  background: var(--surface-inset);
+  color: var(--accent-primary, var(--blue));
+  font-size: var(--text-sm, 0.875rem);
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  cursor: pointer;
+}
+
+.noteInput {
+  width: 100%;
+  min-height: 3rem;
+  resize: vertical;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  background: var(--field-bg);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.noteRemoveBtn {
+  min-width: 2rem;
+  padding-inline: 0.375rem;
+}
+
+.loadingState {
+  display: grid;
+  place-items: center;
+  min-height: 12rem;
+  color: var(--text-secondary);
+}
+
+.modalOverlay {
+  @include modal.overlay;
+  z-index: var(--z-modal-lightbox, 2350);
+  overflow: visible;
+}
+
+.modalDialog {
+  width: min(960px, 100%);
+  max-height: calc(100dvh - 24px);
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  @include modal.dialog;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 0.75rem);
+  padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
+  @include modal.section-divider;
+  flex-shrink: 0;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: var(--text-base, 1rem);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.modalCloseBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: var(--radius-sm, 8px);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.modalCloseBtn:hover {
+  background: var(--surface-inset);
+  color: var(--text-primary);
+}
+
+.modalDismissBtn {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--card);
+  cursor: pointer;
+}
+
+.modalLoading {
+  display: grid;
+  place-items: center;
+  gap: 0.5rem;
+  padding: 2.5rem 1.5rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.modalBody .notesPanel {
+  max-height: min(60vh, 28rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+@include respond-to(sm) {
+  .modalBody {
+    grid-template-columns: 1fr;
+  }
+
+  .modalBody .notesPanel {
+    max-height: none;
+  }
+}
+
+@include respond-max($breakpoint-md) {
+  .viewerBody {
+    grid-template-columns: 1fr;
+  }
+}

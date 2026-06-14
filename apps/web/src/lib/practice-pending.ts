@@ -1,4 +1,4 @@
-import type { QuizCardDto, StudentQuizCardDto } from '@pkg/types';
+import type { QuizCardDto, SpeakingTopicCardDto, StudentQuizCardDto } from '@pkg/types';
 
 type QuizWithAttempt = Pick<QuizCardDto, 'attempt'>;
 
@@ -21,4 +21,11 @@ export function countIncompleteQuizzesFromList(
   available: QuizCardDto[] | null | undefined,
 ): number {
   return countIncompleteQuizzes(available);
+}
+
+/** Speaking assignments the student has not submitted yet. */
+export function countPendingSpeakingTopics(
+  topics: SpeakingTopicCardDto[] | null | undefined,
+): number {
+  return (topics ?? []).filter((topic) => topic.assignment?.status === 'pending').length;
 }

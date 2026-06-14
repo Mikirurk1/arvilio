@@ -7,6 +7,8 @@ import { useActiveUser } from '../../../lib/active-user';
 import { CreateQuizCard } from '../../../components/quiz/CreateQuizCard';
 import { QuizAssignmentCards } from '../../../components/quiz/QuizAssignmentCards';
 import { QuizPlaySession } from '../../../features/quiz/QuizPlaySession';
+import { QuizResultScreen } from '../../../features/quiz/QuizResultScreen';
+import type { QuizPlayResult } from '../../../features/quiz/quiz-play-types';
 import { useQuizzesStore } from '../../../stores/quizzes-store';
 import { Button, SurfaceCard } from '../../../components/ui';
 import styles from './page.module.scss';
@@ -17,14 +19,13 @@ type PlayState = {
   practice: boolean;
 } | null;
 
-type ResultState = {
-  score: number;
-  correctCount: number;
-  totalCount: number;
-  practiceMode: boolean;
-} | null;
 
-export function StudentQuizTab({ studentId }: { studentId: string }) {
+type Props = {
+  studentId: string;
+  embedded?: boolean;
+};
+
+export function StudentQuizTab({ studentId, embedded = false }: Props) {
   const activeUser = useActiveUser();
   const canGenerate = canEdit('quiz', activeUser.role);
   const isStaff = canGenerate;
@@ -32,7 +33,8 @@ export function StudentQuizTab({ studentId }: { studentId: string }) {
   const fetchStudentQuizzes = useQuizzesStore((s) => s.fetchStudentQuizzes);
   const deleteQuiz = useQuizzesStore((s) => s.deleteQuiz);
   const [play, setPlay] = useState<PlayState>(null);
-  const [result, setResult] = useState<ResultState>(null);
+  const [result, setResult] = useState<QuizPlayResult | null>(null);
+  const [lastPlayedQuizId, setLastPlayedQuizId] = useState<string | null>(null);
   const [deletingQuizId, setDeletingQuizId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -56,9 +58,8 @@ export function StudentQuizTab({ studentId }: { studentId: string }) {
   };
 
   if (play) {
-    return (
-      <SurfaceCard className={styles.quizTabCard}>
-        <QuizPlaySession
+    const playCard = (
+      <QuizPlaySession
           quizId={play.quizId}
           studentId={play.practice ? undefined : studentId}
           practiceMode={play.practice}
@@ -71,24 +72,18 @@ export function StudentQuizTab({ studentId }: { studentId: string }) {
             }
           }}
         />
-      </SurfaceCard>
+    );
+    return embedded ? (
+      <div className={styles.quizTabEmbeddedPlay}>{playCard}</div>
+    ) : (
+      <SurfaceCard className={styles.quizTabCard}>{playCard}</SurfaceCard>
     );
   }
 
   const assigned = studentQuizzes.data ?? [];
 
-  return (
-    <div className={styles.quizTab}>
-      <section aria-label="Assigned quizzes">
-        <h3 className={styles.quizSectionTitle}>
-          {isStaff ? 'Quizzes for this student' : 'Your quizzes'}
-        </h3>
-        <p className={styles.quizSectionSub}>
-          {isStaff
-            ? 'Generated from this student’s vocabulary. Scores appear after they complete a quiz.'
-            : 'Complete assigned quizzes and review your scores.'}
-        </p>
-
+  const quizBody = (
+    <>
         {studentQuizzes.status === 'loading' || studentQuizzes.status === 'idle' ? (
           <p className={styles.quizSectionSub}>Loading quizzes…</p>
         ) : (
@@ -100,6 +95,7 @@ export function StudentQuizTab({ studentId }: { studentId: string }) {
                 onGenerated={() => void fetchStudentQuizzes(studentId, true)}
                 onPlay={(quizId, practice) => {
                   setResult(null);
+                  setLastPlayedQuizId(quizId);
                   setPlay({ quizId, practice: practice && isStaff });
                 }}
               />
@@ -116,12 +112,14 @@ export function StudentQuizTab({ studentId }: { studentId: string }) {
               }
               onPlay={(quizId) => {
                 setResult(null);
+                setLastPlayedQuizId(quizId);
                 setPlay({ quizId, practice: false });
               }}
               onPractice={
                 isStaff
                   ? (quizId) => {
                       setResult(null);
+                      setLastPlayedQuizId(quizId);
                       setPlay({ quizId, practice: true });
                     }
                   : undefined
@@ -130,24 +128,45 @@ export function StudentQuizTab({ studentId }: { studentId: string }) {
             />
           </div>
         )}
-      </section>
 
       {result ? (
-        <SurfaceCard className={styles.quizResultCard}>
-          <h3 className={styles.quizResultTitle}>
-            {result.practiceMode ? 'Practice complete' : 'Quiz submitted'}
-          </h3>
-          <p className={styles.quizResultScore}>
-            {result.correctCount} / {result.totalCount} correct ({result.score}%)
-          </p>
-          {result.practiceMode ? (
-            <p className={styles.quizResultHint}>Practice runs are not recorded for the student.</p>
-          ) : null}
-          <Button type="button" onClick={() => setResult(null)}>
-            Close
-          </Button>
-        </SurfaceCard>
+        <QuizResultScreen
+          result={result}
+          onClose={() => setResult(null)}
+          onRetry={
+            lastPlayedQuizId
+              ? () => {
+                  setResult(null);
+                  setPlay({ quizId: lastPlayedQuizId, practice: result.practiceMode });
+                }
+              : undefined
+          }
+        />
       ) : null}
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <div className={styles.quizTabEmbedded}>
+        <section aria-label="Assigned quizzes">{quizBody}</section>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.quizTab}>
+      <section aria-label="Assigned quizzes" className={styles.tabCard}>
+        <h2 className={styles.tabSectionTitle}>
+          {isStaff ? 'Quizzes' : 'Your quizzes'}
+        </h2>
+        <p className={styles.quizSectionSub}>
+          {isStaff
+            ? 'Generated from this student’s vocabulary. Scores appear after they complete a quiz.'
+            : 'Complete assigned quizzes and review your scores.'}
+        </p>
+        {quizBody}
+      </section>
     </div>
   );
 }

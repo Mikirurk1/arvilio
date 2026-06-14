@@ -5,8 +5,9 @@
 :root {
   --container-padding-x: 20px;
   --container-padding-x-mobile: 16px;
-  --main-padding-x: 38px;
-  --main-padding-y: 34px;
+  /* App shell <main> gutters — pages use .container for content max-width */
+  --main-padding-x: 32px;
+  --main-padding-y: 32px;
   --main-padding-x-tablet: 20px;
   --main-padding-y-tablet: 24px;
   --main-padding-x-mobile: 16px;
@@ -15,6 +16,10 @@
   --chat-page-margin-top: 8px;
   --chat-page-margin-left: 8px;
   --nav-drawer-width: min(300px, 88vw);
+  --sidebar-w-expanded: 240px;
+  --sidebar-w-collapsed: 72px;
+  --header-search-width: 320px;
+  --z-header: 100;
   --container-max-default: 1200px;
   --container-max-page: 1920px;
   --container-max-narrow: 760px;
@@ -22,6 +27,15 @@
   --container-max-prose: 720px;
   --container-max-form: 560px;
   --container-max-reading: 460px;
+
+  /* Vertical rhythm — page sections (use in layouts, not one-off margins) */
+  --space-section-xs: 12px;
+  --space-section-sm: 20px;
+  --space-section-md: 28px;
+  --space-section-lg: 40px;
+  --space-stack-gap: 16px;
+  --space-card-padding: 20px;
+  --space-card-padding-lg: 24px;
 
   /* Stacking: lesson modal (body portal) < confirms (body portal) < toasts (body portal) */
   --z-modal: 2200;

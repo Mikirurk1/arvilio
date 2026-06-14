@@ -39,12 +39,17 @@ export function Tabs<T extends string>({
   keepMounted = false,
 }: TabsProps<T>) {
   const activeItem = items.find((item) => item.value === value) ?? items[0];
+  const useCustomListStyles = Boolean(listClassName);
   const useCustomTriggerStyles = Boolean(triggerClassName);
   const useCustomActiveStyles = Boolean(activeTriggerClassName);
 
   return (
     <div className={[uiStyles.tabsRoot, className].filter(Boolean).join(' ')}>
-      <div className={[uiStyles.tabsList, listClassName].filter(Boolean).join(' ')} role="tablist" aria-label={ariaLabel}>
+      <div
+        className={[useCustomListStyles ? '' : uiStyles.tabsList, listClassName].filter(Boolean).join(' ')}
+        role="tablist"
+        aria-label={ariaLabel}
+      >
         {items.map((item) => (
           <Button
             key={item.value}

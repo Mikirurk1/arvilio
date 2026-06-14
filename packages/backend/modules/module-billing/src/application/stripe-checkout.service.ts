@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '@be/prisma';
 import type { CreateLessonPurchaseCheckoutRequestDto, LessonPurchaseCheckoutDto } from '@pkg/types';
+import { parseLessonCreditTrack } from '@pkg/types';
 import { getStripeClient } from '../infrastructure/stripe.client';
 import { LessonBalanceService } from './lesson-balance.service';
 import { PaymentSettingsService } from './payment-settings.service';
@@ -44,6 +45,7 @@ export class StripeCheckoutService {
         lessonsGranted: pkg.lessons,
         amountMinor: pkg.amountMinor,
         currency: pkg.currency,
+        metadata: { creditTrack: pkg.creditTrack },
       },
     });
 
@@ -104,6 +106,12 @@ export class StripeCheckoutService {
     const payment = await this.prisma.payment.findUnique({ where: { id: paymentId } });
     if (!payment || payment.status === 'SUCCEEDED') return;
 
+    const paymentMeta =
+      payment.metadata && typeof payment.metadata === 'object'
+        ? (payment.metadata as Record<string, unknown>)
+        : null;
+    const creditTrack = parseLessonCreditTrack(paymentMeta?.['creditTrack']);
+
     await this.prisma.payment.update({
       where: { id: paymentId },
       data: {
@@ -117,6 +125,7 @@ export class StripeCheckoutService {
       userId: payment.userId,
       lessons: payment.lessonsGranted,
       paymentId: payment.id,
+      creditTrack,
     });
   }
 }

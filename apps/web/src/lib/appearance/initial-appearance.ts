@@ -1,3 +1,5 @@
+import { resolveThemeMode } from './apply-appearance';
+
 export type ThemeMode = 'light' | 'dark' | 'auto';
 export type ResolvedThemeMode = Exclude<ThemeMode, 'auto'>;
 export type FontSizeMode = 'small' | 'medium' | 'large';
@@ -24,12 +26,7 @@ export function resolveInitialAppearance(
   const fontSize = normalizeFontSizeMode(state?.fontSize);
 
   return {
-    theme:
-      themeSetting === 'auto'
-        ? prefersDark
-          ? 'dark'
-          : 'light'
-        : themeSetting,
+    theme: resolveThemeMode(themeSetting, prefersDark),
     fontSize,
   };
 }

@@ -230,7 +230,7 @@ export default function VocabularyPage() {
   };
 
   const onAddWord = async (text: string) => {
-    await addCard({ text: text.trim() });
+    await addCard({ text });
   };
 
   const startPlay = () => {
@@ -280,19 +280,23 @@ export default function VocabularyPage() {
     });
   };
 
+  const pageSubtitle = isLoading
+    ? 'Loading your word library…'
+    : `${totalWords} word${totalWords === 1 ? '' : 's'} · list, flashcards, or practice quiz`;
+
   return (
     <div className={`${styles.page} container container--page`}>
+      <div className={styles.stack}>
       <PageHeader
         className={styles.pageHeader}
         textClassName={styles.pageHeaderText}
         titleClassName={styles.pageTitle}
         subtitleClassName={styles.pageSub}
         title={`${siteContent.vocabulary.title}${canEditVocab ? '' : ' (read only)'}`}
-        subtitle={`${totalWords} words in your library`}
+        subtitle={pageSubtitle}
         back={
-          <Link href="/practice" className={styles.backBtn}>
-            <ArrowLeft size={14} />
-            Back
+          <Link href="/practice" className={styles.backLink} aria-label="Back to practice">
+            <ArrowLeft size={16} aria-hidden />
           </Link>
         }
         actions={
@@ -438,6 +442,7 @@ export default function VocabularyPage() {
           }}
         />
       )}
+      </div>
     </div>
   );
 }

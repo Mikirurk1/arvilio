@@ -45,11 +45,15 @@ html {
     font-family: $font-family-base;
     line-height: var(--lh-body);
     color: var(--text-primary);
-    overflow: hidden;
     background-color: var(--surface);
     font-size: 1rem;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    // Scroll is managed by [data-app-shell-main]; only lock body when app shell is present.
+    &:has([data-app-shell]) {
+      overflow: hidden;
+    }
   }
 }
 
@@ -101,18 +105,7 @@ h2,
 h3,
 h4,
 h5,
-h6,
-.headline-1,
-.headline-2,
-.headline-3,
-.headline-4,
-.headline-5,
-.section-title,
-.hero-title,
-.cta-title,
-.testimonial-section-title,
-.managers-section__title,
-.page-hero__title {
+h6 {
   font-family: $font-family-heading;
 }
 
@@ -139,23 +132,46 @@ ol {
   list-style: none;
 }
 
-button {
-  @include button-reset;
-  cursor: pointer;
-  font-family: var(--font-sans);
+@layer base {
+  button {
+    @include button-reset;
+    cursor: pointer;
+    font-family: var(--font-sans);
+  }
+
+  input,
+  textarea,
+  select {
+    font-family: var(--font-sans);
+    font-size: inherit;
+  }
+
+  /* Native text-like controls — shared fill; excludes checkboxes, radios, file, etc. */
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='submit']):not([type='button']):not([type='reset']):not([type='image']):not([type='hidden']),
+  textarea,
+  select {
+    background-color: var(--field-bg);
+  }
 }
 
-input,
-textarea,
-select {
-  font-family: var(--font-sans);
-  font-size: inherit;
-}
+// Accessibility: OS “reduce motion” — shorten global transitions/animations.
+// Prefer var(--transition) in new SCSS; use @include motion-allow { … } for decorative only.
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition: 0.01ms;
+    --transition-slow: 0.01ms;
+  }
 
-/* Native text-like controls — shared fill; excludes checkboxes, radios, file, etc. */
-input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='submit']):not([type='button']):not([type='reset']):not([type='image']):not([type='hidden']),
-textarea,
-select {
-  background-color: var(--field-bg);
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 

@@ -41,6 +41,27 @@ describe('PlatformSettingsService', () => {
     expect(settings.providers.length).toBeGreaterThanOrEqual(2);
   });
 
+  it('getTranslationSettings returns catalog, active provider, and env API URLs', () => {
+    const settings = service.getTranslationSettings();
+    expect(settings.activeProvider).toBe('mymemory');
+    expect(settings.providers.map((p) => p.id)).toEqual([
+      'deepl',
+      'google',
+      'microsoft',
+      'reverso',
+      'mymemory',
+      'libretranslate',
+      'gtx',
+    ]);
+    const paid = settings.providers.filter((p) => p.requiresServiceSubscription);
+    expect(paid.map((p) => p.id)).toEqual(['deepl', 'google', 'microsoft']);
+    expect(settings.apiUrls.myMemoryUrl).toContain('mymemory');
+    expect(settings.apiUrls.deeplApiUrl).toContain('deepl');
+    expect(settings.apiUrls.googleTranslateApiUrl).toContain('googleapis');
+    expect(settings.apiUrls.microsoftTranslatorApiUrl).toContain('microsofttranslator');
+    expect(settings.apiUrls.libreTranslateUrl).toBeNull();
+  });
+
   it('setWordDictionaryProvider persists wiktionary', async () => {
     prisma.platformSettings.findUnique.mockResolvedValue({
       ...defaultRow,

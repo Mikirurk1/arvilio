@@ -12,7 +12,6 @@ import {
   DAILY_GOALS,
   DASHBOARD_SUMMARY,
   LEARNING_STREAK,
-  SET_DAILY_GOAL_DONE,
   WORD_OF_DAY,
 } from '../graphql/operations';
 import { graphqlRequest } from '../lib/graphql-client';
@@ -36,7 +35,6 @@ type DashboardState = {
   fetchStreak: (force?: boolean) => Promise<void>;
   fetchWordOfDay: (force?: boolean) => Promise<void>;
   fetchDashboard: (isStudent: boolean) => Promise<void>;
-  toggleGoal: (goalId: string, done: boolean) => Promise<void>;
 };
 
 export const useDashboardStore = create<DashboardState>()(
@@ -128,19 +126,6 @@ export const useDashboardStore = create<DashboardState>()(
         await Promise.all(tasks);
       },
 
-      toggleGoal: async (goalId, done) => {
-        const prev = get().goals;
-        try {
-          const data = await graphqlRequest<{ setDailyGoalDone: DailyGoalDto[] }>(
-            SET_DAILY_GOAL_DONE,
-            { goalId, done },
-          );
-          set({ goals: sliceSuccess(prev, data.setDailyGoalDone) }, false, 'dashboard/goals:toggle');
-        } catch (error) {
-          set({ goals: sliceError(prev, error) }, false, 'dashboard/goals:toggle-error');
-          throw error;
-        }
-      },
     }),
     { name: 'soenglish/dashboard' },
   ),

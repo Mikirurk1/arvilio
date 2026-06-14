@@ -1,4 +1,4 @@
-import type { AuthUserDto, StudentSummaryBackendDto } from '@pkg/types';
+import type { AuthUserDto, StudentLessonFormat, StudentSummaryBackendDto } from '@pkg/types';
 import {
   getProfileByUserId,
   USER_ACCOUNT_STATUS,
@@ -48,6 +48,7 @@ export function mapBackendStudentToProfile(row: StudentSummaryBackendDto): MockS
       : 1) as ProficiencyLevelId,
     statusId: (STATUS_TO_ID[row.status] ?? USER_ACCOUNT_STATUS.active.id) as UserAccountStatusId,
     scheduleType: row.scheduleType ?? true,
+    lessonFormat: (row.lessonFormat ?? 'mixed') as StudentLessonFormat,
     teacherId: row.teacherId ? studentIdToNumericId(row.teacherId) : 0,
     wordsLearned: 0,
     lessonsCompleted: 0,

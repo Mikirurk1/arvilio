@@ -78,6 +78,7 @@ export class PayPalCheckoutService {
         lessonsGranted: pkg.lessons,
         amountMinor: pkg.amountMinor,
         currency: pkg.currency,
+        metadata: { creditTrack: pkg.creditTrack },
       },
     });
 

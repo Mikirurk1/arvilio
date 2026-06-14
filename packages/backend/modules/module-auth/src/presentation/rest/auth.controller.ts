@@ -35,6 +35,7 @@ import {
 } from '../../shared/auth-cookies';
 import { buildFacebookAuthUrl, exchangeFacebookCode } from '../../shared/facebook-oauth';
 import { profileConnectionsRedirect, webOrigin } from '../../shared/oauth-link-redirect';
+import { getPlatformIntegrationRuntime } from '@be/platform-integration';
 import { buildGoogleAuthUrl, getGoogleClient, mapUserToDto } from '../../shared/auth-user-map.util';
 import type { TelegramLoginPayload } from '../../shared/telegram-auth';
 import { AuthGuard } from '../guards/auth.guard';
@@ -176,7 +177,7 @@ export class AuthController {
       }
       const ticket = await client.verifyIdToken({
         idToken,
-        audience: process.env['GOOGLE_CLIENT_ID'],
+        audience: getPlatformIntegrationRuntime().google.clientId ?? undefined,
       });
       const verified = ticket.getPayload();
       if (!verified?.sub || !verified.email) {

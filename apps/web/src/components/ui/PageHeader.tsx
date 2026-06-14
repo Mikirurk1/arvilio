@@ -29,18 +29,18 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <div className={[uiStyles.pageHeader, className].filter(Boolean).join(' ')}>
-      <div className={uiStyles.pageHeaderStart}>
-        {back ? (
-          <div className={[uiStyles.pageHeaderBack, backClassName].filter(Boolean).join(' ')}>{back}</div>
-        ) : null}
-        <div className={[uiStyles.pageHeaderText, textClassName].filter(Boolean).join(' ')}>
-          <TitleTag className={[uiStyles.pageHeaderTitle, titleClassName].filter(Boolean).join(' ')}>{title}</TitleTag>
-          {subtitle ? (
-            <p className={[uiStyles.pageHeaderSubtitle, subtitleClassName].filter(Boolean).join(' ')}>{subtitle}</p>
+      <div className={uiStyles.pageHeaderRow}>
+        <div className={[uiStyles.pageHeaderStart, textClassName].filter(Boolean).join(' ')}>
+          {back ? (
+            <div className={[uiStyles.pageHeaderBack, backClassName].filter(Boolean).join(' ')}>{back}</div>
           ) : null}
+          <TitleTag className={[uiStyles.pageHeaderTitle, titleClassName].filter(Boolean).join(' ')}>{title}</TitleTag>
         </div>
+        {actions}
       </div>
-      {actions}
+      {subtitle ? (
+        <p className={[uiStyles.pageHeaderSubtitle, subtitleClassName].filter(Boolean).join(' ')}>{subtitle}</p>
+      ) : null}
     </div>
   );
 }

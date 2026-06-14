@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { MessageSquarePlus } from 'lucide-react';
 import type { ChatUserDto } from '@pkg/types';
 import { Button, Field } from '../../components/ui';
 import styles from './page.module.scss';
@@ -36,9 +37,18 @@ export function NewDirectModal({
         aria-labelledby="new-chat-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 id="new-chat-title" className={styles.modalTitle}>
-          New message
-        </h2>
+        <div className={styles.modalHeader}>
+          <span className={styles.modalBadge}>
+            <MessageSquarePlus size={14} aria-hidden />
+            Direct message
+          </span>
+          <h2 id="new-chat-title" className={styles.modalTitle}>
+            New message
+          </h2>
+          <p className={styles.modalHint}>
+            Start a 1:1 conversation with a student, teacher, or admin.
+          </p>
+        </div>
         <Field
           type="search"
           className={styles.fieldInput}
@@ -69,6 +79,9 @@ export function NewDirectModal({
               </span>
             </Button>
           ))}
+          {filtered.length === 0 ? (
+            <p className={styles.modalEmpty}>No people match your search.</p>
+          ) : null}
         </div>
         <div className={styles.modalActions}>
           <Button type="button" variant="ghost" onClick={onClose}>

@@ -4,13 +4,15 @@
 // У .module.scss: @use '../styles/variables' as *; @use '../styles/mixins' as *;
 // ============================================
 
+
 @use './tokens/theme';
-@use './tokens/typography' as *; /* тільки :root — без конфлікту імен з headline-пресетами */
+@use './tokens/typography' as *; /* токени: families, scale, rhythm (тільки :root) */
 @use './tokens/layout';
+@use './tokens/motion';
 @use './reset.scss';
 @use './variables' as *;
 @use './mixins' as *;
-@use './typography' as *; /* міксіни headline / утилітарні класи */
+@use './typography' as *; /* editorial type presets (лише міксіни) */
 @use './containers';
 @use './base';
 @use './animations';

@@ -43,6 +43,7 @@ export function SettingsToggleRow({
       </div>
       <Button
         type="button"
+        variant="ghost"
         className={[
           uiStyles.switchToggle,
           toggleClassName,
@@ -51,6 +52,7 @@ export function SettingsToggleRow({
           .filter(Boolean)
           .join(' ')}
         aria-pressed={checked}
+        aria-label={typeof label === 'string' ? label : undefined}
         disabled={disabled}
         onClick={() => onChange(!checked)}
       >

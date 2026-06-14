@@ -9,6 +9,9 @@ export class DailyGoalType {
   templateId!: string;
 
   @Field()
+  kind!: string;
+
+  @Field()
   text!: string;
 
   @Field(() => Int)
@@ -18,7 +21,16 @@ export class DailyGoalType {
   done!: boolean;
 
   @Field(() => Int)
-  xpReward!: number;
+  progressCurrent!: number;
+
+  @Field(() => Int)
+  progressTarget!: number;
+
+  @Field()
+  progressLabel!: string;
+
+  @Field()
+  actionPath!: string;
 
   @Field()
   dateKey!: string;
@@ -82,6 +94,18 @@ export class AchievementStatsType {
 
   @Field(() => Int)
   speakingSessions!: number;
+
+  @Field(() => Int)
+  speakingSubmissions!: number;
+
+  @Field(() => Int)
+  speakingReviewsReceived!: number;
+
+  @Field(() => Int)
+  speakingMinutesTotal!: number;
+
+  @Field(() => Int)
+  gamesSessions!: number;
 
   @Field(() => Int)
   practiceMinutesTotal!: number;
@@ -439,6 +463,84 @@ export class LessonFileLinkType {
 }
 
 @ObjectType()
+export class LibraryMaterialAssetType {
+  @Field(() => ID)
+  id!: string;
+
+  @Field()
+  role!: string;
+
+  @Field()
+  deliveryKind!: string;
+
+  @Field(() => String, { nullable: true })
+  url?: string | null;
+
+  @Field(() => String, { nullable: true })
+  label?: string | null;
+
+  @Field(() => Int)
+  sortOrder!: number;
+
+  @Field(() => ID, { nullable: true })
+  fileAttachmentId?: string | null;
+
+  @Field(() => String, { nullable: true })
+  fileName?: string | null;
+
+  @Field(() => String, { nullable: true })
+  downloadPath?: string | null;
+
+  @Field(() => String, { nullable: true })
+  previewDownloadPath?: string | null;
+}
+
+@ObjectType()
+export class LibraryMaterialType {
+  @Field(() => ID)
+  id!: string;
+
+  @Field()
+  title!: string;
+
+  @Field(() => String, { nullable: true })
+  description?: string | null;
+
+  @Field()
+  kind!: string;
+
+  @Field(() => [String])
+  tags!: string[];
+
+  @Field(() => String, { nullable: true })
+  level?: string | null;
+
+  @Field(() => String, { nullable: true })
+  publisher?: string | null;
+
+  @Field(() => ID, { nullable: true })
+  schoolId?: string | null;
+
+  @Field(() => ID)
+  createdById!: string;
+
+  @Field()
+  createdAt!: string;
+
+  @Field()
+  updatedAt!: string;
+
+  @Field(() => ID, { nullable: true })
+  coverAttachmentId?: string | null;
+
+  @Field(() => String, { nullable: true })
+  coverDownloadPath?: string | null;
+
+  @Field(() => [LibraryMaterialAssetType])
+  assets!: LibraryMaterialAssetType[];
+}
+
+@ObjectType()
 export class LessonMaterialType {
   @Field(() => ID)
   id!: string;
@@ -454,6 +556,18 @@ export class LessonMaterialType {
 
   @Field(() => [LessonFileLinkType])
   fileLinks!: LessonFileLinkType[];
+
+  @Field(() => ID, { nullable: true })
+  libraryMaterialId?: string | null;
+
+  @Field(() => [ID], { nullable: true })
+  sharedLibraryAssetIds?: string[] | null;
+
+  @Field({ nullable: true })
+  libraryMediaSelectionApplied?: boolean | null;
+
+  @Field(() => LibraryMaterialType, { nullable: true })
+  libraryMaterial?: LibraryMaterialType | null;
 }
 
 @ObjectType()
@@ -487,6 +601,180 @@ export class StudentResponseType {
 
   @Field()
   teacherHomeworkFeedback!: string;
+}
+
+@ObjectType()
+export class ScheduledLessonParticipantType {
+  @Field(() => ID)
+  userId!: string;
+
+  @Field()
+  displayName!: string;
+
+  @Field()
+  role!: string;
+
+  @Field(() => Int)
+  sortOrder!: number;
+}
+
+@ObjectType()
+export class GroupLessonBillingType {
+  @Field()
+  mode!: string;
+
+  @Field(() => Int, { nullable: true })
+  priceMinor?: number | null;
+
+  @Field({ nullable: true })
+  currency?: string | null;
+
+  @Field({ nullable: true })
+  splitMode?: string | null;
+
+  @Field(() => ID, { nullable: true })
+  payerUserId?: string | null;
+}
+
+@InputType()
+export class GroupLessonBillingInput {
+  @Field()
+  mode!: string;
+
+  @Field(() => Int, { nullable: true })
+  priceMinor?: number;
+
+  @Field({ nullable: true })
+  currency?: string;
+
+  @Field({ nullable: true })
+  splitMode?: string;
+
+  @Field(() => ID, { nullable: true })
+  payerUserId?: string;
+}
+
+@ObjectType()
+export class StudentGroupMemberType {
+  @Field(() => ID)
+  userId!: string;
+
+  @Field()
+  displayName!: string;
+
+  @Field(() => Int)
+  sortOrder!: number;
+}
+
+@ObjectType()
+export class StudentGroupType {
+  @Field(() => ID)
+  id!: string;
+
+  @Field()
+  name!: string;
+
+  @Field(() => ID, { nullable: true })
+  teacherId?: string | null;
+
+  @Field({ nullable: true })
+  teacherName?: string | null;
+
+  @Field()
+  groupBillingMode!: string;
+
+  @Field(() => Int, { nullable: true })
+  groupPriceMinor?: number | null;
+
+  @Field({ nullable: true })
+  groupCurrency?: string | null;
+
+  @Field({ nullable: true })
+  groupSplitMode?: string | null;
+
+  @Field(() => ID, { nullable: true })
+  groupPayerUserId?: string | null;
+
+  @Field(() => [StudentGroupMemberType])
+  members!: StudentGroupMemberType[];
+
+  @Field()
+  createdAt!: string;
+
+  @Field()
+  updatedAt!: string;
+}
+
+@InputType()
+export class CreateStudentGroupInput {
+  @Field()
+  name!: string;
+
+  @Field(() => ID, { nullable: true })
+  teacherId?: string | null;
+
+  @Field(() => [ID])
+  memberUserIds!: string[];
+
+  @Field()
+  groupBillingMode!: string;
+
+  @Field(() => Int, { nullable: true })
+  groupPriceMinor?: number;
+
+  @Field({ nullable: true })
+  groupCurrency?: string;
+
+  @Field({ nullable: true })
+  groupSplitMode?: string;
+
+  @Field(() => ID, { nullable: true })
+  groupPayerUserId?: string | null;
+}
+
+@InputType()
+export class UpdateStudentGroupInput {
+  @Field({ nullable: true })
+  name?: string;
+
+  @Field(() => ID, { nullable: true })
+  teacherId?: string | null;
+
+  @Field(() => [ID], { nullable: true })
+  memberUserIds?: string[];
+
+  @Field({ nullable: true })
+  groupBillingMode?: string;
+
+  @Field(() => Int, { nullable: true })
+  groupPriceMinor?: number;
+
+  @Field({ nullable: true })
+  groupCurrency?: string;
+
+  @Field({ nullable: true })
+  groupSplitMode?: string;
+
+  @Field(() => ID, { nullable: true })
+  groupPayerUserId?: string | null;
+}
+
+@InputType()
+export class SchoolGroupLessonsSettingsInput {
+  @Field()
+  enabled!: boolean;
+
+  @Field()
+  defaultBillingMode!: string;
+
+  @Field(() => Int)
+  defaultPriceMinor!: number;
+
+  @Field()
+  defaultCurrency!: string;
+
+  @Field()
+  defaultSplitMode!: string;
 }
 
 @ObjectType()
@@ -555,6 +843,21 @@ export class ScheduledLessonType {
   order!: number;
 
   @Field({ nullable: true })
+  videoProvider?: string | null;
+
+  @Field({ nullable: true })
+  videoMeetingUrl?: string | null;
+
+  @Field({ nullable: true })
+  videoMeetingExternalId?: string | null;
+
+  @Field({ nullable: true })
+  videoMeetingStartedAt?: string | null;
+
+  @Field({ nullable: true })
+  videoMeetingEndedAt?: string | null;
+
+  @Field({ nullable: true })
   googleMeetUrl?: string | null;
 
   @Field({ nullable: true })
@@ -574,6 +877,15 @@ export class ScheduledLessonType {
 
   @Field(() => [ID])
   linkedWordIds!: string[];
+
+  @Field({ nullable: true })
+  kind?: string;
+
+  @Field(() => [ScheduledLessonParticipantType], { nullable: true })
+  participants?: ScheduledLessonParticipantType[];
+
+  @Field(() => GroupLessonBillingType, { nullable: true })
+  groupBilling?: GroupLessonBillingType | null;
 }
 
 @ObjectType()
@@ -736,6 +1048,9 @@ export class StudentSummaryType {
 
   @Field()
   scheduleType!: boolean;
+
+  @Field()
+  lessonFormat!: string;
 
   @Field({ nullable: true })
   displayColor?: string | null;
@@ -931,6 +1246,9 @@ export class GenerateQuizInput {
 
   @Field(() => Boolean, { nullable: true })
   includeIrregularVerbDrills?: boolean;
+
+  @Field(() => Boolean, { nullable: true })
+  mistakesOnly?: boolean;
 }
 
 @InputType()
@@ -970,6 +1288,15 @@ export class LessonMaterialInput {
 
   @Field(() => [String], { nullable: true })
   files?: string[];
+
+  @Field(() => ID, { nullable: true })
+  libraryMaterialId?: string | null;
+
+  @Field(() => [ID], { nullable: true })
+  sharedLibraryAssetIds?: string[];
+
+  @Field({ nullable: true })
+  libraryMediaSelectionApplied?: boolean;
 }
 
 @InputType()
@@ -1060,6 +1387,18 @@ export class CreateScheduledLessonInput {
 
   @Field({ nullable: true })
   createMeetLink?: boolean;
+
+  @Field({ nullable: true })
+  kind?: string;
+
+  @Field(() => [ID], { nullable: true })
+  participantIds?: string[];
+
+  @Field(() => GroupLessonBillingInput, { nullable: true })
+  groupBilling?: GroupLessonBillingInput;
+
+  @Field(() => ID, { nullable: true })
+  studentGroupId?: string;
 }
 
 @InputType()
@@ -1120,6 +1459,15 @@ export class UpdateScheduledLessonInput {
 
   @Field(() => StudentResponseInput, { nullable: true })
   studentResponse?: StudentResponseInput;
+
+  @Field({ nullable: true })
+  kind?: string;
+
+  @Field(() => [ID], { nullable: true })
+  participantIds?: string[];
+
+  @Field(() => GroupLessonBillingInput, { nullable: true })
+  groupBilling?: GroupLessonBillingInput;
 }
 
 @InputType()
@@ -1185,7 +1533,34 @@ export class UpdateAdminStudentInput {
   scheduleType?: boolean;
 
   @Field({ nullable: true })
+  lessonFormat?: string;
+
+  @Field({ nullable: true })
   displayColor?: string | null;
+}
+
+@InputType()
+export class UpdateStaffUserProfileInput {
+  @Field(() => ID)
+  userId!: string;
+
+  @Field({ nullable: true })
+  displayName?: string;
+
+  @Field({ nullable: true })
+  timezone?: string;
+
+  @Field({ nullable: true })
+  phone?: string | null;
+
+  @Field({ nullable: true })
+  telegram?: string | null;
+
+  @Field({ nullable: true })
+  bio?: string | null;
+
+  @Field({ nullable: true })
+  status?: string;
 }
 
 @InputType()
@@ -1222,6 +1597,9 @@ export class SystemMailStatusType {
 
   @Field()
   templatesDir!: string;
+
+  @Field({ nullable: true })
+  smtpMode?: string | null;
 }
 
 @ObjectType()
@@ -1255,6 +1633,57 @@ export class WordDictionaryProviderInfoType {
 }
 
 @ObjectType()
+export class TranslationProviderInfoType {
+  @Field()
+  id!: string;
+
+  @Field()
+  name!: string;
+
+  @Field()
+  description!: string;
+
+  @Field()
+  docsUrl!: string;
+
+  @Field()
+  requiresServiceSubscription!: boolean;
+}
+
+@ObjectType()
+export class TranslationApiUrlsType {
+  @Field()
+  deeplApiUrl!: string;
+
+  @Field()
+  googleTranslateApiUrl!: string;
+
+  @Field()
+  microsoftTranslatorApiUrl!: string;
+
+  @Field()
+  myMemoryUrl!: string;
+
+  @Field()
+  reversoApiUrl!: string;
+
+  @Field({ nullable: true })
+  libreTranslateUrl?: string | null;
+}
+
+@ObjectType()
+export class TranslationSettingsType {
+  @Field()
+  activeProvider!: string;
+
+  @Field(() => [TranslationProviderInfoType])
+  providers!: TranslationProviderInfoType[];
+
+  @Field(() => TranslationApiUrlsType)
+  apiUrls!: TranslationApiUrlsType;
+}
+
+@ObjectType()
 export class WordDictionarySettingsType {
   @Field()
   activeProvider!: string;
@@ -1267,6 +1696,484 @@ export class WordDictionarySettingsType {
 export class UpdateWordDictionaryProviderInput {
   @Field()
   provider!: string;
+}
+
+@ObjectType()
+export class IntegrationSecretFieldStatusType {
+  @Field()
+  configured!: boolean;
+
+  @Field()
+  source!: string;
+}
+
+@ObjectType()
+export class IntegrationSecretStatusesType {
+  @Field(() => IntegrationSecretFieldStatusType)
+  smtpPass!: IntegrationSecretFieldStatusType;
+
+  @Field(() => IntegrationSecretFieldStatusType)
+  libreTranslateApiKey!: IntegrationSecretFieldStatusType;
+
+  @Field(() => IntegrationSecretFieldStatusType)
+  reversoApiKey!: IntegrationSecretFieldStatusType;
+
+  @Field(() => IntegrationSecretFieldStatusType)
+  deeplAuthKey!: IntegrationSecretFieldStatusType;
+
+  @Field(() => IntegrationSecretFieldStatusType)
+  googleTranslateApiKey!: IntegrationSecretFieldStatusType;
+
+  @Field(() => IntegrationSecretFieldStatusType)
+  azureTranslatorKey!: IntegrationSecretFieldStatusType;
+
+  @Field(() => IntegrationSecretFieldStatusType)
+  openaiWhisperApiKey!: IntegrationSecretFieldStatusType;
+
+  @Field(() => IntegrationSecretFieldStatusType)
+  telegramBotToken!: IntegrationSecretFieldStatusType;
+
+  @Field(() => IntegrationSecretFieldStatusType)
+  googleClientSecret!: IntegrationSecretFieldStatusType;
+
+  @Field(() => IntegrationSecretFieldStatusType)
+  facebookAppSecret!: IntegrationSecretFieldStatusType;
+
+  @Field(() => IntegrationSecretFieldStatusType)
+  zoomClientSecret!: IntegrationSecretFieldStatusType;
+
+  @Field(() => IntegrationSecretFieldStatusType)
+  zoomWebhookSecret!: IntegrationSecretFieldStatusType;
+
+  @Field(() => IntegrationSecretFieldStatusType)
+  livekitApiSecret!: IntegrationSecretFieldStatusType;
+}
+
+@ObjectType()
+export class PlatformTranslationConfigType {
+  @Field()
+  activeProvider!: string;
+
+  @Field({ nullable: true })
+  apiEmail?: string | null;
+
+  @Field()
+  reversoContextResults!: boolean;
+
+  @Field()
+  reversoContextTargetLang!: string;
+}
+
+@ObjectType()
+export class PlatformSmtpConfigType {
+  @Field()
+  mode!: string;
+
+  @Field({ nullable: true })
+  host?: string | null;
+
+  @Field(() => Int, { nullable: true })
+  port?: number | null;
+
+  @Field({ nullable: true })
+  user?: string | null;
+
+  @Field()
+  mailFrom!: string;
+
+  @Field()
+  secure!: boolean;
+}
+
+@ObjectType()
+export class PlatformTelegramConfigType {
+  @Field({ nullable: true })
+  botUsername?: string | null;
+
+  @Field()
+  devPolling!: boolean;
+}
+
+@ObjectType()
+export class PlatformGoogleConfigType {
+  @Field({ nullable: true })
+  clientId?: string | null;
+
+  @Field()
+  callbackUrl!: string;
+
+  @Field()
+  successRedirect!: string;
+
+  @Field({ nullable: true })
+  linkSuccessRedirect?: string | null;
+
+  @Field({ nullable: true })
+  failureRedirect?: string | null;
+}
+
+@ObjectType()
+export class PlatformFacebookConfigType {
+  @Field({ nullable: true })
+  appId?: string | null;
+
+  @Field()
+  callbackUrl!: string;
+}
+
+@ObjectType()
+export class PlatformLiveKitConfigType {
+  @Field()
+  wsUrl!: string;
+
+  @Field({ nullable: true })
+  apiKey?: string | null;
+}
+
+@ObjectType()
+export class PlatformZoomConfigType {
+  @Field({ nullable: true })
+  clientId?: string | null;
+
+  @Field()
+  callbackUrl!: string;
+
+  @Field()
+  useServerToServer!: boolean;
+}
+
+@ObjectType()
+export class PlatformVideoMeetingConfigType {
+  @Field()
+  provider!: string;
+
+  @Field(() => PlatformLiveKitConfigType)
+  livekit!: PlatformLiveKitConfigType;
+
+  @Field(() => PlatformZoomConfigType)
+  zoom!: PlatformZoomConfigType;
+}
+
+@ObjectType()
+export class PlatformMediaCaptionsConfigType {
+  @Field()
+  enabled!: boolean;
+
+  @Field()
+  sttProvider!: string;
+
+  @Field({ nullable: true })
+  sourceLanguage?: string | null;
+
+  @Field(() => [String])
+  targetLanguages!: string[];
+}
+
+@ObjectType()
+export class PlatformIntegrationConfigType {
+  @Field(() => PlatformTranslationConfigType)
+  translation!: PlatformTranslationConfigType;
+
+  @Field(() => PlatformMediaCaptionsConfigType)
+  mediaCaptions!: PlatformMediaCaptionsConfigType;
+
+  @Field(() => PlatformSmtpConfigType)
+  smtp!: PlatformSmtpConfigType;
+
+  @Field(() => PlatformTelegramConfigType)
+  telegram!: PlatformTelegramConfigType;
+
+  @Field(() => PlatformGoogleConfigType)
+  google!: PlatformGoogleConfigType;
+
+  @Field(() => PlatformFacebookConfigType)
+  facebook!: PlatformFacebookConfigType;
+
+  @Field(() => PlatformVideoMeetingConfigType)
+  videoMeeting!: PlatformVideoMeetingConfigType;
+}
+
+@ObjectType()
+export class PlatformIntegrationSecretsType {
+  @Field({ nullable: true })
+  smtpPass?: string | null;
+
+  @Field({ nullable: true })
+  libreTranslateApiKey?: string | null;
+
+  @Field({ nullable: true })
+  reversoApiKey?: string | null;
+
+  @Field({ nullable: true })
+  deeplAuthKey?: string | null;
+
+  @Field({ nullable: true })
+  googleTranslateApiKey?: string | null;
+
+  @Field({ nullable: true })
+  azureTranslatorKey?: string | null;
+
+  @Field({ nullable: true })
+  openaiWhisperApiKey?: string | null;
+
+  @Field({ nullable: true })
+  telegramBotToken?: string | null;
+
+  @Field({ nullable: true })
+  googleClientSecret?: string | null;
+
+  @Field({ nullable: true })
+  facebookAppSecret?: string | null;
+
+  @Field({ nullable: true })
+  zoomClientSecret?: string | null;
+
+  @Field({ nullable: true })
+  zoomWebhookSecret?: string | null;
+
+  @Field({ nullable: true })
+  livekitApiSecret?: string | null;
+}
+
+@ObjectType()
+export class PlatformIntegrationSettingsType {
+  @Field(() => PlatformIntegrationConfigType)
+  config!: PlatformIntegrationConfigType;
+
+  @Field(() => PlatformIntegrationSecretsType)
+  secrets!: PlatformIntegrationSecretsType;
+
+  @Field(() => IntegrationSecretStatusesType)
+  secretStatuses!: IntegrationSecretStatusesType;
+
+  @Field()
+  secretsStorageAvailable!: boolean;
+}
+
+@InputType()
+export class PlatformTranslationConfigInput {
+  @Field({ nullable: true })
+  activeProvider?: string;
+
+  @Field({ nullable: true })
+  apiEmail?: string | null;
+
+  @Field({ nullable: true })
+  reversoContextResults?: boolean;
+
+  @Field({ nullable: true })
+  reversoContextTargetLang?: string;
+}
+
+@InputType()
+export class PlatformSmtpConfigInput {
+  @Field({ nullable: true })
+  mode?: string;
+
+  @Field({ nullable: true })
+  host?: string | null;
+
+  @Field(() => Int, { nullable: true })
+  port?: number | null;
+
+  @Field({ nullable: true })
+  user?: string | null;
+
+  @Field({ nullable: true })
+  mailFrom?: string;
+
+  @Field({ nullable: true })
+  secure?: boolean;
+}
+
+@InputType()
+export class PlatformTelegramConfigInput {
+  @Field({ nullable: true })
+  botUsername?: string | null;
+
+  @Field({ nullable: true })
+  devPolling?: boolean;
+}
+
+@InputType()
+export class PlatformGoogleConfigInput {
+  @Field({ nullable: true })
+  clientId?: string | null;
+
+  @Field({ nullable: true })
+  callbackUrl?: string;
+
+  @Field({ nullable: true })
+  successRedirect?: string;
+
+  @Field({ nullable: true })
+  linkSuccessRedirect?: string | null;
+
+  @Field({ nullable: true })
+  failureRedirect?: string | null;
+}
+
+@InputType()
+export class PlatformFacebookConfigInput {
+  @Field({ nullable: true })
+  appId?: string | null;
+
+  @Field({ nullable: true })
+  callbackUrl?: string;
+}
+
+@InputType()
+export class PlatformLiveKitConfigInput {
+  @Field({ nullable: true })
+  wsUrl?: string;
+
+  @Field({ nullable: true })
+  apiKey?: string | null;
+}
+
+@InputType()
+export class PlatformZoomConfigInput {
+  @Field({ nullable: true })
+  clientId?: string | null;
+
+  @Field({ nullable: true })
+  callbackUrl?: string;
+
+  @Field({ nullable: true })
+  useServerToServer?: boolean;
+}
+
+@InputType()
+export class PlatformVideoMeetingConfigInput {
+  @Field({ nullable: true })
+  provider?: string;
+
+  @Field(() => PlatformLiveKitConfigInput, { nullable: true })
+  livekit?: PlatformLiveKitConfigInput;
+
+  @Field(() => PlatformZoomConfigInput, { nullable: true })
+  zoom?: PlatformZoomConfigInput;
+}
+
+@InputType()
+export class PlatformMediaCaptionsConfigInput {
+  @Field({ nullable: true })
+  enabled?: boolean;
+
+  @Field({ nullable: true })
+  sttProvider?: string;
+
+  @Field({ nullable: true })
+  sourceLanguage?: string | null;
+
+  @Field(() => [String], { nullable: true })
+  targetLanguages?: string[];
+}
+
+@InputType()
+export class PlatformIntegrationConfigInput {
+  @Field(() => PlatformTranslationConfigInput, { nullable: true })
+  translation?: PlatformTranslationConfigInput;
+
+  @Field(() => PlatformMediaCaptionsConfigInput, { nullable: true })
+  mediaCaptions?: PlatformMediaCaptionsConfigInput;
+
+  @Field(() => PlatformSmtpConfigInput, { nullable: true })
+  smtp?: PlatformSmtpConfigInput;
+
+  @Field(() => PlatformTelegramConfigInput, { nullable: true })
+  telegram?: PlatformTelegramConfigInput;
+
+  @Field(() => PlatformGoogleConfigInput, { nullable: true })
+  google?: PlatformGoogleConfigInput;
+
+  @Field(() => PlatformFacebookConfigInput, { nullable: true })
+  facebook?: PlatformFacebookConfigInput;
+
+  @Field(() => PlatformVideoMeetingConfigInput, { nullable: true })
+  videoMeeting?: PlatformVideoMeetingConfigInput;
+}
+
+@InputType()
+export class PlatformIntegrationSecretsInput {
+  @Field({ nullable: true })
+  smtpPass?: string | null;
+
+  @Field({ nullable: true })
+  libreTranslateApiKey?: string | null;
+
+  @Field({ nullable: true })
+  reversoApiKey?: string | null;
+
+  @Field({ nullable: true })
+  deeplAuthKey?: string | null;
+
+  @Field({ nullable: true })
+  googleTranslateApiKey?: string | null;
+
+  @Field({ nullable: true })
+  azureTranslatorKey?: string | null;
+
+  @Field({ nullable: true })
+  openaiWhisperApiKey?: string | null;
+
+  @Field({ nullable: true })
+  telegramBotToken?: string | null;
+
+  @Field({ nullable: true })
+  googleClientSecret?: string | null;
+
+  @Field({ nullable: true })
+  facebookAppSecret?: string | null;
+
+  @Field({ nullable: true })
+  zoomClientSecret?: string | null;
+
+  @Field({ nullable: true })
+  zoomWebhookSecret?: string | null;
+
+  @Field({ nullable: true })
+  livekitApiSecret?: string | null;
+}
+
+@InputType()
+export class UpdatePlatformIntegrationSettingsInput {
+  @Field(() => PlatformIntegrationConfigInput, { nullable: true })
+  config?: PlatformIntegrationConfigInput;
+
+  @Field(() => PlatformIntegrationSecretsInput, { nullable: true })
+  secrets?: PlatformIntegrationSecretsInput;
+}
+
+@ObjectType()
+export class VerifyPlatformConnectionResultType {
+  @Field()
+  ok!: boolean;
+
+  @Field()
+  message!: string;
+}
+
+@InputType()
+export class VerifySmtpConnectionInput {
+  @Field(() => PlatformIntegrationConfigInput, { nullable: true })
+  config?: PlatformIntegrationConfigInput;
+
+  @Field(() => PlatformIntegrationSecretsInput, { nullable: true })
+  secrets?: PlatformIntegrationSecretsInput;
+}
+
+@InputType()
+export class VerifyPlatformConnectionInput {
+  /** `google` | `facebook` | `telegram` */
+  @Field()
+  provider!: string;
+
+  @Field(() => PlatformIntegrationConfigInput, { nullable: true })
+  config?: PlatformIntegrationConfigInput;
+
+  @Field(() => PlatformIntegrationSecretsInput, { nullable: true })
+  secrets?: PlatformIntegrationSecretsInput;
 }
 
 @InputType()
@@ -1444,6 +2351,9 @@ export class LessonPackageType {
 
   @Field({ nullable: true })
   currency?: string | null;
+
+  @Field({ nullable: true })
+  creditTrack?: string | null;
 }
 
 @ObjectType()
@@ -1468,6 +2378,9 @@ export class ResolvedLessonPackageType {
 
   @Field()
   isCustomPrice!: boolean;
+
+  @Field()
+  creditTrack!: string;
 
   @Field()
   lessonsLocked!: boolean;
@@ -1723,6 +2636,24 @@ export class LessonPriceByCurrencyType {
 }
 
 @ObjectType()
+export class SchoolGroupLessonsSettingsType {
+  @Field()
+  enabled!: boolean;
+
+  @Field()
+  defaultBillingMode!: string;
+
+  @Field(() => Int)
+  defaultPriceMinor!: number;
+
+  @Field()
+  defaultCurrency!: string;
+
+  @Field()
+  defaultSplitMode!: string;
+}
+
+@ObjectType()
 export class PaymentConfigType {
   @Field(() => [LessonPackageType])
   packages!: LessonPackageType[];
@@ -1813,6 +2744,9 @@ export class PaymentConfigType {
 
   @Field({ nullable: true })
   paypalTestClientId?: string | null;
+
+  @Field(() => SchoolGroupLessonsSettingsType, { nullable: true })
+  groupLessons?: SchoolGroupLessonsSettingsType | null;
 }
 
 @ObjectType()
@@ -2032,6 +2966,9 @@ export class PaymentConfigInput {
 
   @Field({ nullable: true })
   paypalTestClientId?: string | null;
+
+  @Field(() => SchoolGroupLessonsSettingsInput, { nullable: true })
+  groupLessons?: SchoolGroupLessonsSettingsInput | null;
 }
 
 @InputType()
@@ -2179,6 +3116,36 @@ export class LessonBalanceLedgerEntryType {
 
   @Field({ nullable: true })
   scheduledLessonId?: string | null;
+
+  @Field(() => Int, { nullable: true })
+  amountMinor?: number | null;
+
+  @Field({ nullable: true })
+  currency?: string | null;
+}
+
+@ObjectType()
+export class StudentGroupMembershipSummaryType {
+  @Field(() => ID)
+  groupId!: string;
+
+  @Field()
+  name!: string;
+
+  @Field()
+  groupBillingMode!: string;
+
+  @Field(() => Int, { nullable: true })
+  groupPriceMinor?: number | null;
+
+  @Field({ nullable: true })
+  groupCurrency?: string | null;
+
+  @Field({ nullable: true })
+  groupSplitMode?: string | null;
+
+  @Field({ nullable: true })
+  groupPayerUserId?: string | null;
 }
 
 @ObjectType()
@@ -2188,6 +3155,12 @@ export class StudentLessonBalanceType {
 
   @Field()
   isDebt!: boolean;
+
+  @Field(() => Int)
+  groupBalance!: number;
+
+  @Field()
+  groupIsDebt!: boolean;
 
   @Field(() => [String])
   availableMethods!: string[];
@@ -2237,11 +3210,26 @@ export class StudentLessonBalanceType {
   @Field(() => Int)
   resolvedPricePerLessonMinor!: number;
 
+  @Field(() => Int, { nullable: true })
+  groupPricePerLessonMinor?: number | null;
+
+  @Field(() => Int)
+  defaultGroupPricePerLessonMinor!: number;
+
+  @Field(() => Int)
+  resolvedGroupPricePerLessonMinor!: number;
+
+  @Field()
+  groupCurrency!: string;
+
   @Field()
   defaultCurrency!: string;
 
   @Field()
   isCustomPrice!: boolean;
+
+  @Field()
+  isCustomGroupPrice!: boolean;
 
   @Field(() => [ResolvedLessonPackageType])
   packages!: ResolvedLessonPackageType[];
@@ -2252,6 +3240,12 @@ export class StudentLessonBalanceType {
   /** Active Lemon Squeezy variant currency for checkout filtering (when enabled). */
   @Field({ nullable: true })
   lemonSqueezyVariantCurrency?: string | null;
+
+  @Field({ nullable: true })
+  lessonFormat?: string | null;
+
+  @Field(() => [StudentGroupMembershipSummaryType], { nullable: true })
+  groupMemberships?: StudentGroupMembershipSummaryType[] | null;
 }
 
 @InputType()
@@ -2261,6 +3255,9 @@ export class UpdateStudentLessonPricingInput {
 
   @Field(() => Int, { nullable: true })
   pricePerLessonMinor?: number | null;
+
+  @Field(() => Int, { nullable: true })
+  groupPricePerLessonMinor?: number | null;
 }
 
 @InputType()
@@ -2306,6 +3303,9 @@ export class AdjustStudentLessonBalanceInput {
 
   @Field({ nullable: true })
   note?: string | null;
+
+  @Field({ nullable: true })
+  creditTrack?: string | null;
 }
 
 @InputType()
@@ -2321,4 +3321,265 @@ export class CreateLessonPurchaseCheckoutInput {
 export class LessonPurchaseCheckoutType {
   @Field()
   checkoutUrl!: string;
+}
+
+@ObjectType()
+export class SpeakingTopicAssignmentType {
+  @Field(() => ID)
+  id!: string;
+
+  @Field(() => ID)
+  studentId!: string;
+
+  @Field()
+  status!: string;
+
+  @Field(() => String, { nullable: true })
+  personalNote?: string | null;
+
+  @Field(() => String, { nullable: true })
+  dueDate?: string | null;
+}
+
+@ObjectType()
+export class SpeakingSubmissionSummaryType {
+  @Field(() => ID)
+  id!: string;
+
+  @Field()
+  status!: string;
+
+  @Field(() => Int, { nullable: true })
+  durationSec?: number | null;
+
+  @Field(() => String, { nullable: true })
+  teacherFeedback?: string | null;
+
+  @Field()
+  submittedAt!: string;
+
+  @Field()
+  hasAudio!: boolean;
+}
+
+@ObjectType()
+export class SpeakingTopicCardType {
+  @Field(() => ID)
+  id!: string;
+
+  @Field()
+  title!: string;
+
+  @Field()
+  prompt!: string;
+
+  @Field(() => [String])
+  wordIds!: string[];
+
+  @Field(() => ID)
+  ownerId!: string;
+
+  @Field()
+  createdAt!: string;
+
+  @Field(() => SpeakingTopicAssignmentType, { nullable: true })
+  assignment?: SpeakingTopicAssignmentType | null;
+
+  @Field(() => SpeakingSubmissionSummaryType, { nullable: true })
+  latestSubmission?: SpeakingSubmissionSummaryType | null;
+}
+
+@ObjectType()
+export class SpeakingSubmissionType extends SpeakingSubmissionSummaryType {
+  @Field(() => ID)
+  topicId!: string;
+
+  @Field(() => ID, { nullable: true })
+  assignmentId?: string | null;
+
+  @Field(() => ID)
+  studentId!: string;
+
+  @Field()
+  topicTitle!: string;
+
+  @Field()
+  topicPrompt!: string;
+
+  @Field(() => [String])
+  topicWordIds!: string[];
+}
+
+@InputType()
+export class CreateSpeakingTopicInput {
+  @Field()
+  title!: string;
+
+  @Field()
+  prompt!: string;
+
+  @Field(() => [String], { nullable: true })
+  wordIds?: string[] | null;
+
+  @Field(() => ID, { nullable: true })
+  studentId?: string | null;
+
+  @Field(() => String, { nullable: true })
+  personalNote?: string | null;
+
+  @Field(() => String, { nullable: true })
+  dueDate?: string | null;
+}
+
+@InputType()
+export class SubmitSpeakingRecordingInput {
+  @Field(() => ID)
+  topicId!: string;
+
+  @Field(() => ID, { nullable: true })
+  assignmentId?: string | null;
+
+  @Field(() => Int, { nullable: true })
+  durationSec?: number | null;
+}
+
+@InputType()
+export class ReviewSpeakingSubmissionInput {
+  @Field(() => ID)
+  submissionId!: string;
+
+  @Field()
+  teacherFeedback!: string;
+}
+
+@ObjectType()
+export class LibraryMaterialKindCountsType {
+  @Field(() => Int)
+  all!: number;
+
+  @Field(() => Int)
+  board!: number;
+
+  @Field(() => Int)
+  presentation!: number;
+
+  @Field(() => Int)
+  book!: number;
+
+  @Field(() => Int)
+  other!: number;
+}
+
+@ObjectType()
+export class LibraryMaterialPageType {
+  @Field(() => [LibraryMaterialType])
+  items!: LibraryMaterialType[];
+
+  @Field(() => String, { nullable: true })
+  nextCursor?: string | null;
+
+  @Field(() => LibraryMaterialKindCountsType)
+  kindCounts!: LibraryMaterialKindCountsType;
+}
+
+@InputType()
+export class LibraryMaterialsQueryInput {
+  @Field({ nullable: true })
+  kind?: string;
+
+  @Field({ nullable: true })
+  search?: string;
+
+  @Field(() => [String], { nullable: true })
+  tags?: string[];
+
+  @Field({ nullable: true })
+  cursor?: string;
+
+  @Field(() => Int, { nullable: true })
+  take?: number;
+}
+
+@InputType()
+export class LibraryMaterialAssetInput {
+  @Field()
+  role!: string;
+
+  @Field()
+  deliveryKind!: string;
+
+  @Field({ nullable: true })
+  url?: string;
+
+  @Field(() => ID, { nullable: true })
+  fileAttachmentId?: string;
+
+  @Field({ nullable: true })
+  label?: string;
+
+  @Field(() => Int, { nullable: true })
+  sortOrder?: number;
+}
+
+@InputType()
+export class CreateLibraryMaterialInput {
+  @Field()
+  title!: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field()
+  kind!: string;
+
+  @Field(() => [String], { nullable: true })
+  tags?: string[];
+
+  @Field({ nullable: true })
+  level?: string;
+
+  @Field({ nullable: true })
+  publisher?: string;
+
+  @Field(() => ID, { nullable: true })
+  schoolId?: string;
+
+  @Field(() => ID, { nullable: true })
+  coverAttachmentId?: string | null;
+
+  @Field(() => [LibraryMaterialAssetInput], { nullable: true })
+  assets?: LibraryMaterialAssetInput[];
+}
+
+@InputType()
+export class UpdateLibraryMaterialInput {
+  @Field({ nullable: true })
+  title?: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field({ nullable: true })
+  kind?: string;
+
+  @Field(() => [String], { nullable: true })
+  tags?: string[];
+
+  @Field({ nullable: true })
+  level?: string;
+
+  @Field({ nullable: true })
+  publisher?: string;
+
+  @Field(() => ID, { nullable: true })
+  coverAttachmentId?: string | null;
+
+  @Field(() => [LibraryMaterialAssetInput], { nullable: true })
+  assets?: LibraryMaterialAssetInput[];
+}
+
+@InputType()
+export class UpsertLibraryMaterialAssetsInput {
+  @Field(() => [LibraryMaterialAssetInput])
+  assets!: LibraryMaterialAssetInput[];
 }

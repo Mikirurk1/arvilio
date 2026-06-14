@@ -1,0 +1,429 @@
+@use '../../styles/mixins' as *;
+
+.emptyTable {
+  margin: 0;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: var(--fs-14);
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  box-shadow: var(--shadow-xs);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-14);
+
+  th,
+  td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    font-size: var(--fs-12);
+    font-weight: var(--fw-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: color-mix(in srgb, var(--accent-warning) 80%, var(--text-secondary));
+    background: color-mix(in srgb, var(--accent-warning) 7%, var(--surface));
+    border-bottom-color: color-mix(in srgb, var(--accent-warning) 20%, var(--border));
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody tr:hover td {
+    background: color-mix(in srgb, var(--accent-warning) 5%, var(--card));
+  }
+}
+
+.baseCell {
+  font-weight: var(--fw-semibold);
+  color: color-mix(in srgb, var(--accent-warning) 70%, var(--text-primary));
+}
+
+@include respond-to(md) {
+  .table thead {
+    display: none;
+  }
+
+  .table tbody tr {
+    display: grid;
+    gap: 8px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .table td {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 8px;
+    padding: 0;
+    border: none;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-size: var(--fs-12);
+    font-weight: var(--fw-semibold);
+    color: var(--text-tertiary);
+  }
+}
+
+.playSetup {
+  display: grid;
+  gap: var(--space-stack-gap);
+  padding: var(--space-card-padding);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  box-shadow: var(--shadow-xs);
+}
+
+.playSetupHero {
+  display: grid;
+  gap: 10px;
+  text-align: center;
+}
+
+.playSetupIcon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: linear-gradient(
+    140deg,
+    color-mix(in srgb, var(--accent-warning) 86%, white) 0%,
+    var(--accent-warning) 100%
+  );
+  color: #fff;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-warning) 30%, transparent);
+}
+
+.playSetupTitle {
+  margin: 0;
+  font-size: var(--fs-20);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.playSetupDescription {
+  margin: 0;
+  font-size: var(--fs-14);
+  line-height: var(--lh-body);
+  color: var(--text-secondary);
+}
+
+.playSetupMeta {
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+}
+
+.playSetupFields {
+  display: grid;
+  gap: 16px;
+}
+
+.playSetupField {
+  display: grid;
+  gap: 8px;
+}
+
+.playSetupLabel {
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+}
+
+.playSetupSegment {
+  width: 100%;
+}
+
+.playSetupActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.playSession {
+  display: grid;
+  gap: 16px;
+}
+
+.playProgress {
+  font-size: var(--fs-13);
+  font-weight: var(--fw-semibold);
+  color: var(--text-tertiary);
+}
+
+.scoreRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.scoreDot,
+.scoreDotEmpty {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.scoreDotGreen {
+  background: var(--accent-primary);
+}
+
+.scoreDotRed {
+  background: var(--accent-danger);
+}
+
+.scoreDotEmpty {
+  background: var(--border);
+}
+
+.promptCard {
+  padding: 24px;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  box-shadow: var(--shadow-xs);
+  text-align: center;
+}
+
+.promptHint {
+  margin: 0 0 8px;
+  font-size: var(--fs-12);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+}
+
+.promptText {
+  margin: 0;
+  font-size: var(--fs-20);
+  line-height: var(--lh-heading);
+  color: var(--text-primary);
+}
+
+.optionsGrid {
+  display: grid;
+  gap: 10px;
+}
+
+.optionBtn {
+  justify-content: flex-start;
+  gap: 12px;
+  text-align: left;
+  min-height: 48px;
+}
+
+.optionSelected {
+  border-color: color-mix(in srgb, var(--accent-primary) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent-primary) 8%, var(--card));
+}
+
+.optionCorrect {
+  border-color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 12%, var(--card));
+}
+
+.optionWrong {
+  border-color: var(--accent-danger);
+  background: color-mix(in srgb, var(--accent-danger) 10%, var(--card));
+}
+
+.optionLetter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  flex-shrink: 0;
+}
+
+.explanation {
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.expCorrect {
+  border-color: color-mix(in srgb, var(--accent-primary) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent-primary) 8%, var(--surface));
+}
+
+.expWrong {
+  border-color: color-mix(in srgb, var(--accent-danger) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent-danger) 8%, var(--surface));
+}
+
+.expIcon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-13);
+  font-weight: var(--fw-semibold);
+  margin-bottom: 6px;
+}
+
+.expText,
+.expReveal {
+  margin: 0;
+  font-size: var(--fs-14);
+  color: var(--text-secondary);
+}
+
+.expReveal {
+  margin-top: 4px;
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.playActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.result {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 24px;
+}
+
+.resultCard {
+  width: min(100%, 640px);
+  background: var(--card);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-lg);
+  padding: 32px 28px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.resultEmoji {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+  color: var(--accent-primary);
+}
+
+.resultTitle {
+  margin: 0 0 8px;
+  font-size: var(--fs-22);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.resultScore {
+  font-size: 42px;
+  line-height: 1;
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+}
+
+.resultPct {
+  margin-top: 4px;
+  font-size: var(--fs-15);
+  color: var(--text-secondary);
+}
+
+.resultHint {
+  margin: 12px 0 0;
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+}
+
+.mistakesSection {
+  margin-top: 24px;
+  text-align: left;
+}
+
+.mistakesTitle {
+  margin: 0 0 10px;
+  font-size: var(--fs-15);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.mistakesList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.mistakeRow {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.mistakeIcon {
+  color: var(--accent-danger);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.mistakeBody {
+  min-width: 0;
+  flex: 1;
+}
+
+.mistakePrompt {
+  margin: 0 0 6px;
+  font-size: var(--fs-14);
+  color: var(--text-primary);
+}
+
+.mistakeAnswer,
+.mistakeCorrect,
+.mistakeReveal {
+  margin: 0 0 4px;
+  font-size: var(--fs-13);
+  color: var(--text-secondary);
+}
+
+.mistakeReveal {
+  margin-top: 6px;
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.resultActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 24px;
+}

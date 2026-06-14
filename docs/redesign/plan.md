@@ -1,11 +1,15 @@
 # SoEnglish — план редизайну UI
 
+> **⚠️ SUPERSEDED (2026-06-11):** цей план заархівовано. Актуальний план — [`redesign-v2.md`](./redesign-v2.md) («Editorial Paper», CSS + GSAP). Нижче — лише історичний контекст.
+
 **Мета:** платформа рівня **Preply** (довіра, людяність, ясний шлях учня) + **Edvibe** (структуроване навчання, уроки, матеріали, ролі teacher/student).
 
 **Сьогодні:** один продукт для **однієї школи** — один бренд, одна спільна тема, зрозумілий learning UI.  
 **Завтра:** еволюція до **SaaS** (багато шкіл + platform) — редизайн не повинен закопати це: токени, неймінг і layout лишають місце для school-scoped брендингу та platform-зон (див. `.cursor/rules/future-multitenant-architecture.mdc`).
 
 **Статус плану:** living document. Після кожного кроку оновлюйте колонку `Status` і дату в `Done`.
+
+**Автоматизація (без ручного промпта кожен раз):** [`automation.md`](./automation.md) — `./scripts/redesign-next-step.sh`, Cursor `/loop`.
 
 **Як запускати агента (один крок):**
 
@@ -14,6 +18,7 @@
 Skills: .agents/skills/redesign-existing-projects, .cursor/skills/soenglish-redesign.
 Reuse: §1.4 — спочатку components/ui і існуючі feature blocks; не переписуй сторінку з нуля.
 Scope: лише файли з рядка кроку. Не чіпай інші ID.
+Можеш не лише «достилізувати», а й запропонувати кращу структуру/UX, якщо вона ясніша для навчання (§1.5).
 Перевірка: ./scripts/agent-browser-all-pages.sh (або agent-browser для цього route).
 Онови Status → done у plan.md.
 ```
@@ -42,6 +47,7 @@ Scope: лише файли з рядка кроку. Не чіпай інші ID
 8. **Референси read-only** — `materials/fluent/` (layout/SCSS), `materials/figma_design/` (композиція; не копіювати Tailwind).
 9. **Рух обмежено** — це **навчальна платформа**, не showcase; анімація підтримує фокус і feedback, не відволікає (див. §1.3).
 10. **Структура й reuse** — дизайн **шаровий**; на кожному кроці **компонувати** існуюче, не малювати сторінку з нуля (див. §1.4).
+11. **Краще рішення, не лише polish** — якщо композиція, ієрархія або патерн з плану заважають навчанню, агент **може змінити структуру екрана** (розбити секції, прибрати зайве, інший layout), а не тільки підкрутити кольори. Обґрунтуй коротко в PR/коментарі до кроку (див. §1.5).
 
 ### Візуальна система (ціль після F0)
 
@@ -217,6 +223,19 @@ container container--page
 
 Новий файл → `components/ui` (якщо generic) або `components/<domain>/` (якщо domain), **не** в `app/**/page.tsx`.
 
+### 1.5 Краще рішення, не лише polish
+
+Крок плану задає **намір** (файли + design intent), не забороняє змінити композицію, якщо так зрозуміліше для учня/вчителя.
+
+| Дозволено | Приклад |
+|----------|---------|
+| Прибрати зайве | Дубль CTA на клікабельній картці; декоративні accent-смуги |
+| Змінити layout | 3 колонки замість 5 в ряд; active vs «coming soon» окремим списком |
+| Перегрупувати секції | Stats нижче модулів; один primary блок «що робити зараз» |
+| Не без узгодження | Не ламати RBAC, routes, data contracts; не новий стек (Tailwind/shadcn) |
+
+Якщо відхиляєшся від буквального «як у plan row» — одним реченням у changelog / коментарі до кроку: **що** і **чому**.
+
 **Крок F0:** `R-00-08` — inventory layout patterns; задокументувати 3–5 «рецептів» сторінок у wiki `ui-design-system` після F1.
 
 ---
@@ -246,105 +265,105 @@ container container--page
 
 | ID | Surface | Files (primary) | Design intent | Status |
 |----|---------|-----------------|---------------|--------|
-| R-00-01 | Color & elevation tokens | `styles/tokens/_theme.scss`, `_layout.scss` | Preply-like calm; tinted shadows; прибрати «AI purple» як default accent | todo |
-| R-00-02 | Typography scale | `styles/tokens/_typography.scss`, `app/layout.tsx` (fonts) | Display для заголовків сторінок; readable body 65ch у формах | todo |
-| R-00-03 | UI primitives pass | `components/ui/ui.module.scss`, `Button`, `Field`, `SurfaceCard` | Primary/secondary/ghost; field focus ring premium; cards однакова elevation | todo |
-| R-00-04 | Empty / stat / badge polish | `EmptyStateCard`, `StatTile`, `Badge`, `FeatureCard` | Прогрес і досягнення «дорого», не іграшково | todo |
-| R-00-05 | SCSS hygiene | Top page modules + `ui.module.scss` | `&` nesting; `respond-to`; `var(--*)` замість hex; dark via shared theme | todo |
-| R-00-06 | Shared theme audit | `_theme.scss`, `providers.tsx`, Appearance | Light/dark parity; document SaaS token naming in wiki | todo |
-| R-00-07 | Motion baseline (optional) | `_base.scss`, `lib/motion/` (new if needed) | `prefers-reduced-motion`; when to use CSS vs GSAP; defer Three until a named hero step | todo |
-| R-00-08 | Page layout recipes | wiki `ui-design-system`, optional `components/layout/PageStack.tsx` | Document compose patterns; extract only if repeated across 2+ routes | todo |
+| R-00-01 | Color & elevation tokens | `styles/tokens/_theme.scss`, `_layout.scss` | Preply-like calm; tinted shadows; прибрати «AI purple» як default accent | done |
+| R-00-02 | Typography scale | `styles/tokens/_typography.scss`, `app/layout.tsx` (fonts) | Display для заголовків сторінок; readable body 65ch у формах | done |
+| R-00-03 | UI primitives pass | `components/ui/ui.module.scss`, `Button`, `Field`, `SurfaceCard` | Primary/secondary/ghost; field focus ring premium; cards однакова elevation | done |
+| R-00-04 | Empty / stat / badge polish | `EmptyStateCard`, `StatTile`, `Badge`, `FeatureCard` | Прогрес і досягнення «дорого», не іграшково | done |
+| R-00-05 | SCSS hygiene | Top page modules + `ui.module.scss` | `&` nesting; `respond-to`; `var(--*)` замість hex; dark via shared theme | done |
+| R-00-06 | Shared theme audit | `_theme.scss`, `providers.tsx`, Appearance | Light/dark parity; document SaaS token naming in wiki | done |
+| R-00-07 | Motion baseline (optional) | `_base.scss`, `lib/motion/` (new if needed) | `prefers-reduced-motion`; when to use CSS vs GSAP; defer Three until a named hero step | done |
+| R-00-08 | Page layout recipes | wiki `ui-design-system`, optional `components/layout/PageStack.tsx` | Document compose patterns; extract only if repeated across 2+ routes | done |
 
 ### F1 — App shell
 
 | ID | Surface | Files | Roles | Design intent | Status |
 |----|---------|-------|-------|---------------|--------|
-| R-01-01 | Header | `Header.tsx`, `Header.module.scss` | all | Чистий top bar: search, notifications, avatar; mobile menu | todo |
-| R-01-02 | Sidebar | `Sidebar.module.scss`, `sidebar-nav.tsx` | all | Edvibe-style sections (Main / Schedule / Account); active state premium | todo |
-| R-01-03 | Mobile nav drawer | `MobileNavDrawer.tsx`, module scss | all | Full-height drawer, ті самі групи що sidebar | todo |
-| R-01-04 | App shell layout | `AppShell.tsx`, `globals.scss` | all | Main padding, max-width, background depth | todo |
-| R-01-05 | Brand mark | `BrandLogo.tsx` | all | Lora + mark; collapsed sidebar | todo |
+| R-01-01 | Header | `Header.tsx`, `Header.module.scss` | all | Чистий top bar: search, notifications, avatar; mobile menu | done |
+| R-01-02 | Sidebar | `Sidebar.module.scss`, `sidebar-nav.tsx` | all | Edvibe-style sections (Main / Schedule / Account); active state premium | done |
+| R-01-03 | Mobile nav drawer | `MobileNavDrawer.tsx`, module scss | all | Full-height drawer, ті самі групи що sidebar | done |
+| R-01-04 | App shell layout | `AppShell.tsx`, `globals.scss` | all | Main padding, max-width, background depth | done |
+| R-01-05 | Brand mark | `BrandLogo.tsx` | all | Lora + mark; collapsed sidebar | done |
 
 ### F2 — Auth (public)
 
 | ID | Route | Files | Design intent | Status |
 |----|-------|-------|---------------|--------|
-| R-10-01 | `/login` | `(auth)/login/`, `auth.module.scss` | Preply trust: centered card, warm bg, clear CTA | todo |
-| R-10-02 | `/register` | `(auth)/register/` | Той самий auth shell що login | todo |
-| R-10-03 | `/forgot-password` | `(auth)/forgot-password/` | Мінімалізм, reassurance copy | todo |
-| R-10-04 | `/reset-password` | `(auth)/reset-password/` | Success/error states premium | todo |
-| R-10-05 | Auth layout | `(auth)/layout.tsx` | Shared split/hero optional (subtle, not marketing-heavy) | todo |
+| R-10-01 | `/login` | `(auth)/login/`, `auth.module.scss` | Preply trust: centered card, warm bg, clear CTA | done |
+| R-10-02 | `/register` | — | Removed — admin-provisioned accounts only | cancelled |
+| R-10-03 | `/forgot-password` | `(auth)/forgot-password/` | Мінімалізм, reassurance copy | done |
+| R-10-04 | `/reset-password` | `(auth)/reset-password/` | Success/error states premium | done |
+| R-10-05 | Auth layout | `(auth)/layout.tsx` | Shared split/hero optional (subtle, not marketing-heavy) | done |
 
 ### F3 — Student journey
 
 | ID | Route | Files | Design intent | Status |
 |----|-------|-------|---------------|--------|
-| R-20-01 | `/dashboard` | `dashboard/page.tsx`, `page.module.scss`, widgets | «Сьогодні в навчанні»: next lesson, goals, progress hero | todo |
-| R-20-02 | `/practice` | `practice/page.tsx` | Hub карток practice (Edvibe modules) | todo |
-| R-20-03 | `/practice/speaking` | `practice/speaking/` | Focus mode, один primary action | todo |
-| R-20-04 | `/practice/quiz` | `practice/quiz/` | Entry to quiz flow | todo |
-| R-20-05 | `/practice/vocabulary` | `practice/vocabulary/` | Entry to vocab practice | todo |
-| R-20-06 | `/lessons` | `lessons/page.tsx`, layout | Список уроків як розклад курсу | todo |
-| R-20-07 | `/lessons/[id]` | `lessons/[lessonId]/` | Lesson room: materials, homework (Edvibe lesson page) | todo |
-| R-20-08 | `/calendar` | `calendar/page.tsx` | Month/week readable; teacher filter mobile | todo |
-| R-20-09 | `/chat` | `chat/page.tsx`, `ChatThread.tsx` | Inbox + thread; calm bubbles | todo |
-| R-20-10 | `/vocabulary` | `vocabulary/page.tsx`, `sections.tsx` | Dictionary + study modes clarity | todo |
-| R-20-11 | `/quiz` | `quiz/page.tsx` | Student quiz list / take flow | todo |
-| R-20-12 | `/payment` | `payment/` | Trust + pricing clarity (Preply checkout tone) | todo |
-| R-20-13 | `/profile` | `profile/page.tsx`, `panels.tsx` | Tabs shell; hero card premium | todo |
-| R-20-14 | Profile tab: Profile | `ProfileDetailsPanel` in panels | Form density balanced | todo |
-| R-20-15 | Profile tab: Statistics | `ProfileStatisticsPanel` | Charts readable, not cluttered | todo |
-| R-20-16 | Profile tab: Notifications | `NotificationsPanel` | Toggle rows aligned | todo |
-| R-20-17 | Profile tab: Connections | `LinkedAccountsPanel` | Trust badges for OAuth | todo |
-| R-20-18 | Profile tab: Appearance | `AppearancePanel` | Theme/font preview immediate | todo |
-| R-20-19 | Profile tab: Achievements | `ProfileAchievementsPanel` | Gamification refined (not childish) | todo |
-| R-20-20 | Profile tab: Account | `AccountPanel` | Danger zone clear separation | todo |
+| R-20-01 | `/dashboard` | `dashboard/page.tsx`, `page.module.scss`, widgets | «Сьогодні в навчанні»: next lesson, goals, progress hero | done |
+| R-20-02 | `/practice` | `practice/page.tsx` | Hub карток practice (Edvibe modules) | done |
+| R-20-03 | `/practice/speaking` | `practice/speaking/` | Focus mode, один primary action | done |
+| R-20-04 | `/practice/quiz` | `practice/quiz/` | Entry to quiz flow | done |
+| R-20-05 | `/practice/vocabulary` | `practice/vocabulary/` | Entry to vocab practice | done |
+| R-20-06 | `/lessons` | `lessons/page.tsx`, layout | Список уроків як розклад курсу | done |
+| R-20-07 | `/lessons/[id]` | `lessons/[lessonId]/` | Lesson room: materials, homework (Edvibe lesson page) | done |
+| R-20-08 | `/calendar` | `calendar/page.tsx` | Month/week readable; teacher filter mobile | done |
+| R-20-09 | `/chat` | `chat/page.tsx`, `ChatThread.tsx` | Inbox + thread; calm bubbles | done |
+| R-20-10 | `/vocabulary` | `vocabulary/page.tsx`, `sections.tsx` | Dictionary + study modes clarity | done |
+| R-20-11 | `/quiz` | `quiz/page.tsx` | Student quiz list / take flow | done |
+| R-20-12 | `/payment` | `payment/` | Trust + pricing clarity (Preply checkout tone) | done |
+| R-20-13 | `/profile` | `profile/page.tsx`, `panels.tsx` | Tabs shell; hero card premium | done |
+| R-20-14 | Profile tab: Profile | `ProfileDetailsPanel` in panels | Form density balanced | done |
+| R-20-15 | Profile tab: Statistics | `ProfileStatisticsPanel` | Charts readable, not cluttered | done |
+| R-20-16 | Profile tab: Notifications | `NotificationsPanel` | Toggle rows aligned | done |
+| R-20-17 | Profile tab: Connections | `LinkedAccountsPanel` | Trust badges for OAuth | done |
+| R-20-18 | Profile tab: Appearance | `AppearancePanel` | Theme/font preview immediate | done |
+| R-20-19 | Profile tab: Achievements | `ProfileAchievementsPanel` | Gamification refined (not childish) | done |
+| R-20-20 | Profile tab: Account | `AccountPanel` | Danger zone clear separation | done |
 
 ### F4 — Teacher journey
 
 | ID | Route | Files | Design intent | Status |
 |----|-------|-------|---------------|--------|
-| R-30-01 | `/students` | `students/page.tsx` | Roster: scan names, status, balance hint | todo |
-| R-30-02 | `/students/[id]` shell | `StudentDetailsPage.tsx`, layout | Hero + tabs як «картка учня» Preply teacher view | todo |
-| R-30-03 | Student tab: Profile | `StudentProfileTab.tsx` | Admin/teacher fields grouped | todo |
-| R-30-04 | Student tab: Statistics | `sections` Statistics | Same chart language as profile | todo |
-| R-30-05 | Student tab: Lessons | `StudentLessonsTab` | Timeline / list premium | todo |
-| R-30-06 | Student tab: Billing | `StudentBillingTab`, ledger component | Money UI: tabular nums, clear ledger | todo |
-| R-30-07 | Student tab: Achievements | `StudentAchievementsTab` | | todo |
-| R-30-08 | Student tab: Vocabulary | `StudentVocabularyTab.tsx` | | todo |
-| R-30-09 | Student tab: Quiz | `StudentQuizTab.tsx` | | todo |
-| R-30-10 | Teacher dashboard reuse | `dashboard/` (teacher widgets) | Widgets for teacher role only | todo |
-| R-30-11 | Teacher calendar/lessons | calendar + lessons (teacher actions) | Create lesson entry points obvious | todo |
+| R-30-01 | `/students` | `students/page.tsx` | Roster: scan names, status, balance hint | done |
+| R-30-02 | `/students/[id]` shell | `StudentDetailsPage.tsx`, layout | Hero + tabs як «картка учня» Preply teacher view | done |
+| R-30-03 | Student tab: Profile | `StudentProfileTab.tsx` | Admin/teacher fields grouped | done |
+| R-30-04 | Student tab: Statistics | `sections` Statistics | Same chart language as profile | done |
+| R-30-05 | Student tab: Lessons | `StudentLessonsTab` | Timeline / list premium | done |
+| R-30-06 | Student tab: Billing | `StudentBillingTab`, ledger component | Money UI: tabular nums, clear ledger | done |
+| R-30-07 | Student tab: Achievements | `StudentAchievementsTab` | | done |
+| R-30-08 | Student tab: Vocabulary | `StudentVocabularyTab.tsx` | | done |
+| R-30-09 | Student tab: Quiz | `StudentQuizTab.tsx` | | done |
+| R-30-10 | Teacher dashboard reuse | `dashboard/` (teacher widgets) | Widgets for teacher role only | done |
+| R-30-11 | Teacher calendar/lessons | calendar + lessons (teacher actions) | Create lesson entry points obvious | done |
 
 ### F5 — Admin & platform
 
 | ID | Route | Files | Design intent | Status |
 |----|-------|-------|---------------|--------|
-| R-40-01 | `/admin` | `admin/page.tsx` | School admin: tables, actions restrained | todo |
-| R-40-02 | `/system` shell | `system/page.tsx` | Super-admin «control room», not consumer playful | todo |
-| R-40-03 | System tab: Email | `system/panels` EmailTestPanel | | todo |
-| R-40-04 | System tab: Dictionary | `WordDictionaryPanel` | | todo |
-| R-40-05 | System tab: Payments | `PaymentsPanel.tsx` | Provider cards premium | todo |
+| R-40-01 | `/admin` | `admin/page.tsx` | School admin: tables, actions restrained | done |
+| R-40-02 | `/system` shell | `system/page.tsx` | Super-admin «control room», not consumer playful | done |
+| R-40-03 | System tab: Email | `system/panels` EmailTestPanel | | done |
+| R-40-04 | System tab: Dictionary | `WordDictionaryPanel` | | done |
+| R-40-05 | System tab: Payments | `PaymentsPanel.tsx` | Provider cards premium | done |
 
 ### F6 — Modals & overlays (уніфікація)
 
 | ID | Component | Trigger | Files | Design intent | Status |
 |----|-----------|---------|-------|---------------|--------|
-| R-50-01 | Confirm dialog (global) | delete, etc. | `ConfirmDialogHost`, store | Єдиний danger/primary pattern | todo |
-| R-50-02 | Lesson modal | calendar, lessons, context | `features/lesson-modal/*` | Edvibe lesson editor; tabs Setup/Content | todo |
-| R-50-03 | Image preview overlay | lesson | `ImagePreviewOverlay.tsx` | Lightbox premium | todo |
-| R-50-04 | Calendar conflict/warning/series/delete | calendar inline | `calendar/page.tsx` modals | Migrate visual to shared confirm style | todo |
-| R-50-05 | New direct chat | chat | `NewDirectModal.tsx` | | todo |
-| R-50-06 | Create group chat | chat | `CreateGroupModal.tsx` | | todo |
-| R-50-07 | Word details | vocabulary, lesson | `WordDetailsModal.tsx` | Dictionary drawer-feel | todo |
-| R-50-08 | Quiz assign modal | quiz teacher | `quiz/page.tsx` | | todo |
-| R-50-09 | Quiz stats drawer | quiz teacher | `quiz/page.tsx` | Right drawer consistent | todo |
-| R-50-10 | Quiz finish confirm | quiz | `quiz/page.tsx` | | todo |
-| R-50-11 | Vocabulary finish modal | vocabulary sections | `vocabulary/sections.tsx` | | todo |
-| R-50-12 | Avatar modal | profile | `profile/page.tsx` | | todo |
-| R-50-13 | Change password modal | profile panels | `profile/panels.tsx` | | todo |
-| R-50-14 | Payment method config | system | `PaymentMethodConfigModal.tsx` | Long form: sections, sticky actions | todo |
-| R-50-15 | Dashboard lock overlay | dashboard | `dashboard/page.module.scss` | Subtle premium lock state | todo |
+| R-50-01 | Confirm dialog (global) | delete, etc. | `ConfirmDialogHost`, store | Єдиний danger/primary pattern | done |
+| R-50-02 | Lesson modal | calendar, lessons, context | `features/lesson-modal/*` | Edvibe lesson editor; tabs Setup/Content | done |
+| R-50-03 | Image preview overlay | lesson | `ImagePreviewOverlay.tsx` | Lightbox premium | done |
+| R-50-04 | Calendar conflict/warning/series/delete | calendar inline | `calendar/page.tsx` modals | Migrate visual to shared confirm style | done |
+| R-50-05 | New direct chat | chat | `NewDirectModal.tsx` | | done |
+| R-50-06 | Create group chat | chat | `CreateGroupModal.tsx` | | done |
+| R-50-07 | Word details | vocabulary, lesson | `WordDetailsModal.tsx` | Dictionary drawer-feel | done |
+| R-50-08 | Quiz assign modal | quiz teacher | `quiz/page.tsx` | | done |
+| R-50-09 | Quiz stats drawer | quiz teacher | `quiz/page.tsx` | Right drawer consistent | done |
+| R-50-10 | Quiz finish confirm | quiz | `quiz/page.tsx` | | done |
+| R-50-11 | Vocabulary finish modal | vocabulary sections | `vocabulary/sections.tsx` | | done |
+| R-50-12 | Avatar modal | profile | `profile/page.tsx` | | done |
+| R-50-13 | Change password modal | profile panels | `profile/panels.tsx` | | done |
+| R-50-14 | Payment method config | system | `PaymentMethodConfigModal.tsx` | Long form: sections, sticky actions | done |
+| R-50-15 | Dashboard lock overlay | dashboard | `dashboard/page.module.scss` | Subtle premium lock state | done |
 
 ### F7 — QA & documentation
 
@@ -401,6 +420,17 @@ container container--page
 6. plan.md Status → done.
 ```
 
+### Loop (ланцюг кроків, без таймера)
+
+```bash
+# Старт: перший крок одразу; далі — після кожного done
+REDESIGN_LOOP_MODE=chain ./scripts/redesign-loop.sh
+```
+
+Після кожного кроку агент викликає `./scripts/redesign-loop-tick.sh` → наступний крок **одразу**, не через N хвилин.
+
+Таймер (якщо потрібен): `REDESIGN_LOOP_MODE=interval REDESIGN_LOOP_INTERVAL_SEC=300 ./scripts/redesign-loop.sh`
+
 ### Паралель (незалежні)
 
 - `R-10-01` … `R-10-04` можна 4 subagents **після** `R-10-05` layout **або** спочатку layout, потім сторінки.
@@ -427,6 +457,63 @@ container container--page
 
 | Date | Change |
 |------|--------|
+| 2026-05-28 | `/lessons` contrast/visibility polish: fixed search double-focus outline, rebalanced light-theme surface contrast, made `Open calendar` a clear primary action, and synced list-panel tones with highlights |
+| 2026-05-28 | `/lessons` highlights second pass: highlights promoted as primary workspace, cards fully restyled (cleaner head/body/footer + status readability), interaction polish applied, and list panel visually demoted |
+| 2026-05-28 | `/lessons` total redesign pass: new control-room context strip + KPI row, full highlights workspace refresh, and LessonsListPanel visual/responsive alignment to one premium design language |
+| 2026-05-28 | Lesson room reroll: full composition redesign for `/lessons/[lessonId]` with control-rail actions, workspace hero context cards, denser premium spacing, and improved editing flow clarity |
+| 2026-05-28 | Lesson room global rework: sidebar IA rebuilt with previous-lesson context blocks (homework + vocabulary), upgraded Join Google Meet CTA, and Open in calendar now deep-links with date/lesson focus and calendar autoscroll highlight |
+| 2026-05-28 | Lessons feedback pass: removed `scheduleRail`, improved core lessons cards (`highlightCard`, shared `surfaceCard`), fixed lesson-room `Join Google Meet` styles, viewport-safe teacher sidebar, and `LessonsListPanel` search shell |
+| 2026-05-28 | R-20-16–20 done: notifications list, OAuth trust marks, danger zone, achievements copy |
+| 2026-05-28 | Lessons refresh pass: additional premium polish for `/lessons` and `/lessons/[lessonId]` visual hierarchy and workspace guidance |
+| 2026-05-28 | R-50-15 done: Dashboard cancelled-lesson lock overlay softened with premium muted state and refined warning chip styling |
+| 2026-05-28 | R-50-14 done: Payment method config modal refined for long-form editing with sticky action bar and clearer settings header context |
+| 2026-05-28 | R-50-13 done: Change password modal aligned with shared modal pattern (security badge, tokenized shell, semantic primary submit) |
+| 2026-05-28 | R-50-12 done: Profile avatar modal aligned with shared modal pattern (semantic badge header, tokenized shell/action row, cleaner crop workspace) |
+| 2026-05-28 | R-50-11 done: Vocabulary play finish confirm upgraded to shared modal pattern (semantic badge, tokenized shell, clear Save & finish CTA) |
+| 2026-05-28 | R-50-10 done: Quiz finish confirm upgraded to shared modal pattern with semantic confirmation badge and tokenized action row |
+| 2026-05-28 | R-50-09 done: Quiz stats drawer aligned with premium right-panel pattern (tokenized shell, semantic header badge/hint, cleaner stat rows) |
+| 2026-05-28 | R-50-08 done: Quiz assign modal polished with semantic header badge/hint, tokenized shell, and clearer student selection state |
+| 2026-05-28 | R-50-07 done: Word details modal upgraded to premium dictionary drawer style with unified modal tokens and header badge/hint |
+| 2026-05-28 | R-50-06 done: Create group chat modal aligned with direct modal header, guidance, member count |
+| 2026-05-28 | R-50-05 done: New direct chat modal refined with header badge, helper copy, empty state |
+| 2026-05-28 | R-50-04 done: calendar inline confirms restyled to shared modal tokens and semantic actions |
+| 2026-05-28 | R-50-03 done: lesson image lightbox polished with premium container, header, close/hint UX |
+| 2026-05-28 | R-50-02 done: lesson modal unified with tokenized overlay/chrome and semantic header badges |
+| 2026-05-28 | R-50-01 done: global confirm dialog unified with tokenized overlay, header badge, danger/primary polish |
+| 2026-05-28 | R-40-05 done: payments tab control-rail guidance + clearer save warning state |
+| 2026-05-28 | R-40-04 done: dictionary tab summary cards + unified loading actions |
+| 2026-05-28 | R-40-03 done: system email tab cleaned up (shared header classes, async button loading states) |
+| 2026-05-28 | R-40-02 done: system shell as control room with overview cards and icon tabs |
+| 2026-05-28 | R-40-01 done: admin account workspace with KPI row, structured form sections, status chips |
+| 2026-05-28 | R-20-15 done: profile stats tab shell, dashboard profile variant, chart spacing |
+| 2026-05-28 | R-20-14 done: profile details grid, h2, primary save, panel error |
+| 2026-05-28 | R-20-13 done: profile hero StatTiles, tab panel shell, achievements h2 |
+| 2026-05-28 | R-20-10 done: vocabulary stack, stat tiles, mode toggle tokens |
+| 2026-05-28 | R-20-09 done: chat calm bubbles, inbox tokens, empty thread state |
+| 2026-05-28 | R-20-08 done: calendar tokens/motion, month/week readability, mobile teacher filter |
+| 2026-05-28 | R-20-07 done: lesson room two-column hub, sidebar meta card, content panel lead |
+| 2026-05-28 | Payment refresh: 2-col checkout, sticky summary, primary pay buttons |
+| 2026-05-27 | R-20-12 done: payment stack, trust note, EmptyStateCard, section tokens |
+| 2026-05-27 | R-20-11 done: quiz stack, StatTile hero, section headings, tokens |
+| 2026-05-27 | tick.sh prints next step ID; terminal does not auto-run agent |
+| 2026-05-27 | Plan §1.5: agents may improve UX structure, not only polish |
+| 2026-05-27 | Chain loop default; redesign-next-step prompts tick after done |
+| 2026-05-27 | R-20-06 done: lessons page stack, schedule highlights, list section |
+| 2026-05-27 | R-20-03–05 done: practice speaking focus, quiz/vocab entry pages |
+| 2026-05-27 | R-20-02 refresh: 3-col modules, no accent bar/CTA, soon list |
+| 2026-05-27 | R-20-01 done: dashboard hero «Today in your learning», stack layout, stat icons |
+| 2026-05-27 | R-10-03–05 done: forgot/reset auth pages, split trust layout (md+) |
+| 2026-05-27 | R-10-01 done: auth warm shell, login card, shared auth.module |
+| 2026-05-27 | R-01-05 done: BrandLogo link, Lora tokens, collapsed centering |
+| 2026-05-27 | R-01-04 done: shell canvas gradient, mainCanvas, auth header fix |
+| 2026-05-27 | R-01-03 done: mobile drawer brand, create lesson foot, drawer nav styles |
+| 2026-05-27 | R-01-02 done: sidebar sections, green active rail, lucide icons |
+| 2026-05-27 | R-01-01 done: header top bar, bell/chat unread, mobile search |
+| 2026-05-27 | R-00-08 done: page layout recipes in wiki (PageStack deferred) |
+| 2026-05-27 | R-00-07 done: reduced-motion in _base.scss, motion-allow mixins, lib/motion |
+| 2026-05-27 | R-00-06 done: apply-appearance, theme layers, wiki SaaS tokens |
+| 2026-05-27 | R-00-05 done: respond-max, no inline media in module SCSS |
+| 2026-05-27 | R-00-01 done: theme elevation + semantic accents + layout spacing tokens |
 | 2026-05-27 | §1.4 structured UI + reuse; principle #10; R-00-08; agent checklist |
 | 2026-05-27 | §1.3 motion: CSS → GSAP → Three.js; learning-first; R-00-07 |
 | 2026-05-27 | Shared theme §1.1, SCSS rules §1.2, SaaS evolution note; R-00-05, R-00-06 |

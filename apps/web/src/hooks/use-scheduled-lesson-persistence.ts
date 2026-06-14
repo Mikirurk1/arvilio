@@ -52,7 +52,7 @@ export function useScheduledLessonPersistence() {
         const withFiles = await uploadPendingLessonFiles(backendId, candidate, takePendingLessonFile);
         const updated = await updateScheduledLesson(
           backendId,
-          toUpdateScheduledLessonBody({ ...withFiles, backendId }),
+          toUpdateScheduledLessonBody({ ...withFiles, backendId }, resolvePartyId),
         );
         result = adaptPersisted(updated, withFiles);
       }
@@ -75,11 +75,11 @@ export function useScheduledLessonPersistence() {
         : candidate;
       const updated = await updateScheduledLesson(
         backendId,
-        toUpdateScheduledLessonBody(payload, { includeLessonContent }),
+        toUpdateScheduledLessonBody(payload, resolvePartyId, { includeLessonContent }),
       );
       return adaptPersisted(updated, payload);
     },
-    [adaptPersisted, updateScheduledLesson],
+    [adaptPersisted, resolvePartyId, updateScheduledLesson],
   );
 
   const persistScheduleUpdate = useCallback(

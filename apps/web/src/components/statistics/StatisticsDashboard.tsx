@@ -1,334 +1,352 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import type { StatisticsStudentScope } from '@pkg/types';
+import type { StatisticsDashboardDto, StatisticsKpiCategory, StatsRange } from '@pkg/types';
+import type { LucideIcon } from 'lucide-react';
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  Line,
-  LineChart,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip as ChartTooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
-import type { ScheduledLessonBackendDto, StudentWordCardDto } from '@pkg/types';
-import { getRoleStatisticsDashboard, type StatsRange, type UserRoleId } from '../../mocks';
-import { Info } from 'lucide-react';
-import { buildLiveStatisticsDashboard } from '../../lib/live-statistics-dashboard';
+  BarChart3,
+  BookOpen,
+  CalendarCheck,
+  Flame,
+  GraduationCap,
+  MessageSquare,
+  Target,
+  TrendingUp,
+  Users,
+  Wallet,
+} from 'lucide-react';
 import {
-  Button,
+  mapStatisticsDashboardToViewModel,
+} from '../../lib/map-statistics-dashboard';
+import { stripGroupContentFromStatisticsView } from '../../lib/group-lessons-feature';
+import { useSchoolGroupLessons } from '../../hooks/use-school-group-lessons';
+import {
   EmptyStateCard,
+  Field,
+  PanelCard,
   SectionHeader,
   SegmentedControl,
-  StatTile,
-  SurfaceCard,
-  Tooltip as AppTooltip,
 } from '../ui';
 import styles from './StatisticsDashboard.module.scss';
+import { StatisticsSection } from './StatisticsSection';
+import { StatisticsKpiGrid } from './StatisticsKpiGrid';
+import { StatisticsDashboardCharts } from './StatisticsDashboardCharts';
 
-const PIE_COLORS = ['var(--green)', 'var(--blue)', 'var(--purple)', 'var(--text-faint)'];
-const tooltipStyle = {
-  borderColor: 'var(--border)',
-  borderRadius: 10,
-  backgroundColor: 'var(--card)',
+const KPI_CATEGORY_ICONS: Record<StatisticsKpiCategory, LucideIcon> = {
+  lessons: CalendarCheck,
+  vocabulary: BookOpen,
+  practice: GraduationCap,
+  quiz: Target,
+  speaking: MessageSquare,
+  dailyGoals: Flame,
+  streak: Flame,
+  roster: Users,
+  school: Users,
+  billing: Wallet,
 };
-const tooltipLabelStyle = { color: 'var(--text-primary)' };
-const tooltipItemStyle = { color: 'var(--text-secondary)' };
-const legendStyle = { color: 'var(--text-secondary)' };
+
+const KPI_CATEGORY_HINTS: Partial<Record<StatisticsKpiCategory, string>> = {
+  lessons: 'Lesson counts and hours for the selected period.',
+  vocabulary: 'Words added, reviewed, and marked learned.',
+  practice: 'Practice minutes across vocabulary, quizzes, and speaking.',
+  quiz: 'Quiz attempts and scores in this period.',
+  speaking: 'Speaking submissions and reviews.',
+  dailyGoals: 'Daily goal slot completion.',
+  streak: 'Consecutive active days.',
+  roster: 'Aggregate counts across your student roster.',
+  school: 'School-wide activity snapshot.',
+  billing: 'Payments and billable lesson totals.',
+};
+
+type AllStudentsRosterView = 'lessons_billing' | 'activity';
 
 type StatisticsDashboardProps = {
-  roleId: UserRoleId;
-  currentUserId: number;
-  subjectStudentId?: number;
-  /** When set, charts and KPIs are built from API lessons/cards instead of mocks. */
-  liveLessons?: ScheduledLessonBackendDto[];
-  liveCards?: StudentWordCardDto[];
-  liveTitle?: string;
+  dashboard: StatisticsDashboardDto | null;
   loading?: boolean;
+  refreshing?: boolean;
   error?: string | null;
+  range: StatsRange;
+  onRangeChange: (range: StatsRange) => void;
+  customDateFrom?: string;
+  customDateTo?: string;
+  onCustomDateFromChange?: (value: string) => void;
+  onCustomDateToChange?: (value: string) => void;
+  customDateMax?: string;
+  studentScope?: StatisticsStudentScope;
+  onStudentScopeChange?: (scope: StatisticsStudentScope) => void;
+  allStudentsRosterView?: AllStudentsRosterView;
+  onAllStudentsRosterViewChange?: (view: AllStudentsRosterView) => void;
+  variant?: 'default' | 'profile';
+  profileIntro?: string;
 };
 
 export function StatisticsDashboard({
-  roleId,
-  currentUserId,
-  subjectStudentId,
-  liveLessons,
-  liveCards,
-  liveTitle,
+  dashboard,
   loading = false,
+  refreshing = false,
   error = null,
+  range,
+  onRangeChange,
+  customDateFrom,
+  customDateTo,
+  onCustomDateFromChange,
+  onCustomDateToChange,
+  customDateMax,
+  studentScope = 'my_students',
+  onStudentScopeChange,
+  allStudentsRosterView: allStudentsRosterViewProp,
+  onAllStudentsRosterViewChange,
+  variant = 'default',
+  profileIntro,
 }: StatisticsDashboardProps) {
-  const [range, setRange] = useState<StatsRange>('week');
-  const [hoveredKpiId, setHoveredKpiId] = useState<number | null>(null);
-  const [hoveredKpiEl, setHoveredKpiEl] = useState<HTMLElement | null>(null);
-  const [hoveredSectionId, setHoveredSectionId] = useState<string | null>(null);
-  const [hoveredSectionEl, setHoveredSectionEl] = useState<HTMLElement | null>(null);
-  const useLive = liveLessons !== undefined;
-  const data = useMemo(
-    () =>
-      useLive
-        ? buildLiveStatisticsDashboard({
-            roleId,
-            rangePreset: range,
-            lessons: liveLessons,
-            cards: liveCards,
-            title: liveTitle ?? 'Statistics',
-            currentUserId,
-            subjectStudentId,
-          })
-        : getRoleStatisticsDashboard({
-            roleId,
-            userId: currentUserId,
-            subjectStudentId,
-            rangePreset: range,
-          }),
-    [
-      currentUserId,
-      liveCards,
-      liveLessons,
-      liveTitle,
-      range,
-      roleId,
-      subjectStudentId,
-      useLive,
-    ],
-  );
+  const isProfile = variant === 'profile';
+  const [allStudentsRosterViewInternal, setAllStudentsRosterViewInternal] =
+    useState<AllStudentsRosterView>('lessons_billing');
+  const allStudentsRosterView = allStudentsRosterViewProp ?? allStudentsRosterViewInternal;
+  const setAllStudentsRosterView = (view: AllStudentsRosterView) => {
+    onAllStudentsRosterViewChange?.(view);
+    if (allStudentsRosterViewProp === undefined) {
+      setAllStudentsRosterViewInternal(view);
+    }
+  };
 
-  if (loading) {
+  const { enabled: groupLessonsEnabled } = useSchoolGroupLessons();
+  const view = useMemo(() => {
+    if (!dashboard) return null;
+    const mapped = mapStatisticsDashboardToViewModel(dashboard);
+    return stripGroupContentFromStatisticsView(mapped, groupLessonsEnabled);
+  }, [dashboard, groupLessonsEnabled]);
+
+  if (loading && !view) {
     return <p className={styles.loadingNote}>Loading statistics from the server…</p>;
   }
 
-  if (error) {
+  if (error && !view) {
+    return <EmptyStateCard title="Could not load statistics" description={error} />;
+  }
+
+  if (!view) {
     return (
       <EmptyStateCard
-        title="Could not load statistics"
-        description={error}
+        title="No statistics"
+        description="Select a period to load your dashboard."
       />
     );
   }
 
-  const goalTarget =
-    range === 'week'
-      ? data.goals.weeklyMinutes
-      : range === 'month'
-        ? data.goals.monthlyMinutes
-        : range === 'quarter'
-          ? data.goals.quarterlyMinutes
-          : data.goals.yearlyMinutes;
-  const goalProgress = goalTarget > 0 ? Math.min(100, Math.round((data.goals.currentMinutes / goalTarget) * 100)) : 0;
-  const hasTimeTrend = data.timeTrend.length > 0;
-  const hasVocabularyTrend = data.vocabularyTrend.some((point) => point.added > 0 || point.known > 0);
-  const hasStatusBreakdown = data.statusBreakdown.some((slice) => slice.value > 0);
-  const kpiInfoById: Record<number, string> = {
-    1: 'Number of completed lessons within the selected period.',
-    2: 'Number of cancelled lessons within the selected period.',
-    3: 'Total hours of all lessons in the selected period.',
-    4: 'Share of completed lessons from all scheduled lessons in the selected period.',
-    5: 'Count of quiz sessions completed in the selected period.',
-    6: 'Count of vocabulary items added in the selected period.',
-    7: 'Count of speaking practice sessions in the selected period.',
-  };
-  const sectionInfo: Record<string, string> = {
-    lessonsTrend: 'Shows how many lessons happened in each bucket of the selected range.',
-    vocabularyTrend: 'Compares vocabulary items added vs moved to known across the selected range.',
-    statusMix: 'Distribution of lesson statuses: completed, planned, and cancelled.',
-    goalsDeltas: 'Goal progress and key delta indicators against the previous period.',
-  };
+  const isStudent = view.isStudentLayout;
+  const isTeacherLayout = view.layout === 'teacher';
+  const showLessonsBillingRoster = !isStudent && allStudentsRosterView === 'lessons_billing';
+  const showTeacherLessonsRoster = showLessonsBillingRoster && isTeacherLayout;
+  const showAdminBillingRoster = showLessonsBillingRoster && !isTeacherLayout;
+  const showRosterViewSwitcher = isProfile && !isStudent;
+  const goals = view.dailyGoalsSummary;
+  const goalSlotPercent =
+    goals && goals.slotsAvailable > 0
+      ? Math.round((goals.slotsCompleted / goals.slotsAvailable) * 100)
+      : 0;
 
-  const renderSectionInfo = (id: string) => (
-    <>
-      <Button
-        type="button"
-        variant="ghost"
-        className={styles.sectionInfoBtn}
-        aria-label="About this section"
-        onMouseEnter={(event) => {
-          setHoveredSectionId(id);
-          setHoveredSectionEl(event.currentTarget);
-        }}
-        onMouseLeave={() => {
-          setHoveredSectionId(null);
-          setHoveredSectionEl(null);
-        }}
-        onFocus={(event) => {
-          setHoveredSectionId(id);
-          setHoveredSectionEl(event.currentTarget);
-        }}
-        onBlur={() => {
-          setHoveredSectionId(null);
-          setHoveredSectionEl(null);
-        }}
-      >
-        <Info size={14} />
-      </Button>
-      <AppTooltip
-        open={hoveredSectionId === id}
-        targetEl={hoveredSectionEl}
-        placement="top"
-        content={sectionInfo[id]}
-      />
-    </>
+  const summaryKpis = view.kpis.slice(0, 4);
+  const rangeNoteText = isStudent
+    ? `${view.rangeLabel}: lessons by calendar date; practice and quizzes by activity timestamp (UTC).`
+    : showAdminBillingRoster
+      ? `${view.rangeLabel}: lessons, cancellations, and payments per student.`
+      : showTeacherLessonsRoster
+        ? `${view.rangeLabel}: lesson counts per student (no student pricing).`
+        : `${view.rangeLabel}: per-student learning activity (practice, vocabulary, quizzes, speaking).`;
+
+  const suppressFilterScroll = isProfile;
+
+  const rangeOptions = [
+    { value: 'week', label: 'Week' },
+    { value: 'month', label: 'Month' },
+    { value: 'quarter', label: 'Quarter' },
+    { value: 'year', label: 'Year' },
+    ...(isProfile ? [{ value: 'custom', label: 'Custom' }] : []),
+  ];
+
+  const rangeControl = (
+    <SegmentedControl
+      className={styles.rangeSwitch}
+      ariaLabel="Statistics range"
+      value={range}
+      onValueChange={(value) => onRangeChange(value as StatsRange)}
+      optionClassName={styles.rangeBtn}
+      activeOptionClassName={styles.rangeBtnActive}
+      preventScrollOnPointerDown={suppressFilterScroll}
+      options={rangeOptions}
+    />
   );
 
-  return (
-    <div className={styles.wrapper}>
-      <SurfaceCard className={styles.rangeCard}>
-        <SectionHeader
-          title={data.title}
-          action={
-            <SegmentedControl
-              className={styles.rangeSwitch}
-              ariaLabel="Statistics range"
-              value={range}
-              onValueChange={setRange}
-              optionClassName={styles.rangeBtn}
-              activeOptionClassName={styles.rangeBtnActive}
-              options={[
-                { value: 'week', label: 'Week' },
-                { value: 'month', label: 'Month' },
-                { value: 'quarter', label: 'Quarter' },
-                { value: 'year', label: 'Year' },
-              ]}
-            />
-          }
+  const customRangeControl =
+    isProfile && range === 'custom' && customDateFrom != null && customDateTo != null ? (
+      <div className={styles.customRangeRow}>
+        <Field
+          type="date"
+          label="From"
+          rootClassName={styles.customRangeFieldRoot}
+          labelClassName={styles.customRangeLabel}
+          className={[styles.customRangeTrigger, styles.customRangeField].filter(Boolean).join(' ')}
+          value={customDateFrom}
+          max={customDateTo}
+          onChange={(event) => onCustomDateFromChange?.(event.target.value)}
         />
-        <p className={styles.rangeNote}>
-          {data.rangeLabel}: includes lessons by start date in this period.
-        </p>
-        <div className={styles.kpiGrid}>
-          {data.kpis.map((kpi) => (
-            <div key={kpi.id} className={styles.kpiWrap}>
-              <Button
-                type="button"
-                variant="ghost"
-                className={styles.kpiInfoBtn}
-                aria-label={`About ${kpi.label}`}
-                onMouseEnter={(event) => {
-                  setHoveredKpiId(kpi.id);
-                  setHoveredKpiEl(event.currentTarget);
-                }}
-                onMouseLeave={() => {
-                  setHoveredKpiId(null);
-                  setHoveredKpiEl(null);
-                }}
-                onFocus={(event) => {
-                  setHoveredKpiId(kpi.id);
-                  setHoveredKpiEl(event.currentTarget);
-                }}
-                onBlur={() => {
-                  setHoveredKpiId(null);
-                  setHoveredKpiEl(null);
-                }}
-              >
-                <Info size={14} />
-              </Button>
-              <StatTile
-                label={kpi.label}
-                value={kpi.value}
-                subtext={kpi.deltaLabel}
-                className={styles.kpiTile}
-                subtextClassName={kpi.trend === 'up' ? styles.kpiUp : kpi.trend === 'down' ? styles.kpiDown : ''}
-              />
-              <AppTooltip
-                open={hoveredKpiId === kpi.id}
-                targetEl={hoveredKpiEl}
-                placement="top"
-                content={kpiInfoById[kpi.id] ?? 'Statistics metric for selected period.'}
-              />
-            </div>
-          ))}
-        </div>
-      </SurfaceCard>
-
-      <div className={styles.chartGrid}>
-        <SurfaceCard className={styles.chartCard}>
-          <SectionHeader title="Lessons trend" action={renderSectionInfo('lessonsTrend')} />
-          <div className={styles.chartBox}>
-            {hasTimeTrend ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data.timeTrend}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="label" stroke="var(--text-faint)" tickLine={false} axisLine={false} />
-                  <YAxis stroke="var(--text-faint)" tickLine={false} axisLine={false} width={30} />
-                  <ChartTooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} />
-                  <Line type="monotone" dataKey="value" stroke="var(--green)" strokeWidth={2} dot={{ r: 3 }} name="Lessons" />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className={styles.emptyChart}>No lesson data in selected range.</div>
-            )}
-          </div>
-        </SurfaceCard>
-
-        <SurfaceCard className={styles.chartCard}>
-          <SectionHeader title="Vocabulary added vs known" action={renderSectionInfo('vocabularyTrend')} />
-          <div className={styles.chartBox}>
-            {hasVocabularyTrend ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data.vocabularyTrend}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="label" stroke="var(--text-faint)" tickLine={false} axisLine={false} />
-                  <YAxis stroke="var(--text-faint)" tickLine={false} axisLine={false} width={30} />
-                  <ChartTooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} />
-                  <Legend wrapperStyle={legendStyle} />
-                  <Bar dataKey="added" fill="var(--blue)" radius={[6, 6, 0, 0]} />
-                  <Bar dataKey="known" fill="var(--green)" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className={styles.emptyChart}>No vocabulary transitions in selected range.</div>
-            )}
-          </div>
-        </SurfaceCard>
-
-        <SurfaceCard className={styles.chartCard}>
-          <SectionHeader title="Lesson status mix" action={renderSectionInfo('statusMix')} />
-          <div className={styles.chartBox}>
-            {hasStatusBreakdown ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <ChartTooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} />
-                  <Legend wrapperStyle={legendStyle} />
-                  <Pie data={data.statusBreakdown} dataKey="value" nameKey="label" cx="50%" cy="50%" outerRadius={72}>
-                    {data.statusBreakdown.map((entry, index) => (
-                      <Cell key={entry.id} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className={styles.emptyChart}>No lesson status data in selected range.</div>
-            )}
-          </div>
-        </SurfaceCard>
-
-        <SurfaceCard className={styles.chartCard}>
-          <SectionHeader title="Goal and deltas" action={renderSectionInfo('goalsDeltas')} />
-          <div className={styles.goalBlock}>
-            <p className={styles.goalValue}>
-              {data.goals.currentMinutes} / {goalTarget} min
-            </p>
-            <div className={styles.goalTrack} aria-label="Goal progress">
-              <span className={styles.goalFill} style={{ width: `${goalProgress}%` }} />
-            </div>
-            <p className={styles.goalMeta}>{goalProgress}% completed in selected range</p>
-            <div className={styles.deltaGrid}>
-              {data.deltas.map((delta) => (
-                <div key={delta.id} className={styles.deltaTile}>
-                  <p className={styles.deltaLabel}>{delta.label}</p>
-                  <p className={styles.deltaValue}>{delta.value}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </SurfaceCard>
+        <span className={styles.customDateSep} aria-hidden>–</span>
+        <Field
+          type="date"
+          label="To"
+          rootClassName={styles.customRangeFieldRoot}
+          labelClassName={styles.customRangeLabel}
+          className={[styles.customRangeTrigger, styles.customRangeField].filter(Boolean).join(' ')}
+          value={customDateTo}
+          min={customDateFrom}
+          max={customDateMax}
+          onChange={(event) => onCustomDateToChange?.(event.target.value)}
+        />
       </div>
+    ) : null;
+
+  const rangeFilterGroup = (
+    <div className={styles.rangeFilterGroup}>
+      {rangeControl}
+      {customRangeControl}
+    </div>
+  );
+
+  const scopeControl =
+    onStudentScopeChange != null ? (
+      <SegmentedControl
+        className={styles.rangeSwitch}
+        ariaLabel="Student scope"
+        value={studentScope}
+        onValueChange={(value) => onStudentScopeChange(value as StatisticsStudentScope)}
+        optionClassName={styles.rangeBtn}
+        activeOptionClassName={styles.rangeBtnActive}
+        preventScrollOnPointerDown={suppressFilterScroll}
+        options={[
+          { value: 'all', label: 'All students' },
+          { value: 'my_students', label: 'My students' },
+        ]}
+      />
+    ) : null;
+
+  const rosterViewControl = showRosterViewSwitcher ? (
+    <SegmentedControl
+      className={styles.rangeSwitch}
+      ariaLabel="Student roster view"
+      value={allStudentsRosterView}
+      onValueChange={(value) => setAllStudentsRosterView(value as AllStudentsRosterView)}
+      optionClassName={styles.rangeBtn}
+      activeOptionClassName={styles.rangeBtnActive}
+      preventScrollOnPointerDown={suppressFilterScroll}
+      options={[
+        { value: 'lessons_billing', label: 'Lessons & payments' },
+        { value: 'activity', label: 'Learning activity' },
+      ]}
+    />
+  ) : null;
+
+  const profileControls = (
+    <div className={styles.profileControls}>
+      {scopeControl}
+      {rosterViewControl}
+      {rangeFilterGroup}
+    </div>
+  );
+
+  const chartBoxClass = isProfile ? `${styles.chartBox} ${styles.chartBoxProfile}` : styles.chartBox;
+  const chartGridClass = isProfile ? styles.statsChartGrid : styles.chartGrid;
+  const chartCardClass = [styles.chartCard, isProfile ? styles.chartCardProfile : ''].filter(Boolean).join(' ');
+  const pieRadius = isProfile ? 64 : 72;
+
+  const wrapperClass = [
+    isProfile ? styles.wrapperProfile : styles.wrapper,
+    refreshing ? styles.wrapperRefreshing : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <div className={wrapperClass} aria-busy={refreshing || undefined}>
+      {isProfile ? (
+        <>
+          <section className={styles.statsSummary} aria-label="Statistics overview">
+            <div className={styles.statsSummaryIntro}>
+              <span className={styles.statsSummaryIcon} aria-hidden>
+                <BarChart3 size={18} />
+              </span>
+              <div>
+                <h3 className={styles.statsSummaryTitle}>{view.title}</h3>
+                <p className={styles.statsSummaryText}>
+                  {view.rangeLabel}
+                  {profileIntro ? ` · ${profileIntro}` : ''}
+                </p>
+              </div>
+            </div>
+            {summaryKpis.length > 0 ? (
+              <dl className={styles.statsSummaryGrid}>
+                {summaryKpis.map((kpi) => (
+                  <div key={kpi.id} className={styles.statsSummaryItem}>
+                    <dt>{kpi.label}</dt>
+                    <dd>{kpi.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : null}
+          </section>
+
+          <section className={styles.statsToolbar} aria-label="Statistics filters">
+            <p className={styles.statsToolbarNote}>{rangeNoteText}</p>
+            <div className={styles.statsToolbarControls}>
+              {isStudent ? rangeFilterGroup : profileControls}
+            </div>
+          </section>
+
+          <div className={styles.statsSections}>
+            {view.kpisByCategory.map((group) => {
+              const Icon = KPI_CATEGORY_ICONS[group.category];
+              return (
+                <StatisticsSection
+                  key={group.category}
+                  icon={<Icon size={16} />}
+                  title={group.categoryLabel}
+                  description={KPI_CATEGORY_HINTS[group.category]}
+                >
+                  <StatisticsKpiGrid
+                    kpisByCategory={[group]}
+                    isProfile
+                    withSectionHeaders={false}
+                  />
+                </StatisticsSection>
+              );
+            })}
+          </div>
+        </>
+      ) : (
+        <PanelCard className={styles.rangeCard}>
+          <SectionHeader title={view.title} action={rangeControl} />
+          <p className={styles.rangeNote}>
+            {view.rangeLabel}: lessons by calendar date; other activity by timestamp in this period.
+          </p>
+          <StatisticsKpiGrid kpisByCategory={view.kpisByCategory} isProfile={false} />
+        </PanelCard>
+      )}
+
+      <StatisticsDashboardCharts
+        view={view}
+        isProfile={isProfile}
+        isStudent={isStudent}
+        showLessonsBillingRoster={showLessonsBillingRoster}
+        showAdminBillingRoster={showAdminBillingRoster}
+        showTeacherLessonsRoster={showTeacherLessonsRoster}
+        chartBoxClass={chartBoxClass}
+        chartCardClass={chartCardClass}
+        chartGridClass={chartGridClass}
+        pieRadius={pieRadius}
+        goals={goals}
+        goalSlotPercent={goalSlotPercent}
+      />
     </div>
   );
 }
-

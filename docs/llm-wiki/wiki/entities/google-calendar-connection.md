@@ -20,4 +20,6 @@ Stores Google Calendar OAuth tokens for creating lesson events and Meet links.
 ## Related
 
 - [[concepts/lessons-calendar]]
+- [[concepts/video-meeting-providers]]
+- [[entities/zoom-connection]]
 - [[entities/user]]

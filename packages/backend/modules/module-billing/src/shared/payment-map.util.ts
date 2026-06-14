@@ -21,6 +21,9 @@ import {
   DEFAULT_ALLOWED_CURRENCIES,
   DEFAULT_PAYMENT_ENVIRONMENT_MODE,
   DEFAULT_MIN_PACKAGE_LESSONS,
+  DEFAULT_SCHOOL_GROUP_LESSONS_SETTINGS,
+  parseSchoolGroupLessonsSettings,
+  schoolGroupLessonsToJson,
   formatManualInvoiceConfiguredLabel,
   isManualInvoiceMethodConfigured,
   isPaymentCurrencyCode,
@@ -48,6 +51,7 @@ export const DEFAULT_PAYMENT_CONFIG: PaymentConfigDto = {
   paddle: { mode: DEFAULT_PAYMENT_ENVIRONMENT_MODE },
   monopay: { mode: DEFAULT_PAYMENT_ENVIRONMENT_MODE },
   paypal: { mode: DEFAULT_PAYMENT_ENVIRONMENT_MODE },
+  groupLessons: { ...DEFAULT_SCHOOL_GROUP_LESSONS_SETTINGS },
 };
 
 export function paymentMethodToDto(value: PaymentMethodKind): PaymentMethodKindDto {
@@ -538,6 +542,7 @@ export function parsePaymentConfig(raw: unknown): PaymentConfigDto {
           label: String(p['label'] ?? ''),
           currency: p['currency'] != null ? String(p['currency']) : undefined,
           amountMinor: p['amountMinor'] != null ? Number(p['amountMinor']) : undefined,
+          creditTrack: p['creditTrack'] === 'group' ? ('group' as const) : ('individual' as const),
         }))
         .filter((p) => p.id && p.lessons > 0)
     : [];
@@ -580,7 +585,7 @@ export function parsePaymentConfig(raw: unknown): PaymentConfigDto {
     : [];
 
   return finalizePaymentConfig({
-    packages: packages.map(({ id, lessons, label, currency }) => ({
+    packages: packages.map(({ id, lessons, label, currency, creditTrack }) => ({
       id,
       lessons,
       label,
@@ -588,6 +593,7 @@ export function parsePaymentConfig(raw: unknown): PaymentConfigDto {
         currency && isPaymentCurrencyCode(currency.toUpperCase())
           ? currency.toUpperCase()
           : undefined,
+      creditTrack: creditTrack === 'group' ? 'group' : 'individual',
     })),
     defaultPricePerLessonMinor,
     pricePerLessonByCurrency: rawPriceRows,
@@ -605,6 +611,7 @@ export function parsePaymentConfig(raw: unknown): PaymentConfigDto {
     paddle: buildPaddleConfig(paddle),
     monopay: buildMonoPayConfig(monopay),
     paypal: buildPayPalConfig(paypal),
+    groupLessons: parseSchoolGroupLessonsSettings(obj['groupLessons'], defaultCurrency),
   });
 }
 
@@ -637,6 +644,8 @@ export function finalizePaymentConfig(config: PaymentConfigDto): PaymentConfigDt
         : defaultCurrency;
     return { ...pkg, currency };
   });
+  const groupLessons = parseSchoolGroupLessonsSettings(config.groupLessons, defaultCurrency);
+
   return {
     ...config,
     allowedCurrencies,
@@ -645,6 +654,7 @@ export function finalizePaymentConfig(config: PaymentConfigDto): PaymentConfigDt
     defaultPricePerLessonMinor,
     minPackageLessons: Math.max(1, config.minPackageLessons ?? DEFAULT_MIN_PACKAGE_LESSONS),
     packages,
+    groupLessons,
   };
 }
 
@@ -697,6 +707,9 @@ export function paymentConfigToJson(config: PaymentConfigDto): Record<string, un
       liveClientId: normalized.paypal?.liveClientId?.trim() || undefined,
       testClientId: normalized.paypal?.testClientId?.trim() || undefined,
     },
+    groupLessons: schoolGroupLessonsToJson(
+      normalized.groupLessons ?? DEFAULT_SCHOOL_GROUP_LESSONS_SETTINGS,
+    ),
   };
 }
 
@@ -717,6 +730,7 @@ export function resolvePackagesForPrice(
       pricePerLessonMinor: resolvedPrice,
       amountMinor: pkg.lessons * resolvedPrice,
       isCustomPrice,
+      creditTrack: pkg.creditTrack ?? 'individual',
       lessonsLocked: false,
     };
   });

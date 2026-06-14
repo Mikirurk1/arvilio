@@ -41,6 +41,42 @@ const LEDGER_KIND_META: Record<string, LedgerKindMeta> = {
     icon: RotateCcw,
     tone: 'credit',
   },
+  GROUP_CHARGE: {
+    title: 'Group lesson charge',
+    description: 'Fixed group lesson fee recorded for your account.',
+    icon: BookOpen,
+    tone: 'debit',
+  },
+  GROUP_CHARGE_REVERSAL: {
+    title: 'Group lesson charge reversed',
+    description: 'A group lesson fee was reversed.',
+    icon: RotateCcw,
+    tone: 'credit',
+  },
+  GROUP_PURCHASE: {
+    title: 'Group lesson package purchased',
+    description: 'Group lesson credits added after a successful online payment.',
+    icon: ShoppingBag,
+    tone: 'credit',
+  },
+  GROUP_MANUAL_CREDIT: {
+    title: 'Group lesson manual top-up',
+    description: 'Group lesson credits added by your school.',
+    icon: HandCoins,
+    tone: 'credit',
+  },
+  GROUP_CONSUMPTION: {
+    title: 'Group lesson completed',
+    description: 'One group lesson credit deducted from your prepaid balance.',
+    icon: BookOpen,
+    tone: 'debit',
+  },
+  GROUP_REVERSAL: {
+    title: 'Group lesson charge reversed',
+    description: 'A previously charged group lesson was returned to your balance.',
+    icon: RotateCcw,
+    tone: 'credit',
+  },
 };
 
 const FALLBACK_META: LedgerKindMeta = {

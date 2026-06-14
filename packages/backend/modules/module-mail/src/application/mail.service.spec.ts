@@ -14,13 +14,19 @@ jest.mock('@be/email-templates', () => ({
 const sendMail = jest.fn();
 const verify = jest.fn();
 
-jest.mock('nodemailer', () => ({
-  __esModule: true,
-  default: {
-    createTransport: jest.fn(() => ({ sendMail, verify })),
-  },
-}));
+jest.mock('nodemailer', () => {
+  const createTransport = jest.fn(() => ({ sendMail, verify, close: jest.fn() }));
+  return {
+    __esModule: true,
+    createTransport,
+    default: { createTransport },
+  };
+});
 
+import {
+  resetPlatformIntegrationRuntimeFromEnv,
+  setPlatformIntegrationRuntime,
+} from '@be/platform-integration';
 import { MailService } from './mail.service';
 
 describe('MailService', () => {
@@ -29,6 +35,7 @@ describe('MailService', () => {
   beforeEach(() => {
     process.env = { ...originalEnv };
     delete process.env.SMTP_HOST;
+    setPlatformIntegrationRuntime(null);
   });
 
   afterAll(() => {
@@ -72,6 +79,7 @@ describe('MailService', () => {
 
   it('sendWelcomeAccount sends mail when SMTP is configured', async () => {
     process.env.SMTP_HOST = 'smtp.test';
+    resetPlatformIntegrationRuntimeFromEnv();
     sendMail.mockResolvedValue({ messageId: '1' });
     const service = new MailService();
     await expect(
@@ -93,6 +101,7 @@ describe('MailService', () => {
 
   it('verifyConnection uses transporter.verify when configured', async () => {
     process.env.SMTP_HOST = 'smtp.test';
+    resetPlatformIntegrationRuntimeFromEnv();
     verify.mockResolvedValue(true);
     const service = new MailService();
     await expect(service.verifyConnection()).resolves.toBeUndefined();
@@ -101,6 +110,7 @@ describe('MailService', () => {
 
   it('sendTestWelcomeEmail returns sent:false when delivery fails', async () => {
     process.env.SMTP_HOST = 'smtp.test';
+    resetPlatformIntegrationRuntimeFromEnv();
     sendMail.mockRejectedValue(new Error('smtp down'));
     const service = new MailService();
     const result = await service.sendTestWelcomeEmail('User@Test.com');

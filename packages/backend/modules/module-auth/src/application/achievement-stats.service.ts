@@ -59,6 +59,10 @@ export class AchievementStatsService {
       quizzesCompleted,
       perfectQuizCount,
       speakingSessions,
+      gamesSessions,
+      speakingSubmissions,
+      speakingReviewsReceived,
+      speakingDurationAggregate,
       practiceDurationAggregate,
       weeklyGoalsCompleted,
     ] = await Promise.all([
@@ -86,6 +90,27 @@ export class AchievementStatsService {
           kind: PracticeSessionKind.SPEAKING,
         },
       }),
+      this.prisma.practiceSession.count({
+        where: {
+          userId: target.id,
+          source: PracticeSessionSource.PRACTICE,
+          kind: PracticeSessionKind.GAMES,
+        },
+      }),
+      this.prisma.speakingSubmission.count({
+        where: { studentId: target.id },
+      }),
+      this.prisma.speakingSubmission.count({
+        where: { studentId: target.id, status: 'REVIEWED' },
+      }),
+      this.prisma.practiceSession.aggregate({
+        where: {
+          userId: target.id,
+          source: PracticeSessionSource.PRACTICE,
+          kind: PracticeSessionKind.SPEAKING,
+        },
+        _sum: { durationSec: true },
+      }),
       this.prisma.practiceSession.aggregate({
         where: { userId: target.id, source: PracticeSessionSource.PRACTICE },
         _sum: { durationSec: true },
@@ -106,6 +131,12 @@ export class AchievementStatsService {
         quizzesCompleted,
         perfectQuizCount,
         speakingSessions,
+        speakingSubmissions,
+        speakingReviewsReceived,
+        speakingMinutesTotal: Math.round(
+          (speakingDurationAggregate._sum.durationSec ?? 0) / 60,
+        ),
+        gamesSessions,
         practiceMinutesTotal: Math.round((practiceDurationAggregate._sum.durationSec ?? 0) / 60),
         lessonMinutesTotal: lessonDurationAggregate._sum.duration ?? 0,
         weeklyGoalsCompleted,
@@ -129,6 +160,10 @@ export class AchievementStatsService {
           quizzesCompleted: stats.quizzesCompleted,
           perfectQuizCount: stats.perfectQuizCount,
           speakingSessions: stats.speakingSessions,
+          speakingSubmissions: stats.speakingSubmissions,
+          speakingReviewsReceived: stats.speakingReviewsReceived,
+          speakingMinutesTotal: stats.speakingMinutesTotal,
+          gamesSessions: stats.gamesSessions,
           practiceMinutesTotal: stats.practiceMinutesTotal,
           lessonMinutesTotal: stats.lessonMinutesTotal,
           weeklyGoalsCompleted: stats.weeklyGoalsCompleted,

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { AssignableTeacherDto } from '@pkg/types';
+import type { AssignableTeacherDto, StudentLessonFormat } from '@pkg/types';
 import { partyNumericId } from '../features/lesson-modal/scheduledLessonsBackendAdapter';
 import { ASSIGNABLE_TEACHERS } from '../graphql/operations';
 import { graphqlRequest } from '../lib/graphql-client';
@@ -16,6 +16,7 @@ export type LessonPartyOption = {
   timezoneIana: string;
   /** `true` = fixed schedule (recurrence allowed). */
   scheduleType: boolean;
+  lessonFormat?: StudentLessonFormat;
 };
 
 export function useLessonPartyOptions() {
@@ -57,6 +58,7 @@ export function useLessonPartyOptions() {
       backendId: row.id,
       timezoneIana: row.timezone,
       scheduleType: row.scheduleType ?? true,
+      lessonFormat: row.lessonFormat ?? 'mixed',
     }));
   }, [studentsSlice.data]);
 

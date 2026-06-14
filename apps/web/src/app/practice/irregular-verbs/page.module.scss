@@ -1,0 +1,113 @@
+@use '../../../styles/mixins' as *;
+
+.page {
+  /* entrance-анімацію сторінки володіє app/template.tsx (V1-04) */
+  min-width: 0;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-section-md);
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  background: var(--card);
+  text-decoration: none;
+  transition:
+    border-color var(--transition),
+    color var(--transition),
+    background-color var(--transition);
+
+  &:hover {
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+    background: var(--surface);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+  }
+}
+
+.pageHeader {
+  margin-bottom: 0;
+}
+
+.pageTitle {
+  @include page-title-display;
+}
+
+.pageSub {
+  max-width: var(--container-max-prose);
+  font-size: var(--fs-page-sub);
+  line-height: var(--lh-body);
+  color: var(--text-secondary);
+}
+
+.tierSwitch {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.playBar {
+  position: sticky;
+  bottom: 16px;
+  z-index: 2;
+}
+
+.playBarCard {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-color: color-mix(in srgb, var(--accent-warning) 28%, var(--border-hairline));
+  border-top: 3px solid var(--accent-warning);
+  background: linear-gradient(
+    168deg,
+    color-mix(in srgb, var(--accent-warning) 7%, var(--card)) 0%,
+    var(--card) 60%
+  );
+  box-shadow:
+    0 8px 24px color-mix(in srgb, var(--accent-warning) 14%, transparent),
+    var(--shadow-xs);
+}
+
+.playBarText {
+  min-width: 0;
+}
+
+.playBarTitle {
+  margin: 0 0 4px;
+  font-size: var(--fs-16);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.playBarSub {
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--text-secondary);
+}
+
+@include respond-to(md) {
+  .playBar {
+    bottom: 8px;
+  }
+
+  .playBarCard {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

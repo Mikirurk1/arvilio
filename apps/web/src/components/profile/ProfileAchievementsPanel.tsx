@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { AchievementCard, SurfaceCard } from '../ui';
+import { AchievementCard, TabPanelCard } from '../ui';
 import styles from '../../app/profile/page.module.scss';
 
 type ProfileAchievement = {
@@ -17,7 +17,11 @@ export function ProfileAchievementsPanel({
   achievements: ProfileAchievement[];
 }) {
   return (
-    <SurfaceCard className={styles.formCard}>
+    <TabPanelCard>
+      <h2 className={styles.sectionTitle}>Achievements</h2>
+      <p className={styles.panelHint}>
+        Milestones from lessons, practice, and streaks. Locked badges unlock as you progress.
+      </p>
       <div className={styles.achievementsGrid}>
         {achievements.map((achievement) => (
           <AchievementCard
@@ -35,6 +39,6 @@ export function ProfileAchievementsPanel({
           />
         ))}
       </div>
-    </SurfaceCard>
+    </TabPanelCard>
   );
 }

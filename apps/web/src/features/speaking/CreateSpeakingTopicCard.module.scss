@@ -1,0 +1,77 @@
+.createTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition), background var(--transition);
+  width: 100%;
+  justify-content: flex-start;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--accent-primary) 40%, var(--border));
+    color: var(--accent-primary);
+    background: color-mix(in srgb, var(--accent-primary) 5%, var(--surface));
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+  }
+}
+
+.createTriggerIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent-primary) 12%, var(--surface));
+  color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-stack-gap);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--accent-primary);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--fs-16);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.error {
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--accent-danger);
+}

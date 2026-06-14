@@ -1,0 +1,283 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+.panelIntro {
+  margin: 0;
+  font-size: var(--fs-13);
+  line-height: 1.5;
+  color: var(--text-secondary);
+  max-width: 52ch;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.feedback {
+  flex: 1 1 100%;
+  margin: 0;
+  font-size: var(--fs-13);
+}
+
+.feedbackError {
+  flex: 1 1 100%;
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--rose);
+}
+
+.feedbackSuccess {
+  flex: 1 1 100%;
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--green-dark);
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.section {
+  border: 1px solid color-mix(in srgb, var(--border) 88%, var(--accent-info) 12%);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface) 55%, var(--card));
+  overflow: hidden;
+}
+
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--card) 92%, var(--surface));
+}
+
+.sectionTitleBlock {
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.sectionBlurb {
+  margin: 4px 0 0;
+  font-size: var(--fs-12);
+  color: var(--text-tertiary);
+  line-height: 1.4;
+}
+
+.sectionActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+}
+
+.docsLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--fs-12);
+  font-weight: 500;
+  color: var(--accent-info);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.verifyBtn {
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: var(--fs-12);
+}
+
+.sectionBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px 14px;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.fieldWide {
+  grid-column: 1 / -1;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-size: var(--fs-12);
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.infoBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: help;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--accent-info);
+    outline: none;
+  }
+}
+
+.fieldTooltip {
+  max-width: min(300px, calc(100vw - 32px));
+  font-size: var(--fs-12);
+  line-height: 1.45;
+  white-space: normal;
+}
+
+.input {
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: var(--fs-14);
+  color: var(--text-primary);
+  background: var(--field-bg);
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: var(--green);
+  }
+}
+
+.fieldFooter {
+  margin: 0;
+  font-size: var(--fs-11);
+  color: var(--text-tertiary);
+  line-height: 1.35;
+}
+
+.verifyBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: var(--fs-12);
+  line-height: 1.4;
+}
+
+.verifyBannerOk {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: var(--fs-12);
+  line-height: 1.4;
+  background: color-mix(in srgb, var(--green-light) 70%, var(--card));
+  color: var(--green-dark);
+}
+
+.verifyBannerFail {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: var(--fs-12);
+  line-height: 1.4;
+  background: color-mix(in srgb, var(--rose) 12%, var(--card));
+  color: var(--rose);
+}
+
+.advanced {
+  margin-top: 2px;
+  border-top: 1px dashed var(--border);
+  padding-top: 8px;
+}
+
+.advancedSummary {
+  cursor: pointer;
+  font-size: var(--fs-12);
+  font-weight: 600;
+  color: var(--text-tertiary);
+  list-style: none;
+  user-select: none;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+}
+
+.advancedFields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.checkboxField {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.checkboxControl {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.checkboxCopy {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (min-width: $breakpoint-narrow) {
+  .fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

@@ -10,6 +10,8 @@ export type FeatureCardProps = {
   tag?: ReactNode;
   tagVariant?: BadgeVariant;
   cta?: ReactNode;
+  stat?: ReactNode;
+  statClassName?: string;
   href?: string;
   disabled?: boolean;
   className?: string;
@@ -27,6 +29,8 @@ export function FeatureCard({
   tag,
   tagVariant = 'neutral',
   cta,
+  stat,
+  statClassName,
   href,
   disabled = false,
   className,
@@ -41,22 +45,42 @@ export function FeatureCard({
     .filter(Boolean)
     .join(' ');
 
+  const footerOnlyTag = Boolean(tag) && !cta;
+  const showFooter = Boolean(tag || cta);
+
   const body = (
-    <div className={[uiStyles.featureCardBody, bodyClassName].filter(Boolean).join(' ')}>
-      {icon ? <div className={[uiStyles.featureCardIcon, iconClassName].filter(Boolean).join(' ')}>{icon}</div> : null}
-      <h3 className={[uiStyles.featureCardTitle, titleClassName].filter(Boolean).join(' ')}>{title}</h3>
-      {description ? (
-        <p className={[uiStyles.featureCardDescription, descriptionClassName].filter(Boolean).join(' ')}>
-          {description}
-        </p>
+    <>
+      {stat ? (
+        <span className={[uiStyles.featureCardStat, statClassName].filter(Boolean).join(' ')}>
+          {stat}
+        </span>
       ) : null}
-      {(tag || cta) ? (
-        <div className={[uiStyles.featureCardFooter, footerClassName].filter(Boolean).join(' ')}>
-          {tag ? <Badge variant={tagVariant}>{tag}</Badge> : <span />}
-          {cta ? <span>{cta}</span> : null}
-        </div>
-      ) : null}
-    </div>
+      <div className={[uiStyles.featureCardBody, bodyClassName].filter(Boolean).join(' ')}>
+        {icon ? (
+          <div className={[uiStyles.featureCardIcon, iconClassName].filter(Boolean).join(' ')}>{icon}</div>
+        ) : null}
+        <h3 className={[uiStyles.featureCardTitle, titleClassName].filter(Boolean).join(' ')}>{title}</h3>
+        {description ? (
+          <p className={[uiStyles.featureCardDescription, descriptionClassName].filter(Boolean).join(' ')}>
+            {description}
+          </p>
+        ) : null}
+        {showFooter ? (
+          <div
+            className={[
+              uiStyles.featureCardFooter,
+              footerOnlyTag ? uiStyles.featureCardFooterTagOnly : '',
+              footerClassName,
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            {tag ? <Badge variant={tagVariant}>{tag}</Badge> : null}
+            {cta ? <span>{cta}</span> : null}
+          </div>
+        ) : null}
+      </div>
+    </>
   );
 
   if (href && !disabled) {

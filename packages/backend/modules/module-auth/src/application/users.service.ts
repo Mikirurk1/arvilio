@@ -15,6 +15,7 @@ import type {
   ProfileNotificationPrefs,
   StudentSummaryBackendDto,
   UpdateMyProfileRequestDto,
+  UpdateStaffUserProfileRequestDto,
 } from '@pkg/types';
 import { LanguagesService } from './languages.service';
 
@@ -83,6 +84,7 @@ export class UsersService {
     nativeLanguageId: string | null;
     learningLanguages: Array<{ languageId: string }>;
     scheduleType: boolean;
+    lessonFormat: 'INDIVIDUAL_ONLY' | 'GROUP_ONLY' | 'MIXED';
     displayColor: string | null;
     createdAt: Date;
   }): StudentSummaryBackendDto {
@@ -99,6 +101,12 @@ export class UsersService {
       nativeLanguageId: student.nativeLanguageId,
       learningLanguageIds: student.learningLanguages.map((l) => l.languageId),
       scheduleType: student.scheduleType,
+      lessonFormat:
+        student.lessonFormat === 'INDIVIDUAL_ONLY'
+          ? 'individual_only'
+          : student.lessonFormat === 'GROUP_ONLY'
+            ? 'group_only'
+            : 'mixed',
       displayColor: student.displayColor,
       createdAt: student.createdAt.toISOString(),
     };
@@ -186,6 +194,7 @@ export class UsersService {
       include: {
         oauthAccounts: { select: { provider: true, providerEmail: true } },
         calendarConnection: { select: { refreshToken: true } },
+        zoomConnection: { select: { refreshToken: true, email: true } },
       },
     });
     if (!user) throw new UnauthorizedException();
@@ -231,9 +240,71 @@ export class UsersService {
       include: {
         oauthAccounts: { select: { provider: true, providerEmail: true } },
         calendarConnection: { select: { refreshToken: true } },
+        zoomConnection: { select: { refreshToken: true, email: true } },
       },
     });
     return this.mapProfile(updated);
+  }
+
+  async getStaffUserProfile(actorUserId: string, targetUserId: string): Promise<MyProfileDto> {
+    await this.assertStaffProfileAccess(actorUserId, targetUserId);
+    return this.getMyProfile(targetUserId);
+  }
+
+  async updateStaffUserProfile(
+    actorUserId: string,
+    body: UpdateStaffUserProfileRequestDto,
+  ): Promise<MyProfileDto> {
+    await this.assertStaffProfileAccess(actorUserId, body.userId);
+    const data: Prisma.UserUncheckedUpdateInput = {};
+    if (body.displayName !== undefined) data.displayName = body.displayName.trim();
+    if (body.timezone !== undefined) data.timezone = body.timezone;
+    if (body.phone !== undefined) {
+      data.phone = body.phone === null ? null : this.normalizePhone(body.phone);
+    }
+    if (body.telegram !== undefined) {
+      data.telegram = body.telegram === null ? null : this.normalizeTelegram(body.telegram);
+    }
+    if (body.bio !== undefined) {
+      data.bio = body.bio === null ? null : body.bio.trim() || null;
+    }
+    if (body.status !== undefined) {
+      data.status = body.status.toUpperCase() as UserProfileRow['status'];
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id: body.userId },
+      data,
+      include: {
+        oauthAccounts: { select: { provider: true, providerEmail: true } },
+        calendarConnection: { select: { refreshToken: true } },
+        zoomConnection: { select: { refreshToken: true, email: true } },
+      },
+    });
+    return this.mapProfile(updated);
+  }
+
+  private async assertStaffProfileAccess(actorUserId: string, targetUserId: string) {
+    const actor = await this.prisma.user.findUnique({
+      where: { id: actorUserId },
+      select: { id: true, role: true },
+    });
+    if (!actor) throw new UnauthorizedException();
+    if (actor.role !== 'ADMIN' && actor.role !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('Only admins can manage staff profiles');
+    }
+    const target = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: { id: true, role: true },
+    });
+    if (!target) throw new BadRequestException('Staff member not found');
+    if (!TEACHING_ROLES.includes(target.role as (typeof TEACHING_ROLES)[number])) {
+      throw new BadRequestException('User is not staff');
+    }
+    if (target.role === 'SUPER_ADMIN' && actor.role !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('Only super admins can manage super-admin profiles');
+    }
+    return target;
   }
 
   async changeMyPassword(userId: string, body: ChangePasswordRequestDto): Promise<{ ok: true }> {
@@ -288,11 +359,13 @@ export class UsersService {
   private mapLinkedAccounts(user: {
     oauthAccounts: Array<{ provider: 'GOOGLE' | 'FACEBOOK' | 'TELEGRAM'; providerEmail: string | null }>;
     calendarConnection: { refreshToken: string | null } | null;
+    zoomConnection?: { refreshToken: string | null; email: string | null } | null;
   }): ProfileLinkedAccountDto[] {
     const google = user.oauthAccounts.find((row) => row.provider === 'GOOGLE');
     const facebook = user.oauthAccounts.find((row) => row.provider === 'FACEBOOK');
     const telegram = user.oauthAccounts.find((row) => row.provider === 'TELEGRAM');
     const calendarConnected = Boolean(user.calendarConnection?.refreshToken);
+    const zoomLinked = Boolean(user.zoomConnection?.refreshToken);
     return [
       {
         provider: 'google',
@@ -310,6 +383,11 @@ export class UsersService {
         linked: Boolean(telegram),
         connectedAs: telegram?.providerEmail ?? null,
       },
+      {
+        provider: 'zoom',
+        linked: zoomLinked,
+        connectedAs: user.zoomConnection?.email ?? null,
+      },
     ];
   }
 
@@ -317,6 +395,7 @@ export class UsersService {
     user: UserProfileRow & {
       oauthAccounts?: Array<{ provider: 'GOOGLE' | 'FACEBOOK' | 'TELEGRAM'; providerEmail: string | null }>;
       calendarConnection?: { refreshToken: string | null } | null;
+      zoomConnection?: { refreshToken: string | null; email: string | null } | null;
     },
   ): MyProfileDto {
     return {
@@ -336,6 +415,7 @@ export class UsersService {
       linkedAccounts: this.mapLinkedAccounts({
         oauthAccounts: user.oauthAccounts ?? [],
         calendarConnection: user.calendarConnection ?? null,
+        zoomConnection: user.zoomConnection ?? null,
       }),
     };
   }

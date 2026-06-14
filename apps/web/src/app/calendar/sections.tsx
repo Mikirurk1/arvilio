@@ -6,6 +6,8 @@ import { LESSON_STATUS } from '@pkg/types';
 import { Button, CalendarEventCard, Field, SegmentedControl, SurfaceCard } from '../../components/ui';
 import { USER_ROLE, type UserRole } from '../../mocks';
 import { lessonEndTimeInZone, lessonStartTimeInZone } from '../../lib/lessonTime';
+import { useSchoolGroupLessons } from '../../hooks/use-school-group-lessons';
+import { formatLessonStudentLabel } from '../../lib/lesson-display';
 import { useViewerTimezone } from '../../hooks/use-viewer-timezone';
 import styles from './page.module.scss';
 
@@ -97,6 +99,7 @@ export function SelectedDateSidebar({
 }) {
   const router = useRouter();
   const { iana: viewerIana } = useViewerTimezone();
+  const { enabled: groupLessonsEnabled } = useSchoolGroupLessons();
   return (
     <div className={styles.calSidebar}>
       <SurfaceCard className={styles.sidePanel}>
@@ -122,7 +125,11 @@ export function SelectedDateSidebar({
             teacherClassName={styles.evtTeacher}
             actionsClassName={styles.evtActions}
             actionButtonClassName={styles.rescheduleBtn}
-            typeLabel={lesson.studentName}
+            typeLabel={
+              groupLessonsEnabled && lesson.kind === 'group'
+                ? `${formatLessonStudentLabel(lesson)} · Group`
+                : lesson.studentName
+            }
             typeVariant={
               getLessonColor(lesson) === 'Green'
                 ? 'green'

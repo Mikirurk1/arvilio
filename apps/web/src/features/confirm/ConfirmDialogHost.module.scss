@@ -1,66 +1,102 @@
+@use '../../styles/mixins' as *;
+
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(26, 26, 46, 0.45);
+  background: var(--backdrop-modal, color-mix(in srgb, var(--fill-strong) 52%, transparent));
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: var(--z-modal-confirm, 2300);
+  padding: 16px;
 }
 
 .modal {
-  width: min(480px, calc(100vw - 24px));
-  background: var(--card);
-  border: 1px solid var(--border);
+  width: min(440px, 100%);
+  background: var(--modal-bg, var(--card));
+  border: 1px solid color-mix(in srgb, var(--border) 78%, var(--border-strong));
   border-radius: var(--radius-lg);
-  padding: 18px;
+  padding: var(--space-card-padding-lg);
+  box-shadow: var(--shadow-modal, var(--shadow-lg));
+}
+
+.header {
+  display: grid;
+  gap: 10px;
+}
+
+.badge {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: var(--fs-11);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.badgeDefault {
+  background: var(--accent-info-muted);
+  color: var(--accent-info);
+}
+
+.badgeDanger {
+  background: var(--accent-danger-muted);
+  color: var(--accent-danger);
 }
 
 .title {
   margin: 0;
-  font-size: var(--fs-18);
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: var(--fs-20);
+  font-weight: var(--fw-semibold);
   color: var(--text-primary);
+  line-height: 1.25;
 }
 
 .body {
-  margin: 8px 0 0;
+  margin: 10px 0 0;
   font-size: var(--fs-14);
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--text-secondary);
 }
 
 .actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  margin-top: 14px;
-}
-
-.cancelBtn,
-.confirmPrimary,
-.confirmDanger {
-  border-radius: var(--radius-md);
-  padding: 8px 12px;
-  font-size: var(--fs-13);
-  font-weight: 600;
-  cursor: pointer;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
 }
 
 .cancelBtn {
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-secondary);
+  min-height: 40px;
 }
 
 .confirmPrimary {
-  border: 1px solid var(--border-strong);
-  background: var(--card);
-  color: var(--text-primary);
+  min-height: 40px;
+  border-color: color-mix(in srgb, var(--accent-primary) 40%, var(--border-strong));
+  background: var(--accent-primary-muted);
+  color: var(--green-dark);
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary-muted) 75%, var(--card));
+  }
 }
 
 .confirmDanger {
-  border: 1px solid #ef4444;
-  background: #ef4444;
-  color: #fff;
+  min-height: 40px;
+  border-color: color-mix(in srgb, var(--accent-danger) 55%, var(--border));
+  background: var(--accent-danger);
+  color: var(--on-inverse);
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-danger) 84%, black);
+  }
 }

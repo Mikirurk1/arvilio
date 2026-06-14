@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import type { ChatConversationDto } from '@pkg/types';
-import { Button, Field } from '../../components/ui';
+import { Button, Field, UserAvatar } from '../../components/ui';
 import styles from './page.module.scss';
 
 function formatListTime(iso: string): string {
@@ -75,12 +75,17 @@ export function ChatInbox({
             className={`${styles.convRow} ${activeId === conv.id ? styles.convRowActive : ''}`}
             onClick={() => onSelect(conv.id)}
           >
-            <span className={styles.avatar} aria-hidden>
-              {conv.type === 'group' ? 'G' : (conv.peer?.initials ?? '?')}
-            </span>
+            <UserAvatar
+              size="md"
+              src={conv.type === 'direct' ? conv.peer?.avatarUrl : null}
+              name={conv.type === 'direct' ? (conv.peer?.displayName ?? conv.title) : conv.title}
+              className={styles.avatar}
+            />
             <span className={styles.convMeta}>
               <span className={styles.convTop}>
-                <span className={styles.convName}>{conv.title}</span>
+                <span className={`${styles.convName} ${conv.unreadCount > 0 ? styles.convNameUnread : ''}`}>
+                  {conv.title}
+                </span>
                 <span className={styles.convTime}>{formatListTime(conv.lastMessageAt)}</span>
               </span>
               <span className={styles.convTop}>

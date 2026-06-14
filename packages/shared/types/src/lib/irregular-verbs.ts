@@ -1,11 +1,84 @@
 /** Curated irregular verb forms for drills and vocabulary display. */
+export type IrregularVerbTier = 'common' | 'extended';
+
 export type IrregularVerbEntry = {
   base: string;
   pastSimple: string;
   pastParticiple: string;
+  tier: IrregularVerbTier;
 };
 
-const IRREGULAR_VERBS: IrregularVerbEntry[] = [
+/** Everyday irregular verbs (A1–B2); extended tier adds the full catalog. */
+const COMMON_IRREGULAR_VERB_BASES = new Set([
+  'be',
+  'begin',
+  'break',
+  'bring',
+  'build',
+  'become',
+  'buy',
+  'catch',
+  'choose',
+  'come',
+  'cut',
+  'do',
+  'drink',
+  'drive',
+  'eat',
+  'fall',
+  'feel',
+  'fight',
+  'find',
+  'fly',
+  'forget',
+  'get',
+  'give',
+  'go',
+  'grow',
+  'have',
+  'hear',
+  'hold',
+  'keep',
+  'know',
+  'learn',
+  'leave',
+  'let',
+  'lose',
+  'make',
+  'mean',
+  'meet',
+  'pay',
+  'put',
+  'read',
+  'run',
+  'say',
+  'see',
+  'sell',
+  'send',
+  'set',
+  'show',
+  'sing',
+  'sit',
+  'sleep',
+  'speak',
+  'spend',
+  'stand',
+  'swim',
+  'take',
+  'teach',
+  'tell',
+  'think',
+  'throw',
+  'understand',
+  'wake',
+  'wear',
+  'win',
+  'write',
+]);
+
+type RawIrregularVerbEntry = Omit<IrregularVerbEntry, 'tier'>;
+
+const RAW_IRREGULAR_VERBS: RawIrregularVerbEntry[] = [
   { base: 'be', pastSimple: 'was/were', pastParticiple: 'been' },
   { base: 'beat', pastSimple: 'beat', pastParticiple: 'beaten' },
   { base: 'become', pastSimple: 'became', pastParticiple: 'become' },
@@ -139,6 +212,11 @@ const IRREGULAR_VERBS: IrregularVerbEntry[] = [
   { base: 'write', pastSimple: 'wrote', pastParticiple: 'written' },
 ];
 
+const IRREGULAR_VERBS: IrregularVerbEntry[] = RAW_IRREGULAR_VERBS.map((entry) => ({
+  ...entry,
+  tier: COMMON_IRREGULAR_VERB_BASES.has(entry.base) ? 'common' : 'extended',
+}));
+
 const BY_BASE = new Map<string, IrregularVerbEntry>(
   IRREGULAR_VERBS.map((entry) => [entry.base.toLowerCase(), entry]),
 );
@@ -148,8 +226,42 @@ export function lookupIrregularVerb(text: string): IrregularVerbEntry | null {
   return BY_BASE.get(key) ?? null;
 }
 
-export function listIrregularVerbs(): readonly IrregularVerbEntry[] {
+/** Extended tier returns the full catalog; common returns everyday verbs only. */
+export function listIrregularVerbs(tier?: IrregularVerbTier): readonly IrregularVerbEntry[] {
+  if (tier === 'common') {
+    return IRREGULAR_VERBS.filter((entry) => entry.tier === 'common');
+  }
   return IRREGULAR_VERBS;
+}
+
+export function countIrregularVerbs(tier?: IrregularVerbTier): number {
+  return listIrregularVerbs(tier).length;
+}
+
+function hashToUInt(seed: string): number {
+  let h = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    h = Math.imul(31, h) + seed.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h);
+}
+
+/** Platform-wide daily pick from the common tier (UTC `YYYY-MM-DD` date key). */
+export function pickIrregularVerbOfDay(dateKey?: string): IrregularVerbEntry {
+  const key =
+    dateKey ??
+    (typeof globalThis !== 'undefined'
+      ? new Date().toISOString().slice(0, 10)
+      : '1970-01-01');
+  const pool = listIrregularVerbs('common');
+  const catalog = pool.length > 0 ? pool : listIrregularVerbs('extended');
+  const index = hashToUInt(`irregular-verb|${key}`) % catalog.length;
+  return catalog[index]!;
+}
+
+export function formatIrregularVerbRow(entry: IrregularVerbEntry): string {
+  return `${entry.base} → ${entry.pastSimple} → ${entry.pastParticiple}`;
 }
 
 /** True when the word row has at least one verb sense. */

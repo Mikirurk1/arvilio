@@ -1,9 +1,30 @@
+@use '../../styles/variables' as *;
 @use '../../styles/mixins' as *;
 
 .page {
   padding-top: 12px;
-  display: grid;
-  gap: 20px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-section-md);
+}
+
+.pageHeader {
+  margin-bottom: 0;
+}
+
+.pageTitle {
+  @include page-title-display;
+}
+
+.pageSub {
+  max-width: var(--container-max-prose);
+  font-size: var(--fs-page-sub);
+  line-height: var(--lh-body);
+  color: var(--text-secondary);
+  margin-top: 6px;
 }
 
 // Alerts
@@ -34,7 +55,7 @@
 
 // Balance hero
 .balanceCard {
-  padding: 22px 24px;
+  padding: 20px 22px;
 }
 
 .balanceCard_ok {
@@ -51,69 +72,59 @@
 
 .balanceCardInner {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 20px;
   flex-wrap: wrap;
 }
 
+.balanceCopy {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
 .balanceLabel {
-  font-size: var(--fs-12);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-tertiary);
-  margin-bottom: 4px;
-}
-
-.balanceNum {
-  font-size: var(--fs-40);
-  font-weight: 800;
-  line-height: 1.1;
+  margin: 0 0 6px;
+  font-size: var(--fs-section-title);
+  font-weight: var(--fw-semibold);
   color: var(--text-primary);
-}
-
-.balanceCard_warning .balanceNum {
-  color: #d97706;
-}
-
-.balanceCard_danger .balanceNum {
-  color: var(--rose);
 }
 
 .balanceMessage {
-  margin-top: 8px;
-  max-width: 42ch;
+  margin: 0;
+  max-width: 36ch;
   font-size: var(--fs-14);
-  line-height: 1.5;
+  line-height: var(--lh-body);
   color: var(--text-secondary);
 }
 
-.balanceAside {
-  display: grid;
-  gap: 2px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--card) 90%, white);
+.balanceStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex: 0 1 auto;
+}
+
+.balanceStat {
+  min-width: 120px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface) 80%, var(--card));
   border: 1px solid var(--border);
 }
 
-.balanceAsideLabel {
-  font-size: var(--fs-11);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-tertiary);
+.balanceStatValue {
+  font-size: var(--fs-28);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
 }
 
-.balanceAsideValue {
-  font-size: var(--fs-20);
-  color: var(--text-primary);
+.balanceCard_warning .balanceStatValue {
+  color: #d97706;
 }
 
-.balanceAsideMeta {
-  font-size: var(--fs-12);
-  color: var(--text-tertiary);
+.balanceCard_danger .balanceStatValue {
+  color: var(--rose);
 }
 
 .loadingCard {
@@ -133,27 +144,84 @@
 }
 
 .sectionIntro {
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
+  display: grid;
+  gap: 6px;
 }
 
-.sectionStep {
-  flex-shrink: 0;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: var(--fs-11);
-  font-weight: 700;
+.checkoutSection {
+  display: grid;
+  gap: var(--space-section-sm);
+}
+
+.checkoutLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: var(--space-section-md);
+  align-items: start;
+}
+
+.checkoutMain {
+  display: grid;
+  gap: var(--space-section-sm);
+  min-width: 0;
+}
+
+.checkoutAside {
+  min-width: 0;
+}
+
+.checkoutSticky {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  position: sticky;
+  top: calc(var(--header-h) + 16px);
+  border-color: color-mix(in srgb, var(--border) 90%, transparent);
+  box-shadow: var(--shadow-sm);
+}
+
+.checkoutPlaceholder {
+  margin: 0;
+  font-size: var(--fs-14);
+  line-height: var(--lh-body);
+  color: var(--text-tertiary);
+}
+
+.checkoutTrust {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: var(--fs-12);
+  color: var(--text-tertiary);
+
+  svg {
+    flex-shrink: 0;
+    opacity: 0.85;
+  }
+}
+
+.payMethodHeading {
+  margin: 4px 0 0;
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  background: color-mix(in srgb, var(--blue) 12%, var(--surface));
-  color: var(--blue, #2563eb);
-  border: 1px solid color-mix(in srgb, var(--blue) 22%, transparent);
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+}
+
+.payMethodBtn {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
 }
 
 .sectionTitle {
-  font-size: var(--fs-18);
-  font-weight: 700;
+  font-size: var(--fs-section-title);
+  font-weight: var(--fw-semibold);
   color: var(--text-primary);
   margin: 0;
 }
@@ -218,12 +286,8 @@
   padding: 20px 22px;
   border: 1px solid color-mix(in srgb, var(--green) 28%, var(--border));
   border-radius: 18px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--green) 6%, var(--card)) 0%,
-    var(--card) 55%
-  );
-  box-shadow: 0 1px 2px rgb(15 23 42 / 5%);
+  background: var(--surface-offer);
+  box-shadow: var(--shadow-xs);
 }
 
 .packageOfferBody {
@@ -274,7 +338,7 @@
   min-width: min(100%, 200px);
   padding: 14px 18px;
   border-radius: 14px;
-  background: var(--surface);
+  background: var(--surface-inset);
   border: 1px solid var(--border);
   text-align: right;
 }
@@ -293,6 +357,23 @@
   line-height: 1.1;
   letter-spacing: -0.02em;
   color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Current plan indicator — shown when a package matches the student's active plan */
+.packageCardCurrentPlan {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: var(--fs-11);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+  background: var(--surface);
+  border: 1px solid var(--border);
 }
 
 // Multiple packages — compact picker cards
@@ -314,18 +395,19 @@
   width: 100%;
   font: inherit;
   color: inherit;
+  /* trust-critical: no decorative transforms */
   transition:
     border-color 0.18s ease,
     box-shadow 0.18s ease,
     background 0.18s ease;
 
   &:hover {
-    border-color: color-mix(in srgb, var(--blue, #2563eb) 35%, var(--border));
-    box-shadow: 0 6px 18px rgb(15 23 42 / 6%);
+    border-color: color-mix(in srgb, var(--green) 35%, var(--border));
+    box-shadow: 0 4px 12px rgb(15 23 42 / 5%);
   }
 
   &:focus-visible {
-    outline: 2px solid var(--blue, #2563eb);
+    outline: 2px solid var(--green);
     outline-offset: 2px;
   }
 }
@@ -335,9 +417,9 @@
 }
 
 .packageCardSelected {
-  border-color: color-mix(in srgb, var(--blue, #2563eb) 50%, var(--border));
-  background: color-mix(in srgb, var(--blue, #2563eb) 4%, var(--card));
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--blue, #2563eb) 18%, transparent);
+  border: 2px solid var(--green);
+  background: color-mix(in srgb, var(--green-light) 55%, var(--card));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--green) 18%, transparent);
 }
 
 .packageCardRadio {
@@ -356,23 +438,15 @@
 }
 
 .packageCardSelected .packageCardRadio {
-  border-color: var(--blue, #2563eb);
-  background: var(--blue, #2563eb);
+  border-color: var(--green);
+  background: var(--green);
 }
 
+/* packageCardRibbon — layout override; Badge component handles color/font */
 .packageCardRibbon {
   display: inline-flex;
   align-self: flex-start;
   margin-bottom: 2px;
-  padding: 3px 8px;
-  border-radius: 999px;
-  font-size: var(--fs-11);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: #166534;
-  background: color-mix(in srgb, var(--green) 12%, var(--card));
-  border: 1px solid color-mix(in srgb, var(--green) 28%, transparent);
 }
 
 .packageCardMain {
@@ -409,6 +483,7 @@
   font-size: var(--fs-20);
   font-weight: 800;
   color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 .packageCardRate {
@@ -430,15 +505,8 @@
 
 .packageGridInner {
   display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-}
-
-.orderSummary {
-  padding: 18px 20px;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--card) 70%, var(--surface));
+  gap: 10px;
+  grid-template-columns: 1fr;
 }
 
 .orderSummaryEyebrow {
@@ -461,6 +529,7 @@
   font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 700;
   color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 .orderSummaryLessons {
@@ -469,9 +538,14 @@
   color: var(--text-secondary);
 }
 
-.orderSummaryAfter {
+.orderSummaryMeta {
   margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
   font-size: var(--fs-13);
+  line-height: var(--lh-body);
   color: var(--text-secondary);
 }
 
@@ -482,136 +556,22 @@
   color: var(--text-tertiary);
 }
 
-// Checkout panel
-.checkoutPanel {
-  display: grid;
-  gap: 16px;
-  padding: 20px;
-  border-radius: 18px;
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--card) 50%, var(--surface));
-}
-
-.checkoutSummary {
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-}
-
-.checkoutSummaryLabel {
-  display: block;
-  font-size: var(--fs-11);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-tertiary);
-  margin-bottom: 4px;
-}
-
-.checkoutSummaryTitle {
-  display: block;
-  font-size: var(--fs-16);
-  color: var(--text-primary);
-}
-
-.checkoutSummaryMeta {
-  display: block;
-  margin-top: 4px;
-  font-size: var(--fs-13);
-  color: var(--text-secondary);
-}
-
 .payMethodGrid {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
-.payMethodCard {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  padding: 14px 16px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface);
-  cursor: pointer;
-  text-align: left;
-  font: inherit;
-  color: inherit;
-  transition:
-    border-color 0.15s ease,
-    background 0.15s ease;
-
-  &:hover:not(:disabled) {
-    border-color: color-mix(in srgb, var(--blue) 40%, var(--border));
-    background: color-mix(in srgb, var(--blue) 4%, var(--surface));
+@include respond-to(md) {
+  .checkoutLayout {
+    grid-template-columns: 1fr;
   }
 
-  &:disabled {
-    opacity: 0.65;
-    cursor: not-allowed;
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--blue, #2563eb);
-    outline-offset: 2px;
+  .checkoutSticky {
+    position: static;
   }
 }
 
-.payMethodIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--blue) 10%, var(--card));
-  color: var(--blue, #2563eb);
-}
-
-.payMethodText {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-.payMethodTitle {
-  font-size: var(--fs-15);
-  font-weight: 650;
-  color: var(--text-primary);
-}
-
-.payMethodDescription {
-  font-size: var(--fs-12);
-  line-height: 1.4;
-  color: var(--text-tertiary);
-}
-
-.payMethodAction {
-  flex-shrink: 0;
-  font-size: var(--fs-13);
-  font-weight: 700;
-  color: var(--blue, #2563eb);
-  white-space: nowrap;
-}
-
-@media (max-width: 720px) {
-  .payMethodCard {
-    grid-template-columns: auto 1fr;
-    grid-template-rows: auto auto;
-
-    .payMethodAction {
-      grid-column: 2;
-      justify-self: start;
-      white-space: normal;
-    }
-  }
-}
-
-@media (max-width: 640px) {
+@include respond-max($breakpoint-compact) {
   .packageOffer {
     flex-direction: column;
   }
@@ -619,24 +579,6 @@
   .packageOfferPrice {
     width: 100%;
     text-align: left;
-  }
-}
-
-[data-theme='dark'] {
-  .packageOffer {
-    background: linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--green) 10%, var(--card)) 0%,
-      var(--card) 60%
-    );
-  }
-
-  .packageOfferPrice {
-    background: color-mix(in srgb, var(--surface) 90%, var(--card));
-  }
-
-  .packageCardRadio {
-    background: var(--card);
   }
 }
 

@@ -10,9 +10,11 @@ import { PrismaService } from '@be/prisma';
 import type {
   AdjustStudentLessonBalanceRequestDto,
   LessonBalanceLedgerEntryDto,
+  LessonCreditTrackDto,
   StudentLessonBalanceDto,
   UpdateStudentLessonBillingRequestDto,
 } from '@pkg/types';
+import { parseLessonCreditTrack } from '@pkg/types';
 import { getLemonSqueezyActiveVariantCurrency } from '@pkg/types';
 import { PaymentSettingsService } from './payment-settings.service';
 import {
@@ -37,12 +39,21 @@ import {
   parsePackageOverrides,
   resolveStudentPackages,
 } from '../shared/student-billing-map.util';
+import { splitGroupPriceMinor } from '../shared/group-price-split.util';
+import {
+  lessonFormatToDto,
+  toGroupMembershipSummaryDto,
+} from '../shared/student-balance-map.util';
 
 type StaffRole = 'TEACHER' | 'ADMIN' | 'SUPER_ADMIN';
+type CreditTrack = LessonCreditTrackDto;
+
 const BALANCE_ROW_SELECT = {
   userId: true,
   balance: true,
+  groupBalance: true,
   pricePerLessonMinor: true,
+  groupPricePerLessonMinor: true,
   billingMode: true,
   packageOverrides: true,
   paymentMethodSelection: true,
@@ -80,13 +91,15 @@ export class LessonBalanceService {
     if (!student || student.role !== 'STUDENT') {
       throw new NotFoundException('Student not found');
     }
-    return this.buildBalanceDto(studentId);
+    const dto = await this.buildBalanceDto(studentId);
+    return actor.role === 'TEACHER' ? this.redactPricingForTeacher(dto) : dto;
   }
 
   async updateStudentPricing(
     actor: { id: string; role: StaffRole },
     studentId: string,
     pricePerLessonMinor: number | null,
+    groupPricePerLessonMinor?: number | null,
   ): Promise<StudentLessonBalanceDto> {
     if (actor.role !== 'ADMIN' && actor.role !== 'SUPER_ADMIN') {
       throw new ForbiddenException('Only admins can update student pricing');
@@ -101,10 +114,19 @@ export class LessonBalanceService {
     if (pricePerLessonMinor != null && (!Number.isInteger(pricePerLessonMinor) || pricePerLessonMinor < 0)) {
       throw new BadRequestException('pricePerLessonMinor must be a non-negative integer');
     }
+    if (
+      groupPricePerLessonMinor != null &&
+      (!Number.isInteger(groupPricePerLessonMinor) || groupPricePerLessonMinor < 0)
+    ) {
+      throw new BadRequestException('groupPricePerLessonMinor must be a non-negative integer');
+    }
     await this.ensureBalanceRow(studentId);
     await this.prisma.studentLessonBalance.update({
       where: { userId: studentId },
-      data: { pricePerLessonMinor },
+      data: {
+        pricePerLessonMinor,
+        ...(groupPricePerLessonMinor !== undefined ? { groupPricePerLessonMinor } : {}),
+      },
     });
     return this.buildBalanceDto(studentId);
   }
@@ -199,12 +221,14 @@ export class LessonBalanceService {
     if (!student || student.role !== 'STUDENT') {
       throw new NotFoundException('Student not found');
     }
+    const creditTrack = parseLessonCreditTrack(body.creditTrack);
     await this.appendLedgerEntry({
       userId: body.studentId,
       delta: lessons,
-      kind: 'MANUAL_CREDIT',
+      kind: creditTrack === 'group' ? 'GROUP_MANUAL_CREDIT' : 'MANUAL_CREDIT',
       createdById: actor.id,
       note: body.note?.trim() || null,
+      creditTrack,
     });
     return this.buildBalanceDto(body.studentId);
   }
@@ -213,37 +237,108 @@ export class LessonBalanceService {
     userId: string;
     lessons: number;
     paymentId: string;
+    creditTrack?: LessonCreditTrackDto;
   }): Promise<void> {
     if (params.lessons <= 0) return;
+    let creditTrack = params.creditTrack;
+    if (!creditTrack) {
+      const payment = await this.prisma.payment.findUnique({
+        where: { id: params.paymentId },
+        select: { metadata: true },
+      });
+      const meta =
+        payment?.metadata && typeof payment.metadata === 'object'
+          ? (payment.metadata as Record<string, unknown>)
+          : null;
+      creditTrack = parseLessonCreditTrack(meta?.['creditTrack']);
+    }
     await this.appendLedgerEntry({
       userId: params.userId,
       delta: params.lessons,
-      kind: 'PURCHASE',
+      kind: creditTrack === 'group' ? 'GROUP_PURCHASE' : 'PURCHASE',
       paymentId: params.paymentId,
       note: null,
+      creditTrack,
     });
   }
 
   async syncLessonCharge(lessonId: string): Promise<void> {
     const lesson = await this.prisma.scheduledLesson.findUnique({
       where: { id: lessonId },
-      select: { id: true, studentId: true, status: true, credited: true },
+      select: {
+        id: true,
+        kind: true,
+        studentId: true,
+        status: true,
+        credited: true,
+        groupBillingMode: true,
+        groupPriceMinor: true,
+        groupCurrency: true,
+        groupSplitMode: true,
+        groupPayerUserId: true,
+        participants: { orderBy: { sortOrder: 'asc' }, select: { userId: true } },
+      },
     });
     if (!lesson) return;
 
     const charge = shouldChargeLesson(lesson.status, lesson.credited);
-    const consumption = await this.prisma.lessonBalanceLedger.findUnique({
-      where: {
-        scheduledLessonId_kind: {
-          scheduledLessonId: lessonId,
-          kind: 'CONSUMPTION',
-        },
-      },
-    });
+    const participantIds =
+      lesson.participants.length > 0
+        ? lesson.participants.map((row) => row.userId)
+        : [lesson.studentId];
+
+    if (lesson.kind === 'GROUP') {
+      await this.syncGroupLessonCharges(lessonId, lesson, participantIds, charge);
+      return;
+    }
+
+    await this.syncIndividualLessonCharge(lessonId, lesson.studentId, charge);
+  }
+
+  private async syncGroupLessonCreditCharge(
+    lessonId: string,
+    studentId: string,
+    charge: boolean,
+  ): Promise<void> {
+    const consumption = await this.findLedgerEntry(lessonId, studentId, 'GROUP_CONSUMPTION');
 
     if (charge && !consumption) {
       await this.appendLedgerEntry({
-        userId: lesson.studentId,
+        userId: studentId,
+        delta: -1,
+        kind: 'GROUP_CONSUMPTION',
+        scheduledLessonId: lessonId,
+        note: null,
+        creditTrack: 'group',
+      });
+      return;
+    }
+
+    if (!charge && consumption) {
+      const reversal = await this.findLedgerEntry(lessonId, studentId, 'GROUP_REVERSAL');
+      if (!reversal) {
+        await this.appendLedgerEntry({
+          userId: studentId,
+          delta: 1,
+          kind: 'GROUP_REVERSAL',
+          scheduledLessonId: lessonId,
+          note: null,
+          creditTrack: 'group',
+        });
+      }
+    }
+  }
+
+  private async syncIndividualLessonCharge(
+    lessonId: string,
+    studentId: string,
+    charge: boolean,
+  ): Promise<void> {
+    const consumption = await this.findLedgerEntry(lessonId, studentId, 'CONSUMPTION');
+
+    if (charge && !consumption) {
+      await this.appendLedgerEntry({
+        userId: studentId,
         delta: -1,
         kind: 'CONSUMPTION',
         scheduledLessonId: lessonId,
@@ -253,17 +348,10 @@ export class LessonBalanceService {
     }
 
     if (!charge && consumption) {
-      const reversal = await this.prisma.lessonBalanceLedger.findUnique({
-        where: {
-          scheduledLessonId_kind: {
-            scheduledLessonId: lessonId,
-            kind: 'REVERSAL',
-          },
-        },
-      });
+      const reversal = await this.findLedgerEntry(lessonId, studentId, 'REVERSAL');
       if (!reversal) {
         await this.appendLedgerEntry({
-          userId: lesson.studentId,
+          userId: studentId,
           delta: 1,
           kind: 'REVERSAL',
           scheduledLessonId: lessonId,
@@ -271,6 +359,94 @@ export class LessonBalanceService {
         });
       }
     }
+  }
+
+  private async syncGroupLessonCharges(
+    lessonId: string,
+    lesson: {
+      groupBillingMode: string | null;
+      groupPriceMinor: number | null;
+      groupCurrency: string | null;
+      groupSplitMode: string | null;
+      groupPayerUserId: string | null;
+    },
+    participantIds: string[],
+    charge: boolean,
+  ): Promise<void> {
+    if (lesson.groupBillingMode === 'PER_MEMBER') {
+      for (const userId of participantIds) {
+        await this.syncGroupLessonCreditCharge(lessonId, userId, charge);
+      }
+      return;
+    }
+
+    if (lesson.groupBillingMode !== 'FIXED_TOTAL') return;
+
+    const currency = lesson.groupCurrency ?? 'UAH';
+    const totalMinor = lesson.groupPriceMinor ?? 0;
+    const chargeTargets =
+      lesson.groupSplitMode === 'SINGLE_PAYER' && lesson.groupPayerUserId
+        ? [lesson.groupPayerUserId]
+        : participantIds;
+    const amountsByUser =
+      lesson.groupSplitMode === 'EQUAL_SPLIT'
+        ? splitGroupPriceMinor(totalMinor, participantIds)
+        : new Map([[chargeTargets[0]!, totalMinor]]);
+
+    if (charge) {
+      for (const userId of chargeTargets) {
+        const amountMinor = amountsByUser.get(userId) ?? totalMinor;
+        if (amountMinor <= 0) continue;
+        const existingCharge = await this.findLedgerEntry(lessonId, userId, 'GROUP_CHARGE');
+        if (!existingCharge) {
+          await this.appendLedgerEntry({
+            userId,
+            delta: 0,
+            kind: 'GROUP_CHARGE',
+            scheduledLessonId: lessonId,
+            note: null,
+            amountMinor,
+            currency,
+          });
+        }
+      }
+      return;
+    }
+
+    const existingCharges = await this.prisma.lessonBalanceLedger.findMany({
+      where: { scheduledLessonId: lessonId, kind: 'GROUP_CHARGE' },
+      select: { userId: true, amountMinor: true, currency: true },
+    });
+    for (const row of existingCharges) {
+      const reversal = await this.findLedgerEntry(lessonId, row.userId, 'GROUP_CHARGE_REVERSAL');
+      if (!reversal) {
+        await this.appendLedgerEntry({
+          userId: row.userId,
+          delta: 0,
+          kind: 'GROUP_CHARGE_REVERSAL',
+          scheduledLessonId: lessonId,
+          note: null,
+          amountMinor: row.amountMinor ?? amountsByUser.get(row.userId) ?? totalMinor,
+          currency: row.currency ?? currency,
+        });
+      }
+    }
+  }
+
+  private findLedgerEntry(
+    lessonId: string,
+    userId: string,
+    kind: LessonBalanceLedgerKind,
+  ) {
+    return this.prisma.lessonBalanceLedger.findUnique({
+      where: {
+        scheduledLessonId_userId_kind: {
+          scheduledLessonId: lessonId,
+          userId,
+          kind,
+        },
+      },
+    });
   }
 
   async syncLessonsAfterAutoComplete(lessonIds: string[]): Promise<void> {
@@ -319,14 +495,52 @@ export class LessonBalanceService {
         note: true,
         createdAt: true,
         scheduledLessonId: true,
+        amountMinor: true,
+        currency: true,
       },
     });
+    const groupLessonsEnabled = platformSettings.config.groupLessons?.enabled ?? false;
+    let lessonFormat: ReturnType<typeof lessonFormatToDto> | null = null;
+    let groupMemberships: ReturnType<typeof toGroupMembershipSummaryDto>[] | undefined;
+    if (groupLessonsEnabled) {
+      const studentUser = await this.prisma.user.findUnique({
+        where: { id: studentId },
+        select: { lessonFormat: true },
+      });
+      if (studentUser) {
+        lessonFormat = lessonFormatToDto(studentUser.lessonFormat);
+      }
+      const memberships = await this.prisma.studentGroupMember.findMany({
+        where: { userId: studentId },
+        orderBy: { sortOrder: 'asc' },
+        select: {
+          studentGroup: {
+            select: {
+              id: true,
+              name: true,
+              groupBillingMode: true,
+              groupPriceMinor: true,
+              groupCurrency: true,
+              groupSplitMode: true,
+              groupPayerUserId: true,
+            },
+          },
+        },
+      });
+      groupMemberships = memberships.map(toGroupMembershipSummaryDto);
+    }
     const balance = balanceRow.balance;
+    const groupBalance = balanceRow.groupBalance;
     const pricing = await this.paymentSettings.resolvePricePerLessonMinor(studentId);
+    const groupPricing = await this.paymentSettings.resolveGroupPricePerLessonMinor(studentId);
     const packages = resolveStudentPackages(
       platformSettings.config,
-      pricing.resolvedPricePerLessonMinor,
-      pricing.isCustomPrice,
+      {
+        individualPricePerLessonMinor: pricing.resolvedPricePerLessonMinor,
+        individualIsCustomPrice: pricing.isCustomPrice,
+        groupPricePerLessonMinor: groupPricing.resolvedGroupPricePerLessonMinor,
+        groupIsCustomPrice: groupPricing.isCustomGroupPrice,
+      },
       billingMode,
       packageOverrides,
     );
@@ -335,6 +549,8 @@ export class LessonBalanceService {
     return {
       balance,
       isDebt: balance < 0,
+      groupBalance,
+      groupIsDebt: groupBalance < 0,
       availableMethods,
       enabledPaymentMethods: platformSettings.enabledMethods,
       paymentMethodSelection,
@@ -351,20 +567,57 @@ export class LessonBalanceService {
       pricePerLessonMinor: pricing.pricePerLessonMinor,
       defaultPricePerLessonMinor: pricing.defaultPricePerLessonMinor,
       resolvedPricePerLessonMinor: pricing.resolvedPricePerLessonMinor,
+      groupPricePerLessonMinor: groupPricing.groupPricePerLessonMinor,
+      defaultGroupPricePerLessonMinor: groupPricing.defaultGroupPricePerLessonMinor,
+      resolvedGroupPricePerLessonMinor: groupPricing.resolvedGroupPricePerLessonMinor,
+      groupCurrency: groupPricing.groupCurrency,
       defaultCurrency: pricing.defaultCurrency,
       isCustomPrice: pricing.isCustomPrice,
+      isCustomGroupPrice: groupPricing.isCustomGroupPrice,
       packages,
       recentLedger: recent.map(toLedgerDto),
       lemonSqueezyVariantCurrency: platformSettings.enabledMethods.includes('lemonsqueezy')
         ? getLemonSqueezyActiveVariantCurrency(platformSettings.config.lemonsqueezy)
         : null,
+      lessonFormat: lessonFormat ?? null,
+      groupMemberships: groupMemberships ?? [],
+    };
+  }
+
+  private redactPricingForTeacher(dto: StudentLessonBalanceDto): StudentLessonBalanceDto {
+    return {
+      ...dto,
+      showPerLessonPricing: false,
+      showSelfServePackages: false,
+      pricePerLessonMinor: null,
+      defaultPricePerLessonMinor: 0,
+      resolvedPricePerLessonMinor: 0,
+      groupPricePerLessonMinor: null,
+      defaultGroupPricePerLessonMinor: 0,
+      resolvedGroupPricePerLessonMinor: 0,
+      groupCurrency: dto.groupCurrency,
+      isCustomPrice: false,
+      isCustomGroupPrice: false,
+      packages: [],
+      platformPackages: [],
+      packageOverrides: [],
+      groupMemberships: (dto.groupMemberships ?? []).map((membership) => ({
+        ...membership,
+        groupPriceMinor: null,
+        groupCurrency: null,
+      })),
+      recentLedger: dto.recentLedger.map((entry) => ({
+        ...entry,
+        amountMinor: null,
+        currency: null,
+      })),
     };
   }
 
   private async ensureBalanceRow(userId: string) {
     return this.prisma.studentLessonBalance.upsert({
       where: { userId },
-      create: { userId, balance: 0 },
+      create: { userId, balance: 0, groupBalance: 0 },
       update: {},
       select: BALANCE_ROW_SELECT,
     });
@@ -378,17 +631,25 @@ export class LessonBalanceService {
     paymentId?: string | null;
     createdById?: string | null;
     note: string | null;
+    amountMinor?: number | null;
+    currency?: string | null;
+    creditTrack?: CreditTrack;
   }): Promise<void> {
+    const creditTrack = params.creditTrack ?? 'individual';
     await this.prisma.$transaction(async (tx) => {
       const row = await tx.studentLessonBalance.upsert({
         where: { userId: params.userId },
-        create: { userId: params.userId, balance: 0 },
+        create: { userId: params.userId, balance: 0, groupBalance: 0 },
         update: {},
       });
-      const nextBalance = row.balance + params.delta;
+      const currentBalance = creditTrack === 'group' ? row.groupBalance : row.balance;
+      const nextBalance = currentBalance + params.delta;
       await tx.studentLessonBalance.update({
         where: { userId: params.userId },
-        data: { balance: nextBalance },
+        data:
+          creditTrack === 'group'
+            ? { groupBalance: nextBalance }
+            : { balance: nextBalance },
       });
       try {
         await tx.lessonBalanceLedger.create({
@@ -401,6 +662,8 @@ export class LessonBalanceService {
             paymentId: params.paymentId ?? null,
             createdById: params.createdById ?? null,
             note: params.note,
+            amountMinor: params.amountMinor ?? null,
+            currency: params.currency ?? null,
           },
         });
       } catch (error: unknown) {
@@ -440,6 +703,8 @@ function toLedgerDto(row: {
   note: string | null;
   createdAt: Date;
   scheduledLessonId: string | null;
+  amountMinor?: number | null;
+  currency?: string | null;
 }): LessonBalanceLedgerEntryDto {
   return {
     id: row.id,
@@ -449,5 +714,7 @@ function toLedgerDto(row: {
     note: row.note,
     createdAt: row.createdAt.toISOString(),
     scheduledLessonId: row.scheduledLessonId,
+    amountMinor: row.amountMinor ?? null,
+    currency: row.currency ?? null,
   };
 }

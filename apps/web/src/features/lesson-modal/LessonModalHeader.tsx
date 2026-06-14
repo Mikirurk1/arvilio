@@ -36,8 +36,13 @@ export function LessonModalHeader({
   const canShowUnlink = canUnlinkSeries;
   return (
     <div className={styles.modalHeader}>
-      <div>
-        <div className={styles.modalTitle}>{isStudent ? 'Lesson' : mode === 'create' ? text.titleCreate : text.titleEdit}</div>
+      <div className={styles.modalHeaderText}>
+        <span className={`${styles.modalBadge} ${isStudent ? styles.modalBadgeInfo : styles.modalBadgePrimary}`}>
+          {isStudent ? 'Lesson details' : mode === 'create' ? 'Create lesson' : 'Edit lesson'}
+        </span>
+        <div className={styles.modalTitle}>
+          {isStudent ? 'Lesson' : mode === 'create' ? text.titleCreate : text.titleEdit}
+        </div>
         <div className={styles.modalSubtitle}>
           {isStudent ? 'View lesson details, homework and your response.' : text.subtitle}
         </div>

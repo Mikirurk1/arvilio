@@ -41,6 +41,16 @@ $breakpoint-md: 1024px;
 $breakpoint-lg: 1200px;
 $breakpoint-xl: 1440px;
 
+/* Component-specific max-widths (use with respond-max, not inline px) */
+$breakpoint-tight: 560px;
+$breakpoint-compact: 640px;
+$breakpoint-stacked: 680px;
+$breakpoint-narrow: 720px;
+$breakpoint-marketing: 900px;
+$breakpoint-content: 920px;
+$breakpoint-lesson: 980px;
+$breakpoint-stats: 1060px;
+
 // Transitions
 $transition-base: 0.3s ease;
 $transition-fast: 0.15s ease;

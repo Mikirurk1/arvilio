@@ -4,6 +4,32 @@
 
 @use './variables' as *;
 
+// Max-width query — pass a $breakpoint-* constant from _variables.scss.
+@mixin respond-max($max-width) {
+    @media (max-width: $max-width) {
+        @content;
+    }
+}
+
+@mixin page-title-display {
+    font-family: var(--font-display);
+    font-size: var(--fs-page-title);
+    font-weight: var(--fw-semibold);
+    line-height: var(--lh-display);
+    letter-spacing: var(--tracking-tight);
+    color: var(--text-primary);
+}
+
+// Editorial section label (small uppercase eyebrow above a section title).
+@mixin eyebrow {
+    font-family: var(--font-sans);
+    font-size: var(--fs-eyebrow);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+}
+
 // Media Queries
 @mixin respond-to($breakpoint) {
     @if $breakpoint == xs {
@@ -85,4 +111,17 @@
     display: grid;
     grid-template-columns: repeat($columns, 1fr);
     gap: $gap;
+}
+
+// Motion — honor OS “reduce motion” (see lib/motion/, _base.scss)
+@mixin motion-allow {
+    @media (prefers-reduced-motion: no-preference) {
+        @content;
+    }
+}
+
+@mixin motion-reduce {
+    @media (prefers-reduced-motion: reduce) {
+        @content;
+    }
 }

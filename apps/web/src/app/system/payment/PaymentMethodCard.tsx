@@ -1,10 +1,10 @@
 'use client';
 
 import { Building2, CreditCard, Settings, Wallet } from 'lucide-react';
-import { Badge, Button } from '../../components/ui';
+import { Badge, Button } from '../../../components/ui';
 import type { PaymentMethodKindDto, PaymentMethodStatusDto } from '@pkg/types';
 import { PAYMENT_PROVIDER_META } from './payment-provider-meta';
-import styles from './page.module.scss';
+import styles from '../page.module.scss';
 
 const META: Record<
   PaymentMethodKindDto,

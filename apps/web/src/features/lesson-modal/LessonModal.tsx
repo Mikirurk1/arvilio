@@ -30,8 +30,8 @@ import {
   formatMessage,
   getFilePlaceholder,
 } from './fileUtils';
-import type { MaterialKind, MaterialKindOption } from './tabTypes';
-import { ClipboardCheck, File, FileText, Image, Monitor } from 'lucide-react';
+import type { MaterialKind } from './tabTypes';
+import { LESSON_MATERIAL_KIND_OPTIONS } from './lesson-material-kinds';
 
 export function LessonModal({
   mode,
@@ -202,17 +202,14 @@ export function LessonModal({
       setMaterialsFileStatus(null);
     }
   };
-  const materialKinds: MaterialKindOption[] = [
-    { value: 'text', label: text.materialTypes.text, icon: FileText },
-    { value: 'photo', label: text.materialTypes.photo, icon: Image },
-    { value: 'test', label: text.materialTypes.test, icon: ClipboardCheck },
-    { value: 'file', label: text.materialTypes.file, icon: File },
-    {
-      value: 'presentation',
-      label: text.materialTypes.presentation,
-      icon: Monitor,
-    },
-  ];
+  const materialKinds = useMemo(
+    () =>
+      LESSON_MATERIAL_KIND_OPTIONS.map((option) => ({
+        ...option,
+        label: text.materialTypes[option.value as keyof typeof text.materialTypes] ?? option.label,
+      })),
+    [text.materialTypes],
+  );
   const canSaveMaterial =
     materialDraft.text.trim().length > 0 || materialDraft.files.length > 0;
 

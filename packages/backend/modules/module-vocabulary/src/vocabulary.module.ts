@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MailModule } from '@be/mail';
 import { PrismaModule } from '@be/prisma';
 import { DictionaryService } from './application/dictionary.service';
+import { PlatformIntegrationService } from './application/platform-integration/platform-integration.service';
 import { PlatformSettingsService } from './application/platform-settings.service';
 import { TranslationService } from './application/translation.service';
 import { VocabularyService } from './application/vocabulary.service';
@@ -19,6 +20,7 @@ import { VocabularyResolver } from './presentation/graphql/vocabulary.resolver';
     VocabularyService,
     DictionaryService,
     PlatformSettingsService,
+    PlatformIntegrationService,
     DatamuseProvider,
     TranslationService,
     WordEnrichmentService,
@@ -29,7 +31,9 @@ import { VocabularyResolver } from './presentation/graphql/vocabulary.resolver';
     VocabularyService,
     DictionaryService,
     PlatformSettingsService,
+    PlatformIntegrationService,
     WordEnrichmentService,
+    TranslationService,
     VocabularyResolver,
     SystemResolver,
   ],

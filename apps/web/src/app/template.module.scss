@@ -1,0 +1,16 @@
+/* Layout-прозоре дзеркало .mainCanvas — не впливає на full-height сторінки (chat) */
+.wrap {
+  width: 100%;
+  min-height: 100%;
+}
+
+.enter {
+  animation: pageEnter var(--dur-base) var(--ease-out);
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}

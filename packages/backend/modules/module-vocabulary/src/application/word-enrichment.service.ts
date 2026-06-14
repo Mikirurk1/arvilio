@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@be/prisma';
-import type { WordDefinitionDto } from '@pkg/types';
+import type { TranslationProviderId, WordDefinitionDto } from '@pkg/types';
 import { coerceDictionaryEntries, extractMeaningGroups } from './dictionary.service';
 import { clipForTranslation, stripHtml } from '../domain/strip-html.util';
 import { DatamuseProvider } from '../infrastructure/datamuse.provider';
@@ -80,10 +80,17 @@ export class WordEnrichmentService {
     const definitions: WordDefinitionDto[] = [];
     const targetLangs = languages.filter((l) => l.code !== 'en');
 
+    const translationProvidersUsed = new Set<TranslationProviderId>();
+    const recordTranslation = async (text: string, from: string, to: string): Promise<string | null> => {
+      const meta = await this.translation.translateWithMeta(text, from, to);
+      if (meta?.providerId) translationProvidersUsed.add(meta.providerId);
+      return meta?.text ?? null;
+    };
+
     const lemmaByLangId = new Map<string, string | null>();
     await Promise.all(
       targetLangs.map(async (lang) => {
-        const lemma = await this.translation.translate(trimmed, 'en', lang.code);
+        const lemma = await recordTranslation(trimmed, 'en', lang.code);
         lemmaByLangId.set(lang.id, lemma);
       }),
     );
@@ -103,7 +110,7 @@ export class WordEnrichmentService {
       await Promise.all(
         targetLangs.map(async (lang) => {
           const lemmaText = lemmaByLangId.get(lang.id) ?? null;
-          const translatedDef = await this.translation.translate(defForTranslation, 'en', lang.code);
+          const translatedDef = await recordTranslation(defForTranslation, 'en', lang.code);
           if (!lemmaText && !translatedDef) return;
           definitions.push({
             languageId: lang.id,
@@ -129,10 +136,16 @@ export class WordEnrichmentService {
     const partOfSpeech = overrides?.partOfSpeech ?? dict?.partOfSpeech ?? primaryGroup?.partOfSpeech ?? null;
     const category = overrides?.category ?? categoryFromPos(partOfSpeech);
 
+    const tokenCount = trimmed.split(/\s+/).length;
+    const isPhrase = tokenCount > 1;
+    const datamuseDefinition = dmuse?.definition?.trim();
+    const dictionaryFound =
+      Boolean(dict) || (isPhrase && Boolean(datamuseDefinition && datamuseDefinition !== '—'));
+
     return {
       text: trimmed,
       normalizedText,
-      dictionaryFound: Boolean(dict),
+      dictionaryFound,
       definition,
       definitions: dedupeDefinitionDtos(definitions),
       example: stripHtml(
@@ -156,9 +169,14 @@ export class WordEnrichmentService {
       source: sources.length > 0 ? `combined:${sources.join('+')}` : 'manual',
       sourcePayload: {
         provider: dict?.source ?? null,
+        enrichment: {
+          dictionaryProvider: dict?.source ?? null,
+          translationProviders: [...translationProvidersUsed],
+        },
         dictionary: dict?.payload ?? null,
         dictionaryapi: dict?.payload ?? null,
         wiktionary: dict?.wiktionaryRaw ?? null,
+        reverso: dict?.reversoRaw ?? null,
         datamuse: dmuse?.payload ?? null,
       },
     };

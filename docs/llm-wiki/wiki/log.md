@@ -4,6 +4,52 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 ---
 
+## [2026-06-14] update | V4 Calendar + Chat redesign styling
+
+- **Trigger:** code change (UI redesign)
+- **Pages:** no new wiki pages; styling-only changes
+- **Calendar (`page.module.scss`):** Now-line changed from `--accent-danger` to `--green`. Today cell and week today column use `color-mix(in srgb, var(--green-light) 60%, var(--card))` tint (softened vs plain `--green-light`). Week event time and sidebar event time use `var(--font-display)` (Lora) at `var(--fs-16)` — replaces undefined `--fs-title` custom prop. Added `evtStatusPlanned/Active/Cancelled` classes for lesson status tints with cancelled strikethrough.
+- **Chat (`page.module.scss`):** Bubble padding upgraded to `14px 18px`. `bubbleMine` now uses `--fill-strong` (ink-navy) instead of `--green`. `bubbleTheirs` uses `--card` bg. `convRowActive` uses `--green-light` tint. Added `convNameUnread`, `unreadDot`, `dateDivider` classes.
+- **ChatInbox.tsx:** Applies `convNameUnread` class when conversation has unread messages.
+
+---
+
+## [2026-06-11] update | StatisticsDashboard split into focused modules
+
+- **Trigger:** code change (refactor)
+- **Files:** `StatisticsDashboard.tsx` (955→~390L), new `DashboardSection.tsx` (~50L), `StatisticsKpiGrid.tsx` (~90L), `StatisticsRosterTable.tsx` (~160L), `StatisticsDashboardCharts.tsx` (~340L), `statistics-chart-config.ts` (~35L)
+
+## [2026-06-11] update | StudentDetailsPage split into focused hooks
+
+- **Trigger:** code change (refactor)
+- **Files:** `StudentDetailsPage.tsx` (521→270L), new `useStudentHeroData.tsx` (heroStats + profileBadges + achievements), new `useStudentProfileSave.ts` (onSave logic with savedProfile/saveError state)
+
+## [2026-06-10] update | profile/ frontend split into focused files
+
+- **Trigger:** code change (refactor)
+- **Pages:** no new wiki pages; structural change only
+- Split `profile/page.tsx` (799→244 lines) by extracting: `AvatarCropModal`, `useProfileNotificationSync`, `buildAllAchievements`
+- Split `profile/panels.tsx` (692→355 lines) by extracting: `ChangePasswordModal`, `LinkedAccountsPanel` + `profileLinksToPanel`
+- All 7 files now under 400 lines; TypeScript zero errors
+
+---
+
+## [2026-06-10] update | Payload CMS globals for page content
+
+- **Trigger:** code change
+- **Pages:** concepts/cms (globals added alongside PageContent collection)
+- Added 5 Payload globals: `dashboard-content`, `practice-content`, `quiz-content`, `calendar-content`, `profile-content` in `apps/web/payload/globals/`
+- Registered globals in `payload.config.ts`
+- Added `getDashboardContent`, `getPracticeContent`, `getQuizContent`, `getCalendarContent`, `getProfileContent` helpers in `src/lib/cms/payload.ts` and re-exported from `index.ts`
+- Rewrote `payload/seed.ts` to seed globals via `updateGlobal` using values from `site-content.ts`; legacy `page-content` collection seed preserved
+
+---
+
+## [2026-06-09] bugfix | Full test suite audit — 5 bugs found and fixed
+
+- **Trigger:** code change (full test run + E2E audit)
+- **Pages:** concepts/testing (updated scale + bug registry)
+
 ## [2026-05-27] update | Redesign plan: structure and component reuse
 - **Trigger:** user request
 - **Pages:** `concepts/redesign-plan`, `log.md`
@@ -1391,3 +1437,246 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 - **Trigger:** Phase 5 health check
 - **Pages touched:** `index.md` (full rebuild)
 - **Notes:** 29 wiki pages cataloged; cross-links verified; no orphan entity pages; known gaps documented in `concepts/auth-rbac`. Added `karpathy-guidelines.mdc` for coding discipline.
+
+## [2026-06-09] update | LiveKit self-hosted only; Docker Compose setup added
+- **Trigger:** user constraint — no LiveKit Cloud, self-hosted only
+- **Pages:** `concepts/video-meeting-providers` (deployment section updated)
+- **Files:** `docker-compose.livekit.yml`, `livekit.yaml` added to repo root; `.env.example` local dev values; `connection-provider-meta.ts` tooltips updated to point at self-hosted setup
+
+## [2026-06-09] update | Fix 12 pre-existing TypeScript build errors
+- **Trigger:** code change
+- **Pages:** concepts/build-health
+- Fixed `LessonFormState` group fields missing in `lessons/[lessonId]/page.tsx` and `calendar/page.tsx`
+- Fixed `speaking/page.tsx` `canEdit` role type mismatch (string vs numeric)
+- Fixed `staff/[userId]/page.tsx` unknown `icon` prop on `TabsItem`
+- Fixed `StudentsGroupsPanel` invalid `"secondary"` Button variant
+- Fixed `PaymentsPanel` `manual_invoice` not in `PAYMENT_PROVIDER_CHECKOUT_CURRENCIES`
+- Fixed `ProfileViewShell` duplicate `metaExtra` JSX attribute
+- Fixed `Field.tsx` numeric `value` passed to `AdvancedSelectControl` (expects string)
+- Fixed `lessonCalendarAdapter` `payerUserId` string↔number mismatches
+- Fixed `LessonContentTab` `null` vs `undefined` on `sharedLibraryAssetIds`/`libraryMediaSelectionApplied`
+- Fixed `lessonPersistence` `resolvePartyId` called with string instead of number (×2)
+- Fixed `scheduledLessonsBackendAdapter` `payerUserId` number written as-is instead of String()
+- Fixed `BookViewerLoadingOverlay` `aria-valuenow` null vs undefined
+- Fixed `MaterialFormModal` `onUpdate` fallback signature mismatch
+- Fixed `MockUser` missing `lessonFormat` field
+- Fixed `site-content.ts` missing `lessonType`, `studentGroup`, `students`, `individualLesson`, `groupLesson` keys
+- Fixed `testing/fixtures.ts` missing `kind`, `participants`, `lessonFormat` required fields
+
+## [2026-06-10] update | Payload CMS integration fixed — proxy, importMap, layout, route handlers
+- **Trigger:** code change
+- **Pages:** concepts/payload-cms (new)
+- **Summary:**
+  - `src/proxy.ts` matcher now excludes `/cms-admin` and `/payload-api` (Payload manages own auth)
+  - `src/app/(payload)/cms-admin/importMap.js` created; `page.tsx` updated to import it
+  - `src/app/(payload)/cms-admin/layout.tsx` created with `RootLayout` → provides `ConfigProvider` required by `PageConfigProvider`
+  - `src/app/(payload)/payload-api/[...slug]/route.ts` created to match `routes.api: '/payload-api'`
+  - Root cause: 4 missing pieces in Payload Next.js integration setup
+
+## [2026-06-10] update | Fix Payload CSS — @layer cascade issue
+- **Trigger:** code change
+- **Pages:** concepts/payload-cms
+- **Summary:**
+  - Root cause: `reset.scss` had unlayered `:where(button) { padding: 0 }`. Unlayered CSS always wins over any `@layer` CSS regardless of specificity. Payload wraps all its styles in `@layer payload-default`, so the reset was overriding `.btn` padding/background.
+  - Fix: wrapped reset button rules in `@layer base`; declared `@layer base, payload-default` in `global.scss` so Payload styles win.
+
+## [2026-06-10] update | Fix Payload CSS — unlayered base.scss button reset
+- **Trigger:** code change
+- **Pages:** concepts/payload-cms
+- **Summary:**
+  - Root cause: `_base.scss` had unlayered `button { @include button-reset }` — this is a naked element rule outside any `@layer`. Unlayered CSS always wins over ALL layered CSS. Payload wraps everything in `@layer payload-default`, so the reset silently won.
+  - The universal `* { padding:0; margin:0 }` in `reset.scss` had the same problem.
+  - Fix: wrapped all form-element rules in `_base.scss` + entire `reset.scss` content in `@layer base`. Layer order declared in `globals.scss`: `@layer base, payload-default` (payload-default wins). App CSS module classes remain unlayered so they still override both.
+
+## [2026-06-11] update | Redesign v2 plan — Editorial Paper
+- **Trigger:** user note
+- **Pages:** (план поза wiki: `docs/redesign/redesign-v2.md`)
+- **Summary:**
+  - Новий головний план редизайну `docs/redesign/redesign-v2.md`; старий `docs/redesign/plan.md` позначено superseded.
+  - Зафіксовані рішення власника: напрям **Editorial Paper** (warm paper, ink-navy, Lora, асиметрія, великі display-числа), анімації **CSS-перш + GSAP** (таймлайни/stagger/celebration; заборонено на quiz-в-процесі, оплаті, keyboard-діях), обсяг — увесь застосунок.
+  - Фази: V0 фундамент (motion-токени, type scale, GSAP, Button/Popover/Modal v2) → V1 shell → V2 dashboard → V3 навчальні флоу → V4 календар/чат → V5 профіль/оплата → V6 admin/staff/system → V7 auth + полір.
+  - Скіл `soenglish-redesign` видалено з `.claude/skills` і `.cursor/skills` на запит користувача; дизайн-робота тепер ведеться за `emil-design-eng` принципами (press-scale, origin-aware popovers, custom easing, durations ≤300ms).
+
+## [2026-06-11] update | Redesign v2 — skill stack + PRODUCT.md/DESIGN.md
+- **Trigger:** user note
+- **Pages:** (поза wiki: `PRODUCT.md`, `DESIGN.md`, `docs/redesign/redesign-v2.md`)
+- **Summary:**
+  - Створено `PRODUCT.md` (register: product; користувачі, brand personality «editorial · спокійний · довірливий», anti-references, 5 принципів, a11y AA) і `DESIGN.md` (знятий з коду опис теми, кольорів, типографіки Outfit+Lora, layout, компонентів, motion-цілей, don'ts) — вимога скіла impeccable.
+  - У `redesign-v2.md` додано §0 Skill stack: кожен крок редизайну використовує 4 скіли — emil-design-eng (motion), impeccable (product-register правила й заборони), ui-ux-pro-max-skill (проєктні примітиви), frontend-design (сміливість напряму). Пріоритет конфліктів: правила проєкту > impeccable > решта.
+  - Чекліст кроку доповнено: контраст AA, всі component states, skeleton-loading, заборони impeccable, Lora не в UI-контролах.
+
+## [2026-06-11] update | Redesign v2 — reuse-first ревізія плану
+- **Trigger:** user note
+- **Pages:** (поза wiki: `docs/redesign/redesign-v2.md`, `DESIGN.md`)
+- **Summary:**
+  - Принцип 8 «Reuse-first»: Button/Field обов'язкові замість нативних контролів; бракує функціоналу — розширювати примітив, не писати локальний.
+  - Нова §2.4 «Політика розширення примітивів»: variant/prop > новий компонент > копія; нові типи контролів — у Field discriminated union; зафіксовані винятки (hidden file input, third-party refs, зовнішні `<a>`).
+  - §3.0 інвентар міграції, знятий з коду: 23 файли з нативними `<button>`, 17 з `<input>`, 5 з `<img>` — розкладені по фазах V2–V6 (найбільше у features/materials, features/speaking, app/system).
+  - Новий крок V0-08 Field v2: editorial-стилі контролів + типи `range` і `color` в union (закриє AvatarCropModal, AudioPlayer, UserColorPicker).
+  - Чекліст кроку: заборона нових нативних контролів + вимога міграції в зачеплених файлах.
+
+## [2026-06-11] update | Redesign v2 — Signature elements і портативність системи
+- **Trigger:** user note
+- **Pages:** (поза wiki: `DESIGN.md`, `PRODUCT.md`, `docs/redesign/redesign-v2.md`)
+- **Summary:**
+  - Власник зафіксував: дизайн має бути унікальним (не «як у всіх LMS») і повторно використовуваним на майбутніх проєктах — зокрема окремий acquisition-сервіс для залучення учнів і репетиторів до школи.
+  - DESIGN.md: нова нормативна секція «Signature» — 6 впізнаваних елементів бренду (Ink & Paper палітра, серифні display-числа Lora, editorial rule замість карток, чорнильні navy-tinted тіні, фірмова motion-крива + press-scale, асиметрія 2/3+1/3) + таблиця двох регістрів (product = school app restrained; brand = acquisition Committed) зі спільною ДНК.
+  - PRODUCT.md: дизайн-система оголошена брендовим активом; критерій унікальності — «якщо екран міг би належати будь-якій LMS, він не готовий».
+  - redesign-v2.md: принцип 6a (портативність: примітиви без app-специфічних імпортів, signature-впізнаваність, два регістри) + крок V0-09 portability seam (аудит імпортів components/ui).
+
+## [2026-06-11] update | Redesign v2 — планка крафту + V0-01 motion-токени
+- **Trigger:** user note + code change
+- **Pages:** (поза wiki: `docs/redesign/redesign-v2.md`; код: `styles/tokens/_motion.scss`)
+- **Summary:**
+  - У план додано секцію «Планка крафту»: таблиця AI-шаблон vs досвідчена команда (рефлекси vs рішення під контент, generic-мікрокопія vs контекстна, стани як повноцінні екрани, драматургія гучності); фінальний фільтр кроку — «чи могла б це показати на портфоліо senior product-команда».
+  - **V0-01 done:** створено `apps/web/src/styles/tokens/_motion.scss` — easing-токени (--ease-out 0.23,1,0.32,1; --ease-in-out; --ease-drawer) і duration-токени (--dur-press 140 / --dur-fast 180 / --dur-base 240 / --dur-modal 320), глобальний prefers-reduced-motion baseline (рух → миттєво, винятки оголошують компоненти). Підключено в `global.scss` після layout-токенів.
+  - `_animations.scss`: keyframes (slideUp/fadeIn/scaleIn, 20+ використань) збережені — слабке місце не самі keyframes, а вбудований `ease` на місцях використання; додано шапку з правилом брати easing/duration з motion-токенів. Заміна на місцях — у кроках фаз V1–V7.
+  - Перевірка: `npx sass` компілює `global.scss` без помилок, токени присутні у виводі.
+
+## [2026-06-11] update | V0-02 — editorial type scale + видалення legacy-типографіки
+- **Trigger:** code change
+- **Pages:** (код: `styles/_typography.scss`, `styles/tokens/_typography.scss`, `styles/_base.scss`)
+- **Summary:**
+  - Токен `--fs-display-xl: clamp(2.75rem, 2.2rem + 1.8vw, 3.75rem)` — hero-числа/вітання; єдиний fluid-кегль системи (решта fixed rem за product-register).
+  - `styles/_typography.scss` повністю переписано: legacy-пресети headline/title/body/button/tag (800 weight, uppercase, хардкод "Inter") були мертвим кодом — нуль використань у TSX/SCSS. Нові editorial-міксіни: `display-hero`, `display-page`, `section-title`, `eyebrow`, `numeric` (tabular-nums), `editorial-rule` (Signature #3 — заголовок + чорнильна лінія), `prose` (70ch). Лише міксіни, CSS не емітиться.
+  - `_base.scss`: селектор heading-шрифту скорочено до `h1–h6` — викинуто мертві глобальні класи `.headline-1..5`, `.hero-title`, `.cta-title`, `.testimonial-section-title`, `.managers-section__title`, `.page-hero__title` (збіги в TSX — лише aria-id і CSS-module класи, не глобальні).
+  - Підводний камінь: `*/` всередині SCSS-коментаря (`headline-*/title-*`) передчасно закриває loud-коментар — Sass падає з «expected selector».
+  - Перевірка: sass-компіляція чиста, бандл -11 рядків, токен у виводі.
+
+## [2026-06-11] update | V0-03 — GSAP + useGsap hook
+- **Trigger:** code change
+- **Pages:** (код: `apps/web/src/lib/motion/*`, `apps/web/package.json`)
+- **Summary:**
+  - Встановлено `gsap@^3.15.0` в `apps/web` (npm workspace).
+  - `lib/motion/` вже існував (prefers-reduced-motion утиліти + policy); додано `use-gsap.ts` — хук `useGsap(scopeRef, setup, deps)`: `gsap.context` зі scope-елементом, авто-`revert()` на unmount, у setup передається поточний reduced-motion (при true — пропускати рух, ставити кінцевий стан).
+  - `policy.ts` переписано під redesign-v2 §2.2–2.3: durations синхронні з CSS-токенами (press 140 / ui 180 / base 240 / modal 320 / hero 600), пріоритет CSS → GSAP → Three, `MOTION_RESTRICTED_ROUTES` (lessons/chat/quiz/payment) збережено.
+  - Перевірка: jest lib/motion 4/4 passed; tsc — 0 помилок у lib/motion (наявні помилки у students/[studentId] і StatisticsDashboardCharts — pre-existing з попередніх рефакторингів, поза скоупом кроку).
+
+## [2026-06-11] update | V0-04 — Button v2 (press-анімація + loading-морфінг)
+- **Trigger:** code change
+- **Pages:** (код: `components/ui/ui.module.scss`; Button.tsx без змін — механіка вже була)
+- **Summary:**
+  - `.buttonBase` transition: явні motion-токени замість `var(--transition)`; додано `transform var(--dur-press) var(--ease-out)` — press-scale 0.97 (вже існував на :active) тепер анімується, а не стрибає.
+  - `.buttonLoadingWrap`: entrance-анімація `uiButtonStateIn` (opacity 0.3 + blur 2px → чисто) за var(--dur-fast) — blur маскує підміну label→spinner, стан морфиться як один об'єкт (emil-патерн).
+  - TSX не чіпали: loading/pending/aria-busy/icon-only логіка вже покривала потреби.
+  - Hover без `@media (hover: hover)` лишається свідомо — це масовий прохід V7-04 по всьому файлу, не точкова правка.
+  - Перевірка: jest Button 11/11 passed; sass-компіляція чиста.
+
+## [2026-06-11] update | V0-05 — Tooltip/Popover v2 (origin-aware + instant-наступні)
+- **Trigger:** code change
+- **Pages:** (код: `components/ui/Tooltip.tsx`, `PickerPopover.tsx`, `ui.module.scss`, `picker.module.scss`)
+- **Summary:**
+  - Tooltip: entrance-анімація `uiTooltipIn` (opacity + **властивість `scale`** — окрема від transform, тому placement-translate не конфліктує); `transform-origin` = бік тригера для кожного placement.
+  - Instant-наступні: module-level `lastTooltipHiddenAt`; якщо новий tooltip відкривається <250ms після зникнення попереднього — `data-instant` → `animation-duration: 0ms`. Рух по тулбару миттєвий, перший показ м'який (emil-патерн).
+  - PickerPopover/.popover: entrance `pickerPopIn` (opacity + scale 0.98 + translate -4px), `transform-origin: top right` (top left для calendar-режиму через `data-anchor-align`). Анімацію отримали й standalone-використання `.popover` (absolute dropdown).
+  - Reduced motion покривається глобальним baseline з `_motion.scss`.
+  - Перевірка: jest components/ui 30/30; sass чистий; tsc 0 помилок у components/ui.
+
+## [2026-06-11] update | Fix React key warning у StatisticsKpiGrid
+- **Trigger:** debug (console error на /profile)
+- **Pages:** (код: `components/statistics/StatisticsKpiGrid.tsx`)
+- **Summary:**
+  - Гілка `withSectionHeaders === false` (додана в рефакторингу S75) мапила групи через `renderKpiTiles()` без key → React warning у StatisticsDashboard на профілі.
+  - Фікс: обгортка `<Fragment key={group.category}>` навколо виклику в map.
+
+## [2026-06-11] update | V0-06 — Modal recipe v2 (enter/exit рух)
+- **Trigger:** code change
+- **Pages:** (код: `styles/_modal-recipe.scss`, `styles/_animations.scss`)
+- **Summary:**
+  - Рецепт: `overlay` — backdrop fade за `--dur-modal`; `dialog` — enter від scale(0.96)+opacity, origin center (модалки не прив'язані до тригера). Нові міксіни `overlay-closing`/`dialog-closing` — exit за `--dur-fast` (швидший за enter), consumers додають closing-клас перед unmount.
+  - Keyframes (modalOverlayIn/Out, modalDialogIn/Out) — у глобальному `_animations.scss`, бо рецепт — міксіни, що компілюються в CSS-модулі: css-loader скоупить лише локально визначені keyframes, глобальні імена лишає (той самий механізм, що в існуючого slideUp).
+  - Перевірка: sass-компіляція global.scss і calendar/page.module.scss чиста, keyframes резолвляться.
+
+## [2026-06-11] update | V0-07 — SCSS-аудит: breakpoints і токени + дедуплікація міксінів
+- **Trigger:** code change
+- **Pages:** (код: 8 SCSS-файлів)
+- **Summary:**
+  - Inline px media queries (6 шт.) → константи: system 720→respond-max($breakpoint-narrow); ConnectionsPanel min-width 720→$breakpoint-narrow; finance 960→$breakpoint-md (зсув 960→1024); LessonLibraryMaterialPanel 520→respond-max($breakpoint-tight) (зсув 520→560); media-viewer 768→respond-to(sm), 900→respond-max($breakpoint-md). Додано відсутні @use variables/mixins. У репо 0 inline px media queries.
+  - `ui.module.scss`: 5×`color: #fff` (iconTint*) → `var(--on-inverse)`.
+  - **Дедуплікація:** V0-02 створив у `_typography.scss` міксіни `display-page`/`eyebrow`, що дублювали наявні `page-title-display`/`eyebrow` з `_mixins.scss` (page-title-display — 15+ використань). Дублікати видалено з коментарями-вказівниками; конфлікт `@use as *` усунуто.
+  - Page-рівневі hex (~56 у 30 файлах; топ word-details-modal 44) свідомо відкладені у кроки фаз V2–V6 — без візуальної перевірки масова заміна ризикована. Зафіксовано в плані.
+  - Знахідка: npx sass у npm workspace запускається з cwd кореня пакета, не поточної директорії — відносні шляхи аргументів не резолвляться; використовувати абсолютні.
+  - Перевірка: всі 6 зачеплених модулів + global.scss компілюються чисто.
+
+## [2026-06-11] update | V0-08 + V0-09 — Field v2 (range/color) і portability-аудит; фаза V0 завершена
+- **Trigger:** code change
+- **Pages:** (код: `components/ui/Field.tsx`, `ui.module.scss`; docs: `DESIGN.md`)
+- **Summary:**
+  - **V0-08:** `range`/`color` реалізовано простіше за план — без нових членів Field union: нативний `type` уже проходить через `FieldInputProps`, додано лише детекцію в input-пайплайні і класи `.fieldRange` (editorial slider: hairline-трек 14% ink, зелений thumb 18px з border card, press scale 1.12, focus ring) та `.fieldColor` (42px swatch, hairline, радіус поля). Label/hint/error дістаються безкоштовно від FieldShell. `fieldControl` transition переведено на motion-токени.
+  - **V0-09:** аудит імпортів `components/ui` чистий — лише React/Next/lucide + pure lib-утиліти (breakpoints, date-picker-utils, tel-mask, strip-native-validation, tag-list, avatar) + use-infinite-scroll-sentinel; без stores/GraphQL/features. Дозволений список зафіксовано в DESIGN.md як нормативний.
+  - **Фаза V0 (фундамент) завершена 9/9.** Далі — V1 (shell + навігація).
+  - Перевірка: jest components/ui 30/30; tsc 0 помилок у components/ui; sass чистий.
+
+## [2026-06-11] update | V1-01 — Sidebar «навігація курсу»
+- **Trigger:** code change
+- **Pages:** (код: `components/layout/sidebar-nav.tsx`, `Sidebar.module.scss`)
+- **Summary:**
+  - Перегрупування за задачами учня: Learn (Dashboard, Lessons, Practice, Materials) / Schedule (Calendar) / Connect (Chat, Students, Staff) / Account (Payment, Finance, Profile) / Platform (Admin, System). RBAC-фільтр без змін; `useVisibleNavSections` тепер ховає порожні секції (для учня Platform зникає повністю).
+  - Активний пункт: editorial-риска 2×16px зліва на краю сайдбара (::before, scaleY 0→1 за --dur-fast) + ink-текст + semibold. Прибрано filled pill (бек+border+inset 3px stripe — забанений side-stripe патерн). Застарілі overrides бейджів під fill видалено.
+  - Заголовки секцій: eyebrow + чорнильна лінія до краю (::after) замість border-top між секціями.
+  - Drawer (мобільний) успадковує все через спільний SidebarNav.
+  - Верифікація в браузері: логін jest-student@soenglish.test (агент-браузер: click по submit не сабмітив форму — спрацював Enter у полі пароля), скріншот /dashboard — групи, риска і лінії на місці, dark mode ок.
+
+## [2026-06-12] update | V1-02 — Header editorial-полір
+- **Trigger:** code change
+- **Pages:** (код: `components/layout/Header.module.scss`)
+- **Summary:**
+  - Hairline-межі (--border-subtle) замість --border на header bottom і logoArea; motion-токени замість --transition; tabular-nums на лічильниках балансу/уроків.
+  - Рішення проти плану (обґрунтовано): «Create lesson» у хедері НЕ дублікат — на lessons/calendar нема окремої кнопки (calendar створює через слоти), це єдина персистентна точка для викладача — збережено. Display-заголовок сторінки не переноситься в shell-хедер — він уже живе в PageHeader; дублювання гірше.
+  - Верифікація: скріншот /dashboard — hairline, danger-тон бейджа балансу (колір+текст), порядок.
+
+## [2026-06-12] update | V1-03 — Mobile drawer: swipe-to-close + exit-анімація
+- **Trigger:** code change
+- **Pages:** (код: `components/layout/MobileNavDrawer.tsx/.module.scss`, новий `use-drawer-swipe.ts`)
+- **Summary:**
+  - Новий хук `useDrawerSwipe`: закриття за дистанцією ≥35% ширини АБО velocity >0.11 px/ms (флік без дотягування); overdrag вправо з damping ×0.12; pointer capture; ігнорування другого дотику; вісь визначається після 12px (вертикаль → скрол, touch-action: pan-y).
+  - Exit-анімація перед unmount: `requestClose` → closing-клас (panel transform → -100%, backdrop opacity → 0 за --dur-fast, швидше за enter) → unmount на transitionend по transform (+ fallback 280ms). Reduced motion → миттєве закриття. Навігація по пункту закриває без анімації (сторінка все одно змінюється).
+  - Enter: `--dur-modal` + `--ease-drawer` (iOS-крива з motion-токенів) замість хардкод-кривої.
+  - Snap-back після незавершеного swipe — CSS transition на панелі (інлайн transform знімається на release).
+  - Перевірка: sass чистий, tsc без помилок у layout. Жести варто прокликати на реальному пристрої (emil: gesture-тести — на фізичному девайсі).
+
+## [2026-06-12] update | V1-04 — Page transitions через template.tsx; фаза V1 завершена
+- **Trigger:** code change
+- **Pages:** (код: `app/template.tsx`, `app/template.module.scss`, 15 page-модулів)
+- **Summary:**
+  - Новий `app/template.tsx`: ремаунтиться на кожну навігацію → entrance fade+rise (opacity 0 / translateY 8px → чисто, 240ms `--ease-out`). Перехід усередині того самого розділу (перший сегмент шляху, напр. /lessons → /lessons/5) не анімується — останній розділ живе в module-scope змінній, що переживає ремаунт. Wrapper — layout-прозоре дзеркало .mainCanvas (width 100%, min-height 100%), full-height сторінки (chat) не ламає.
+  - Дедуплікація: видалено 15 root-level `animation: slideUp 0.35s` з page-модулів (dashboard, calendar, lessons, lesson details, materials, payment, quiz, students, practice ×5, vocabulary, ProfileViewShell) — інакше подвійний rise (template + page). Внутрішні slideUp із delay (стаггер секцій) збережені.
+  - **Підводний камінь:** Sass викидає порожні правила з виводу → `.page {}` зник би з CSS-модуля і `styles.page` у TSX став би undefined. Порожнілі правила заякорено `min-width: 0` + коментар.
+  - Верифікація: sass для всіх зачеплених файлів чистий; /lessons рендериться коректно в браузері.
+  - **Фаза V1 (shell + навігація) завершена 4/4.** Далі — V2 (dashboard учня).
+
+## [2026-06-12] update | V2-01 — Dashboard: hero 2/3+1/3 + editorial headline-числа
+- **Trigger:** code change
+- **Pages:** (код: `app/dashboard/page.tsx`, `page.module.scss`, `app/template.tsx`)
+- **Summary:**
+  - heroRow: grid 2fr+1fr — hero «наступний крок» зліва, живий контекст справа (учню StreakCalendarCard, викладачу TeacherScheduleGlancePanel — переїхали з правої колонки); на md — стек.
+  - Забанений патерн «3 однакові кольорові stat-картки» (градієнтні washes + медальйони) → editorial headline-числа: Lora var(--fs-40), tabular-nums, hairline-розділювачі між числами, лейбл + контекстний sub словами. Учню додано 4-те число Day streak. Мобільний — 2×2.
+  - `DashboardQuickActions` видалено повністю: Calendar/Practice/Vocabulary/Chat — буквальні дублікати sidebar (з тими ж бейджами), New lesson — дублікат хедера. Разом пішов raw `<button>` (інвентар §3.0). Стилі quickAction* і stat*/медальйони видалено з SCSS.
+  - **Hydration fix у template.tsx (V1-04):** module-scope `lastSection` мутувався і на сервері (процес пам'ятає між запитами) → SSR/клієнт рендерили різні класи → hydration mismatch. Рішення про enter-клас перенесено в useEffect: перший SSR-лоад не анімується (продукт вантажиться в задачу), клієнтські переходи між розділами — так.
+  - Верифікація в браузері: hero-row і числа рендеряться як задумано, dev-оверлей чистий (hydration error зник).
+
+## [2026-06-12] update | V2-01 REVERT — фідбек власника
+- **Trigger:** user note («ужасно, перед цим було набагато краще»)
+- **Pages:** (код: `app/dashboard/page.tsx`, `page.module.scss`, `dashboard-widgets.tsx` — повернуто до стану перед V2-01)
+- **Summary:**
+  - Повний відкат першої ітерації V2-01: повернуто кольорові stat-картки з медальйонами, DashboardQuickActions, повноширинний hero; стрік-календар і schedule glance — назад у праву колонку. Верифіковано скріншотом.
+  - Збережено: hydration-фікс template.tsx (баг, не дизайн), motion-токени в анімації hero (візуально ідентично).
+  - **Урок у продуктовий смак власника:** насичені кольорові акценти, gradient washes і «соковиті» картки — цінність, а не шум; голі серифні числа на темному фоні читаються як «бідно». Заборона impeccable на stat-картки тут програє смаку власника (пріоритет конфліктів §0: правила проєкту/власник > impeccable). Великі структурні зміни головних екранів — спершу прев'ю/мокап, потім код.
+
+## [2026-06-14] update | V2-01 Dashboard «Sokovyti» redesign
+
+- **Trigger:** code change (V2-01 redesign iteration, owner direction post-revert)
+- **Pages:** `app/dashboard/page.module.scss`, `app/dashboard/page.tsx`, `app/dashboard/dashboard-widgets.tsx`
+- **Summary:**
+  - Implemented «sokovyti» (juicy) V2 dashboard direction: rich saturated color + editorial Lora typography combined.
+  - Hero banner: full-bleed deep green gradient (`--green-dark` → `#0a1a14`), dot-texture overlay, Lora `--fs-display-xl` progress number above title on dark panel.
+  - Stat cards: colored background tint (amber/green/blue wash), 3px left accent border, Lora `--fs-36` editorial number, ghost watermark via CSS `::after content: attr(data-value)`.
+  - Quick actions: migrated `<button>` → `Button variant="ghost"` with `startIcon`, chunky 12px/18px padding, green wash on hover.
+  - Layout: asymmetric `2fr 320px` two-column (not equal grid).
+  - All tokens via CSS vars, all breakpoints via `respond-to()`, `motion-allow` guards throughout.
+  - `tabular-nums` on all numeric fields (streaks, counts, times).
+
+## [2026-06-14] update | V3 Learning Flows redesign — Editorial Paper direction
+- **Trigger:** code change (V3 redesign steps 1–5)
+- **Pages:** concepts/lessons, concepts/practice, concepts/quiz, concepts/speaking
+- **Summary:** Step 1 — lessons list: `highlightsGrid` becomes a bordered container with `overflow:hidden` so child cards share one rounded border, left-rail 4px green accent on next-lesson card, Lora display time hero colored `var(--green-dark)`, eyebrow via `@include eyebrow`. Step 2 — lesson detail: `pageTitle` upgraded from `@include page-title-display` to explicit `var(--fs-display)` + `var(--fw-bold)` Lora; typographic `.sectionDivider` mixin added. Step 3 — practice hub: `PracticeActivitiesGrid` replaced with full-width shelf rows (`.shelfList`/`.shelfRow`), icon in 40px colored circle, Lora title, arrow CTA, accent left-rail; responsive mobile 2-column grid collapses to stacked. Step 4 — quiz: progress bar 4px/surface-track/green-fill, `questionCard` animation fires only on `key` remount (question change), NOT on answer click; answer feedback instant (no transition); celebration `celebrationReveal` animation only on `resultCard`; removed `slideUp` from `.explanation`. Step 5 — speaking: `recordingPulse` keyframe changed from `ease` to `linear` with `var(--rose)` color and 12px ring expansion at 50%.

@@ -33,9 +33,13 @@ Prisma enum: `UserRole` in `schema.prisma`. DTO slug: `student` | `teacher` | `a
 |-------|:-------:|:-------:|:-----:|:-----------:|
 | `/dashboard`, `/practice`, `/lessons`, `/calendar`, `/vocabulary`, `/quiz`, `/profile` | Visible | Visible | Visible | Visible |
 | `/students` | Hidden | Visible | Visible | Visible |
-| `/admin` | Hidden | Hidden | Visible | Visible |
+| `/finance` | Hidden | Hidden | Visible | Visible |
+| `/system` | Hidden | Hidden | Hidden | Visible |
+| `/payment` | Visible | Hidden | Hidden | Hidden |
 
-Source: `Sidebar.tsx` — `isTeacherAdminOrSuperKey`, `isAdminOrSuperKey`.
+Source: `sidebar-nav.tsx` + `route-policy.ts` (`canRoleAccessPathname`).
+
+Teachers **cannot** see student lesson prices (API redaction on `studentLessonBalance`; statistics roster omits billing columns). Staff payout defaults: **System → Payouts** (`super_admin` only). Operational payouts: **`/finance`** (`admin`, `super_admin`). Own earnings: Profile statistics **My earnings** block.
 
 ## Web UI — feature matrix (`roleMatrix`)
 

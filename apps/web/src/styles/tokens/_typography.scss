@@ -2,21 +2,40 @@
  * Typography tokens — families, scale, rhythm.
  * Appearance → Font size sets `data-font-size` on `<html>` (see AppearanceSync).
  * Use `rem` or `var(--fs-N)` in SCSS so the whole UI scales together.
+ * Display headings: `font-family: var(--font-display)` + `--fs-page-title` / `--fs-display`.
  */
 
 :root {
-  --font-sans: 'Outfit', system-ui, sans-serif;
-  --font-display: 'Lora', Georgia, 'Times New Roman', serif;
+  --font-sans: var(--font-outfit), 'Outfit', system-ui, sans-serif;
+  --font-display: var(--font-lora), 'Lora', Georgia, 'Times New Roman', serif;
 
-  /* Semantic scale (rem) */
-  --fs-page-title: 1.75rem;
+  /* Page & section hierarchy (editorial: clear step page-title > section-title).
+     --fs-eyebrow = small uppercase section label (use with --tracking-caps). */
+  /* display-xl — hero-числа прогресу і вітання; єдиний fluid-кегль системи
+     (решта — fixed rem, product register). Стеля 3.75rem — свідомо нижче 6rem. */
+  --fs-display-xl: clamp(2.75rem, 2.2rem + 1.8vw, 3.75rem);
+  --fs-display: 2.375rem;
+  --fs-page-title: 2rem;
+  --fs-section-title: 1.375rem;
+  --fs-eyebrow: 0.6875rem;
   --fs-page-sub: 0.9375rem;
   --fs-sm: 0.8125rem;
   --fs-xs: 0.75rem;
 
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.04em;
+  --tracking-caps: 0.06em;
+
   /* Line-height */
   --lh-body: 1.62;
   --lh-tight: 1.35;
+  --lh-display: 1.2;
 
   /* Stepped scale for module SCSS (rem at 16px root) */
   --fs-9: 0.5625rem;

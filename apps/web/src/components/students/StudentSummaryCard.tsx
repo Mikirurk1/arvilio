@@ -3,30 +3,36 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
-import { Badge, SurfaceCard } from '../ui';
+import { Badge, PanelCard, UserAvatar } from '../ui';
 import { getProficiencyLevelById, getUserAccountStatusById, USER_ACCOUNT_STATUS, type MockStudent } from '../../mocks';
 import styles from './StudentSummaryCard.module.scss';
 
 export function StudentSummaryCard({
   student,
   profileId,
+  avatarUrl,
+  color,
 }: {
   student: MockStudent;
   /** Backend user id (UUID) when listing from API. */
   profileId?: string;
+  avatarUrl?: string | null;
+  /** User display color hex (from backend). */
+  color?: string | null;
 }) {
   const router = useRouter();
   const profileHref = `/students/${profileId ?? student.id}`;
-  const initials = student.fullName
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 2);
 
   return (
-    <SurfaceCard className={styles.card}>
+    <PanelCard interactive fillHeight>
       <div className={styles.header}>
-        <div className={styles.avatar}>{initials}</div>
+        <UserAvatar
+          size="md"
+          src={avatarUrl}
+          name={student.fullName}
+          email={student.email}
+          color={color}
+        />
         <div className={styles.headerMeta}>
           <div className={styles.name}>{student.fullName}</div>
           <div className={styles.teacher}>Teacher: {student.teacherName}</div>
@@ -43,6 +49,23 @@ export function StudentSummaryCard({
         >
           {getUserAccountStatusById(student.statusId)?.name ?? '—'}
         </Badge>
+      </div>
+
+      <div className={styles.scanStats} aria-label="Learning snapshot">
+        <div className={styles.scanStat}>
+          <span className={styles.scanStatValue}>{student.lessonsCompleted}</span>
+          <span className={styles.scanStatLabel}>Lessons</span>
+        </div>
+        <div className={styles.scanStat}>
+          <span className={styles.scanStatValue}>{student.wordsLearned}</span>
+          <span className={styles.scanStatLabel}>Words</span>
+        </div>
+        <div className={styles.scanStat}>
+          <span className={styles.scanStatValue}>
+            {student.streakDays > 0 ? student.streakDays : '—'}
+          </span>
+          <span className={styles.scanStatLabel}>Streak</span>
+        </div>
       </div>
 
       <div className={styles.metaBlock}>
@@ -63,6 +86,6 @@ export function StudentSummaryCard({
           Open profile <ArrowRight size={14} />
         </Link>
       </div>
-    </SurfaceCard>
+    </PanelCard>
   );
 }

@@ -70,6 +70,8 @@ model User {
   teacher          User?             @relation("StudentTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
   /// Students only: `true` = fixed schedule (recurrence allowed), `false` = flexible.
   scheduleType     Boolean           @default(true)
+  /// Students only: which lesson formats the student may attend.
+  lessonFormat     StudentLessonFormat @default(MIXED)
   /// Calendar / roster accent color (#RRGGBB). Assigned on create; staff may edit.
   displayColor     String?
   students         User[]            @relation("StudentTeacher")
@@ -88,13 +90,25 @@ model User {
 
   lessonsAsTeacher ScheduledLesson[] @relation("LessonTeacher")
   lessonsAsStudent ScheduledLesson[] @relation("LessonStudent")
+  scheduledLessonParticipations ScheduledLessonParticipant[]
+  groupLessonsAsPayer         ScheduledLesson[]            @relation("GroupLessonPayer")
+  studentGroupMemberships     StudentGroupMember[]
+  studentGroupsLed            StudentGroup[]               @relation("StudentGroupTeacher")
+  studentGroupsPaying         StudentGroup[]               @relation("StudentGroupPayer")
 
   ownedQuizzes        Quiz[]           @relation("QuizOwner")
   assignedQuizzes     QuizAssignment[] @relation("AssignmentStudent")
   authoredAssignments QuizAssignment[] @relation("AssignmentAssignedBy")
   quizAttempts        QuizAttempt[]
 
+  ownedSpeakingTopics         SpeakingTopic[]           @relation("SpeakingTopicOwner")
+  speakingAssignments         SpeakingTopicAssignment[] @relation("SpeakingAssignmentStudent")
+  authoredSpeakingAssignments SpeakingTopicAssignment[] @relation("SpeakingAssignmentAssignedBy")
+  speakingSubmissions         SpeakingSubmission[]      @relation("SpeakingSubmissionStudent")
+  reviewedSpeakingSubmissions SpeakingSubmission[]      @relation("SpeakingSubmissionReviewer")
+
   calendarConnection GoogleCalendarConnection?
+  zoomConnection     ZoomConnection?
 
   notifyLessonReminder   Boolean @default(true)
   notifyStreakAlert      Boolean @default(true)
@@ -116,6 +130,13 @@ model User {
   lessonBalanceLedger     LessonBalanceLedger[] @relation("LessonBalanceLedgerUser")
   lessonBalanceAdjustments LessonBalanceLedger[] @relation("LessonBalanceLedgerCreatedBy")
   payments                Payment[]
+
+  libraryMaterialsCreated LibraryMaterial[] @relation("LibraryMaterialCreator")
+  libraryFileAnnotations  LibraryFileUserAnnotation[]
+
+  staffCompensationProfile StaffCompensationProfile?
+  staffPayoutsReceived     StaffPayout[]             @relation("StaffPayoutPayee")
+  staffPayoutsCreated      StaffPayout[]             @relation("StaffPayoutCreator")
 
   @@index([teacherId])
   @@index([nativeLanguageId])
@@ -287,6 +308,22 @@ model GoogleCalendarConnection {
   userId       String    @unique
   /// Calendar id used when creating events. Defaults to "primary".
   calendarId   String    @default("primary")
+  accessToken  String?
+  refreshToken String?
+  expiresAt    DateTime?
+  scopes       String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Zoom OAuth connection used to create Zoom meetings for scheduled lessons.
+model ZoomConnection {
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  zoomUserId   String?
+  accountId    String?
+  email        String?
   accessToken  String?
   refreshToken String?
   expiresAt    DateTime?
@@ -476,6 +513,32 @@ enum StudentResponseStatus {
   ACCEPTED
 }
 
+enum ScheduledLessonKind {
+  INDIVIDUAL
+  GROUP
+}
+
+enum GroupLessonBillingMode {
+  PER_MEMBER
+  FIXED_TOTAL
+}
+
+enum GroupFixedSplitMode {
+  SINGLE_PAYER
+  EQUAL_SPLIT
+}
+
+enum LessonParticipantRole {
+  STUDENT
+  PAYER
+}
+
+enum StudentLessonFormat {
+  INDIVIDUAL_ONLY
+  GROUP_ONLY
+  MIXED
+}
+
 model ScheduledLesson {
   id          String  @id @default(cuid())
   title       String
@@ -492,7 +555,15 @@ model ScheduledLesson {
   timezone  String @default("Europe/Kyiv")
 
   teacherId    String
+  /// Primary student (first participant). Kept for backward-compatible queries.
   studentId    String
+  kind              ScheduledLessonKind      @default(INDIVIDUAL)
+  groupBillingMode  GroupLessonBillingMode?
+  groupPriceMinor   Int?
+  groupCurrency     String?
+  groupSplitMode    GroupFixedSplitMode?
+  groupPayerUserId  String?
+  studentGroupId    String?
   status       LessonStatus        @default(PLANNED)
   cancelReason LessonCancelReason?
   credited     Boolean             @default(false)
@@ -504,7 +575,19 @@ model ScheduledLesson {
   /// Sort order within a given day for the student/teacher.
   order Int @default(0)
 
-  // Google Meet integration
+  // Video meeting integration (generalized — supports Google Meet, Zoom, Jitsi)
+  /// Provider key when this lesson has a video meeting: 'google' | 'zoom' | 'jitsi'.
+  videoProvider          String?
+  /// URL students/teachers click to join the meeting (Meet/Zoom/Jitsi).
+  videoMeetingUrl        String?
+  /// Provider-specific identifier (Google event id, Zoom meeting id, Jitsi room).
+  videoMeetingExternalId String?
+  /// Raw provider id used to correlate webhooks (e.g. Zoom meeting UUID).
+  videoMeetingRawId      String?
+  videoMeetingStartedAt  DateTime?
+  videoMeetingEndedAt    DateTime?
+
+  // Google Meet integration (legacy fields — kept for backward compat; new code reads videoMeetingUrl with fallback)
   googleCalendarEventId String?
   googleMeetUrl         String?
   googleConferenceId    String?
@@ -524,6 +607,9 @@ model ScheduledLesson {
 
   teacher          User                   @relation("LessonTeacher", fields: [teacherId], references: [id], onDelete: Restrict)
   student          User                   @relation("LessonStudent", fields: [studentId], references: [id], onDelete: Restrict)
+  groupPayer       User?                  @relation("GroupLessonPayer", fields: [groupPayerUserId], references: [id], onDelete: SetNull)
+  studentGroup     StudentGroup?          @relation(fields: [studentGroupId], references: [id], onDelete: SetNull)
+  participants     ScheduledLessonParticipant[]
   materials        LessonMaterial[]
   fileAttachments  LessonFileAttachment[]
   linkedWords      StudentWordCard[]
@@ -533,6 +619,62 @@ model ScheduledLesson {
   @@index([teacherId, date])
   @@index([studentId, date])
   @@index([seriesId])
+  @@index([kind])
+  @@index([studentGroupId])
+}
+
+model StudentGroup {
+  id               String                 @id @default(cuid())
+  name             String
+  teacherId        String?
+  groupBillingMode GroupLessonBillingMode @default(PER_MEMBER)
+  groupPriceMinor  Int?
+  groupCurrency    String?
+  groupSplitMode   GroupFixedSplitMode?
+  groupPayerUserId String?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+
+  teacher    User?                  @relation("StudentGroupTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
+  groupPayer User?                  @relation("StudentGroupPayer", fields: [groupPayerUserId], references: [id], onDelete: SetNull)
+  members    StudentGroupMember[]
+  lessons    ScheduledLesson[]
+
+  @@index([teacherId])
+}
+
+model StudentGroupMember {
+  id             String @id @default(cuid())
+  studentGroupId String
+  userId         String
+  sortOrder      Int    @default(0)
+
+  studentGroup StudentGroup @relation(fields: [studentGroupId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([studentGroupId, userId])
+  @@index([userId])
+}
+
+model ScheduledLessonParticipant {
+  id                String                @id @default(cuid())
+  scheduledLessonId String
+  userId            String
+  role              LessonParticipantRole @default(STUDENT)
+  sortOrder         Int                   @default(0)
+  studentResponseText     String?
+  studentResponseFiles    String[]
+  studentResponseStatus   StudentResponseStatus @default(NOT_SUBMITTED)
+  homeworkChecked         Boolean               @default(false)
+  teacherHomeworkFeedback String?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  lesson ScheduledLesson @relation(fields: [scheduledLessonId], references: [id], onDelete: Cascade)
+  user   User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduledLessonId, userId])
+  @@index([userId])
 }
 
 enum MaterialKind {
@@ -541,20 +683,29 @@ enum MaterialKind {
   TEST
   FILE
   PRESENTATION
+  BOOK
+  BOARD
 }
 
 model LessonMaterial {
-  id        String          @id @default(cuid())
-  lessonId  String
-  kind      MaterialKind
-  text      String?
-  files     String[]
-  order     Int             @default(0)
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  lesson    ScheduledLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  id                String           @id @default(cuid())
+  lessonId          String
+  kind              MaterialKind
+  text              String?
+  files             String[]
+  libraryMaterialId String?
+  /// Explicit audio/video picks when libraryMediaSelectionApplied is true.
+  sharedLibraryAssetIds String[] @default([])
+  /// False = share all student audio/video (legacy). True = use sharedLibraryAssetIds.
+  libraryMediaSelectionApplied Boolean @default(false)
+  order             Int              @default(0)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  lesson            ScheduledLesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  libraryMaterial   LibraryMaterial? @relation(fields: [libraryMaterialId], references: [id], onDelete: SetNull)
 
   @@index([lessonId])
+  @@index([libraryMaterialId])
 }
 
 model LessonFileAttachment {
@@ -568,6 +719,144 @@ model LessonFileAttachment {
   lesson     ScheduledLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@index([lessonId])
+}
+
+enum LibraryMaterialKind {
+  BOARD
+  PRESENTATION
+  BOOK
+  OTHER
+}
+
+enum LibraryMaterialAssetRole {
+  STUDENT_BOOK
+  TEACHER_BOOK
+  WORKBOOK
+  AUDIO
+  VIDEO
+  SLIDES
+  LINK
+  OTHER
+}
+
+enum LibraryMaterialDeliveryKind {
+  URL
+  FILE
+}
+
+model LibraryMaterial {
+  id          String              @id @default(cuid())
+  title       String
+  description String?
+  kind        LibraryMaterialKind
+  tags        String[]
+  level       String?
+  publisher   String?
+  /// Optional hero/cover image for library cards (uploaded image).
+  coverAttachmentId String? @unique
+  /// Tenant seam — nullable while single-school.
+  schoolId    String?
+  createdById String
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  createdBy       User                    @relation("LibraryMaterialCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  coverAttachment LibraryFileAttachment?  @relation("MaterialCover", fields: [coverAttachmentId], references: [id], onDelete: SetNull)
+  assets          LibraryMaterialAsset[]
+  fileAttachments LibraryFileAttachment[]
+  lessonMaterials LessonMaterial[]
+
+  @@index([kind])
+  @@index([schoolId, kind])
+  @@index([createdById])
+}
+
+model LibraryMaterialAsset {
+  id               String                      @id @default(cuid())
+  materialId       String
+  role             LibraryMaterialAssetRole
+  deliveryKind     LibraryMaterialDeliveryKind
+  url              String?
+  fileAttachmentId String?
+  label            String?
+  sortOrder        Int                         @default(0)
+
+  material       LibraryMaterial        @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  fileAttachment LibraryFileAttachment? @relation(fields: [fileAttachmentId], references: [id], onDelete: SetNull)
+
+  @@index([materialId])
+}
+
+model LibraryFileAttachment {
+  id         String   @id @default(cuid())
+  materialId String
+  fileName   String
+  mimeType   String
+  sizeBytes  Int
+  storageKey String
+  /// JPEG/WebP thumbnail of first PDF page (book assets).
+  previewStorageKey String?
+  createdAt  DateTime @default(now())
+
+  material       LibraryMaterial        @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  coverForMaterial LibraryMaterial?     @relation("MaterialCover")
+  assets         LibraryMaterialAsset[]
+  userAnnotations LibraryFileUserAnnotation[]
+  captionTracks   LibraryFileCaptionTrack[]
+
+  @@index([materialId])
+}
+
+enum LibraryCaptionTrackKind {
+  SOURCE
+  TRANSLATION
+}
+
+enum LibraryCaptionTrackStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
+}
+
+model LibraryFileCaptionTrack {
+  id               String                    @id @default(cuid())
+  fileAttachmentId String
+  language         String
+  kind             LibraryCaptionTrackKind
+  sourceTrackId    String?
+  status           LibraryCaptionTrackStatus @default(PENDING)
+  vttStorageKey    String?
+  errorMessage     String?
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+
+  fileAttachment LibraryFileAttachment @relation(fields: [fileAttachmentId], references: [id], onDelete: Cascade)
+
+  @@unique([fileAttachmentId, language, kind])
+  @@index([fileAttachmentId])
+}
+
+/// Per-user vector annotations on a library PDF file (keyed by file attachment, not lesson).
+model LibraryFileUserAnnotation {
+  id               String   @id @default(cuid())
+  userId           String
+  fileAttachmentId String
+  /// "" = own book; student id when staff draws on that student's book.
+  contextUserId    String   @default("")
+  /// Compact vector doc: { version: 1, pages: { "0": Annotation[] } }
+  document         Json
+  /// Fingerprint to detect stale layer after PDF re-upload (sizeBytes + storageKey).
+  fileRevision     String?
+  updatedAt        DateTime @updatedAt
+  createdAt        DateTime @default(now())
+
+  user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileAttachment LibraryFileAttachment @relation(fields: [fileAttachmentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, fileAttachmentId, contextUserId])
+  @@index([fileAttachmentId])
+  @@index([contextUserId])
 }
 
 // =====================
@@ -702,6 +991,82 @@ model QuizAnswer {
 }
 
 // =====================
+// Speaking practice
+// =====================
+
+enum SpeakingTopicAssignmentStatus {
+  PENDING
+  SUBMITTED
+  REVIEWED
+}
+
+enum SpeakingSubmissionStatus {
+  SUBMITTED
+  REVIEWED
+}
+
+model SpeakingTopic {
+  id        String   @id @default(cuid())
+  title     String
+  prompt    String
+  ownerId   String
+  wordIds   String[] @default([])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner       User                      @relation("SpeakingTopicOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  assignments SpeakingTopicAssignment[]
+  submissions SpeakingSubmission[]
+
+  @@index([ownerId])
+}
+
+model SpeakingTopicAssignment {
+  id           String                        @id @default(cuid())
+  topicId      String
+  studentId    String
+  assignedById String
+  personalNote String?
+  dueDate      DateTime?
+  status       SpeakingTopicAssignmentStatus @default(PENDING)
+  createdAt    DateTime                      @default(now())
+  updatedAt    DateTime                      @updatedAt
+
+  topic       SpeakingTopic        @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  student     User                 @relation("SpeakingAssignmentStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  assignedBy  User                 @relation("SpeakingAssignmentAssignedBy", fields: [assignedById], references: [id], onDelete: Cascade)
+  submissions SpeakingSubmission[]
+
+  @@unique([topicId, studentId])
+  @@index([studentId])
+  @@index([assignedById])
+}
+
+model SpeakingSubmission {
+  id              String                   @id @default(cuid())
+  topicId         String
+  assignmentId    String?
+  studentId       String
+  audioStorageKey String?
+  durationSec     Int?
+  mimeType        String?
+  status          SpeakingSubmissionStatus @default(SUBMITTED)
+  teacherFeedback String?
+  reviewedById    String?
+  reviewedAt      DateTime?
+  submittedAt     DateTime                 @default(now())
+
+  topic      SpeakingTopic            @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  assignment SpeakingTopicAssignment? @relation(fields: [assignmentId], references: [id], onDelete: SetNull)
+  student    User                     @relation("SpeakingSubmissionStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  reviewer   User?                    @relation("SpeakingSubmissionReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([topicId])
+  @@index([studentId])
+  @@index([assignmentId])
+}
+
+// =====================
 // Realtime chat
 // =====================
 
@@ -779,6 +1144,7 @@ model ChatMessageAttachment {
 enum WordDictionaryProvider {
   DICTIONARY_API_DEV
   WIKTIONARY
+  REVERSO
 }
 
 /// Singleton row (`id` = "default") for platform-wide configuration.
@@ -788,6 +1154,12 @@ model PlatformSettings {
   enabledPaymentMethods  PaymentMethodKind[]    @default([])
   paymentConfig          Json                   @default("{}")
   paymentSecrets         String?
+  /// Platform-wide integrations (translation, SMTP, OAuth, Telegram) — non-secret fields.
+  integrationConfig      Json                   @default("{}")
+  /// AES-GCM encrypted JSON (smtp pass, OAuth secrets, bot token, …).
+  integrationSecrets     String?
+  /// Default staff payout / compensation settings (school-wide).
+  staffPayoutDefaults    Json                   @default("{}")
   updatedAt              DateTime               @updatedAt
 }
 
@@ -817,6 +1189,61 @@ enum LessonBalanceLedgerKind {
   MANUAL_CREDIT
   CONSUMPTION
   REVERSAL
+  GROUP_CHARGE
+  GROUP_CHARGE_REVERSAL
+  GROUP_PURCHASE
+  GROUP_MANUAL_CREDIT
+  GROUP_CONSUMPTION
+  GROUP_REVERSAL
+}
+
+enum StaffCompensationMode {
+  PER_LESSON
+  SALARY
+  MIXED
+}
+
+enum StaffPayFrequency {
+  WEEKLY
+  MONTHLY
+}
+
+/// Per-staff compensation overrides (teachers, admins). Null fields fall back to platform defaults.
+model StaffCompensationProfile {
+  id                String                 @id @default(cuid())
+  userId            String                 @unique
+  user              User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mode              StaffCompensationMode?
+  perLessonRateMinor Int?
+  salaryMinor       Int?
+  currency          String?
+  payFrequency      StaffPayFrequency?
+  /// 0 = Sunday … 6 = Saturday when payFrequency = WEEKLY
+  payDayOfWeek      Int?
+  /// 1–28 when payFrequency = MONTHLY
+  payDayOfMonth     Int?
+  graceDays         Int?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+}
+
+/// Manual staff payout records entered by admin/super-admin.
+model StaffPayout {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation("StaffPayoutPayee", fields: [userId], references: [id], onDelete: Cascade)
+  amountMinor     Int
+  currency        String
+  paidAt          DateTime
+  periodFrom      DateTime?
+  periodTo        DateTime?
+  note            String?
+  createdByUserId String
+  createdBy       User     @relation("StaffPayoutCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  createdAt       DateTime @default(now())
+
+  @@index([userId, paidAt])
+  @@index([createdAt])
 }
 
 enum StudentBillingMode {
@@ -829,8 +1256,12 @@ enum StudentBillingMode {
 model StudentLessonBalance {
   userId               String              @id
   balance              Int                 @default(0)
+  /// Prepaid credits for group per-member lessons (separate from individual balance).
+  groupBalance         Int                 @default(0)
   /// Override platform price-per-lesson (minor units); null = use platform default.
   pricePerLessonMinor  Int?
+  /// Override platform group per-member price (minor units); null = use groupLessons.defaultPriceMinor.
+  groupPricePerLessonMinor Int?
   /// How this student is billed (per lesson, packages, or both).
   billingMode          StudentBillingMode  @default(BOTH)
   /// Per-student package rules: fixed lesson counts, enabled flags (JSON array).
@@ -853,6 +1284,9 @@ model LessonBalanceLedger {
   paymentId         String?
   createdById       String?
   note              String?
+  /// Monetary amount for GROUP_CHARGE rows (minor units).
+  amountMinor       Int?
+  currency          String?
   createdAt         DateTime                @default(now())
 
   user            User             @relation("LessonBalanceLedgerUser", fields: [userId], references: [id], onDelete: Cascade)
@@ -860,7 +1294,7 @@ model LessonBalanceLedger {
   payment         Payment?         @relation(fields: [paymentId], references: [id], onDelete: SetNull)
   createdBy       User?            @relation("LessonBalanceLedgerCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
 
-  @@unique([scheduledLessonId, kind])
+  @@unique([scheduledLessonId, userId, kind])
   @@index([userId, createdAt])
 }
 

@@ -1,6 +1,9 @@
+@use '../styles/variables' as *;
+@use '../styles/mixins' as *;
+
 .page {
   min-height: 100vh;
-  background: #f4f7fb;
+  background: var(--surface);
 }
 
 .main {
@@ -80,11 +83,11 @@
     margin: 6px 0 0;
     font-size: var(--fs-26);
     font-weight: 700;
-    color: #0f172a;
+    color: var(--text-primary);
   }
 }
 
-@media (max-width: 900px) {
+@include respond-max($breakpoint-marketing) {
   .grid > * {
     grid-column: span 12;
   }

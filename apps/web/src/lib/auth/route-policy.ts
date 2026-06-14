@@ -19,10 +19,23 @@ type RouteRule = {
   route: RouteAccessDescriptor;
 };
 
-const PUBLIC_ROUTES = new Set(['/login', '/register', '/forgot-password', '/reset-password']);
-const AUTH_REDIRECT_ROUTES = new Set(['/login', '/register']);
+const PUBLIC_ROUTES = new Set(['/login', '/forgot-password', '/reset-password']);
+const CMS_ROUTE_PREFIX = '/cms-admin';
+const AUTH_REDIRECT_ROUTES = new Set(['/login']);
 
 const ROUTE_RULES: RouteRule[] = [
+  {
+    match: (pathname) => matchesPath(pathname, CMS_ROUTE_PREFIX),
+    route: {
+      surface: 'public',
+      shell: 'auth',
+      isPublic: true,
+      redirectAuthenticatedTo: null,
+      requiredScope: null,
+      allowedRoles: null,
+      deniedRedirectTo: '/dashboard',
+    },
+  },
   {
     match: (pathname) => PUBLIC_ROUTES.has(pathname),
     route: {
@@ -60,6 +73,30 @@ const ROUTE_RULES: RouteRule[] = [
     },
   },
   {
+    match: (pathname) => matchesPath(pathname, '/finance'),
+    route: {
+      surface: 'school-app',
+      shell: 'app',
+      isPublic: false,
+      redirectAuthenticatedTo: null,
+      requiredScope: 'school',
+      allowedRoles: ['admin', 'super_admin'],
+      deniedRedirectTo: '/dashboard',
+    },
+  },
+  {
+    match: (pathname) => matchesPath(pathname, '/staff'),
+    route: {
+      surface: 'school-app',
+      shell: 'app',
+      isPublic: false,
+      redirectAuthenticatedTo: null,
+      requiredScope: 'school',
+      allowedRoles: ['admin', 'super_admin'],
+      deniedRedirectTo: '/dashboard',
+    },
+  },
+  {
     match: (pathname) => matchesPath(pathname, '/admin'),
     route: {
       surface: 'school-app',
@@ -68,6 +105,30 @@ const ROUTE_RULES: RouteRule[] = [
       redirectAuthenticatedTo: null,
       requiredScope: 'school',
       allowedRoles: ['admin', 'super_admin'],
+      deniedRedirectTo: '/dashboard',
+    },
+  },
+  {
+    match: (pathname) => matchesPath(pathname, '/materials/view'),
+    route: {
+      surface: 'school-app',
+      shell: 'app',
+      isPublic: false,
+      redirectAuthenticatedTo: null,
+      requiredScope: 'school',
+      allowedRoles: null,
+      deniedRedirectTo: '/dashboard',
+    },
+  },
+  {
+    match: (pathname) => matchesPath(pathname, '/materials'),
+    route: {
+      surface: 'school-app',
+      shell: 'app',
+      isPublic: false,
+      redirectAuthenticatedTo: null,
+      requiredScope: 'school',
+      allowedRoles: ['teacher', 'admin', 'super_admin'],
       deniedRedirectTo: '/dashboard',
     },
   },

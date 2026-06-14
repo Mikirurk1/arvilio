@@ -86,7 +86,7 @@ export default function ChatPage() {
   };
 
   const headerExtra = (
-    <div style={{ display: 'flex', gap: 6 }}>
+    <div className={styles.inboxActions}>
       <Button
         type="button"
         variant="ghost"

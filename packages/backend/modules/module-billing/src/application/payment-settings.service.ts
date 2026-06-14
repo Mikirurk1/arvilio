@@ -137,6 +137,39 @@ export class PaymentSettingsService {
     return resolveStudentPaymentMethods(enabled, selection);
   }
 
+  async resolveGroupPricePerLessonMinor(studentId: string): Promise<{
+    defaultGroupPricePerLessonMinor: number;
+    groupPricePerLessonMinor: number | null;
+    resolvedGroupPricePerLessonMinor: number;
+    isCustomGroupPrice: boolean;
+    groupCurrency: string;
+  }> {
+    const settings = await this.getPaymentSettings();
+    const defaultGroupPrice = settings.config.groupLessons?.defaultPriceMinor ?? 0;
+    const groupCurrency =
+      settings.config.groupLessons?.defaultCurrency?.trim().toUpperCase() ||
+      settings.config.defaultCurrency;
+    await this.prisma.studentLessonBalance.upsert({
+      where: { userId: studentId },
+      create: { userId: studentId, balance: 0, groupBalance: 0 },
+      update: {},
+    });
+    const balance = await this.prisma.studentLessonBalance.findUnique({
+      where: { userId: studentId },
+      select: { groupPricePerLessonMinor: true },
+    });
+    const override = balance?.groupPricePerLessonMinor ?? null;
+    const resolved =
+      override != null && override >= 0 ? override : defaultGroupPrice;
+    return {
+      defaultGroupPricePerLessonMinor: defaultGroupPrice,
+      groupPricePerLessonMinor: override,
+      resolvedGroupPricePerLessonMinor: resolved,
+      isCustomGroupPrice: override != null,
+      groupCurrency,
+    };
+  }
+
   async resolvePricePerLessonMinor(studentId: string): Promise<{
     defaultPricePerLessonMinor: number;
     pricePerLessonMinor: number | null;
@@ -148,7 +181,7 @@ export class PaymentSettingsService {
     const defaultPrice = settings.config.defaultPricePerLessonMinor;
     await this.prisma.studentLessonBalance.upsert({
       where: { userId: studentId },
-      create: { userId: studentId, balance: 0 },
+      create: { userId: studentId, balance: 0, groupBalance: 0 },
       update: {},
     });
     const balance = await this.prisma.studentLessonBalance.findUnique({
@@ -170,6 +203,7 @@ export class PaymentSettingsService {
   async resolvePackagesForStudent(studentId: string): Promise<ResolvedLessonPackageDto[]> {
     const settings = await this.getPaymentSettings();
     const pricing = await this.resolvePricePerLessonMinor(studentId);
+    const groupPricing = await this.resolveGroupPricePerLessonMinor(studentId);
     const balance = await this.prisma.studentLessonBalance.findUnique({
       where: { userId: studentId },
       select: { billingMode: true, packageOverrides: true },
@@ -178,8 +212,12 @@ export class PaymentSettingsService {
     const overrides = parsePackageOverrides(balance?.packageOverrides);
     return resolveStudentPackages(
       settings.config,
-      pricing.resolvedPricePerLessonMinor,
-      pricing.isCustomPrice,
+      {
+        individualPricePerLessonMinor: pricing.resolvedPricePerLessonMinor,
+        individualIsCustomPrice: pricing.isCustomPrice,
+        groupPricePerLessonMinor: groupPricing.resolvedGroupPricePerLessonMinor,
+        groupIsCustomPrice: groupPricing.isCustomGroupPrice,
+      },
       billingMode,
       overrides,
     );
@@ -221,12 +259,20 @@ export class PaymentSettingsService {
     }
   }
 
+  private secretsEncryptionKey(): string | null {
+    return (
+      process.env['PAYMENT_SECRETS_ENCRYPTION_KEY']?.trim() ??
+      process.env['PLATFORM_SECRETS_ENCRYPTION_KEY']?.trim() ??
+      null
+    );
+  }
+
   private readStoredPaymentSecrets(encryptedPayload: string | null): PaymentSecretsDto {
     if (!encryptedPayload) return {};
-    const key = process.env['PAYMENT_SECRETS_ENCRYPTION_KEY']?.trim();
+    const key = this.secretsEncryptionKey();
     if (!key) {
       throw new InternalServerErrorException(
-        'PAYMENT_SECRETS_ENCRYPTION_KEY is required to read stored payment secrets',
+        'PAYMENT_SECRETS_ENCRYPTION_KEY or PLATFORM_SECRETS_ENCRYPTION_KEY is required to read stored payment secrets',
       );
     }
     try {
@@ -245,10 +291,10 @@ export class PaymentSettingsService {
     if (!hasPaymentSecretUpdates(updates)) {
       return currentEncryptedPayload;
     }
-    const key = process.env['PAYMENT_SECRETS_ENCRYPTION_KEY']?.trim();
+    const key = this.secretsEncryptionKey();
     if (!key) {
       throw new BadRequestException(
-        'PAYMENT_SECRETS_ENCRYPTION_KEY is required to save school payment secrets',
+        'PAYMENT_SECRETS_ENCRYPTION_KEY or PLATFORM_SECRETS_ENCRYPTION_KEY is required to save school payment secrets',
       );
     }
     const current = currentEncryptedPayload

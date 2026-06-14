@@ -1,8 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap');
+/* Layer order: payload-default wins over base so Payload styles override our reset */
+@layer base, payload-default;
 
 @import '../styles/global';
 
-body:has([data-auth-route]) [data-app-shell] > header,
+// Auth routes: full-bleed content without shell chrome (see (auth)/layout data-auth-route).
+body:has([data-auth-route]) [data-app-shell-header],
 body:has([data-auth-route]) [data-app-shell-body] > aside,
 body:has([data-auth-route]) [data-mobile-nav-drawer] {
   display: none !important;
@@ -14,7 +16,9 @@ body:has([data-auth-route]) [data-app-shell-body] {
 
 body:has([data-auth-route]) [data-app-shell-main] {
   width: 100%;
-  max-width: none;
   padding: 0;
   margin: 0;
+  background: var(--surface);
+  background-image: none;
+  box-shadow: none;
 }

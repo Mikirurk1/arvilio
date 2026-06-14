@@ -131,6 +131,55 @@ describe('Field', () => {
     expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
+  it('advancedSelect filters options locally and selects value', () => {
+    const onChange = jest.fn();
+    render(
+      <Field
+        as="advancedSelect"
+        id="student"
+        value="b1"
+        onChange={onChange}
+        options={[
+          { value: 'a1', label: 'Anna' },
+          { value: 'b1', label: 'Boris' },
+          { value: 'c1', label: 'Chris' },
+        ]}
+      />,
+    );
+
+    fireEvent.click(document.getElementById('student')!);
+    const search = screen.getByPlaceholderText('Search…');
+    fireEvent.change(search, { target: { value: 'bor' } });
+    expect(screen.queryByRole('option', { name: 'Anna' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('option', { name: 'Boris' }));
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        target: expect.objectContaining({ value: 'b1' }),
+      }),
+    );
+  });
+
+  it('advancedSelect calls onSearch when query changes', () => {
+    jest.useFakeTimers();
+    const onSearch = jest.fn();
+    render(
+      <Field
+        as="advancedSelect"
+        id="student-remote"
+        value=""
+        onChange={() => {}}
+        onSearch={onSearch}
+        options={[{ value: 'a1', label: 'Anna' }]}
+      />,
+    );
+
+    fireEvent.click(document.getElementById('student-remote')!);
+    fireEvent.change(screen.getByPlaceholderText('Search…'), { target: { value: 'an' } });
+    jest.advanceTimersByTime(250);
+    expect(onSearch).toHaveBeenCalledWith('an');
+    jest.useRealTimers();
+  });
+
   it('file-button triggers hidden input click', () => {
     const onFilesSelected = jest.fn();
     render(

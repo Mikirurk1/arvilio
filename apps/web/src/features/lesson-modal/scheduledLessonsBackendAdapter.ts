@@ -150,13 +150,16 @@ export function getLessonBackendId(
 
 /** Whether a lesson belongs to the viewer for student/teacher role filters. */
 export function lessonIncludesViewer(
-  lesson: Pick<ScheduledLessonDto, 'studentId' | 'teacherId'>,
+  lesson: Pick<ScheduledLessonDto, 'studentId' | 'teacherId' | 'participantIds'>,
   viewerPartyNumericId: number | null | undefined,
   role: UserRoleId,
 ): boolean {
   if (role !== USER_ROLE.student.id && role !== USER_ROLE.teacher.id) return true;
   if (viewerPartyNumericId == null) return false;
-  if (role === USER_ROLE.student.id) return lesson.studentId === viewerPartyNumericId;
+  if (role === USER_ROLE.student.id) {
+    if (lesson.studentId === viewerPartyNumericId) return true;
+    return lesson.participantIds?.includes(viewerPartyNumericId) ?? false;
+  }
   return lesson.teacherId === viewerPartyNumericId;
 }
 
@@ -184,6 +187,8 @@ export function fromBackendLesson(dto: ScheduledLessonBackendDto): ScheduledLess
     weeklyDays: dto.weeklyDays,
     seriesId: dto.seriesId ?? undefined,
     order: dto.order,
+    videoProvider: dto.videoProvider ?? null,
+    videoMeetingUrl: dto.videoMeetingUrl ?? dto.googleMeetUrl ?? null,
     googleMeetUrl: dto.googleMeetUrl ?? null,
     materials: dto.materials.map((material) => ({
       id: material.id,
@@ -191,6 +196,10 @@ export function fromBackendLesson(dto: ScheduledLessonBackendDto): ScheduledLess
       text: material.text,
       files: material.files,
       fileLinks: material.fileLinks,
+      libraryMaterialId: material.libraryMaterialId ?? null,
+      sharedLibraryAssetIds: material.sharedLibraryAssetIds ?? [],
+      libraryMediaSelectionApplied: material.libraryMediaSelectionApplied ?? false,
+      libraryMaterial: material.libraryMaterial ?? null,
     })),
     homework: {
       text: dto.homework.text,
@@ -202,6 +211,22 @@ export function fromBackendLesson(dto: ScheduledLessonBackendDto): ScheduledLess
       fileLinks: dto.studentResponse.fileLinks,
     },
     linkedWordIds: dto.linkedWordIds?.length ? [...dto.linkedWordIds] : undefined,
+    kind: dto.kind ?? 'individual',
+    participantIds: (dto.participants ?? []).map((row) => partyNumericId(row.userId)),
+    participants: (dto.participants ?? []).map((row) => ({
+      userId: partyNumericId(row.userId),
+      displayName: row.displayName?.trim() ?? '',
+      role: row.role,
+      sortOrder: row.sortOrder,
+    })),
+    groupBilling: dto.groupBilling
+      ? {
+          ...dto.groupBilling,
+          payerUserId: dto.groupBilling.payerUserId
+            ? String(partyNumericId(dto.groupBilling.payerUserId))
+            : null,
+        }
+      : undefined,
   };
 }
 

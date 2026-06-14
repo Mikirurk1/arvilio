@@ -1,6 +1,6 @@
 ---
 tags: [concept, frontend]
-updated: 2026-05-27
+updated: 2026-05-30
 ---
 
 # Web application
@@ -12,14 +12,14 @@ Next.js App Router client at `apps/web` (dev port **4200**).
 | Route | Purpose |
 |-------|---------|
 | `/` | Landing / redirect |
-| `/login` | Auth (no shell); `/register` redirects to `/login` |
+| `/login` | Auth (no shell); self-registration not exposed |
 | `/system` | Super-admin: SMTP status, test welcome email |
 | `/dashboard` | Role-scoped home — live GraphQL data (see below) |
-| `/practice`, `/practice/vocabulary`, `/practice/quiz`, `/practice/speaking` | Practice hub |
+| `/practice`, `/practice/vocabulary`, `/practice/quiz`, `/practice/speaking`, `/practice/irregular-verbs` | Practice hub + vocabulary/quiz/speaking/irregular-verbs workspaces |
 | `/lessons`, `/lessons/[lessonId]` | Lesson lists/detail |
+| `/materials` | Staff materials library (teacher/admin+) — see [[concepts/materials-library]] |
 | `/calendar` | Schedule board — month/week grid; sidebar stacks below calendar on tablet/mobile; week view horizontal scroll |
-| `/vocabulary` | Word cards |
-| `/quiz` | Quizzes |
+| `/vocabulary`, `/quiz` | Legacy aliases to the same workspace screens (keep for backward compatibility) |
 | `/students`, `/students/[studentId]` | Staff student list + profile (teacher+); route id is **backend UUID** |
 | `/admin` | User management (admin+) |
 | `/profile` | Profile & settings |
@@ -29,6 +29,7 @@ Next.js App Router client at `apps/web` (dev port **4200**).
 - `AppShell` wraps app routes with `LessonEditorHost` (`ScheduledLessonsProvider` + global create modal). Header/dashboard “Create lesson” calls `useOpenCreateLesson()` — opens the modal in place, no URL change and no redirect to `/lessons`.
 - `src/proxy.ts` owns request-time public/protected route redirects before render; `AppShell` reflects the route shell variant from proxy/auth headers. Anonymous public pages skip the `web-session` roundtrip; protected navigations call same-origin `/api/auth/web-session`.
 - No root `app/loading.tsx` — a global segment loading boundary conflicted with persistent `AppShell` and client navigations (React Suspense cleanup warnings). Auth/shell selection is inlined in async root `app/layout.tsx` (reads proxy headers via `readRequestAuthState`); no extra layout `<Suspense>` wrapper.
+- **Post-login shell:** root layout uses client `AppShellGate` — after soft nav from `/login` to `/dashboard`, `AppShell` + `LessonEditorHost` mount when `useAuth().user` is set (server-only shell check is not enough for client navigations).
 
 ### Navigation perf (dev)
 
@@ -54,6 +55,10 @@ Next.js App Router client at `apps/web` (dev port **4200**).
 | GraphQL | `lib/graphql-client.ts` | Domain queries/mutations |
 | Proxy | `next.config.mjs` | `/api/*` → backend for same-origin cookies |
 
+- Browser uploads (materials, lessons, chat, speaking) go through the Next `/api` rewrite. **`experimental.proxyClientMaxBodySize`** must be ≥ backend max attachment size — default **~125 MB bytes** (125% of `MATERIAL_ATTACHMENT_MAX_BYTES`, 100 MB) for multipart overhead. Without this, Next 16 truncates bodies at 10 MB and proxied uploads return 500. Frontend validates pending files ≤ 100 MB via `material-upload-limits.ts`.
+
+- `graphql-client.ts` now performs a single in-flight deduplicated `POST /api/auth/refresh` + one retry when GraphQL returns HTTP `401/403` or a GraphQL `Unauthorized/Forbidden` error. This mitigates intermittent stats/dashboard failures caused by concurrent requests during refresh-token rotation.
+
 ## Dashboard (`/dashboard`)
 
 `fetchDashboard(isStudent)` in `dashboard-store` loads in parallel (reuses warm Zustand slices when already fetched — no forced refetch on every visit):
@@ -71,9 +76,16 @@ Next.js App Router client at `apps/web` (dev port **4200**).
 | Review words | `studentVocabulary` (`new` / `repeated` / `mistakes_work`) | ✓ | hidden |
 | Daily goals | [[concepts/daily-goals]] | ✓ | hidden |
 | Word of the day | `wordOfDay` (deterministic pick from deck) | ✓ | hidden |
+| Irregular verb of the day | `pickIrregularVerbOfDay` (UTC date, common tier from `@pkg/types`) | ✓ | hidden |
 | Streak calendar | `learningStreak` (`activeDays` for current month) | ✓ | hidden |
 
 No mock lessons/vocab on this page.
+
+## Quiz intro cards
+
+- `app/quiz/sections.tsx` `QuizTopicsGrid` shows top quiz cards as a quick-start surface.
+- Cards now use a neutral `Quiz` tag in UI (not category-driven labels), because quiz creation flow does not require explicit category input.
+- As of 2026-05-28 follow-up cleanup, `/quiz` intro no longer renders `QuizTopicsGrid`; the screen goes directly from hero CTA to the main manage section.
 
 ## State (Zustand)
 
@@ -106,7 +118,31 @@ Ported from `materials/addax_assessment/.../features/notifications` (Redux → Z
 
 Prisma `PracticeSession` (kind, source, `startedAt`/`endedAt`, `durationSec`). GraphQL: `recordPracticeSession`, `practiceWeekSummary` (last 7 days UTC).
 
-Vocabulary **Play**, quiz runs, and `/practice/speaking` use `usePracticeSessionTracker` → `practice-store.recordSession` (min 30s client-side). `/practice` **Practice this week** loads `practiceWeekSummary` from API.
+Vocabulary **Play**, quiz runs, `/practice/speaking`, and **`/practice/irregular-verbs`** (Three Forms Drill) use `usePracticeSessionTracker` → `practice-store.recordSession` (min 30s client-side). Irregular-verbs drill records `kind: 'games'`. `/practice` **Practice this week** loads `practiceWeekSummary` from API.
+
+**Engaged time (default):** games, quiz, and vocabulary play count only **active** time — pointer/keyboard/touch resets a 60s idle timer; after 60s without input accumulation pauses until the next interaction. Time also pauses while the tab is hidden (`document.visibilityState === 'hidden'`). On unmount or when `active` flips false, accumulated engaged ms is sent via `recordPracticeSessionDuration` (mapped to synthetic `startedAt`/`endedAt` for the existing API).
+
+**Wall-clock (speaking):** voice recording via `SpeakingRecordSession` uses `usePracticeSessionTracker` with `{ idleTimeoutMs: false }` while the mic is active.
+
+## Speaking topics (`/practice/speaking`)
+
+Structured speaking assignments — see [[entities/speaking-topic]].
+
+- **Create:** teacher on student Practice tab, student or teacher on `/practice/speaking`
+- **Words:** optional mini vocabulary chips from student deck + lookup add
+- **Record:** browser `MediaRecorder` → REST audio upload → `SpeakingSubmission`
+- **Review:** teacher text feedback on all student submissions (assigned + self-created)
+
+## Irregular verbs practice (`/practice/irregular-verbs`)
+
+Client-only grammar drill — not tied to `StudentWordCard`.
+
+- **Data:** curated list in `@pkg/types` / `irregular-verbs.ts` with `tier: 'common' | 'extended'`; `listIrregularVerbs(tier)` — extended returns full catalog (~131), common returns everyday subset (~63).
+- **UI:** reference table (V1 / V2 / V3), tier `SegmentedControl`, search filter, sticky **Play** CTA.
+- **Game:** Three Forms Drill — MCQ for past simple or past participle; setup chooses form focus (mixed / V2 / V3) and count (10 / 20 / all for common, 10 / 20 / 30 for extended). Question builder: `apps/web/src/lib/irregular-verbs-drill.ts`. Results are practice-only (not saved to vocabulary queue).
+- **Practice time:** page-level `usePracticeSessionTracker` (`kind: games`) while drill flow is active (`setup` | `quiz` | `result`); persists to `PracticeSession` and refreshes **Practice this week → Time practicing** (min 30s, same as other practice modes).
+- **Practice hub:** dedicated **Irregular verbs** card (Grammar); **Games** tile remains coming soon.
+- **Practice hub card stats:** live counts via `usePracticePendingCounts` — student incomplete **assigned** quizzes (not staff-owned quiz list), vocab `new`/`mistakes_work`, speaking assignments with `status: pending`; zero shows **All caught up** (staff Speaking card: **Topics**).
 
 Profile **Notifications** tab = five email preference toggles persisted via `myProfile` / `updateMyProfile` (`notificationPrefs`). Debounced auto-save when logged in; mock prefs only without auth. See [[concepts/profile-notifications]] — not the toast UI.
 
@@ -131,10 +167,12 @@ Profile **Account** tab — **Session** row: **Log out** calls `POST /api/auth/l
 - **Tab switch UX:** student profile sets `keepMountedTabs={false}`; heavy tabs lazy-load on first visit (`visitedTabs`) via `createLazyPanel` (`lib/client/lazy-panel.ts`) — `import()` + `useEffect`, not `next/dynamic` / `React.lazy`, so leaving the student page does not trip Suspense cleanup on navigations like `/practice`. Loading UI: `TabPanelLoading`. `/profile` keeps `keepMountedTabs` default `true` (sync panels).
 - **Prefetch:** `StudentSummaryCard` explicitly sets `prefetch` on details links.
 - Legacy numeric mock URLs (`/students/3`) still work if that id exists in mock seed.
-- **Vocabulary tab** passes `resolved.backendId` (UUID) to `StudentVocabularyTab` / GraphQL `studentVocabulary`.
+- **System → platform integrations** (super-admin): `PlatformSettings.integrationConfig` + encrypted `integrationSecrets` (`PLATFORM_SECRETS_ENCRYPTION_KEY`). Tabs: **Word dictionary** (translation source: DeepL / Google Cloud / Microsoft / Reverso / MyMemory / LibreTranslate / GTX; paid providers need API keys; **setup guides** with official links per provider), **Email**, **Connections**. Translation base URLs in `.env` (`DEEPL_API_URL`, `GOOGLE_TRANSLATE_API_URL`, `AZURE_TRANSLATOR_URL`, `TRANSLATION_API_URL`, `REVERSO_API_URL`, optional `LIBRETRANSLATE_URL`); keys via env or System UI.
+- **Practice tab** (replaces separate Vocabulary + Quiz top-level tabs): `StudentPracticeTab` with `SegmentedControl` sub-sections (Vocabulary, Quiz); local state only (no URL/query sync). Child panels use `embedded` to omit duplicate `SurfaceCard` chrome. Sub-sections lazy-mount via `visitedSections` + `hidden` panels. Badges: mistakes-work vocab count, incomplete assigned quizzes when data is loaded.
+- **Vocabulary / Quiz on student detail** pass `resolved.backendId` (UUID) into embedded `StudentVocabularyTab` / `StudentQuizTab` (GraphQL `studentVocabulary`, student quiz store).
 - Profile form save still mutates mock user row when present; **native language** is a field in `StudentProfileTab` (`tabCard` grid), saved with **Save student data** via `updateStudentLanguages`.
-- **Profile → Statistics:** `StatisticsDashboard` with **live** lessons/cards (`buildLiveStatisticsDashboard`) — KPI grid + Recharts (lessons trend, vocabulary added vs known bar chart from `firstSeenAt`/`knownAt`, status pie, goals). Not mock-only tiles.
-- **Student detail → Statistics:** same `StatisticsDashboard` fed by `useStudentLiveStats`; hero chat → `/chat?peer={studentUserId}`; vocabulary add on student tab.
+- **Profile → Statistics:** `useStatisticsDashboard` + GraphQL `statisticsDashboard` — students get full learner dashboard; teachers/admins/super-admins get staff layout (lesson KPIs, roster table, school metrics). See [[concepts/statistics-dashboard]].
+- **Student detail → Statistics:** same hook with `studentId`; staff access rules match `achievementStats`. Hero chat → `/chat?peer={studentUserId}`; vocabulary add on student tab. See [[concepts/statistics-dashboard]].
 - **Student hero stats:** Words / Lessons / Streak come from live `achievementStats`; chat icon sits inline next to the name (`ProfileViewShell` `heroActions`), not absolutely over the avatar.
 - **Achievements tab:** `/profile` and `/students/[studentId]` both use live `achievementStats` instead of mock-only unlock ids; see [[concepts/achievements]].
 
@@ -142,8 +180,13 @@ Profile **Account** tab — **Session** row: **Log out** calls `POST /api/auth/l
 
 - `components/layout/HeaderSearch.tsx` — desktop header (`Header` mid column); queries lessons, students (staff), vocabulary cards from Zustand stores.
 - Search input uses a fixed DOM id (`header-search-input`) instead of relying on generated `useId()` output, which avoids SSR/client hydration mismatches inside the persistent app shell header.
-- Dropdown navigates on click; Enter opens first match or `/vocabulary?q=…`.
+- Dropdown navigates on click; Enter opens first match or `/practice/vocabulary?q=…`.
 - Vocabulary page reads `?q=` into the list search field.
+
+## Dev QA scripts
+
+- `npm run docker:libretranslate` — LibreTranslate Docker (`LT_LOAD_ONLY=en,uk`) on **localhost:5001**; pair with `LIBRETRANSLATE_URL=http://127.0.0.1:5001`.
+- `npm run test:translation-matrix` — **agent-browser** matrix (3×7): providers via GraphQL, add word on `/vocabulary` in browser session, Word details modal for Data sources; report `tmp/translation-matrix/report.md`. `npm run test:translation-matrix:api` — same grid without browser (GraphQL only). Requires `npm run dev` + `npm run seed:test-users` + `agent-browser` CLI.
 
 ## Responsive SSR note
 

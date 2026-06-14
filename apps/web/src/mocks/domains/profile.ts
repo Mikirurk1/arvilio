@@ -297,6 +297,7 @@ export type ProfileViewModel = {
   statusId: UserAccountStatusId;
   /** `true` fixed schedule, `false` flexible. */
   scheduleType: boolean;
+  lessonFormat?: import('@pkg/types').StudentLessonFormat;
   teacherId: number;
   teacherName: string;
   wordsLearned: number;
@@ -332,6 +333,7 @@ const toProfileViewModel = (userId: number): ProfileViewModel | null => {
     color: user.color,
     statusId: user.statusId,
     scheduleType: user.scheduleType,
+    lessonFormat: user.lessonFormat ?? 'mixed',
     teacherId: user.teacherId,
     teacherName: user.teacherId > 0 ? (teacher?.fullName ?? 'Unknown teacher') : '',
     wordsLearned: countKnownWordsForUser(user.id),
@@ -407,7 +409,8 @@ export const mockProfileStats = getProfileStatsForUser(activeUser.id);
 export const mockProfileGoals = getDailyGoalsForUser(String(activeUser.id)).map((g) => ({
   text: g.text,
   done: false,
-})) as ReadonlyArray<{ text: string; done: boolean }>;
+  kind: g.kind,
+})) as ReadonlyArray<{ text: string; done: boolean; kind: string }>;
 
 const activeWeekRange = getRangeBounds('week');
 const activeWeekPracticeSummary = getPracticeSummaryForPresetRange(activeUser.id, 'week');
@@ -415,14 +418,10 @@ const activeWeekVocabulary = getVocabularyProgressForRange(activeUser.id, active
 const activeWeekQuizzes = Number(
   activeWeekPracticeSummary.metrics.find((metric) => metric.id === 2)?.value ?? 0,
 );
-const activeWeekSpeaking = Number(
-  activeWeekPracticeSummary.metrics.find((metric) => metric.id === 3)?.value ?? 0,
-);
 
 function resolvedPracticeStat(title: string, fallback?: string): string | undefined {
   if (title === 'Vocabulary') return `${activeWeekVocabulary.addedWords} new words`;
   if (title === 'Quiz') return `${activeWeekQuizzes} available`;
-  if (title === 'Speaking') return `${activeWeekSpeaking} pending`;
   return fallback;
 }
 
@@ -434,7 +433,6 @@ export const mockPracticeActivities = siteContent.practiceActivities.map((activi
   tag: activity.tag,
   tagClass: activity.tagClass,
   stat: resolvedPracticeStat(activity.title, 'stat' in activity ? activity.stat : undefined),
-  ctaLabel: 'ctaLabel' in activity ? activity.ctaLabel : undefined,
   accent: 'accent' in activity ? activity.accent : undefined,
   disabled: 'disabled' in activity ? activity.disabled : undefined,
 })) as ReadonlyArray<{
@@ -445,7 +443,6 @@ export const mockPracticeActivities = siteContent.practiceActivities.map((activi
   tag: string;
   tagClass: 'tagGreen' | 'tagBlue' | 'tagAmber' | 'tagMuted';
   stat?: string;
-  ctaLabel?: string;
   accent?: 'green' | 'blue' | 'purple' | 'amber' | 'rose';
   disabled?: boolean;
 }>;

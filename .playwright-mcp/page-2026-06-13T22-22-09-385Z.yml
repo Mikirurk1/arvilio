@@ -1,0 +1,33 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e6]:
+    - generic "SoEnglish" [ref=e8]:
+      - img [ref=e10]
+      - generic [ref=e12]:
+        - generic [ref=e13]: SoEnglish
+        - generic [ref=e14]: English Platform
+    - generic [ref=e15]:
+      - heading "Sign in" [level=1] [ref=e16]
+      - paragraph [ref=e17]: Welcome back. Pick up your lessons, practice, and messages in one place.
+    - alert [ref=e51]: Invalid credentials
+    - link "Continue with Google" [ref=e18] [cursor=pointer]:
+      - /url: /api/auth/google
+      - img [ref=e19]
+      - text: Continue with Google
+    - generic [ref=e24]: or
+    - generic [ref=e25]:
+      - generic [ref=e26]:
+        - generic [ref=e27]: Email
+        - textbox "Email" [ref=e28]: teriv168@gmail.com
+      - generic [ref=e29]:
+        - generic [ref=e30]: Password
+        - generic [ref=e31]:
+          - textbox "Password" [ref=e32]: admin
+          - button "Show password" [ref=e33] [cursor=pointer]:
+            - img [ref=e34]
+      - link "Forgot password?" [ref=e38] [cursor=pointer]:
+        - /url: /forgot-password
+      - button "Sign in" [ref=e39] [cursor=pointer]
+    - paragraph [ref=e40]: Need an account? Contact your administrator.
+  - button "Open Next.js Dev Tools" [ref=e46] [cursor=pointer]:
+    - img [ref=e47]
+  - alert [ref=e50]

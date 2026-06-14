@@ -8,6 +8,7 @@ import { Button, Field } from '../../components/ui';
 import { useViewerLanguageIds } from '../../hooks/use-viewer-language-ids';
 import { pickWordDefinition } from '../../lib/word-definitions';
 import {
+  normalizeEnglishVocabularyInput,
   validateEnglishWordInput,
   VOCABULARY_WORD_NOT_FOUND,
 } from '../../lib/vocabulary-word-input';
@@ -44,7 +45,7 @@ export function LessonVocabularyAddPanel({
 
   const runLookup = useCallback(
     async (text: string) => {
-      const trimmed = text.trim();
+      const trimmed = normalizeEnglishVocabularyInput(text);
       if (!trimmed) {
         setPreview(null);
         setFoundInDb(false);
@@ -100,7 +101,7 @@ export function LessonVocabularyAddPanel({
   }, [lemma, runLookup]);
 
   const onAdd = async () => {
-    const trimmed = lemma.trim();
+    const trimmed = normalizeEnglishVocabularyInput(lemma);
     if (!trimmed || adding || disabled) return;
     const englishError = validateEnglishWordInput(trimmed);
     if (englishError) {
@@ -161,7 +162,7 @@ export function LessonVocabularyAddPanel({
         <Field
           className={`${vocabPageStyles.searchInput} ${styles.addRowField}`}
           type="text"
-          placeholder="English word, e.g. articulate"
+          placeholder="English word or phrase, e.g. touch base"
           value={lemma}
           disabled={disabled || adding}
           onChange={(e) => setLemma(e.target.value)}

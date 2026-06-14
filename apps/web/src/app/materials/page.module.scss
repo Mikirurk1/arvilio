@@ -1,0 +1,173 @@
+@use '../../styles/mixins' as *;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-section-md);
+}
+
+.pageHeader {
+  margin-bottom: 0;
+}
+
+.pageTitle {
+  @include page-title-display;
+}
+
+.pageSub {
+  max-width: var(--container-max-prose);
+  font-size: var(--fs-page-sub);
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+
+  @include respond-to(sm) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statValue {
+  font-size: var(--fs-20);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.statLabel {
+  font-size: var(--fs-12);
+  color: var(--text-tertiary);
+}
+
+.controlsCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-section-sm);
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  @include respond-to(md) {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+.searchWrap {
+  position: relative;
+  flex: 1;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+.searchField {
+  padding-left: 2.25rem;
+}
+
+.kindFilters {
+  overflow-x: auto;
+}
+
+.count {
+  margin-left: 0.35rem;
+  opacity: 0.75;
+}
+
+.loadingHint {
+  margin: 0;
+  color: var(--text-tertiary);
+  font-size: var(--fs-13);
+}
+
+.grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+
+  @include respond-to(md) {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+
+  @include respond-to(lg) {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.loadMoreWrap {
+  display: flex;
+  justify-content: center;
+  padding-top: 4px;
+}
+
+.refreshingHint {
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+}
+
+.recoveryBanner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  border-color: color-mix(in srgb, var(--amber) 28%, var(--border));
+  background: color-mix(in srgb, var(--amber-light) 42%, var(--card));
+}
+
+.recoveryText {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+
+  strong {
+    font-size: var(--fs-14);
+    color: var(--text-primary);
+  }
+
+  p {
+    margin: 0;
+    font-size: var(--fs-13);
+    color: var(--text-secondary);
+  }
+}
+
+.recoveryActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+@include respond-to(sm) {
+  .recoveryBanner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

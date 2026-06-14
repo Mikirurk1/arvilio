@@ -25,27 +25,28 @@ Implementation: `renderEmail()` in `@be/email-templates`; `MailService.sendTempl
 
 See [[concepts/profile-notifications]] for prefs and schedules.
 
-## SMTP (development)
+## SMTP configuration
 
-Use [Mailtrap](https://mailtrap.io/) Email Testing inbox:
+Super-admin configures delivery in **System → Email**:
 
-- `SMTP_HOST=sandbox.smtp.mailtrap.io`
-- `SMTP_PORT=2525`
-- `SMTP_USER` / `SMTP_PASS` from inbox credentials
-- `MAIL_FROM` — visible sender
+| Mode | Behavior |
+|------|----------|
+| **Server default** | Uses deployment `SMTP_*` / `MAIL_FROM` from the API process environment (e.g. Mailtrap in dev). |
+| **Custom SMTP** | Host, port, user, password, and from address stored in `PlatformSettings.integrationConfig` / encrypted `integrationSecrets` (same key as payment secrets: `PAYMENT_SECRETS_ENCRYPTION_KEY`). |
 
-If `SMTP_HOST` is unset in the **API process** env, user creation still succeeds; `welcomeEmailSent` is `false`. The UI default `MAIL_FROM` (`SoEnglish <noreply@soenglish.local>`) matches the code fallback — seeing that **From** alone does not prove `.env` was loaded; check **Host** / **configured**.
+`platformIntegrationSettings.secretsStorageAvailable` reflects whether the API has that encryption key loaded. **Config-only** SMTP saves (from address, host, port, user — without a new password field) do not re-encrypt secrets and work without the key. Saving a **new** custom SMTP password (or other integration secrets) requires the key; the API returns `400` with an explicit message if it is missing.
 
-API loads repo-root `.env` via `apps/api/src/load-env.ts` and `node --env-file` in dev (`apps/api/scripts/dev.cjs`). Restart API after editing `.env`.
+`MailService` resolves SMTP via `getPlatformIntegrationRuntime()` (DB + env fallback). If no host is available, user creation still succeeds; `welcomeEmailSent` is `false`.
 
 ## Super-admin test tools
 
-Route: `/system` → **Email** tab (super-admin only).
+Route: `/system` → **Email** tab (super-admin only): verify connection (form draft), save SMTP, then send test. After **Save SMTP**, the **runtime bar** refetches `systemMailStatus` in place (silent refresh; form stays mounted). UI: `EmailPanel.tsx`.
 
 GraphQL:
 
-- `systemMailStatus` — current SMTP env snapshot
-- `verifySmtpConnection` — nodemailer transport verify
+- `platformIntegrationSettings` / `updatePlatformIntegrationSettings` — translation, SMTP, OAuth, Telegram (see [[concepts/web-app#System control room]])
+- `systemMailStatus` — resolved SMTP snapshot (`smtpMode`: `server_default` \| `custom`)
+- `verifySmtpConnection(input!)` — required `config.smtp` draft from the Email form (tests exact host/port in the form, not only saved runtime / `.env`). Returns `{ ok, message }` with the host:port verified. **Does not send mail** — only opens SMTP; use `sendTestWelcomeEmail` for delivery.
 - `sendTestWelcomeEmail(input: { to })` — sends `welcome-account` template with sample password `Example-Temp-Pass1`
 
 ## Related

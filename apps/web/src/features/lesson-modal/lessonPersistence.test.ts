@@ -64,12 +64,18 @@ describe('lessonPersistence', () => {
     expect(body?.timezone).toBe('Europe/Kyiv');
   });
 
+  const resolveParty = (id: number) =>
+    id === lesson.studentId ? 'student-uuid' : 'teacher-uuid';
+
   it('toUpdateScheduledLessonBody maps status and schedule fields', () => {
-    const body = toUpdateScheduledLessonBody({
-      ...lesson,
-      title: 'Updated',
-      statusId: LESSON_STATUS.completed.id,
-    });
+    const body = toUpdateScheduledLessonBody(
+      {
+        ...lesson,
+        title: 'Updated',
+        statusId: LESSON_STATUS.completed.id,
+      },
+      resolveParty,
+    );
     expect(body.title).toBe('Updated');
     expect(body.status).toBe('completed');
   });
@@ -77,6 +83,7 @@ describe('lessonPersistence', () => {
   it('toUpdateScheduledLessonBody can omit lesson content', () => {
     const body = toUpdateScheduledLessonBody(
       { ...lesson, lessonPlan: 'Plan', materials: [{ id: 'm1', kind: 'text', text: 'x', files: [] }] },
+      resolveParty,
       { includeLessonContent: false },
     );
     expect(body.lessonPlan).toBe('Plan');

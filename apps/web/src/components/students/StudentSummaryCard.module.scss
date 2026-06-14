@@ -1,37 +1,7 @@
-.card {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  height: 100%;
-  transition: border-color var(--transition), box-shadow var(--transition), transform 0.2s ease;
-}
-
-.card:hover {
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
 .header {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-
-.avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--fill-strong);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: var(--fs-14);
-  flex-shrink: 0;
 }
 
 .headerMeta {
@@ -39,10 +9,51 @@
 }
 
 .name {
-  font-family: 'Lora', serif;
+  font-family: var(--font-display);
   font-size: var(--fs-18);
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.scanStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface) 60%, var(--card));
+  border: 1px solid var(--border-hairline);
+}
+
+.scanStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  text-align: center;
+}
+
+.scanStatValue {
+  max-width: 100%;
+  font-size: var(--fs-14);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.scanStatLabel {
+  max-width: 100%;
+  font-size: var(--fs-10);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  overflow-wrap: anywhere;
 }
 
 .teacher {
@@ -64,7 +75,7 @@
 
 .metaBlock {
   margin-top: 12px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-hairline);
   padding-top: 12px;
 }
 
@@ -96,9 +107,9 @@
   width: 100%;
   min-height: 36px;
   border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text-primary);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 28%, var(--border-hairline));
+  background: color-mix(in srgb, var(--accent-primary) 9%, var(--card));
+  color: var(--accent-primary-strong, var(--accent-primary));
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -106,9 +117,15 @@
   gap: 6px;
   font-size: var(--fs-14);
   font-weight: 600;
+  transition: background-color var(--transition), border-color var(--transition);
+}
+
+.openBtn:hover {
+  background: color-mix(in srgb, var(--accent-primary) 16%, var(--card));
+  border-color: color-mix(in srgb, var(--accent-primary) 40%, var(--border-hairline));
 }
 
 .openBtn:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--fill-strong) 55%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--accent-primary) 55%, transparent);
   outline-offset: 2px;
 }

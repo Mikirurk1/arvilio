@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../../pages/LoginPage';
 
-const adminEmail = process.env.PLAYWRIGHT_ADMIN_EMAIL ?? 'jest-admin@soenglish.test';
+// /system is super_admin only — admin role is redirected to dashboard
+const adminEmail = process.env.PLAYWRIGHT_SUPER_ADMIN_EMAIL ?? 'jest-super-admin@soenglish.test';
 const password = process.env.PLAYWRIGHT_TEST_PASSWORD ?? 'TestPass123!';
 
 test.describe('System page', () => {

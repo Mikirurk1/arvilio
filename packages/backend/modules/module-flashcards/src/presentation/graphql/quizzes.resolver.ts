@@ -51,6 +51,7 @@ export class QuizzesResolver {
       lessonId: input.lessonId,
       studentId: input.studentId,
       includeIrregularVerbDrills: input.includeIrregularVerbDrills,
+      mistakesOnly: input.mistakesOnly,
     };
     const detail = await this.quizService.generate(userId, body);
     return mapQuizDetail(detail);

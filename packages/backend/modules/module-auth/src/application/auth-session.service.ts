@@ -219,20 +219,25 @@ export class AuthSessionService {
   ): Promise<string | null> {
     const peeked = await this.peekAuthenticatedUser(req);
     if (peeked?.authStrategy === 'access') return peeked.userId;
+    if (peeked?.authStrategy !== 'refresh') return null;
 
     const rawRefresh = req.cookies?.[REFRESH_COOKIE];
-    if (!rawRefresh || !res) return null;
+    if (!rawRefresh) return null;
+    if (!res) return peeked.userId;
 
     const rotated = await this.rotateSessionFromRefreshToken(rawRefresh, {
       userAgent: typeof req.headers['user-agent'] === 'string' ? req.headers['user-agent'] : undefined,
       ip: req.ip,
     });
-    if (!rotated) return null;
+    if (rotated) {
+      setAuthCookies(res, {
+        accessToken: rotated.accessToken,
+        refreshToken: rotated.refreshToken,
+      });
+      return rotated.userId;
+    }
 
-    setAuthCookies(res, {
-      accessToken: rotated.accessToken,
-      refreshToken: rotated.refreshToken,
-    });
-    return rotated.userId;
+    // Another in-flight request may have rotated this refresh token already.
+    return peeked.userId;
   }
 }

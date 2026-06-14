@@ -90,10 +90,7 @@ function LessonEditorHostInner({ children }: { children: ReactNode }) {
 /** Opens the global create-lesson modal without changing the URL. */
 export function useOpenCreateLesson(): () => void {
   const ctx = useContext(LessonCreateContext);
-  if (!ctx) {
-    throw new Error('useOpenCreateLesson must be used within LessonEditorHost');
-  }
-  return () => ctx.openCreateLesson();
+  return () => ctx?.openCreateLesson();
 }
 
 /** Shared lesson list state + global create-lesson modal for app shell routes. */

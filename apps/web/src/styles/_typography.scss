@@ -1,301 +1,62 @@
-@use './mixins' as *;
+/**
+ * Editorial type presets — redesign v2 (docs/redesign/redesign-v2.md §2.1).
+ * Ролі: Lora (--font-display) — заголовки сторінок/секцій і display-числа;
+ * Outfit (--font-sans) — весь UI, body, форми, дані (Lora ніколи в контролах).
+ * Підключення в модулі: @use '../styles/typography' as *; → @include display-page;
+ * Лише міксіни — CSS не емітиться; utility-класи не додаємо.
+ *
+ * Попередня система headline / title / body / tag пресетів (800, uppercase,
+ * хардкод Inter) видалена 2026-06-11 як мертвий код — нуль використань у TSX і SCSS.
+ */
 
-@mixin headline-1 {
-  font-weight: 800;
-  font-size: 4.5rem;
-  line-height: 100%;
-  text-transform: uppercase;
-
-  @include respond-to(xl) {
-    font-size: 3rem;
-    line-height: 115%;
-  }
-
-  @include respond-to(md) {
-    font-size: 2rem;
-  }
-
+/* Display-hero — великі числа прогресу і вітання (єдиний fluid-кегль) */
+@mixin display-hero {
+  font-family: var(--font-display);
+  font-size: var(--fs-display-xl);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
 }
 
-.headline-1,
-.headline-1 * {
-  @include headline-1;
+/* Заголовок сторінки — НЕ дублюємо: використовуй `page-title-display`
+   з styles/_mixins.scss (вже застосований на більшості сторінок). */
+
+/* Заголовок секції */
+@mixin section-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-section-title);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
+  text-wrap: balance;
 }
 
-@mixin headline-2 {
-  font-weight: 800;
-  font-size: 3rem;
-  line-height: 115%;
-  text-transform: uppercase;
+/* Caps-label (eyebrow) — НЕ дублюємо: міксін `eyebrow` живе в styles/_mixins.scss.
+   Використовуй рідко і за призначенням, не над кожною секцією (план §0). */
 
-
-  @include respond-to(lg) {
-    font-size: 2rem;
-  }
+/* Числа — бали, гроші, стрік, час: стабільна ширина цифр */
+@mixin numeric {
+  font-variant-numeric: tabular-nums;
 }
 
-.headline-2,
-.headline-2 * {
-  @include headline-2;
-}
+/* Editorial rule — заголовок + тонка чорнильна лінія до краю (Signature #3).
+   Застосовуй до контейнера заголовка секції. */
+@mixin editorial-rule {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 
-
-@mixin headline-3 {
-  font-weight: 800;
-  font-size: 2rem;
-  line-height: 115%;
-  text-transform: uppercase;
-
-
-  @include respond-to(lg) {
-    font-size: 1.38rem;
-    line-height: 100%;
-  }
-}
-
-.headline-3,
-.headline-3 * {
-  @include headline-3;
-}
-
-@mixin headline-4 {
-  font-weight: 800;
-  font-size: 1.75rem;
-  text-transform: uppercase;
-}
-
-.headline-4,
-.headline-4 * {
-  @include headline-4;
-}
-
-@mixin headline-5 {
-  font-weight: 800;
-  font-size: 1.38rem;
-  text-transform: uppercase;
-
-  @include respond-to(lg) {
-    font-size: 1.125rem;
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-subtle);
   }
 }
 
-.headline-5,
-.headline-5 * {
-  @include headline-5;
+/* Прозовий текст — обмеження довжини рядка для читабельності */
+@mixin prose {
+  max-width: 70ch;
+  line-height: var(--lh-body);
+  text-wrap: pretty;
 }
-
-
-@mixin title-xl {
-  font-weight: 800;
-  font-size: 1.38rem;
-  text-transform: uppercase;
-  @include respond-to(lg) {
-    font-size: 1.25rem;
-  }
-  @include respond-to(md) {
-    font-size: 1rem;
-  }
-}
-
-.title-xl, .title-xl * {
-  @include title-xl;
-}
-
-@mixin title-l-italic {
-  font-style: italic;
-  font-weight: 800;
-  font-size: 1.12rem;
-  text-transform: uppercase;
-}
-
-.title-l-italic, .title-l-italic * {
-  @include title-l-italic;
-}
-
-@mixin title-l {
-  font-weight: 800;
-  font-size: 1.12rem;
-}
-
-.title-l, .title-l * {
-  @include title-l;
-}
-
-@mixin title-m {
-  font-style: italic;
-  font-weight: 800;
-  font-size: 1rem;
-  text-transform: uppercase;
-}
-
-.title-m, .title-m * {
-  @include title-m;
-}
-
-@mixin title-s {
-  font-weight: 400;
-  font-size: 0.88rem;
-  text-transform: uppercase;
-}
-
-.title-s, .title-s * {
-  @include title-s;
-}
-
-
-@mixin body-xxl {
-  font-weight: 400;
-  font-size: 1.62rem;
-  line-height: 160%;
-}
-
-.body-xxl, .body-xxl * {
-  @include body-xxl;
-}
-
-@mixin body-xl {
-  font-weight: 400;
-  font-size: 1.62rem;
-  line-height: 160%;
-
-  @include respond-to(md) {
-    font-size: 1.25rem;
-  }
-}
-
-.body-xl, .body-xl * {
-  @include body-xl;
-}
-
-@mixin body-l {
-  font-weight: 400;
-  font-size: 1.25rem;
-  line-height: 160%;
-  text-transform: none;
-  font-style: normal;
-  @include respond-to(lg) {
-    font-size: 1rem;
-  }
-}
-
-.body-l, .body-l * {
-  @include body-l;
-}
-
-@mixin body-m {
-  font-weight: 400;
-  font-size: 1rem;
-  line-height: 150%;
-}
-
-.body-m, .body-m * {
-  @include body-m;
-}
-
-@mixin body-m-bolt {
-  font-style: normal;
-  font-weight: 700;
-  font-size: 1rem;
-  text-transform: uppercase;
-}
-
-.body-m-bolt, .body-m-bolt * {
-  @include body-m-bolt;
-}
-
-@mixin body-s {
-  font-weight: 400;
-  font-size: 0.875rem;
-  line-height: 140%;
-}
-
-.body-s, .body-s * {
-  @include body-s;
-}
-
-
-@mixin button-l {
-  font-family: "Inter", sans-serif;
-  font-weight: 600;
-  font-size: 1.38rem;
-  line-height: 132%;
-  letter-spacing: 0em;
-}
-
-.button-l, .button-l * {
-  @include button-l;
-}
-
-@mixin button-m {
-  font-family: "Inter", sans-serif;
-  font-weight: 600;
-  font-size: 1.25rem;
-  line-height: 132%;
-  letter-spacing: 0em;
-}
-
-.button-m, .button-m * {
-  @include button-m;
-}
-
-@mixin button-s {
-  font-family: "Inter", sans-serif;
-  font-weight: 600;
-  font-size: 1.12rem;
-  line-height: 132%;
-  letter-spacing: 0em;
-}
-
-.button-s, .button-s * {
-  @include button-s;
-}
-
-
-@mixin tag-l {
-  font-family: "Inter", sans-serif;
-  font-weight: 600;
-  font-size: 1.38rem;
-  line-height: 132%;
-  letter-spacing: 0em;
-}
-
-.tag-l, .tag-l * {
-  @include tag-l;
-}
-
-@mixin tag-m {
-  font-weight: 600;
-  font-size: 1.25rem;
-  line-height: 132%;
-  letter-spacing: 0em;
-}
-
-.tag-m, .tag-m * {
-  @include tag-m;
-}
-
-
-@mixin tag-s {
-  font-weight: 600;
-  font-size: 1.12rem;
-  line-height: 132%;
-  letter-spacing: 0em;
-}
-
-
-.tag-s, .tag-s * {
-  @include tag-s;
-}
-
-@mixin tag-xs {
-  font-weight: 500;
-  font-size: 0.75rem;
-}
-
-
-.tag-xs, .tag-xs * {
-  @include tag-xs;
-}
-
-
-

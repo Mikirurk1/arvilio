@@ -1,17 +1,15 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '@be/prisma';
 import type { DailyGoalDto } from '@pkg/types';
-import {
-  GOAL_XP_BY_DIFFICULTY,
-  defaultGoalDateKey,
-  getDailyGoalsForUser,
-  goalTemplates,
-  parseDailyGoalId,
-} from '@pkg/types';
+import { defaultGoalDateKey, getDailyGoalsForUser } from '@pkg/types';
+import { DailyGoalProgressService } from './daily-goal-progress.service';
 
 @Injectable()
 export class DailyGoalsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly progress: DailyGoalProgressService,
+  ) {}
 
   async listForUser(userId: string, dateKey: string = defaultGoalDateKey()): Promise<DailyGoalDto[]> {
     const user = await this.prisma.user.findUnique({
@@ -22,63 +20,23 @@ export class DailyGoalsService {
     if (user.role !== 'STUDENT') return [];
 
     const instances = getDailyGoalsForUser(userId, dateKey);
-    const completions = await this.prisma.dailyGoalCompletion.findMany({
-      where: { userId, dateKey },
-      select: { difficulty: true },
+    const progressById = await this.progress.evaluateForGoals(userId, instances, dateKey);
+
+    return instances.map((goal) => {
+      const snap = progressById.get(goal.id) ?? { current: 0, target: 1, label: '', done: false };
+      return {
+        id: goal.id,
+        templateId: goal.templateId,
+        kind: goal.kind,
+        text: goal.text,
+        difficulty: goal.difficulty,
+        done: snap.done,
+        progressCurrent: snap.current,
+        progressTarget: snap.target,
+        progressLabel: snap.label,
+        actionPath: goal.actionPath,
+        dateKey,
+      };
     });
-    const doneTiers = new Set(completions.map((row) => row.difficulty));
-
-    return instances.map((goal) => ({
-      id: goal.id,
-      templateId: goal.templateId,
-      text: goal.text,
-      difficulty: goal.difficulty,
-      done: doneTiers.has(goal.difficulty),
-      xpReward: GOAL_XP_BY_DIFFICULTY[goal.difficulty],
-      dateKey,
-    }));
-  }
-
-  async setDone(userId: string, goalId: string, done: boolean): Promise<DailyGoalDto[]> {
-    const parsed = parseDailyGoalId(goalId);
-    if (!parsed) throw new BadRequestException('Invalid goal id');
-
-    const template = goalTemplates.find((row) => row.id === parsed.templateId);
-    if (!template) throw new BadRequestException('Unknown goal template');
-
-    const expected = getDailyGoalsForUser(userId, parsed.dateKey).find((row) => row.id === goalId);
-    if (!expected) throw new BadRequestException('Goal is not assigned for this day');
-
-    if (done) {
-      await this.prisma.dailyGoalCompletion.upsert({
-        where: {
-          userId_dateKey_difficulty: {
-            userId,
-            dateKey: parsed.dateKey,
-            difficulty: template.difficulty,
-          },
-        },
-        create: {
-          userId,
-          dateKey: parsed.dateKey,
-          templateId: template.id,
-          difficulty: template.difficulty,
-        },
-        update: {
-          templateId: template.id,
-          completedAt: new Date(),
-        },
-      });
-    } else {
-      await this.prisma.dailyGoalCompletion.deleteMany({
-        where: {
-          userId,
-          dateKey: parsed.dateKey,
-          difficulty: template.difficulty,
-        },
-      });
-    }
-
-    return this.listForUser(userId, parsed.dateKey);
   }
 }

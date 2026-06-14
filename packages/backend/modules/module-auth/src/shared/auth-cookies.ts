@@ -84,6 +84,30 @@ export function setFacebookLinkCookies(res: Response, userId: string): void {
   res.cookie(FACEBOOK_OAUTH_USER_COOKIE, userId, { ...common, maxAge });
 }
 
+export const ZOOM_OAUTH_INTENT_COOKIE = 'soenglish_zoom_intent';
+export const ZOOM_OAUTH_USER_COOKIE = 'soenglish_zoom_uid';
+
+export function setZoomLinkCookies(res: Response, userId: string): void {
+  const common = cookieOptions();
+  const maxAge = 10 * 60 * 1000;
+  res.cookie(ZOOM_OAUTH_INTENT_COOKIE, 'link', { ...common, maxAge });
+  res.cookie(ZOOM_OAUTH_USER_COOKIE, userId, { ...common, maxAge });
+}
+
+export function clearZoomOAuthCookies(res: Response): void {
+  const common = cookieOptions();
+  res.clearCookie(ZOOM_OAUTH_INTENT_COOKIE, common);
+  res.clearCookie(ZOOM_OAUTH_USER_COOKIE, common);
+}
+
+export function readZoomLinkUserId(req: {
+  cookies?: Record<string, string>;
+}): string | null {
+  if (req.cookies?.[ZOOM_OAUTH_INTENT_COOKIE] !== 'link') return null;
+  const userId = req.cookies?.[ZOOM_OAUTH_USER_COOKIE]?.trim();
+  return userId || null;
+}
+
 export function clearFacebookOAuthCookies(res: Response): void {
   const common = cookieOptions();
   res.clearCookie(FACEBOOK_OAUTH_INTENT_COOKIE, common);

@@ -6,6 +6,7 @@ import type {
   UserRoleId,
 } from '@pkg/types';
 import {
+  EMPTY_ACHIEVEMENT_STATS,
   PROFILE_VOCABULARY_PROGRESS_EVENT,
   PROFICIENCY_LEVEL,
   TIME_ZONE,
@@ -58,6 +59,8 @@ export type MockUser = {
   statusId?: UserAccountStatusId;
   /** Students only — `true` fixed schedule, `false` flexible. */
   scheduleType?: boolean;
+  /** Students only — individual/group/mixed lesson participation mode. */
+  lessonFormat?: import('@pkg/types').StudentLessonFormat;
   /** Assigned teacher user id; `0` = none. */
   teacherId: number;
   /** Calendar strip color (HEX); students only in mock. */
@@ -73,11 +76,15 @@ export type MockUser = {
 };
 
 function statsWithUnlocked(
-  counters: Omit<ProfileStats, 'unlockedAchievementIds'>,
+  counters: Partial<Omit<ProfileStats, 'unlockedAchievementIds'>>,
 ): ProfileStats {
-  return {
+  const merged: Omit<ProfileStats, 'unlockedAchievementIds'> = {
+    ...EMPTY_ACHIEVEMENT_STATS,
     ...counters,
-    unlockedAchievementIds: computeUnlockedAchievementIdsFromCounters(counters),
+  };
+  return {
+    ...merged,
+    unlockedAchievementIds: computeUnlockedAchievementIdsFromCounters(merged),
   };
 }
 

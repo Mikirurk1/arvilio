@@ -2,34 +2,46 @@
 
 ## Overview
 
-Students see **4 daily goals** on the dashboard — one per difficulty tier (1–4). Templates are picked deterministically per user and UTC date (`YYYY-MM-DD`).
+Students see **4 daily goals** on the dashboard — fixed activity slots (vocabulary, quiz, speaking, deep practice), one per difficulty tier (1–4). Each day a **hash-based variant** picks threshold copy from `@pkg/types` (`goalDefinitions`); completion is **computed from real activity**, not self-reported checkboxes.
+
+## Slots (UTC `YYYY-MM-DD`)
+
+| Tier | `kind` | Signals |
+|------|--------|---------|
+| 1 | `vocabulary` | `StudentWordCard.lastReviewedAt` in day, or `PracticeSession` VOCABULARY duration |
+| 2 | `quiz` | Finished `QuizAttempt` (optional min score / question count per variant) |
+| 3 | `speaking` | `SpeakingSubmission`, or `PracticeSession` SPEAKING duration |
+| 4 | `deep_practice` | Sum of `PracticeSession.durationSec`, or one `ScheduledLesson` COMPLETED |
 
 ## Data
 
-- `DailyGoalCompletion` — `userId`, `dateKey`, `templateId`, `difficulty`, `completedAt`
-- Unique: `(userId, dateKey, difficulty)` — at most one completion per tier per day
+- `DailyGoalCompletion` table remains in Prisma but is **not written** in v1 (computed `done` only).
+- Legacy manual rows are ignored.
 
-## Logic (`@pkg/types` → `daily-goals.ts`)
+## Logic (`packages/shared/types/src/lib/daily-goals.ts`)
 
-- `goalTemplates` — text bank by difficulty
-- `getDailyGoalsForUser(userId, dateKey)` — hash-based daily pick
-- `GOAL_XP_BY_DIFFICULTY` — 20 / 30 / 40 / 50 XP display
+- `goalDefinitions` — four kinds with variant pools (thresholds + text)
+- **`daily-goal-variant-pools.ts`** — large copy pools (~30+ vocabulary, ~14 quiz, etc.): add words, add adjectives/nouns/verbs, review mistakes, mark learned, irregular verbs minutes, …
+- `getDailyGoalsForUser(userId, dateKey)` — deterministic variant per tier
+- `GOAL_TIER_LABELS` — Easy / Medium / Hard / Expert (UI only; no XP)
 
 ## API (GraphQL)
 
 | Operation | Purpose |
 |-----------|---------|
-| `dailyGoals` | Today's goals for current student |
-| `setDailyGoalDone(goalId, done)` | Toggle completion; returns updated list |
+| `dailyGoals` | Today's goals with `progressCurrent`, `progressTarget`, `progressLabel`, `actionPath`, `done` |
+
+Removed: `setDailyGoalDone`, `xpReward`.
 
 Non-students get an empty list.
 
 ## Web
 
-- `DailyGoalsCard` in `apps/web/src/app/dashboard/sections.tsx`
-- `useDashboardStore` — `fetchGoals`, `toggleGoal`
+- `DailyGoalsCard` in `apps/web/src/app/dashboard/sections.tsx` — read-only progress, links to practice routes
+- `useDashboardStore.fetchGoals` — refetch on `PRACTICE_SESSION_LOGGED_EVENT` after practice sessions
 
 ## Code
 
-- `packages/backend/modules/module-auth/src/lib/daily-goals.service.ts`
+- `packages/backend/modules/module-auth/src/application/daily-goals.service.ts`
+- `packages/backend/modules/module-auth/src/application/daily-goal-progress.service.ts`
 - `apps/api/src/graphql/domain.resolvers.ts` (`DashboardResolver`)

@@ -1,4 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
+import { getPlatformIntegrationRuntime } from '@be/platform-integration';
 import * as crypto from 'node:crypto';
 
 /** Payload from Telegram Login Widget (https://core.telegram.org/widgets/login). */
@@ -15,8 +16,7 @@ export type TelegramLoginPayload = {
 const MAX_AUTH_AGE_SECONDS = 60 * 60 * 24;
 
 export function getTelegramBotToken(): string | null {
-  const token = process.env['TELEGRAM_BOT_TOKEN']?.trim();
-  return token || null;
+  return getPlatformIntegrationRuntime().telegram.botToken;
 }
 
 export function verifyTelegramLogin(payload: TelegramLoginPayload): void {

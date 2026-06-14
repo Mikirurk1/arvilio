@@ -65,7 +65,7 @@ visit() {
   agent-browser screenshot "$shot" >/dev/null 2>&1 || true
 
   status="ok"
-  if [[ "$final_url" == *"/login"* ]] && [[ "$path" != "/login" ]] && [[ "$path" != "/register" ]] && [[ "$path" != "/forgot-password" ]] && [[ "$path" != "/reset-password" ]]; then
+  if [[ "$final_url" == *"/login"* ]] && [[ "$path" != "/login" ]] && [[ "$path" != "/forgot-password" ]] && [[ "$path" != "/reset-password" ]]; then
     status="redirected-to-login"
   elif [[ "$final_url" == *"/dashboard"* ]] && [[ "$path" != "/dashboard"* ]]; then
     case "$path" in
@@ -92,7 +92,7 @@ log "| Path | Role | Status | Final URL | Title | Screenshot | Notes |"
 log "|------|------|--------|-----------|-------|------------|-------|"
 
 ab_logout
-for path in /login /register /forgot-password /reset-password; do
+for path in /login /forgot-password /reset-password; do
   visit public "$path"
 done
 

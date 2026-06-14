@@ -19,7 +19,11 @@ const moduleNameMapper = {
   '^@be/graphql$': abs('packages/backend/shared/graphql/src/index.ts'),
   '^@be/auth$': abs('packages/backend/modules/module-auth/src/index.ts'),
   '^@be/vocabulary$': abs('packages/backend/modules/module-vocabulary/src/index.ts'),
+  '^@be/platform-integration$': abs(
+    'packages/backend/modules/module-vocabulary/src/application/platform-integration/index.ts',
+  ),
   '^@be/flashcards$': abs('packages/backend/modules/module-flashcards/src/index.ts'),
+  '^@be/speaking$': abs('packages/backend/modules/module-speaking/src/index.ts'),
   '^@be/lessons$': abs('packages/backend/modules/module-lessons/src/index.ts'),
   '^@be/progress$': abs('packages/backend/modules/module-progress/src/index.ts'),
   '^@be/mail$': abs('packages/backend/modules/module-mail/src/index.ts'),

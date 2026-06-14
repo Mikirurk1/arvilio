@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { UsersRound } from 'lucide-react';
 import type { ChatUserDto } from '@pkg/types';
 import { Button, Field } from '../../components/ui';
 import styles from './page.module.scss';
@@ -42,9 +43,18 @@ export function CreateGroupModal({
         aria-labelledby="create-group-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 id="create-group-title" className={styles.modalTitle}>
-          Create group chat
-        </h2>
+        <div className={styles.modalHeader}>
+          <span className={styles.modalBadge}>
+            <UsersRound size={14} aria-hidden />
+            Group chat
+          </span>
+          <h2 id="create-group-title" className={styles.modalTitle}>
+            Create group chat
+          </h2>
+          <p className={styles.modalHint}>
+            Add a title and choose members. You can adjust participants later.
+          </p>
+        </div>
         <div className={styles.fieldGroup}>
           <label className={styles.fieldLabel} htmlFor="group-chat-title">
             Group name
@@ -57,7 +67,9 @@ export function CreateGroupModal({
             placeholder="e.g. Study group"
           />
         </div>
-        <p className={styles.threadPeerRole}>Select members</p>
+        <p className={styles.threadPeerRole}>
+          Select members{selected.length > 0 ? ` (${selected.length})` : ''}
+        </p>
         <div className={styles.contactList}>
           {contacts.map((contact) => {
             const isSelected = selected.includes(contact.id);
@@ -79,6 +91,9 @@ export function CreateGroupModal({
               </Button>
             );
           })}
+          {contacts.length === 0 ? (
+            <p className={styles.modalEmpty}>No contacts available for a group yet.</p>
+          ) : null}
         </div>
         <div className={styles.modalActions}>
           <Button type="button" variant="ghost" onClick={onClose}>

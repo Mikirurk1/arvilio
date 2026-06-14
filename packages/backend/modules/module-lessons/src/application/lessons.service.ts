@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { LessonBalanceService } from '@be/billing';
+import { LessonBalanceService, PaymentSettingsService } from '@be/billing';
 import { PrismaService } from '@be/prisma';
 import type {
   CreateScheduledLessonRequestDto,
@@ -14,10 +14,14 @@ import type {
 } from '@pkg/types';
 import { LessonAttachmentService } from './lesson-attachment.service';
 import {
-  GOOGLE_CALENDAR_REQUIRED_MESSAGE,
   GoogleCalendarService,
-  type CreateMeetEventResult,
 } from '../infrastructure/google-calendar.service';
+import { VideoMeetingProviderResolver } from '../infrastructure/video-providers/video-meeting-provider.resolver';
+import { LiveKitService, type LiveKitTokenResult } from '../infrastructure/livekit.service';
+import type {
+  CreateVideoMeetingResult,
+  VideoMeetingProviderKey,
+} from '../infrastructure/video-providers/video-meeting-provider.interface';
 import {
   addMinutes,
   cancelReasonFromDto,
@@ -25,6 +29,12 @@ import {
   decodeLessonCursor,
   diffMinutes,
   encodeLessonCursor,
+  groupBillingModeFromDto,
+  groupBillingModeToDto,
+  groupSplitModeFromDto,
+  groupSplitModeToDto,
+  lessonKindFromDto,
+  lessonKindToDto,
   mapLessonFileLinks,
   materialKindFromDto,
   materialKindToDto,
@@ -35,12 +45,51 @@ import {
   studentResponseStatusFromDto,
   studentResponseStatusToDto,
 } from '../shared/lessons-map.util';
-import { assertLessonMembership } from '../domain/lessons-access.util';
+import { assertLessonMembership, isLessonMember, lessonMembershipWhere } from '../domain/lessons-access.util';
+import {
+  assertGroupCreateRules,
+  assertGroupLessonsEnabledForSchool,
+  assertParticipantLessonFormats,
+  groupBillingCreateData,
+  groupBillingFromSnapshot,
+  groupBillingUpdateData,
+  participantRoleForBilling,
+  resolveLessonKind,
+  resolveParticipantIds,
+} from '../shared/group-lesson.util';
+import { billingSnapshotFromGroup } from '../shared/student-group-map.util';
+import type { GroupLessonBillingDto } from '@pkg/types';
+import { mapLibraryMaterialRow } from '@be/materials';
 
 const lessonInclude = {
   teacher: { select: { displayName: true } },
   student: { select: { displayName: true } },
-  materials: { orderBy: { order: 'asc' as const } },
+  participants: {
+    orderBy: { sortOrder: 'asc' as const },
+    include: { user: { select: { displayName: true, email: true } } },
+  },
+  materials: {
+    orderBy: { order: 'asc' as const },
+    include: {
+      libraryMaterial: {
+        include: {
+          coverAttachment: { select: { id: true, fileName: true, mimeType: true } },
+          assets: {
+            include: {
+              fileAttachment: {
+                select: {
+                  id: true,
+                  fileName: true,
+                  mimeType: true,
+                  previewStorageKey: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
   fileAttachments: true,
   linkedWords: { select: { wordId: true } },
 };
@@ -53,9 +102,62 @@ export class LessonsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly googleCalendar: GoogleCalendarService,
+    private readonly videoProviders: VideoMeetingProviderResolver,
+    private readonly livekit: LiveKitService,
     private readonly lessonAttachments: LessonAttachmentService,
     private readonly lessonBalance: LessonBalanceService,
+    private readonly paymentSettings: PaymentSettingsService,
   ) {}
+
+  /**
+   * Issue a LiveKit access token for the current user to join the lesson's
+   * built-in video room. Throws if the lesson uses a different provider.
+   */
+  async issueLiveKitToken(
+    lessonId: string,
+    actorUserId: string,
+  ): Promise<LiveKitTokenResult> {
+    const lesson = await this.ensureMembership(lessonId, actorUserId);
+    if (lesson.videoProvider && lesson.videoProvider !== 'livekit') {
+      throw new BadRequestException(
+        'This lesson does not use the built-in video provider.',
+      );
+    }
+
+    // Allow joining only within a ±5-minute window around the lesson
+    const WINDOW_MS = 5 * 60 * 1000;
+    const [h, m] = lesson.startTime.split(':').map(Number);
+    const [eh, em] = lesson.endTime.split(':').map(Number);
+    // Build UTC timestamps using the lesson date (wall-clock, timezone-naive comparison is fine
+    // because we only need a rough ±5 min gate; exact tz math would require a tz library)
+    const lessonDate = lesson.date; // yyyy-MM-dd
+    const startMs = new Date(`${lessonDate}T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`).getTime();
+    const endMs = new Date(`${lessonDate}T${String(eh).padStart(2, '0')}:${String(em).padStart(2, '0')}:00`).getTime();
+    const now = Date.now();
+    if (now < startMs - WINDOW_MS) {
+      throw new BadRequestException('The lesson has not started yet. You can join up to 5 minutes before it begins.');
+    }
+    if (now > endMs + WINDOW_MS) {
+      throw new BadRequestException('The lesson has already ended.');
+    }
+    const actor = await this.prisma.user.findUnique({
+      where: { id: actorUserId },
+      select: { displayName: true },
+    });
+    const roomName = this.livekit.roomNameFor(lessonId);
+    const token = await this.livekit.createAccessToken({
+      roomName,
+      identity: actorUserId,
+      displayName: actor?.displayName ?? undefined,
+      isHost: lesson.teacherId === actorUserId,
+    });
+    if (!token) {
+      throw new BadRequestException(
+        'LiveKit is not configured on the server.',
+      );
+    }
+    return token;
+  }
 
   async fetchLesson(id: string) {
     const existing = await this.prisma.scheduledLesson.findUnique({
@@ -67,6 +169,15 @@ export class LessonsService {
       if (existing.studentId !== existing.teacherId) {
         await this.autoCompletePastPlannedLessons(existing.studentId);
       }
+      const extraParticipants = await this.prisma.scheduledLessonParticipant.findMany({
+        where: { scheduledLessonId: id },
+        select: { userId: true },
+      });
+      for (const row of extraParticipants) {
+        if (row.userId !== existing.teacherId && row.userId !== existing.studentId) {
+          await this.autoCompletePastPlannedLessons(row.userId);
+        }
+      }
     }
     return this.prisma.scheduledLesson.findUnique({
       where: { id },
@@ -77,6 +188,7 @@ export class LessonsService {
   toDto(lesson: NonNullable<LessonRecord>): ScheduledLessonBackendDto {
     const attachments = lesson.fileAttachments ?? [];
     const fileLink = (attachmentId: string) => this.lessonAttachments.downloadPath(attachmentId);
+    const primaryParticipant = lesson.participants?.find((row) => row.userId === lesson.studentId);
 
     return {
       id: lesson.id,
@@ -100,6 +212,11 @@ export class LessonsService {
       weeklyDays: lesson.weeklyDays,
       seriesId: lesson.seriesId,
       order: lesson.order,
+      videoProvider: (lesson.videoProvider ?? null) as VideoMeetingProviderKey | null,
+      videoMeetingUrl: lesson.videoMeetingUrl ?? lesson.googleMeetUrl ?? null,
+      videoMeetingExternalId: lesson.videoMeetingExternalId,
+      videoMeetingStartedAt: lesson.videoMeetingStartedAt?.toISOString() ?? null,
+      videoMeetingEndedAt: lesson.videoMeetingEndedAt?.toISOString() ?? null,
       googleMeetUrl: lesson.googleMeetUrl,
       googleCalendarEventId: lesson.googleCalendarEventId,
       meetCreatedAt: lesson.meetCreatedAt?.toISOString() ?? null,
@@ -109,6 +226,15 @@ export class LessonsService {
         text: material.text ?? '',
         files: material.files,
         fileLinks: mapLessonFileLinks(material.files, attachments, fileLink),
+        libraryMaterialId: material.libraryMaterialId,
+        sharedLibraryAssetIds: material.sharedLibraryAssetIds ?? [],
+        libraryMediaSelectionApplied: material.libraryMediaSelectionApplied ?? false,
+        libraryMaterial: material.libraryMaterial
+          ? mapLibraryMaterialRow(material.libraryMaterial, {
+              downloadPath: (id) => `/materials/files/${id}`,
+              previewDownloadPath: (id) => `/materials/files/${id}/preview`,
+            })
+          : null,
       })),
       homework: {
         text: lesson.homeworkText ?? '',
@@ -116,25 +242,63 @@ export class LessonsService {
         fileLinks: mapLessonFileLinks(lesson.homeworkFiles, attachments, fileLink),
       },
       studentResponse: {
-        text: lesson.studentResponseText ?? '',
-        files: lesson.studentResponseFiles,
-        fileLinks: mapLessonFileLinks(lesson.studentResponseFiles, attachments, fileLink),
-        status: studentResponseStatusToDto(lesson.studentResponseStatus),
-        homeworkChecked: lesson.homeworkChecked,
-        teacherHomeworkFeedback: lesson.teacherHomeworkFeedback ?? '',
+        text: primaryParticipant?.studentResponseText ?? lesson.studentResponseText ?? '',
+        files: primaryParticipant?.studentResponseFiles ?? lesson.studentResponseFiles,
+        fileLinks: mapLessonFileLinks(
+          primaryParticipant?.studentResponseFiles ?? lesson.studentResponseFiles,
+          attachments,
+          fileLink,
+        ),
+        status: studentResponseStatusToDto(
+          primaryParticipant?.studentResponseStatus ?? lesson.studentResponseStatus,
+        ),
+        homeworkChecked: primaryParticipant?.homeworkChecked ?? lesson.homeworkChecked,
+        teacherHomeworkFeedback:
+          primaryParticipant?.teacherHomeworkFeedback ?? lesson.teacherHomeworkFeedback ?? '',
       },
       linkedWordIds: lesson.linkedWords.map((row) => row.wordId),
+      kind: lessonKindToDto(lesson.kind),
+      participants: (lesson.participants ?? []).map((row) => ({
+        userId: row.userId,
+        displayName: row.user.displayName,
+        role: row.role === 'PAYER' ? 'payer' : 'student',
+        sortOrder: row.sortOrder,
+        studentResponse: {
+          text: row.studentResponseText ?? '',
+          files: row.studentResponseFiles,
+          status: studentResponseStatusToDto(row.studentResponseStatus),
+          homeworkChecked: row.homeworkChecked,
+          teacherHomeworkFeedback: row.teacherHomeworkFeedback ?? '',
+        },
+      })),
+      groupBilling:
+        lesson.kind === 'GROUP' && lesson.groupBillingMode
+          ? {
+              mode: groupBillingModeToDto(lesson.groupBillingMode),
+              priceMinor: lesson.groupPriceMinor,
+              currency: lesson.groupCurrency,
+              splitMode: groupSplitModeToDto(lesson.groupSplitMode),
+              payerUserId: lesson.groupPayerUserId,
+            }
+          : null,
     };
   }
 
   /** Mark past PLANNED lessons as COMPLETED (not CANCELLED). */
   private async autoCompletePastPlannedLessons(userId: string): Promise<void> {
     const toComplete = await this.prisma.$queryRaw<{ id: string }[]>`
-      SELECT id FROM "ScheduledLesson"
-      WHERE status = 'PLANNED'::"LessonStatus"
-        AND ("teacherId" = ${userId} OR "studentId" = ${userId})
+      SELECT sl.id FROM "ScheduledLesson" sl
+      WHERE sl.status = 'PLANNED'::"LessonStatus"
         AND (
-          (("date" || ' ' || "endTime" || ':00')::timestamp AT TIME ZONE timezone)
+          sl."teacherId" = ${userId}
+          OR sl."studentId" = ${userId}
+          OR EXISTS (
+            SELECT 1 FROM "ScheduledLessonParticipant" p
+            WHERE p."scheduledLessonId" = sl.id AND p."userId" = ${userId}
+          )
+        )
+        AND (
+          ((sl."date" || ' ' || sl."endTime" || ':00')::timestamp AT TIME ZONE sl.timezone)
           < NOW()
         )
     `;
@@ -152,7 +316,7 @@ export class LessonsService {
   async listFor(userId: string): Promise<ScheduledLessonBackendDto[]> {
     await this.autoCompletePastPlannedLessons(userId);
     const lessons = await this.prisma.scheduledLesson.findMany({
-      where: { OR: [{ teacherId: userId }, { studentId: userId }] },
+      where: lessonMembershipWhere(userId),
       include: lessonInclude,
       orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
     });
@@ -173,9 +337,17 @@ export class LessonsService {
     const take = Math.min(Math.max(limit, 1), 100);
     const membership = filterStudentId
       ? {
-          OR: [{ teacherId: userId, studentId: filterStudentId }, { studentId: filterStudentId }],
+          AND: [
+            lessonMembershipWhere(userId),
+            {
+              OR: [
+                { studentId: filterStudentId },
+                { participants: { some: { userId: filterStudentId } } },
+              ],
+            },
+          ],
         }
-      : { OR: [{ teacherId: userId }, { studentId: userId }] };
+      : lessonMembershipWhere(userId);
     const cursorRow = cursor ? decodeLessonCursor(cursor) : null;
     const cursorWhere = cursorRow
       ? {
@@ -300,13 +472,21 @@ export class LessonsService {
         throw forbidden();
       }
     }
+    if (body.participantIds !== undefined) throw forbidden();
+    if (body.kind !== undefined) throw forbidden();
+    if (body.groupBilling !== undefined) throw forbidden();
   }
 
   async create(actorUserId: string, body: CreateScheduledLessonRequestDto): Promise<ScheduledLessonBackendDto> {
     if (!body.title?.trim()) throw new BadRequestException('Title is required');
     if (!body.date) throw new BadRequestException('Date is required');
     if (!body.startTime) throw new BadRequestException('Start time is required');
-    if (!body.studentId) throw new BadRequestException('Student id is required');
+
+    const paymentRuntime = await this.paymentSettings.getRuntimePaymentSettings();
+    const kind = resolveLessonKind(body);
+    if (kind === 'GROUP' || body.studentGroupId) {
+      assertGroupLessonsEnabledForSchool(paymentRuntime.config);
+    }
 
     const actor = await this.prisma.user.findUnique({
       where: { id: actorUserId },
@@ -316,6 +496,38 @@ export class LessonsService {
       throw new ForbiddenException('This action requires teacher, admin, or super admin role');
     }
 
+    let participantIds: string[];
+    let billingSnapshot: ReturnType<typeof billingSnapshotFromGroup> | null = null;
+    let studentGroupId: string | null = null;
+
+    if (body.studentGroupId) {
+      const group = await this.prisma.studentGroup.findUnique({
+        where: { id: body.studentGroupId },
+        include: { members: { orderBy: { sortOrder: 'asc' } } },
+      });
+      if (!group) throw new NotFoundException('Student group not found');
+      if (actor.role === 'TEACHER' && group.teacherId !== actorUserId) {
+        throw new ForbiddenException('You can only use your assigned groups');
+      }
+      if (kind !== 'GROUP') {
+        throw new BadRequestException('Student group requires a group lesson');
+      }
+      participantIds = group.members.map((member) => member.userId);
+      billingSnapshot = billingSnapshotFromGroup(group);
+      studentGroupId = group.id;
+    } else {
+      participantIds = resolveParticipantIds(body);
+      if (actor.role === 'TEACHER' && kind === 'GROUP') {
+        throw new BadRequestException('Teachers must select a student group');
+      }
+    }
+
+    assertGroupCreateRules(kind, participantIds, body, {
+      fromStudentGroup: !!body.studentGroupId,
+      actorRole: actor.role,
+    });
+    const primaryStudentId = participantIds[0]!;
+
     const teacherId = body.teacherId ?? actorUserId;
     const teacher = await this.prisma.user.findUnique({
       where: { id: teacherId },
@@ -324,16 +536,21 @@ export class LessonsService {
     if (!teacher || !TEACHING_ROLES.has(teacher.role)) {
       throw new BadRequestException('Teacher not found');
     }
-    const student = await this.prisma.user.findUnique({
-      where: { id: body.studentId },
-      select: { id: true, role: true, teacherId: true, email: true },
+
+    const students = await this.prisma.user.findMany({
+      where: { id: { in: participantIds }, role: 'STUDENT' },
+      select: { id: true, role: true, teacherId: true, email: true, lessonFormat: true },
     });
-    if (!student || student.role !== 'STUDENT') throw new BadRequestException('Student not found');
+    if (students.length !== participantIds.length) {
+      throw new BadRequestException('One or more students were not found');
+    }
+    assertParticipantLessonFormats(students, kind);
     if (actor.role === 'TEACHER') {
       if (teacherId !== actorUserId) {
         throw new ForbiddenException('Teachers can only create lessons for themselves');
       }
-      if (student.teacherId !== actorUserId) {
+      const outsider = students.find((student) => student.teacherId !== actorUserId);
+      if (outsider) {
         throw new ForbiddenException('Teachers can only create lessons for their own students');
       }
     }
@@ -341,10 +558,13 @@ export class LessonsService {
     const duration = body.duration ?? (body.endTime ? diffMinutes(body.startTime, body.endTime) : 55);
     const endTime = body.endTime ?? addMinutes(body.startTime, duration);
     const timezone = body.timezone ?? teacher.timezone ?? 'Europe/Kyiv';
+    const meetSummary =
+      kind === 'GROUP' ? `${body.title.trim()} (Group)` : body.title.trim();
 
     const needsCalendar = body.createMeetLink !== false;
-    if (needsCalendar) {
-      await this.googleCalendar.assertTeacherCalendarReady(teacherId);
+    const videoProvider = needsCalendar ? this.videoProviders.get() : null;
+    if (videoProvider) {
+      await videoProvider.assertHostReady(teacherId);
     }
 
     const lesson = await this.prisma.scheduledLesson.create({
@@ -359,47 +579,74 @@ export class LessonsService {
         duration,
         timezone,
         teacherId,
-        studentId: body.studentId,
+        studentId: primaryStudentId,
+        kind,
+        studentGroupId,
+        ...(billingSnapshot
+          ? groupBillingFromSnapshot(billingSnapshot)
+          : actor.role === 'TEACHER'
+            ? {}
+            : groupBillingCreateData(body)),
         status: statusFromDto(body.status ?? 'planned'),
         recurrence: recurrenceFromDto(body.recurrence ?? 'none'),
         weeklyDays: body.weeklyDays ?? [],
         seriesId: body.seriesId ?? null,
+        participants: {
+          create: participantIds.map((userId, index) => ({
+            userId,
+            sortOrder: index,
+            role:
+              kind === 'GROUP' && billingSnapshot
+                ? participantRoleForBilling(userId, billingSnapshot)
+                : body.groupBilling?.splitMode === 'single_payer' &&
+                    body.groupBilling.payerUserId === userId
+                  ? 'PAYER'
+                  : 'STUDENT',
+          })),
+        },
       },
     });
 
     if (body.linkedWordIds?.length) {
       await Promise.all(
-        body.linkedWordIds.map((wordId) =>
-          this.prisma.studentWordCard.upsert({
-            where: { userId_wordId: { userId: body.studentId, wordId } },
-            update: { lessonId: lesson.id },
-            create: {
-              userId: body.studentId,
-              wordId,
-              lessonId: lesson.id,
-              status: 'NEW',
-              firstSeenAt: new Date(),
-            },
-          }),
+        participantIds.flatMap((studentId) =>
+          (body.linkedWordIds ?? []).map((wordId) =>
+            this.prisma.studentWordCard.upsert({
+              where: { userId_wordId: { userId: studentId, wordId } },
+              update: { lessonId: lesson.id },
+              create: {
+                userId: studentId,
+                wordId,
+                lessonId: lesson.id,
+                status: 'NEW',
+                firstSeenAt: new Date(),
+              },
+            }),
+          ),
         ),
       );
     }
 
-    if (needsCalendar) {
-      const meet = await this.googleCalendar.createMeetEvent({
+    if (needsCalendar && videoProvider) {
+      const meeting = await videoProvider.createMeeting({
+        lessonId: lesson.id,
         teacherId,
-        summary: lesson.title,
+        summary: meetSummary,
         description: lesson.description ?? undefined,
         startDateTime: `${lesson.date}T${lesson.startTime}:00`,
         endDateTime: `${lesson.date}T${lesson.endTime}:00`,
         timezone,
-        studentEmail: student.email,
+        attendeeEmails: students
+          .map((student) => student.email)
+          .filter(Boolean) as string[],
       });
-      if (!meet?.eventId) {
+      if (!meeting?.externalId) {
         await this.rollbackCreatedLesson(lesson.id);
-        throw new BadRequestException(GOOGLE_CALENDAR_REQUIRED_MESSAGE);
+        throw new BadRequestException(
+          'Could not create a video meeting for this lesson. Check the active provider in System → Video meetings.',
+        );
       }
-      await this.applyMeetToLesson(lesson.id, teacherId, meet);
+      await this.applyVideoMeetingToLesson(lesson.id, teacherId, meeting);
     }
 
     if (
@@ -419,21 +666,34 @@ export class LessonsService {
     const lesson = await this.ensureMembership(lessonId, actorUserId);
     const actorRole = await this.resolveActorRole(actorUserId);
     if (actorRole === 'STUDENT') {
-      throw new ForbiddenException('Only staff can create Google Meet links');
+      throw new ForbiddenException('Only staff can create video meeting links');
     }
-    if (lesson.googleMeetUrl) {
+    if (lesson.videoMeetingUrl || lesson.googleMeetUrl) {
       return this.toDto(lesson);
     }
 
-    if (lesson.googleCalendarEventId) {
-      const existingUrl = await this.googleCalendar.getEventMeetUrl(
+    const provider = this.videoProviders.get();
+
+    // If this lesson has a prior external id for the *same* provider, try to
+    // resolve a URL from it before creating a new meeting.
+    if (
+      lesson.videoMeetingExternalId &&
+      lesson.videoProvider === provider.key
+    ) {
+      const existingUrl = await provider.getMeetingUrl(
+        lesson.videoMeetingExternalId,
         lesson.teacherId,
-        lesson.googleCalendarEventId,
       );
       if (existingUrl) {
         await this.prisma.scheduledLesson.update({
           where: { id: lessonId },
-          data: { googleMeetUrl: existingUrl, meetCreatedAt: lesson.meetCreatedAt ?? new Date() },
+          data: {
+            videoMeetingUrl: existingUrl,
+            meetCreatedAt: lesson.meetCreatedAt ?? new Date(),
+            ...(provider.key === 'google'
+              ? { googleMeetUrl: existingUrl }
+              : {}),
+          },
         });
         const refreshed = await this.fetchLesson(lessonId);
         if (!refreshed) throw new NotFoundException('Lesson not found');
@@ -441,29 +701,52 @@ export class LessonsService {
       }
     }
 
-    const [teacher, student] = await Promise.all([
-      this.prisma.user.findUnique({ where: { id: lesson.teacherId } }),
-      this.prisma.user.findUnique({ where: { id: lesson.studentId } }),
-    ]);
-    if (!teacher) throw new BadRequestException('Teacher not found');
+    // Fallback for legacy lessons that only have googleCalendarEventId.
+    if (provider.key === 'google' && lesson.googleCalendarEventId) {
+      const existingUrl = await this.googleCalendar.getEventMeetUrl(
+        lesson.teacherId,
+        lesson.googleCalendarEventId,
+      );
+      if (existingUrl) {
+        await this.prisma.scheduledLesson.update({
+          where: { id: lessonId },
+          data: {
+            googleMeetUrl: existingUrl,
+            videoMeetingUrl: existingUrl,
+            videoProvider: 'google',
+            videoMeetingExternalId: lesson.googleCalendarEventId,
+            meetCreatedAt: lesson.meetCreatedAt ?? new Date(),
+          },
+        });
+        const refreshed = await this.fetchLesson(lessonId);
+        if (!refreshed) throw new NotFoundException('Lesson not found');
+        return this.toDto(refreshed);
+      }
+    }
 
-    const meet = await this.googleCalendar.createMeetEvent({
+    const teacher = await this.prisma.user.findUnique({ where: { id: lesson.teacherId } });
+    if (!teacher) throw new BadRequestException('Teacher not found');
+    const studentEmails = await this.resolveParticipantEmails(lesson);
+
+    await provider.assertHostReady(lesson.teacherId);
+    const meeting = await provider.createMeeting({
+      lessonId,
       teacherId: lesson.teacherId,
-      summary: lesson.title,
+      summary: lesson.kind === 'GROUP' ? `${lesson.title} (Group)` : lesson.title,
       description: lesson.description ?? undefined,
       startDateTime: `${lesson.date}T${lesson.startTime}:00`,
       endDateTime: `${lesson.date}T${lesson.endTime}:00`,
       timezone: lesson.timezone,
-      studentEmail: student?.email ?? null,
+      attendeeEmails: studentEmails,
     });
 
-    await this.applyMeetToLesson(lessonId, lesson.teacherId, meet);
+    await this.applyVideoMeetingToLesson(lessonId, lesson.teacherId, meeting);
 
     const full = await this.fetchLesson(lessonId);
     if (!full) throw new NotFoundException('Lesson not found');
-    if (!full.googleMeetUrl) {
+    if (!full.videoMeetingUrl && !full.googleMeetUrl) {
       throw new BadRequestException(
-        'Could not create a Google Meet link. The assigned teacher must sign in with Google (with Calendar access), and GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET must be set on the server.',
+        'Could not create a video meeting link. Check the active provider configuration and the teacher host connection.',
       );
     }
     return this.toDto(full);
@@ -475,58 +758,126 @@ export class LessonsService {
       .catch(() => undefined);
   }
 
-  /** Persist Calendar event id and resolve Meet URL (Google may return it asynchronously). */
-  private async applyMeetToLesson(
+  /** Persist video meeting fields. For Google, also mirror to legacy `googleMeetUrl` and resolve URL async. */
+  private async applyVideoMeetingToLesson(
     lessonId: string,
     teacherId: string,
-    meet: CreateMeetEventResult | null,
+    meeting: CreateVideoMeetingResult | null,
   ): Promise<void> {
-    if (!meet?.eventId) return;
+    if (!meeting?.externalId) return;
 
-    let meetUrl = meet.meetUrl?.trim() || null;
-    if (!meetUrl) {
-      meetUrl = await this.googleCalendar.getEventMeetUrl(teacherId, meet.eventId);
+    let meetingUrl = meeting.meetingUrl?.trim() || null;
+    // Google may return the Meet URL asynchronously after event creation.
+    if (!meetingUrl && meeting.provider === 'google') {
+      meetingUrl = await this.googleCalendar.getEventMeetUrl(
+        teacherId,
+        meeting.externalId,
+      );
+      if (!meetingUrl) {
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        meetingUrl = await this.googleCalendar.getEventMeetUrl(
+          teacherId,
+          meeting.externalId,
+        );
+      }
     }
-    if (!meetUrl) {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      meetUrl = await this.googleCalendar.getEventMeetUrl(teacherId, meet.eventId);
+
+    const data: Record<string, unknown> = {
+      videoProvider: meeting.provider,
+      videoMeetingExternalId: meeting.externalId,
+      videoMeetingRawId: meeting.rawId,
+      meetCreatedAt: new Date(),
+      ...(meetingUrl ? { videoMeetingUrl: meetingUrl } : {}),
+    };
+
+    // Mirror to legacy Google fields for backward compat.
+    if (meeting.provider === 'google') {
+      data['googleCalendarEventId'] = meeting.externalId;
+      data['googleConferenceId'] = meeting.conferenceId ?? null;
+      if (meetingUrl) data['googleMeetUrl'] = meetingUrl;
     }
 
     await this.prisma.scheduledLesson.update({
       where: { id: lessonId },
-      data: {
-        googleCalendarEventId: meet.eventId,
-        ...(meetUrl ? { googleMeetUrl: meetUrl } : {}),
-        googleConferenceId: meet.conferenceId,
-        meetCreatedAt: new Date(),
-      },
+      data,
     });
   }
 
   private async applyLessonContentFields(
     lessonId: string,
     body: Pick<UpdateScheduledLessonRequestDto, 'materials' | 'homework' | 'studentResponse'>,
+    actorUserId?: string,
   ): Promise<void> {
-    const updates: Prisma.ScheduledLessonUpdateInput = {};
     if (body.homework !== undefined) {
-      if (body.homework.text !== undefined) updates['homeworkText'] = body.homework.text;
-      if (body.homework.files !== undefined) updates['homeworkFiles'] = body.homework.files;
-    }
-    if (body.studentResponse !== undefined) {
-      if (body.studentResponse.text !== undefined)
-        updates['studentResponseText'] = body.studentResponse.text;
-      if (body.studentResponse.files !== undefined)
-        updates['studentResponseFiles'] = body.studentResponse.files;
-      if (body.studentResponse.status !== undefined)
-        updates['studentResponseStatus'] = studentResponseStatusFromDto(body.studentResponse.status);
-      if (body.studentResponse.homeworkChecked !== undefined)
-        updates['homeworkChecked'] = body.studentResponse.homeworkChecked;
-      if (body.studentResponse.teacherHomeworkFeedback !== undefined)
-        updates['teacherHomeworkFeedback'] = body.studentResponse.teacherHomeworkFeedback;
+      const homeworkUpdates: Prisma.ScheduledLessonUpdateInput = {};
+      if (body.homework.text !== undefined) homeworkUpdates['homeworkText'] = body.homework.text;
+      if (body.homework.files !== undefined) homeworkUpdates['homeworkFiles'] = body.homework.files;
+      if (Object.keys(homeworkUpdates).length > 0) {
+        await this.prisma.scheduledLesson.update({ where: { id: lessonId }, data: homeworkUpdates });
+      }
     }
 
-    if (Object.keys(updates).length > 0) {
-      await this.prisma.scheduledLesson.update({ where: { id: lessonId }, data: updates });
+    if (body.studentResponse !== undefined) {
+      const participantRow =
+        actorUserId != null
+          ? await this.prisma.scheduledLessonParticipant.findUnique({
+              where: {
+                scheduledLessonId_userId: { scheduledLessonId: lessonId, userId: actorUserId },
+              },
+            })
+          : null;
+
+      if (participantRow) {
+        const participantUpdates: Prisma.ScheduledLessonParticipantUpdateInput = {};
+        if (body.studentResponse.text !== undefined) {
+          participantUpdates['studentResponseText'] = body.studentResponse.text;
+        }
+        if (body.studentResponse.files !== undefined) {
+          participantUpdates['studentResponseFiles'] = body.studentResponse.files;
+        }
+        if (body.studentResponse.status !== undefined) {
+          participantUpdates['studentResponseStatus'] = studentResponseStatusFromDto(
+            body.studentResponse.status,
+          );
+        }
+        if (body.studentResponse.homeworkChecked !== undefined) {
+          participantUpdates['homeworkChecked'] = body.studentResponse.homeworkChecked;
+        }
+        if (body.studentResponse.teacherHomeworkFeedback !== undefined) {
+          participantUpdates['teacherHomeworkFeedback'] =
+            body.studentResponse.teacherHomeworkFeedback;
+        }
+        if (Object.keys(participantUpdates).length > 0) {
+          await this.prisma.scheduledLessonParticipant.update({
+            where: {
+              scheduledLessonId_userId: { scheduledLessonId: lessonId, userId: actorUserId! },
+            },
+            data: participantUpdates,
+          });
+        }
+      } else {
+        const updates: Prisma.ScheduledLessonUpdateInput = {};
+        if (body.studentResponse.text !== undefined) {
+          updates['studentResponseText'] = body.studentResponse.text;
+        }
+        if (body.studentResponse.files !== undefined) {
+          updates['studentResponseFiles'] = body.studentResponse.files;
+        }
+        if (body.studentResponse.status !== undefined) {
+          updates['studentResponseStatus'] = studentResponseStatusFromDto(
+            body.studentResponse.status,
+          );
+        }
+        if (body.studentResponse.homeworkChecked !== undefined) {
+          updates['homeworkChecked'] = body.studentResponse.homeworkChecked;
+        }
+        if (body.studentResponse.teacherHomeworkFeedback !== undefined) {
+          updates['teacherHomeworkFeedback'] = body.studentResponse.teacherHomeworkFeedback;
+        }
+        if (Object.keys(updates).length > 0) {
+          await this.prisma.scheduledLesson.update({ where: { id: lessonId }, data: updates });
+        }
+      }
     }
 
     if (body.materials !== undefined) {
@@ -538,6 +889,9 @@ export class LessonsService {
             kind: materialKindFromDto(material.kind),
             text: material.text ?? null,
             files: material.files ?? [],
+            libraryMaterialId: material.libraryMaterialId ?? null,
+            sharedLibraryAssetIds: material.sharedLibraryAssetIds ?? [],
+            libraryMediaSelectionApplied: material.libraryMediaSelectionApplied ?? false,
             order: index,
           })),
         });
@@ -556,7 +910,7 @@ export class LessonsService {
       throw new ForbiddenException('Only lesson participants can update lessons');
     }
     if (actorRole === 'STUDENT') {
-      if (lesson.studentId !== actorUserId) {
+      if (!isLessonMember(lesson, actorUserId)) {
         throw new ForbiddenException('Students can only update their own lesson response');
       }
       this.assertStudentCanOnlyUpdateOwnResponse(lesson, body);
@@ -583,7 +937,25 @@ export class LessonsService {
 
     await this.prisma.scheduledLesson.update({ where: { id: lessonId }, data: updates });
 
-    await this.applyLessonContentFields(lessonId, body);
+    await this.applyLessonContentFields(lessonId, body, actorUserId);
+
+    if (body.kind !== undefined || body.groupBilling !== undefined) {
+      const kindUpdate = body.kind ? lessonKindFromDto(body.kind) : undefined;
+      await this.prisma.scheduledLesson.update({
+        where: { id: lessonId },
+        data: {
+          ...(kindUpdate ? { kind: kindUpdate } : {}),
+          ...groupBillingUpdateData({
+            kind: body.kind ?? (lesson.kind === 'GROUP' ? 'group' : 'individual'),
+            groupBilling: body.groupBilling,
+          }),
+        },
+      });
+    }
+
+    if (body.participantIds && lesson.status === 'PLANNED' && actorRole !== 'STUDENT') {
+      await this.replaceParticipants(lessonId, body.participantIds, body.groupBilling);
+    }
 
     if (body.linkedWordIds) {
       await this.prisma.studentWordCard.updateMany({
@@ -618,25 +990,73 @@ export class LessonsService {
       body.timezone !== undefined;
 
     if (scheduleChanged && full.googleCalendarEventId) {
-      const student = await this.prisma.user.findUnique({
-        where: { id: full.studentId },
-        select: { email: true },
-      });
+      const participantEmails = await this.resolveParticipantEmails(full);
       await this.googleCalendar.updateEvent({
         teacherId: full.teacherId,
         eventId: full.googleCalendarEventId,
-        summary: full.title,
+        summary: full.kind === 'GROUP' ? `${full.title} (Group)` : full.title,
         description: full.description ?? undefined,
         startDateTime: `${full.date}T${full.startTime}:00`,
         endDateTime: `${full.date}T${full.endTime}:00`,
         timezone: full.timezone,
-        studentEmail: student?.email ?? null,
+        studentEmails: participantEmails,
       });
     }
 
     await this.lessonBalance.syncLessonCharge(lessonId);
 
     return this.toDto(full);
+  }
+
+  private async resolveParticipantEmails(
+    lesson: Pick<NonNullable<LessonRecord>, 'studentId' | 'participants'>,
+  ): Promise<string[]> {
+    const ids =
+      lesson.participants && lesson.participants.length > 0
+        ? lesson.participants.map((row) => row.userId)
+        : [lesson.studentId];
+    const users = await this.prisma.user.findMany({
+      where: { id: { in: ids } },
+      select: { email: true },
+    });
+    return users.map((row) => row.email).filter((email): email is string => Boolean(email?.trim()));
+  }
+
+  private async replaceParticipants(
+    lessonId: string,
+    participantIds: string[],
+    groupBilling?: GroupLessonBillingDto | null,
+  ): Promise<void> {
+    const unique = [...new Set(participantIds.map((id) => id.trim()).filter(Boolean))];
+    if (unique.length < 2) {
+      throw new BadRequestException('Group lessons require at least two students');
+    }
+    const students = await this.prisma.user.findMany({
+      where: { id: { in: unique }, role: 'STUDENT' },
+      select: { id: true },
+    });
+    if (students.length !== unique.length) {
+      throw new BadRequestException('One or more students were not found');
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.scheduledLessonParticipant.deleteMany({ where: { scheduledLessonId: lessonId } });
+      await tx.scheduledLessonParticipant.createMany({
+        data: unique.map((userId, index) => ({
+          scheduledLessonId: lessonId,
+          userId,
+          sortOrder: index,
+          role:
+            groupBilling?.splitMode === 'single_payer' && groupBilling.payerUserId === userId
+              ? 'PAYER'
+              : 'STUDENT',
+        })),
+      });
+      await tx.scheduledLesson.update({
+        where: { id: lessonId },
+        data: { studentId: unique[0]! },
+      });
+    });
   }
 
   async remove(lessonId: string, actorUserId: string): Promise<void> {

@@ -2,9 +2,10 @@
 export {
   defaultGoalDateKey,
   getDailyGoalsForUser,
-  goalTemplates,
-  GOAL_XP_BY_DIFFICULTY,
+  goalDefinitions,
+  GOAL_TIER_LABELS,
   type DailyGoalInstance,
   type GoalDifficulty,
-  type GoalTemplate,
+  type GoalKind,
+  type GoalVariant,
 } from '@pkg/types';

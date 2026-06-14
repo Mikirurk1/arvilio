@@ -16,7 +16,13 @@ import { useVocabularyStore } from '../../../stores/vocabulary-store';
 import { VocabularyAddWordBar, VocabularyListSection, VocabularyStatsRow } from '../../vocabulary/sections';
 import styles from './page.module.scss';
 
-export function StudentVocabularyTab({ studentId }: { studentId: string }) {
+type Props = {
+  studentId: string;
+  /** When true, rendered inside StudentPracticeTab (no outer card/title). */
+  embedded?: boolean;
+};
+
+export function StudentVocabularyTab({ studentId, embedded = false }: Props) {
   const cardsSlice = useVocabularyStore((s) => s.cards);
   const fetchCards = useVocabularyStore((s) => s.fetchCards);
   const updateCardStatus = useVocabularyStore((s) => s.updateCardStatus);
@@ -98,7 +104,7 @@ export function StudentVocabularyTab({ studentId }: { studentId: string }) {
   };
 
   const onAddWord = async (text: string) => {
-    await addCard({ text: text.trim() }, studentId);
+    await addCard({ text }, studentId);
   };
 
   const onDeleteWord = async (cardId: string) => {
@@ -117,12 +123,17 @@ export function StudentVocabularyTab({ studentId }: { studentId: string }) {
 
   const isLoading = cardsSlice.status === 'loading' || cardsSlice.status === 'idle';
 
-  return (
-    <SurfaceCard className={styles.tabCard}>
-      <p className={styles.vocabTabIntro}>
-        Manage this student&apos;s vocabulary progress. Staff can set any status, including{' '}
-        <strong>learned</strong>.
-      </p>
+  const body = (
+    <>
+      {!embedded ? (
+        <>
+          <h2 className={styles.tabSectionTitle}>Vocabulary</h2>
+          <p className={styles.vocabTabIntro}>
+            Manage this student&apos;s vocabulary progress. Staff can set any status, including{' '}
+            <strong>learned</strong>.
+          </p>
+        </>
+      ) : null}
       <VocabularyStatsRow total={items.length} stats={stats} onFilter={setStatusFilter} />
       <VocabularyAddWordBar onAdd={onAddWord} disabled={isLoading} />
       <VocabularyListSection
@@ -148,6 +159,12 @@ export function StudentVocabularyTab({ studentId }: { studentId: string }) {
       {detailsWordId ? (
         <WordDetailsModal wordId={detailsWordId} onClose={() => setDetailsWordId(null)} />
       ) : null}
-    </SurfaceCard>
+    </>
   );
+
+  if (embedded) {
+    return body;
+  }
+
+  return <SurfaceCard className={styles.tabCard}>{body}</SurfaceCard>;
 }

@@ -51,6 +51,15 @@ export function toLessonFormState(lesson: ScheduledLessonDto): LessonFormState {
     recurrence: lesson.recurrence,
     weeklyDays: lesson.weeklyDays ?? [],
     linkedWordIds: [...(lesson.linkedWordIds ?? [])],
+    kind: lesson.kind ?? 'individual',
+    participantIds:
+      lesson.participantIds?.length ? [...lesson.participantIds] : [lesson.studentId],
+    groupBillingMode: lesson.groupBilling?.mode ?? 'per_member',
+    groupPriceMinor: lesson.groupBilling?.priceMinor ?? 0,
+    groupCurrency: lesson.groupBilling?.currency ?? 'UAH',
+    groupSplitMode: lesson.groupBilling?.splitMode ?? 'equal_split',
+    groupPayerUserId: lesson.groupBilling?.payerUserId != null ? Number(lesson.groupBilling.payerUserId) : lesson.studentId,
+    studentGroupId: lesson.studentGroupId ?? null,
   };
 }
 
@@ -101,6 +110,39 @@ export function fromLessonFormState(
     weeklyDays: form.recurrence === 'weekly' ? form.weeklyDays : [],
     seriesId: existing?.seriesId ?? (form.recurrence !== 'none' ? `series-${Date.now()}` : undefined),
     linkedWordIds: form.linkedWordIds.length > 0 ? [...form.linkedWordIds] : undefined,
+    kind: form.kind ?? 'individual',
+    participantIds:
+      form.participantIds && form.participantIds.length > 0
+        ? [...form.participantIds]
+        : [form.studentId],
+    participants:
+      form.kind === 'group' && form.participantIds
+        ? form.participantIds.map((id, index) => ({
+            userId: id,
+            displayName:
+              existing?.participants?.find((row) => row.userId === id)?.displayName ??
+              (id === form.studentId ? form.studentName : ''),
+            role: 'student' as const,
+            sortOrder: index,
+          }))
+        : existing?.participants,
+    groupBilling:
+      form.kind === 'group'
+        ? {
+            mode: form.groupBillingMode,
+            priceMinor: form.groupPriceMinor,
+            currency: form.groupCurrency,
+            splitMode:
+              form.groupBillingMode === 'fixed_total' ? form.groupSplitMode : null,
+            payerUserId:
+              form.groupBillingMode === 'fixed_total' &&
+              form.groupSplitMode === 'single_payer' &&
+              form.groupPayerUserId != null
+                ? String(form.groupPayerUserId)
+                : null,
+          }
+        : undefined,
+    studentGroupId: form.studentGroupId ?? undefined,
   };
 }
 

@@ -1,48 +1,130 @@
-/** Daily learning goals: template bank + deterministic pick per user/day (UTC date key). */
+/** Daily learning goals: four fixed activity slots with hash-based variant per user/day (UTC). */
+
+import {
+  deepPracticeGoalVariants,
+  quizGoalVariants,
+  speakingGoalVariants,
+  vocabularyGoalVariants,
+} from './daily-goal-variant-pools';
 
 export type GoalDifficulty = 1 | 2 | 3 | 4;
 
-export type GoalTemplate = {
+export type GoalKind = 'vocabulary' | 'quiz' | 'speaking' | 'deep_practice';
+
+export type PartOfSpeechGoal = 'adjective' | 'noun' | 'verb' | 'adverb';
+
+export type VocabularyCriteria =
+  | { mode: 'cards'; targetCards: number }
+  | { mode: 'minutes'; targetMinutes: number }
+  | { mode: 'add_words'; targetWords: number }
+  | { mode: 'add_from_lesson'; targetWords: number }
+  | { mode: 'add_part_of_speech'; partOfSpeech: PartOfSpeechGoal; targetWords: number }
+  | { mode: 'review_mistakes'; targetCards: number }
+  | { mode: 'review_new'; targetCards: number }
+  | { mode: 'review_learned'; targetCards: number }
+  | { mode: 'mark_learned'; targetWords: number };
+
+export type QuizCriteria =
+  | { mode: 'finish_one' }
+  | { mode: 'finish_count'; targetQuizzes: number }
+  | { mode: 'score'; minScorePercent: number }
+  | { mode: 'questions'; minQuestions: number }
+  | { mode: 'perfect' };
+
+export type SpeakingCriteria =
+  | { mode: 'submission' }
+  | { mode: 'submissions'; targetCount: number }
+  | { mode: 'minutes'; targetMinutes: number };
+
+export type DeepPracticeCriteria =
+  | { mode: 'total_minutes'; targetMinutes: number }
+  | { mode: 'lesson' }
+  | { mode: 'games_minutes'; targetMinutes: number };
+
+export type GoalCriteria =
+  | VocabularyCriteria
+  | QuizCriteria
+  | SpeakingCriteria
+  | DeepPracticeCriteria;
+
+export type GoalVariant = {
   id: string;
   text: string;
+  criteria: GoalCriteria;
+  /** Overrides the slot default when the CTA should differ (e.g. add words → /vocabulary). */
+  actionPath?: string;
+};
+
+export type GoalDefinition = {
+  kind: GoalKind;
   difficulty: GoalDifficulty;
+  actionPath: string;
+  variants: GoalVariant[];
 };
 
-export const GOAL_XP_BY_DIFFICULTY: Record<GoalDifficulty, number> = {
-  1: 20,
-  2: 30,
-  3: 40,
-  4: 50,
+export const GOAL_ACTION_PATHS: Record<GoalKind, string> = {
+  vocabulary: '/vocabulary/play',
+  quiz: '/quiz',
+  speaking: '/practice/speaking',
+  deep_practice: '/practice',
 };
 
-export const goalTemplates: GoalTemplate[] = [
-  { id: 'g1-a', difficulty: 1, text: 'Review 5 vocabulary flashcards' },
-  { id: 'g1-b', difficulty: 1, text: 'Listen to one short English podcast clip (5 min)' },
-  { id: 'g1-c', difficulty: 1, text: 'Write 3 sentences using words from last lesson' },
-  { id: 'g1-d', difficulty: 1, text: 'Read one news headline aloud for pronunciation' },
-  { id: 'g1-e', difficulty: 1, text: 'Match 6 words to pictures in the vocabulary app' },
-  { id: 'g2-a', difficulty: 2, text: 'Complete one grammar exercise set (10 questions)' },
-  { id: 'g2-b', difficulty: 2, text: 'Shadow a 2-minute dialogue from your course audio' },
-  { id: 'g2-c', difficulty: 2, text: 'Summarize a short article in 4 bullet points in English' },
-  { id: 'g2-d', difficulty: 2, text: 'Practice 15 quiz questions on mixed tenses' },
-  { id: 'g2-e', difficulty: 2, text: 'Record a 1-minute intro about your week in English' },
-  { id: 'g3-a', difficulty: 3, text: 'Draft an email to a colleague (120+ words)' },
-  { id: 'g3-b', difficulty: 3, text: 'Participate in a 15-minute speaking session or mock interview' },
-  { id: 'g3-c', difficulty: 3, text: 'Watch a talk without subtitles and note 8 keywords' },
-  { id: 'g3-d', difficulty: 3, text: 'Write a short paragraph arguing one side of a debate topic' },
-  { id: 'g3-e', difficulty: 3, text: 'Redo yesterday’s quiz until you score at least 80%' },
-  { id: 'g4-a', difficulty: 4, text: 'Deliver a 5-minute spoken mini-presentation and self-review' },
-  { id: 'g4-b', difficulty: 4, text: 'Complete a full mock exam section under timed conditions' },
-  { id: 'g4-c', difficulty: 4, text: 'Peer-review and rewrite a complex text for clarity' },
-  { id: 'g4-d', difficulty: 4, text: 'Research + present pros/cons of a topic in structured notes' },
-  { id: 'g4-e', difficulty: 4, text: 'Transcribe a 3-minute native clip and compare your pronunciation' },
+export const GOAL_TIER_LABELS: Record<GoalDifficulty, string> = {
+  1: 'Easy',
+  2: 'Medium',
+  3: 'Hard',
+  4: 'Expert',
+};
+
+export const goalDefinitions: GoalDefinition[] = [
+  {
+    kind: 'vocabulary',
+    difficulty: 1,
+    actionPath: GOAL_ACTION_PATHS.vocabulary,
+    variants: vocabularyGoalVariants,
+  },
+  {
+    kind: 'quiz',
+    difficulty: 2,
+    actionPath: GOAL_ACTION_PATHS.quiz,
+    variants: quizGoalVariants,
+  },
+  {
+    kind: 'speaking',
+    difficulty: 3,
+    actionPath: GOAL_ACTION_PATHS.speaking,
+    variants: speakingGoalVariants,
+  },
+  {
+    kind: 'deep_practice',
+    difficulty: 4,
+    actionPath: GOAL_ACTION_PATHS.deep_practice,
+    variants: deepPracticeGoalVariants,
+  },
 ];
 
 export type DailyGoalInstance = {
   id: string;
   templateId: string;
+  kind: GoalKind;
   text: string;
   difficulty: GoalDifficulty;
+  criteria: GoalCriteria;
+  actionPath: string;
+};
+
+export type DailyGoalDto = {
+  id: string;
+  templateId: string;
+  kind: GoalKind;
+  text: string;
+  difficulty: GoalDifficulty;
+  done: boolean;
+  progressCurrent: number;
+  progressTarget: number;
+  progressLabel: string;
+  actionPath: string;
+  dateKey: string;
 };
 
 function hashToUInt(seed: string): number {
@@ -58,8 +140,8 @@ export function defaultGoalDateKey(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function buildDailyGoalId(templateId: string, dateKey: string): string {
-  return `${templateId}-${dateKey}`;
+export function buildDailyGoalId(variantId: string, dateKey: string): string {
+  return `${variantId}-${dateKey}`;
 }
 
 export function parseDailyGoalId(goalId: string): { templateId: string; dateKey: string } | null {
@@ -70,23 +152,37 @@ export function parseDailyGoalId(goalId: string): { templateId: string; dateKey:
   return { templateId, dateKey };
 }
 
-/** Four goals per day: one template per difficulty tier (1–4). */
+export function findGoalVariant(variantId: string): { definition: GoalDefinition; variant: GoalVariant } | null {
+  for (const definition of goalDefinitions) {
+    const variant = definition.variants.find((v) => v.id === variantId);
+    if (variant) return { definition, variant };
+  }
+  return null;
+}
+
+/** Four goals per day: one variant per difficulty tier (1–4). */
 export function getDailyGoalsForUser(
   userId: string,
   dateKey: string = defaultGoalDateKey(),
 ): DailyGoalInstance[] {
-  const tiers = [1, 2, 3, 4] as const;
-  return tiers.map((difficulty) => {
-    const pool = goalTemplates.filter((t) => t.difficulty === difficulty);
-    const pick =
-      pool.length > 0
-        ? pool[hashToUInt(`${userId}|${dateKey}|${difficulty}`) % pool.length]
-        : goalTemplates[0];
+  return goalDefinitions.map((definition) => {
+    const pool = definition.variants;
+    const pick = pool[hashToUInt(`${userId}|${dateKey}|${definition.difficulty}`) % pool.length]!;
     return {
       id: buildDailyGoalId(pick.id, dateKey),
       templateId: pick.id,
+      kind: definition.kind,
       text: pick.text,
-      difficulty,
+      difficulty: definition.difficulty,
+      criteria: pick.criteria,
+      actionPath: pick.actionPath ?? definition.actionPath,
     };
   });
+}
+
+export function utcDayRange(dateKey: string): { from: Date; to: Date } {
+  const from = new Date(`${dateKey}T00:00:00.000Z`);
+  const to = new Date(from);
+  to.setUTCDate(to.getUTCDate() + 1);
+  return { from, to };
 }

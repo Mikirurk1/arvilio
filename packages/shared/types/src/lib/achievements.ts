@@ -23,6 +23,10 @@ export type AchievementStatsDto = {
   quizzesCompleted: number;
   perfectQuizCount: number;
   speakingSessions: number;
+  speakingSubmissions: number;
+  speakingReviewsReceived: number;
+  speakingMinutesTotal: number;
+  gamesSessions: number;
   practiceMinutesTotal: number;
   lessonMinutesTotal: number;
   weeklyGoalsCompleted: number;
@@ -53,6 +57,10 @@ export const EMPTY_ACHIEVEMENT_STATS: AchievementStatsDto = {
   quizzesCompleted: 0,
   perfectQuizCount: 0,
   speakingSessions: 0,
+  speakingSubmissions: 0,
+  speakingReviewsReceived: 0,
+  speakingMinutesTotal: 0,
+  gamesSessions: 0,
   practiceMinutesTotal: 0,
   lessonMinutesTotal: 0,
   weeklyGoalsCompleted: 0,
@@ -201,6 +209,13 @@ export const ACHIEVEMENT_DEFINITIONS: readonly AchievementDefinitionDto[] = [
     isUnlocked: (stats) => stats.perfectQuizCount >= 5,
   },
   {
+    id: 'ach_speaking_1',
+    icon: 'mic',
+    label: 'First Voice',
+    description: 'Complete your first speaking session.',
+    isUnlocked: (stats) => stats.speakingSessions >= 1,
+  },
+  {
     id: 'ach_speaking_3',
     icon: 'messages-square',
     label: 'Conversation Starter',
@@ -234,6 +249,118 @@ export const ACHIEVEMENT_DEFINITIONS: readonly AchievementDefinitionDto[] = [
     label: 'Speaking Master',
     description: 'Complete 30 speaking sessions.',
     isUnlocked: (stats) => stats.speakingSessions >= 30,
+  },
+  {
+    id: 'ach_speaking_50',
+    icon: 'messages-square',
+    label: 'Speaking Champion',
+    description: 'Complete 50 speaking sessions.',
+    isUnlocked: (stats) => stats.speakingSessions >= 50,
+  },
+  {
+    id: 'ach_speaking_75',
+    icon: 'mic',
+    label: 'Speaking Legend',
+    description: 'Complete 75 speaking sessions.',
+    isUnlocked: (stats) => stats.speakingSessions >= 75,
+  },
+  {
+    id: 'ach_speaking_100',
+    icon: 'crown',
+    label: 'Speaking Icon',
+    description: 'Complete 100 speaking sessions.',
+    isUnlocked: (stats) => stats.speakingSessions >= 100,
+  },
+  {
+    id: 'ach_speaking_record_1',
+    icon: 'mic',
+    label: 'First Recording',
+    description: 'Submit your first speaking recording.',
+    isUnlocked: (stats) => stats.speakingSubmissions >= 1,
+  },
+  {
+    id: 'ach_speaking_record_5',
+    icon: 'messages-square',
+    label: 'Voice Regular',
+    description: 'Submit 5 speaking recordings.',
+    isUnlocked: (stats) => stats.speakingSubmissions >= 5,
+  },
+  {
+    id: 'ach_speaking_record_10',
+    icon: 'trophy',
+    label: 'Voice Pro',
+    description: 'Submit 10 speaking recordings.',
+    isUnlocked: (stats) => stats.speakingSubmissions >= 10,
+  },
+  {
+    id: 'ach_speaking_feedback_1',
+    icon: 'star',
+    label: "Teacher's Ear",
+    description: 'Receive feedback on a speaking submission.',
+    isUnlocked: (stats) => stats.speakingReviewsReceived >= 1,
+  },
+  {
+    id: 'ach_speaking_feedback_5',
+    icon: 'badge-check',
+    label: 'Feedback Fan',
+    description: 'Receive feedback on 5 speaking submissions.',
+    isUnlocked: (stats) => stats.speakingReviewsReceived >= 5,
+  },
+  {
+    id: 'ach_speaking_minutes_60',
+    icon: 'star',
+    label: 'Hour of Talk',
+    description: 'Spend 60 minutes on speaking practice.',
+    isUnlocked: (stats) => stats.speakingMinutesTotal >= 60,
+  },
+  {
+    id: 'ach_irregular_first',
+    icon: 'target',
+    label: 'First Drill',
+    description: 'Complete your first irregular verbs drill.',
+    isUnlocked: (stats) => stats.gamesSessions >= 1,
+  },
+  {
+    id: 'ach_irregular_drills_3',
+    icon: 'target',
+    label: 'Verb Starter',
+    description: 'Complete 3 irregular verbs drills.',
+    isUnlocked: (stats) => stats.gamesSessions >= 3,
+  },
+  {
+    id: 'ach_irregular_drills_5',
+    icon: 'target',
+    label: 'Verb Buddy',
+    description: 'Complete 5 irregular verbs drills.',
+    isUnlocked: (stats) => stats.gamesSessions >= 5,
+  },
+  {
+    id: 'ach_irregular_drills_10',
+    icon: 'brain',
+    label: 'Verb Pro',
+    description: 'Complete 10 irregular verbs drills.',
+    isUnlocked: (stats) => stats.gamesSessions >= 10,
+  },
+  {
+    id: 'ach_irregular_drills_20',
+    icon: 'trophy',
+    label: 'Verb Star',
+    description: 'Complete 20 irregular verbs drills.',
+    isUnlocked: (stats) => stats.gamesSessions >= 20,
+  },
+  {
+    id: 'ach_irregular_drills_30',
+    icon: 'trophy',
+    label: 'Verb Master',
+    description: 'Complete 30 irregular verbs drills.',
+    isUnlocked: (stats) => stats.gamesSessions >= 30,
+  },
+  {
+    id: 'ach_irregular_drills_50',
+    icon: 'crown',
+    label: 'Irregular Legend',
+    description: 'Complete 50 irregular verbs drills.',
+    isUnlocked: (stats) => stats.gamesSessions >= 50,
   },
   {
     id: 'ach_lessons_30',

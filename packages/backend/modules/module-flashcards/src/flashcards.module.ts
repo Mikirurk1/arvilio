@@ -3,6 +3,7 @@ import { PrismaModule } from '@be/prisma';
 import { QuizAccessService } from './application/quiz-access.service';
 import { QuizAttemptService } from './application/quiz-attempt.service';
 import { QuizDetailService } from './application/quiz-detail.service';
+import { QuizDistractorService } from './application/quiz-distractor.service';
 import { QuizGenerateService } from './application/quiz-generate.service';
 import { QuizGeneratorService } from './application/quiz-generator.service';
 import { QuizListService } from './application/quiz-list.service';
@@ -18,6 +19,7 @@ import { QuizController } from './presentation/rest/quiz.controller';
     QuizAccessService,
     QuizListService,
     QuizDetailService,
+    QuizDistractorService,
     QuizGenerateService,
     QuizAttemptService,
     QuizGeneratorService,

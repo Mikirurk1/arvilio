@@ -9,6 +9,7 @@ export type ProfileHeroProps = {
   avatar: ReactNode;
   name: ReactNode;
   meta?: ReactNode;
+  metaExtra?: ReactNode;
   badges?: ReactNode;
   stats: ProfileHeroStat[];
   className?: string;
@@ -16,6 +17,7 @@ export type ProfileHeroProps = {
   infoClassName?: string;
   nameClassName?: string;
   metaClassName?: string;
+  metaExtraClassName?: string;
   badgesClassName?: string;
   statsClassName?: string;
   statClassName?: string;
@@ -27,6 +29,7 @@ export function ProfileHero({
   avatar,
   name,
   meta,
+  metaExtra,
   badges,
   stats,
   className,
@@ -34,6 +37,7 @@ export function ProfileHero({
   infoClassName,
   nameClassName,
   metaClassName,
+  metaExtraClassName,
   badgesClassName,
   statsClassName,
   statClassName,
@@ -46,16 +50,19 @@ export function ProfileHero({
       <div className={infoClassName}>
         <div className={nameClassName}>{name}</div>
         {meta ? <div className={metaClassName}>{meta}</div> : null}
+        {metaExtra ? <div className={metaExtraClassName}>{metaExtra}</div> : null}
         {badges ? <div className={badgesClassName}>{badges}</div> : null}
       </div>
-      <div className={statsClassName}>
-        {stats.map((stat, index) => (
-          <div key={index} className={statClassName}>
-            <span className={statValueClassName}>{stat.value}</span>
-            <span className={statLabelClassName}>{stat.label}</span>
-          </div>
-        ))}
-      </div>
+      {stats.length > 0 && statsClassName ? (
+        <div className={statsClassName}>
+          {stats.map((stat, index) => (
+            <div key={index} className={statClassName}>
+              <span className={statValueClassName}>{stat.value}</span>
+              <span className={statLabelClassName}>{stat.label}</span>
+            </div>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

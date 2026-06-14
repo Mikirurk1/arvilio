@@ -1,0 +1,421 @@
+@use '../../styles/mixins' as *;
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fieldGroupWide {
+  grid-column: 1 / -1;
+}
+
+.label {
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  min-height: 42px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-15);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--transition);
+  background: var(--field-bg);
+}
+
+.input:focus {
+  border-color: var(--accent-primary);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 96px;
+  line-height: var(--lh-body);
+}
+
+.fieldHint {
+  margin: 0;
+  font-size: var(--fs-12);
+  line-height: 1.45;
+  color: var(--text-tertiary);
+}
+
+.profilePanel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.profileLoading {
+  margin: 0;
+  font-size: var(--fs-14);
+  color: var(--text-secondary);
+}
+
+.profileSummary {
+  padding: 18px 20px;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    155deg,
+    color-mix(in srgb, var(--accent-info) 12%, var(--card)) 0%,
+    color-mix(in srgb, var(--accent-info) 3%, var(--card)) 100%
+  );
+  box-shadow: var(--shadow-xs);
+}
+
+.profileSummaryIntro {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.profileSummaryIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--accent-info) 18%, var(--card));
+  color: var(--blue);
+  border: 1px solid color-mix(in srgb, var(--accent-info) 20%, transparent);
+}
+
+.profileSummaryTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-18);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  line-height: 1.25;
+}
+
+.profileSummaryText {
+  margin: 6px 0 0;
+  font-size: var(--fs-13);
+  line-height: 1.55;
+  color: var(--text-secondary);
+  max-width: 56ch;
+}
+
+.profileSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 10px;
+  margin: 16px 0 0;
+}
+
+.profileSummaryItem {
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, var(--accent-info) 20%);
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+
+  dt {
+    margin: 0;
+    font-size: var(--fs-11);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+
+  dd {
+    margin: 4px 0 0;
+    font-size: var(--fs-15);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+    line-height: 1.35;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.profileIntro {
+  margin: 0;
+  font-size: var(--fs-13);
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.profileSections {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.profileSection {
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  box-shadow: var(--shadow-xs);
+}
+
+.profileSectionHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border-hairline);
+  background: color-mix(in srgb, var(--surface) 55%, var(--card));
+  border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
+}
+
+.profileSectionIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--accent-info) 14%, var(--card));
+  color: var(--blue);
+  border: 1px solid color-mix(in srgb, var(--accent-info) 18%, transparent);
+}
+
+.profileSectionTitle {
+  margin: 0;
+  font-size: var(--fs-15);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.profileSectionText {
+  margin: 4px 0 0;
+  font-size: var(--fs-13);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.profileSectionBody {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-stack-gap);
+  padding: 16px 18px 18px;
+
+  .fieldGroupWide {
+    grid-column: 1 / -1;
+  }
+}
+
+.profileFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border-hairline);
+}
+
+.profileFooterMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.profileFeedback {
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--text-secondary);
+}
+
+.profileError {
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--rose);
+}
+
+.profileSaved {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-13);
+  color: var(--green-dark);
+}
+
+.colorPicker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.colorPalette {
+  position: relative;
+  width: 100%;
+  height: 150px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  cursor: crosshair;
+}
+
+.colorPalette::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, #fff 0%, transparent 100%);
+}
+
+.colorPalette::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, #000 0%, transparent 100%);
+}
+
+.colorPaletteDisabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.colorPickerThumb {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.28);
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.colorControlsRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.colorControlsRowCompact {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.colorPickerToggleBtn {
+  height: 38px;
+  width: 38px;
+  min-width: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.colorHueSlider {
+  width: 100%;
+  appearance: none;
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: linear-gradient(
+    to right,
+    #ff0000 0%,
+    #ffff00 17%,
+    #00ff00 33%,
+    #00ffff 50%,
+    #0000ff 67%,
+    #ff00ff 83%,
+    #ff0000 100%
+  );
+}
+
+.colorSwatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.lessonFormatPicker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  max-width: 420px;
+}
+
+.lessonFormatOption {
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 8px;
+  min-height: 64px;
+  font-size: var(--fs-12);
+  line-height: 1.2;
+}
+
+.lessonFormatOptionActive {
+  color: var(--text-primary);
+}
+
+.lessonFormatOptionLabel {
+  font-weight: 500;
+}
+
+.lessonFormatReadonly {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+  max-width: 420px;
+}
+
+.lessonFormatReadonlyIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent-info-muted) 45%, var(--surface));
+  color: var(--accent-info);
+}
+
+.lessonFormatReadonlyLabel {
+  font-size: var(--fs-14);
+  font-weight: 500;
+}
+
+@include respond-to(md) {
+  .profileSectionBody {
+    grid-template-columns: 1fr;
+  }
+}
+
+@include respond-to(sm) {
+  .fieldGroup {
+    min-width: 0;
+  }
+
+  .input,
+  .textarea {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+}

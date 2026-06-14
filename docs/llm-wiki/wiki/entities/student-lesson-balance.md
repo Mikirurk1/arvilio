@@ -9,8 +9,10 @@ Prepaid lesson credits for a **student** (`User.role = STUDENT`). One row per st
 
 | Field | Notes |
 |-------|-------|
-| `balance` | Lesson credits remaining |
-| `pricePerLessonMinor` | Optional override; null → platform `defaultPricePerLessonMinor` |
+| `balance` | Individual lesson credits remaining |
+| `groupBalance` | Group per-member lesson credits (separate bucket from `balance`) |
+| `pricePerLessonMinor` | Optional individual override; null → platform `defaultPricePerLessonMinor` |
+| `groupPricePerLessonMinor` | Optional group per-member override; null → `paymentConfig.groupLessons.defaultPriceMinor` |
 | `billingMode` | `PER_LESSON`, `PACKAGES`, or `BOTH` |
 | `packageOverrides` | Per-package `enabled`, `lessons`, `lessonsLocked` for self-serve checkout |
 | `paymentMethodSelection` | JSON allowlist of top-level payment methods (`allowedMethods[]`); empty means all currently platform-enabled methods are allowed |

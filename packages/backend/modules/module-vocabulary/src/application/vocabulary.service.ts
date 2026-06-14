@@ -11,7 +11,7 @@ import type {
 } from '@pkg/types';
 import { coerceDictionaryEntries, extractMeaningGroups } from './dictionary.service';
 import { TranslationService } from './translation.service';
-import { assertEnglishLemma } from '../shared/word-text.util';
+import { assertEnglishLemma, normalizeVocabularyText } from '../shared/word-text.util';
 import { containsHtml } from '../domain/strip-html.util';
 import type { EnrichedWordData } from './word-enrichment.service';
 import { WordEnrichmentService } from './word-enrichment.service';
@@ -60,7 +60,7 @@ export class VocabularyService {
   ) {}
 
   async lookupWord(text: string): Promise<WordLookupResultDto> {
-    const trimmed = text.trim();
+    const trimmed = normalizeVocabularyText(text);
     assertEnglishLemma(trimmed);
     const normalizedText = normalizeLemmaText(trimmed);
     const existing = await this.prisma.word.findUnique({
@@ -275,7 +275,7 @@ export class VocabularyService {
   }
 
   async findOrCreateWord(input: CreateWordRequestDto): Promise<WordCardDto> {
-    const text = input.text.trim();
+    const text = normalizeVocabularyText(input.text);
     assertEnglishLemma(text);
     const normalizedText = normalizeLemmaText(text);
     const existing = await this.prisma.word.findUnique({

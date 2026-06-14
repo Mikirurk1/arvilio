@@ -1,37 +1,91 @@
 @use '../styles/mixins' as *;
 
+.skipLink {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: calc(var(--z-header) + 1);
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  background: var(--fill-strong);
+  color: var(--on-inverse);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+  text-decoration: none;
+
+  &:focus {
+    left: var(--main-padding-x);
+    top: 12px;
+    width: auto;
+    height: auto;
+    overflow: visible;
+  }
+}
+
 .shell {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
+  background:
+    radial-gradient(
+      1200px 480px at 85% -10%,
+      color-mix(in srgb, var(--accent-info) 10%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      980px 420px at -8% 0%,
+      color-mix(in srgb, var(--accent-primary) 8%, transparent),
+      transparent 58%
+    ),
+    var(--surface);
+}
 
-  .body {
-    display: flex;
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
+.body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: transparent;
+}
 
-    .main {
-      flex: 1;
-      min-width: 0;
-      overflow-y: auto;
-      padding: var(--main-padding-y) var(--main-padding-x);
-      background: var(--surface);
-      font-size: 1rem;
-    }
-  }
+.main {
+  flex: 1;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding: var(--main-padding-y) var(--main-padding-x);
+  background-color: color-mix(in srgb, var(--surface) 78%, var(--card));
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--card) 72%, var(--surface)) 0%,
+    color-mix(in srgb, var(--surface-raised) 80%, var(--surface)) min(260px, 30vh),
+    var(--surface) 100%
+  );
+  box-shadow: inset 1px 0 0 var(--border);
+  font-size: 1rem;
+}
+
+/* Full width inside <main> padding; pages set max-width via .container */
+.mainCanvas {
+  width: 100%;
+  min-height: 100%;
 }
 
 @include respond-to(md) {
-  .shell .body .main {
+  .main {
     padding: var(--main-padding-y-tablet) var(--main-padding-x-tablet);
   }
 }
 
 @include respond-to(sm) {
-  .shell .body .main {
+  .main {
     padding: var(--main-padding-y-mobile) var(--main-padding-x-mobile);
   }
 }

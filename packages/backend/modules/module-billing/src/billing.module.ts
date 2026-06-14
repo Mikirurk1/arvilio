@@ -9,7 +9,9 @@ import { PayPalCheckoutService } from './application/paypal-checkout.service';
 import { PaymentSettingsService } from './application/payment-settings.service';
 import { StripeCheckoutService } from './application/stripe-checkout.service';
 import { WayForPayCheckoutService } from './application/wayforpay-checkout.service';
+import { StaffPayrollResolver } from './presentation/graphql/staff-payroll.resolver';
 import { BillingResolver } from './presentation/graphql/billing.resolver';
+import { StaffPayrollService } from './application/staff-payroll.service';
 import { LemonSqueezyWebhookController } from './presentation/rest/lemonsqueezy-webhook.controller';
 import { LiqPayCallbackController } from './presentation/rest/liqpay-callback.controller';
 import { MonoPayWebhookController } from './presentation/rest/monopay-webhook.controller';
@@ -39,8 +41,10 @@ import { WayForPayCallbackController } from './presentation/rest/wayforpay-callb
     PaddleCheckoutService,
     MonoPayCheckoutService,
     PayPalCheckoutService,
+    StaffPayrollService,
     BillingResolver,
+    StaffPayrollResolver,
   ],
-  exports: [LessonBalanceService, PaymentSettingsService],
+  exports: [LessonBalanceService, PaymentSettingsService, StaffPayrollService],
 })
 export class BillingModule {}

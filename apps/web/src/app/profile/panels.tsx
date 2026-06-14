@@ -2,42 +2,50 @@
 
 import {
   ActionRow,
-  BodyPortal,
   Button,
-  Field,
   SegmentedControl,
   SettingsToggleRow,
-  SurfaceCard,
+  TabPanelCard,
 } from '../../components/ui';
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
-import type { ProfileNotificationPrefs } from '@pkg/types';
+import { useEffect, useState, type ReactNode } from 'react';
+import {
+  defaultCustomStatsDateKeys,
+  utcDateKey,
+  type ProfileNotificationPrefs,
+  type StatisticsStudentScope,
+  type StatsRange,
+} from '@pkg/types';
 import { useRouter } from 'next/navigation';
-import { Check, X } from 'lucide-react';
-import { toast } from '../../features/notifications';
+import { Check } from 'lucide-react';
 import { useProfileStore } from '../../stores/profile-store';
 import { useAuth } from '../../lib/auth-context';
-import type { ProfileLinkedAccountDto } from '@pkg/types';
-import { TelegramConnectButton } from '../../components/profile/TelegramConnectButton';
-import { FACEBOOK_LINK_URL, GOOGLE_LINK_URL } from '../../lib/api';
 import { ProfileAchievementsPanel } from '../../components/profile/ProfileAchievementsPanel';
-import { StatisticsDashboard } from '../../components/statistics';
-import { useProfileLiveStats } from '../../hooks/use-profile-live-stats';
-import { useOptionalAuth } from '../../lib/auth-context';
-import { filterLessonsForViewer } from '../../lib/live-statistics-dashboard';
-import { useActiveUser } from '../../lib/active-user';
+import { UnifiedProfilePanel } from '../../components/profile/UnifiedProfilePanel';
 import {
-  formatTimeZoneOptionLabel,
-  PROFICIENCY_LEVEL,
-  TIME_ZONE_ID_LIST,
-  USER_ROLE,
-  getTimeZoneById,
-  type LinkedAccountLink,
-  type ProficiencyLevelId,
-  type UserRole,
-} from '../../mocks';
+  profileFormStateToUnified,
+  unifiedToProfileFormState,
+} from '../../components/profile/profile-form-adapters';
+import type { ProfileFormContext } from '../../components/profile/unified-profile-types';
+import { StatisticsDashboard } from '../../components/statistics';
+import { useStatisticsDashboard } from '../../hooks/use-statistics-dashboard';
+import { useActiveUser } from '../../lib/active-user';
+import { USER_ROLE } from '../../mocks';
+import type { UserRole } from '../../mocks';
 import type { ProfileFormState } from '../../lib/profile-form';
-import { selectLanguagesList, useLanguagesStore } from '../../stores/languages-store';
+import { ChangePasswordModal } from './ChangePasswordModal';
 import styles from './page.module.scss';
+
+export { LinkedAccountsPanel, profileLinksToPanel } from './LinkedAccountsPanel';
+
+export function ProfileTabPanel({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return <TabPanelCard className={className}>{children}</TabPanelCard>;
+}
 
 export function ProfileDetailsPanel({
   form,
@@ -58,229 +66,32 @@ export function ProfileDetailsPanel({
   viewerRole: UserRole;
   onSave: () => void;
 }) {
-  const isStudentViewer = viewerRole === USER_ROLE.student.id;
-  const languages = useLanguagesStore(selectLanguagesList);
-  const fetchLanguages = useLanguagesStore((s) => s.fetchLanguages);
-
-  useEffect(() => {
-    void fetchLanguages();
-  }, [fetchLanguages]);
-
   const fieldsDisabled = loading || saving;
+  const values = profileFormStateToUnified(form);
+
+  const context: ProfileFormContext = {
+    subjectKind: 'self',
+    viewerRole,
+    subjectRole: viewerRole,
+    canEdit: !fieldsDisabled,
+  };
 
   return (
-    <SurfaceCard className={styles.formCard}>
-      <div className={styles.formGrid}>
-        <div className={styles.fieldGroup}>
-          <label className={styles.label}>Full name</label>
-          <Field className={styles.input} value={form.name} disabled={fieldsDisabled} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
-        </div>
-        <div className={styles.fieldGroup}>
-          <label className={styles.label}>Email</label>
-          <Field className={styles.input} value={form.email} disabled={fieldsDisabled} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
-        </div>
-        <div className={styles.fieldGroup}>
-          <label className={styles.label}>Phone</label>
-          <Field
-            type="tel"
-            className={styles.input}
-            value={form.phone}
-            placeholder="+380 67 123 4567"
-            autoComplete="tel"
-            disabled={fieldsDisabled}
-            onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-          />
-        </div>
-        <div className={styles.fieldGroup}>
-          <label className={styles.label}>Telegram</label>
-          <Field className={styles.input} value={form.telegram} disabled={fieldsDisabled} onChange={(e) => setForm((f) => ({ ...f, telegram: e.target.value }))} />
-        </div>
-        <div className={styles.fieldGroup}>
-          <label className={styles.label}>Timezone</label>
-          <Field as="select"
-            className={styles.input}
-            value={String(form.timezoneId)}
-            disabled={fieldsDisabled}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, timezoneId: Number(e.target.value) as ProfileFormState['timezoneId'] }))
-            }
-          >
-            {TIME_ZONE_ID_LIST.map((id) => {
-              const tz = getTimeZoneById(id);
-              return tz ? (
-                <option key={id} value={id}>
-                  {formatTimeZoneOptionLabel(tz)}
-                </option>
-              ) : null;
-            })}
-          </Field>
-        </div>
-        <div className={styles.fieldGroup}>
-          <label className={styles.label}>Native language</label>
-          <Field
-            as="select"
-            className={styles.input}
-            value={form.nativeLanguageId}
-            disabled={fieldsDisabled}
-            onChange={(e) => setForm((f) => ({ ...f, nativeLanguageId: e.target.value }))}
-          >
-            <option value="">—</option>
-            {languages.map((lang) => (
-              <option key={lang.id} value={lang.id}>
-                {lang.name}
-              </option>
-            ))}
-          </Field>
-        </div>
-        <div className={styles.fieldGroup}>
-          <label className={styles.label}>Proficiency</label>
-          <Field as="select"
-            className={styles.input}
-            value={String(form.proficiencyLevelId)}
-            readOnly={isStudentViewer}
-            disabled={fieldsDisabled}
-            onChange={(e) =>
-              setForm((f) => ({
-                ...f,
-                proficiencyLevelId: Number(e.target.value) as ProficiencyLevelId,
-              }))
-            }
-          >
-            {(Object.keys(PROFICIENCY_LEVEL) as (keyof typeof PROFICIENCY_LEVEL)[]).map((key) => {
-              const L = PROFICIENCY_LEVEL[key];
-              return (
-                <option key={L.id} value={L.id}>
-                  {L.code} — {L.label}
-                </option>
-              );
-            })}
-          </Field>
-        </div>
-      </div>
-      <div className={styles.fieldGroup} style={{ marginTop: 16 }}>
-        <label className={styles.label}>Bio</label>
-        <Field as="textarea" className={`${styles.input} ${styles.textarea}`} value={form.bio} disabled={fieldsDisabled} onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))} rows={3} />
-      </div>
-      <div className={styles.formFooter}>
-        {saveError ? (
-          <span className={styles.savedMsg} style={{ color: 'var(--red, #c00)' }}>
-            {saveError}
-          </span>
-        ) : null}
-        {saved && !saveError ? (
-          <span className={styles.savedMsg}>
-            <Check size={14} /> Changes saved
-          </span>
-        ) : null}
-        <Button type="button" className={styles.saveBtn} disabled={fieldsDisabled} onClick={onSave}>
-          {saving ? 'Saving…' : 'Save changes'}
-        </Button>
-      </div>
-    </SurfaceCard>
-  );
-}
-
-function providerTitle(provider: LinkedAccountLink['provider']): string {
-  if (provider === 'google') return 'Google';
-  if (provider === 'facebook') return 'Facebook';
-  return 'Telegram';
-}
-
-export function profileLinksToPanel(
-  rows: ProfileLinkedAccountDto[] | undefined,
-  fallback: LinkedAccountLink[],
-): LinkedAccountLink[] {
-  if (!rows?.length) return fallback;
-  return rows.map((row) => ({
-    provider: row.provider,
-    linked: row.linked,
-    connectedAs: row.connectedAs ?? undefined,
-    calendarConnected: row.calendarConnected,
-  }));
-}
-
-export function LinkedAccountsPanel({
-  links,
-  canLink = false,
-  accountEmail,
-  onConnectionChange,
-}: {
-  links: LinkedAccountLink[];
-  canLink?: boolean;
-  accountEmail?: string;
-  onConnectionChange?: () => void;
-}) {
-  return (
-    <SurfaceCard className={styles.formCard}>
-      <p className={styles.linkedIntro}>
-        Link accounts for notifications. Google must use the same email as your SoEnglish account
-        {accountEmail ? ` (${accountEmail})` : ''} and enables Calendar + Meet. When Telegram is connected,
-        site alerts (lesson reminders, teacher messages, etc.) are also sent to this chat if enabled under
-        Notifications.
-      </p>
-      {links.map((link) => {
-        const isGoogle = link.provider === 'google';
-        const isFacebook = link.provider === 'facebook';
-        const isTelegram = link.provider === 'telegram';
-        const calendarReady = isGoogle && link.calendarConnected;
-        return (
-        <div key={link.provider} className={styles.linkedRow}>
-          <div>
-            <div className={styles.linkedTitle}>{providerTitle(link.provider)}</div>
-            {link.linked && link.connectedAs ? (
-              <div className={styles.linkedMeta}>{link.connectedAs}</div>
-            ) : !link.linked ? (
-              <div className={styles.linkedMeta}>Not connected</div>
-            ) : null}
-            {isGoogle && link.linked && !calendarReady ? (
-              <div className={styles.linkedMeta}>Calendar access missing — connect again</div>
-            ) : null}
-            {calendarReady ? (
-              <div className={styles.linkedMeta}>Calendar &amp; Meet enabled</div>
-            ) : null}
-          </div>
-          <div className={styles.linkedRowActions}>
-            {isGoogle && canLink ? (
-              <Button
-                type="button"
-                className={styles.linkedConnectBtn}
-                onClick={() => {
-                  window.location.href = GOOGLE_LINK_URL;
-                }}
-              >
-                {link.linked ? 'Reconnect Google' : 'Connect Google'}
-              </Button>
-            ) : null}
-            {isFacebook && canLink ? (
-              <Button
-                type="button"
-                className={styles.linkedConnectBtn}
-                onClick={() => {
-                  window.location.href = FACEBOOK_LINK_URL;
-                }}
-              >
-                {link.linked ? 'Reconnect Facebook' : 'Connect Facebook'}
-              </Button>
-            ) : null}
-            {isTelegram && canLink ? (
-              link.linked ? (
-                <span className={`${styles.linkedBadge} ${styles.linkedBadgeOn}`}>Connected</span>
-              ) : (
-                <TelegramConnectButton onLinked={onConnectionChange} />
-              )
-            ) : null}
-            {!canLink ? (
-              <span
-                className={`${styles.linkedBadge} ${link.linked ? styles.linkedBadgeOn : styles.linkedBadgeOff}`}
-              >
-                {link.linked ? 'Connected' : 'Disconnected'}
-              </span>
-            ) : null}
-          </div>
-        </div>
-        );
-      })}
-    </SurfaceCard>
+    <ProfileTabPanel>
+      <UnifiedProfilePanel
+        values={values}
+        onChange={(patch) => setForm((current) => unifiedToProfileFormState(current, patch))}
+        context={context}
+        loading={loading}
+        saving={saving}
+        disabled={fieldsDisabled}
+        saved={saved}
+        saveError={saveError}
+        onSave={onSave}
+        saveLabel="Save changes"
+        idPrefix="my-profile"
+      />
+    </ProfileTabPanel>
   );
 }
 
@@ -298,45 +109,40 @@ export function NotificationsPanel({
   saveError?: string | null;
 }) {
   return (
-    <SurfaceCard className={styles.formCard}>
-      {saveError ? (
-        <p className={styles.panelHint} style={{ color: 'var(--red, #c00)' }}>
-          {saveError}
-        </p>
-      ) : null}
-      {saved && !saveError ? (
-        <p className={styles.savedMsg}>
-          <Check size={14} /> Preferences saved
-        </p>
-      ) : null}
+    <ProfileTabPanel>
+      <h2 className={styles.sectionTitle}>Notifications</h2>
+      {saveError ? <p className={styles.panelError} role="alert">{saveError}</p> : null}
+      {saved && !saveError ? <p className={styles.savedMsg}><Check size={14} /> Preferences saved</p> : null}
       <p className={styles.panelHint}>
         Email is sent when SMTP is configured. Telegram messages are sent when you connect Telegram under
         Connections (server needs TELEGRAM_BOT_TOKEN in .env).
       </p>
-      {[
-        { key: 'lessonReminder', label: 'Lesson reminders', desc: 'Get notified 30 minutes before each lesson' },
-        { key: 'streakAlert', label: 'Streak alerts', desc: 'Reminder to keep your daily streak alive' },
-        { key: 'weeklyReport', label: 'Weekly report', desc: 'Summary of your progress every Monday' },
-        { key: 'newVocab', label: 'New vocabulary', desc: 'Daily word of the day notification' },
-        { key: 'teacherMessages', label: 'Teacher messages', desc: 'Notifications when your teacher sends a message' },
-      ].map(({ key, label, desc }) => (
-        <SettingsToggleRow
-          key={key}
-          className={styles.toggleRow}
-          infoClassName={styles.toggleInfo}
-          labelClassName={styles.toggleLabel}
-          descriptionClassName={styles.toggleDesc}
-          toggleClassName={styles.toggle}
-          toggleOnClassName={styles.toggleOn}
-          thumbClassName={styles.toggleThumb}
-          label={label}
-          description={desc}
-          checked={notifications[key as keyof ProfileNotificationPrefs]}
-          disabled={saving}
-          onChange={(value) => setNotifications((n) => ({ ...n, [key]: value }))}
-        />
-      ))}
-    </SurfaceCard>
+      <div className={styles.notificationsList}>
+        {[
+          { key: 'lessonReminder', label: 'Lesson reminders', desc: 'Get notified 30 minutes before each lesson' },
+          { key: 'streakAlert', label: 'Streak alerts', desc: 'Reminder to keep your daily streak alive' },
+          { key: 'weeklyReport', label: 'Weekly report', desc: 'Summary of your progress every Monday' },
+          { key: 'newVocab', label: 'New vocabulary', desc: 'Daily word of the day notification' },
+          { key: 'teacherMessages', label: 'Teacher messages', desc: 'Notifications when your teacher sends a message' },
+        ].map(({ key, label, desc }) => (
+          <SettingsToggleRow
+            key={key}
+            className={styles.toggleRow}
+            infoClassName={styles.toggleInfo}
+            labelClassName={styles.toggleLabel}
+            descriptionClassName={styles.toggleDesc}
+            toggleClassName={styles.toggle}
+            toggleOnClassName={styles.toggleOn}
+            thumbClassName={styles.toggleThumb}
+            label={label}
+            description={desc}
+            checked={notifications[key as keyof ProfileNotificationPrefs]}
+            disabled={saving}
+            onChange={(value) => setNotifications((n) => ({ ...n, [key]: value }))}
+          />
+        ))}
+      </div>
+    </ProfileTabPanel>
   );
 }
 
@@ -352,8 +158,8 @@ export function AppearancePanel({
   setFontSize: (next: 'small' | 'medium' | 'large') => void;
 }) {
   return (
-    <SurfaceCard className={styles.formCard}>
-      <div className={styles.sectionLabel}>Theme</div>
+    <ProfileTabPanel>
+      <h2 className={styles.sectionTitle}>Theme</h2>
       <SegmentedControl
         value={theme}
         onValueChange={(next) => setTheme(next)}
@@ -374,9 +180,7 @@ export function AppearancePanel({
           ),
         }))}
       />
-      <div className={styles.sectionLabel} style={{ marginTop: 24 }}>
-        Font size
-      </div>
+      <h2 className={`${styles.sectionTitle} ${styles.sectionTitleSpaced}`}>Font size</h2>
       <SegmentedControl
         value={fontSize}
         onValueChange={(next) => setFontSize(next as 'small' | 'medium' | 'large')}
@@ -390,7 +194,7 @@ export function AppearancePanel({
           { value: 'large', label: 'Large' },
         ]}
       />
-    </SurfaceCard>
+    </ProfileTabPanel>
   );
 }
 
@@ -399,178 +203,6 @@ function formatLinkedProviderLabel(provider: string): string {
   if (provider === 'facebook') return 'Facebook';
   if (provider === 'telegram') return 'Telegram';
   return provider;
-}
-
-function ChangePasswordModal({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
-  const changePassword = useProfileStore((s) => s.changePassword);
-  const passwordMutating = useProfileStore((s) => s.passwordMutating);
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [formError, setFormError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setFormError(null);
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !passwordMutating) onClose();
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [open, onClose, passwordMutating]);
-
-  if (!open) return null;
-
-  const handleSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-    setFormError(null);
-    if (!currentPassword.trim()) {
-      setFormError('Enter your current password.');
-      return;
-    }
-    if (newPassword.length < 8) {
-      setFormError('New password must be at least 8 characters.');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setFormError('New passwords do not match.');
-      return;
-    }
-    try {
-      await changePassword({ currentPassword, newPassword });
-      toast.success('Password updated', 'Use your new password next time you sign in.');
-      onClose();
-    } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'Failed to change password');
-    }
-  };
-
-  return (
-    <BodyPortal>
-      <div
-        className={styles.passwordModalBackdrop}
-        onClick={() => {
-          if (!passwordMutating) onClose();
-        }}
-      >
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="change-password-title"
-          className={styles.passwordModal}
-          onClick={(event) => event.stopPropagation()}
-        >
-          <header className={styles.passwordModalHead}>
-            <div className={styles.passwordModalHeadText}>
-              <h3 id="change-password-title" className={styles.passwordModalTitle}>
-                Change password
-              </h3>
-              <p className={styles.passwordModalText}>
-                Enter your current password, then choose a new one (at least 8 characters).
-              </p>
-            </div>
-            <Button
-              type="button"
-              variant="ghost"
-              className={styles.passwordModalClose}
-              aria-label="Close"
-              disabled={passwordMutating}
-              onClick={onClose}
-            >
-              <X size={16} aria-hidden />
-            </Button>
-          </header>
-
-          <form className={styles.passwordModalForm} onSubmit={(event) => void handleSubmit(event)}>
-            {formError ? <p className={styles.passwordModalError}>{formError}</p> : null}
-
-            <div className={styles.passwordModalFields}>
-              <div className={styles.fieldGroup}>
-                <label className={styles.label} htmlFor="current-password">
-                  Current password
-                </label>
-                <Field
-                  id="current-password"
-                  type="password"
-                  className={styles.input}
-                  autoComplete="current-password"
-                  value={currentPassword}
-                  onChange={(event) => setCurrentPassword(event.target.value)}
-                  disabled={passwordMutating}
-                  required
-                />
-              </div>
-              <div className={styles.fieldGroup}>
-                <label className={styles.label} htmlFor="new-password">
-                  New password
-                </label>
-                <Field
-                  id="new-password"
-                  type="password"
-                  className={styles.input}
-                  autoComplete="new-password"
-                  value={newPassword}
-                  onChange={(event) => setNewPassword(event.target.value)}
-                  disabled={passwordMutating}
-                  minLength={8}
-                  required
-                />
-              </div>
-              <div className={styles.fieldGroup}>
-                <label className={styles.label} htmlFor="confirm-password">
-                  Confirm new password
-                </label>
-                <Field
-                  id="confirm-password"
-                  type="password"
-                  className={styles.input}
-                  autoComplete="new-password"
-                  value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                  disabled={passwordMutating}
-                  minLength={8}
-                  required
-                />
-              </div>
-            </div>
-
-            <footer className={styles.passwordModalActions}>
-              <Button
-                type="button"
-                variant="ghost"
-                className={styles.passwordModalCancel}
-                disabled={passwordMutating}
-                onClick={onClose}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className={styles.passwordModalSubmit}
-                loading={passwordMutating}
-                loadingLabel="Saving…"
-              >
-                Update password
-              </Button>
-            </footer>
-          </form>
-        </div>
-      </div>
-    </BodyPortal>
-  );
 }
 
 export function AccountPanel() {
@@ -599,53 +231,48 @@ export function AccountPanel() {
   return (
     <>
       <ChangePasswordModal open={passwordModalOpen} onClose={() => setPasswordModalOpen(false)} />
-      <SurfaceCard className={styles.formCard}>
-      {user ? (
-        <div className={styles.accountSession}>
-          <div className={styles.sectionLabel}>Session</div>
+      <ProfileTabPanel>
+        {user ? (
+          <div className={styles.accountSession}>
+            <h2 className={styles.sectionTitle}>Session</h2>
+            <ActionRow
+              className={styles.accountItem}
+              titleClassName={styles.accountItemTitle}
+              descriptionClassName={styles.accountItemDesc}
+              title="Log out"
+              description="End your current session on this device"
+              action={
+                <Button
+                  type="button"
+                  className={styles.actionBtn}
+                  loading={loggingOut}
+                  loadingLabel="Logging out…"
+                  disabled={loggingOut}
+                  onClick={() => void handleLogout()}
+                >
+                  Log out
+                </Button>
+              }
+            />
+          </div>
+        ) : null}
+        <div className={styles.dangerSection}>
+          <h2 className={styles.dangerSectionTitle}>Account actions</h2>
+          <p className={styles.dangerSectionHint}>Sensitive changes for your sign-in credentials.</p>
           <ActionRow
             className={styles.accountItem}
             titleClassName={styles.accountItemTitle}
             descriptionClassName={styles.accountItemDesc}
-            title="Log out"
-            description="End your current session on this device"
+            title="Change password"
+            description={canChangePassword ? 'Update your login password' : passwordUnavailableHint}
             action={
-              <Button
-                type="button"
-                className={styles.actionBtn}
-                disabled={loggingOut}
-                onClick={() => void handleLogout()}
-              >
-                {loggingOut ? 'Logging out…' : 'Log out'}
-              </Button>
+              canChangePassword ? (
+                <Button type="button" className={styles.actionBtn} onClick={() => setPasswordModalOpen(true)}>Change</Button>
+              ) : null
             }
           />
         </div>
-      ) : null}
-      <div className={styles.dangerSection}>
-        <div className={styles.sectionLabel}>Account actions</div>
-        <ActionRow
-          className={styles.accountItem}
-          titleClassName={styles.accountItemTitle}
-          descriptionClassName={styles.accountItemDesc}
-          title="Change password"
-          description={
-            canChangePassword ? 'Update your login password' : passwordUnavailableHint
-          }
-          action={
-            canChangePassword ? (
-              <Button
-                type="button"
-                className={styles.actionBtn}
-                onClick={() => setPasswordModalOpen(true)}
-              >
-                Change
-              </Button>
-            ) : null
-          }
-        />
-      </div>
-    </SurfaceCard>
+      </ProfileTabPanel>
     </>
   );
 }
@@ -660,28 +287,76 @@ export function AchievementsPanel({
 
 export function ProfileStatisticsPanel() {
   const activeUser = useActiveUser();
-  const auth = useOptionalAuth();
-  const { loading, error, lessons, cards, isStudent } = useProfileLiveStats();
-  const viewerLessons = filterLessonsForViewer(lessons, activeUser.role, auth?.user?.id ?? null);
+  const [range, setRange] = useState<StatsRange>('week');
+  const [customDateFrom, setCustomDateFrom] = useState(() => defaultCustomStatsDateKeys().from);
+  const [customDateTo, setCustomDateTo] = useState(() => defaultCustomStatsDateKeys().to);
+  const customDateMax = utcDateKey(new Date());
+  const isStaffViewer =
+    activeUser.role === USER_ROLE.teacher.id ||
+    activeUser.role === USER_ROLE.admin.id ||
+    activeUser.role === USER_ROLE.superAdmin.id;
+  const isAdmin = activeUser.role === USER_ROLE.admin.id;
+  const isSuperAdmin = activeUser.role === USER_ROLE.superAdmin.id;
+  const canPickStudentScope = isAdmin || isSuperAdmin;
+  const [studentScope, setStudentScope] = useState<StatisticsStudentScope | undefined>(() =>
+    isAdmin ? 'my_students' : undefined,
+  );
+  const [allStudentsRosterView, setAllStudentsRosterView] = useState<'lessons_billing' | 'activity'>('lessons_billing');
+  const statisticsFocus = allStudentsRosterView === 'activity' ? 'learning' : 'operations';
 
-  const title =
-    activeUser.role === USER_ROLE.student.id
-      ? 'Student statistics'
-      : activeUser.role === USER_ROLE.teacher.id
-        ? 'Teacher statistics'
-        : activeUser.role === USER_ROLE.admin.id
-          ? 'Admin statistics'
-          : 'Statistics';
+  const { dashboard, loading, refreshing, error } = useStatisticsDashboard({
+    range,
+    rangeFrom: range === 'custom' ? customDateFrom : undefined,
+    rangeTo: range === 'custom' ? customDateTo : undefined,
+    studentScope: canPickStudentScope ? studentScope : undefined,
+    statisticsFocus: isStaffViewer ? statisticsFocus : undefined,
+  });
+
+  const handleCustomDateFromChange = (value: string) => {
+    setCustomDateFrom(value);
+    if (value && customDateTo && value > customDateTo) setCustomDateTo(value);
+  };
+
+  const handleCustomDateToChange = (value: string) => {
+    setCustomDateTo(value);
+    if (value && customDateFrom && value < customDateFrom) setCustomDateFrom(value);
+  };
+
+  useEffect(() => {
+    if (isSuperAdmin && dashboard?.studentScope && studentScope === undefined) {
+      setStudentScope(dashboard.studentScope);
+    }
+  }, [dashboard?.studentScope, isSuperAdmin, studentScope]);
+
+  const resolvedStudentScope = studentScope ?? dashboard?.studentScope ?? (isAdmin ? 'my_students' : 'all');
 
   return (
-    <StatisticsDashboard
-      roleId={activeUser.role}
-      currentUserId={activeUser.id}
-      liveLessons={viewerLessons}
-      liveCards={isStudent ? cards : []}
-      liveTitle={title}
-      loading={loading}
-      error={error}
-    />
+    <ProfileTabPanel className={styles.statisticsPanel}>
+      <StatisticsDashboard
+        variant="profile"
+        profileIntro={
+          isStaffViewer
+            ? activeUser.role === USER_ROLE.teacher.id
+              ? 'Lessons and speaking reviews for your students.'
+              : 'Switch roster view or student scope to compare operations vs learning activity.'
+            : 'Key metrics and trends for the period you select. Hover info icons for definitions.'
+        }
+        dashboard={dashboard}
+        loading={loading}
+        refreshing={refreshing}
+        error={error}
+        range={range}
+        onRangeChange={setRange}
+        customDateFrom={customDateFrom}
+        customDateTo={customDateTo}
+        customDateMax={customDateMax}
+        onCustomDateFromChange={handleCustomDateFromChange}
+        onCustomDateToChange={handleCustomDateToChange}
+        studentScope={canPickStudentScope ? resolvedStudentScope : undefined}
+        onStudentScopeChange={canPickStudentScope ? setStudentScope : undefined}
+        allStudentsRosterView={allStudentsRosterView}
+        onAllStudentsRosterViewChange={setAllStudentsRosterView}
+      />
+    </ProfileTabPanel>
   );
 }

@@ -1,38 +1,78 @@
-.listPane {}
+@use '../../styles/mixins' as *;
+
+/* Clean white pane; rows are recessed tiles that lift to white on hover. */
+.listPane {
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  box-shadow: var(--shadow-xs);
+  padding: 14px;
+}
 
 .toolbar {
   display: grid;
-  gap: 12px;
-  margin-bottom: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 12px;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-hairline);
 }
 
 .searchWrap {
   display: flex;
   align-items: center;
-  border: 1px solid var(--border);
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent-info) 18%, var(--border));
   border-radius: 12px;
-  padding: 0 12px;
+  background: color-mix(in srgb, var(--field-bg) 88%, var(--surface));
+  padding: 0 10px;
+  min-height: 44px;
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition),
+    background-color var(--transition);
+}
+
+.searchWrap:focus-within {
+  border-color: color-mix(in srgb, var(--accent-primary) 38%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 18%, transparent);
+  background: var(--field-bg);
 }
 
 .searchIcon {
   color: var(--text-tertiary);
+  flex-shrink: 0;
 }
 
 .searchInput {
   width: 100%;
-  border: none;
+  border: 0 !important;
   background: transparent;
   color: var(--text-primary);
-  padding: 10px 8px;
+  padding: 0;
+  min-height: 42px;
   font-size: var(--fs-14);
-  outline: none;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.searchInput:focus {
+  outline: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.searchInput::placeholder {
+  color: var(--text-faint);
 }
 
 .filterBlock {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: nowrap;
 }
 
 .filterHeading {
@@ -53,9 +93,18 @@
   background: var(--surface);
   color: var(--text-secondary);
   border-radius: 999px;
-  padding: 6px 10px;
+  padding: 6px 11px;
   font-size: var(--fs-12);
   cursor: pointer;
+  transition:
+    border-color var(--transition),
+    background-color var(--transition),
+    color var(--transition);
+}
+
+.chip:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
 }
 
 .chipActive {
@@ -65,6 +114,7 @@
 }
 
 .toolbarMeta {
+  grid-column: 1 / -1;
   display: flex;
   justify-content: flex-end;
 }
@@ -75,8 +125,11 @@
 }
 
 .listScroll {
-  max-height: min(60vh, 640px);
+  max-height: min(62vh, 680px);
   overflow-y: auto;
+  /* Allow box-shadows on child cards to show beyond their own bounds */
+  overflow-x: visible;
+  padding: 4px 4px 4px 2px;
 }
 
 .list {
@@ -98,22 +151,44 @@
 }
 
 .lessonCard {
-  border: 1px solid var(--border);
+  position: relative;
+  border: 1px solid var(--border-hairline);
   border-radius: 14px;
-  background: var(--card);
+  background: color-mix(in srgb, var(--surface) 60%, var(--card));
   cursor: pointer;
+  transition:
+    border-color var(--transition),
+    background-color var(--transition),
+    box-shadow var(--transition);
 }
 
-.lessonCard:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--fill-strong) 55%, transparent);
-  outline-offset: 2px;
+.lessonCard:hover {
+  background: var(--card);
+  border-color: var(--border);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--fill-strong) 12%, transparent);
+}
+
+/* Full-card link on top; inner layout passes clicks through except action buttons */
+.lessonCardStretchLink {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: 1;
 }
 
 .lessonCardInner {
+  position: relative;
   display: flex;
-  gap: 12px;
+  gap: 11px;
   align-items: center;
   padding: 14px;
+  pointer-events: none;
+}
+
+.lessonCardInner button {
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
 }
 
 .lessonIconWrap {
@@ -121,14 +196,30 @@
 }
 
 .lessonIconBadge {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: color-mix(in srgb, var(--fill-strong) 18%, var(--surface));
   color: var(--fill-strong);
+}
+
+/* Status-tinted badges tie each row to its status pill. */
+.badgePlanned {
+  background: color-mix(in srgb, var(--accent-info) 16%, var(--card));
+  color: var(--blue);
+}
+
+.badgeCompleted {
+  background: color-mix(in srgb, var(--accent-primary) 16%, var(--card));
+  color: var(--green-dark);
+}
+
+.badgeCancelled {
+  background: color-mix(in srgb, var(--accent-danger) 15%, var(--card));
+  color: var(--status-danger-text);
 }
 
 .lessonMain {
@@ -139,22 +230,45 @@
 .lessonTitleRow {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
+}
+
+.kindPill {
+  font-size: var(--fs-11);
+  font-weight: var(--fw-semibold);
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  background: var(--surface);
+}
+
+.kindPillGroup {
+  border-color: color-mix(in srgb, var(--accent-info) 30%, var(--border));
+  color: var(--text-primary);
+}
+
+.kindPillIndividual {
+  border-color: color-mix(in srgb, var(--border) 90%, var(--text-tertiary));
 }
 
 .lessonTitle {
   margin: 0;
   font-size: var(--fs-15);
+  font-weight: var(--fw-semibold);
   color: var(--text-primary);
 }
 
 .statusPill {
   font-size: var(--fs-11);
   border-radius: 999px;
-  padding: 3px 9px;
+  padding: 4px 10px;
   border: 1px solid var(--border);
   text-transform: uppercase;
   white-space: nowrap;
+  letter-spacing: 0.03em;
+  font-weight: 700;
 }
 
 .statusPillAside {
@@ -163,8 +277,8 @@
 }
 
 .statusPlanned { background: var(--blue-light); color: var(--blue); }
-.statusCompleted { background: var(--green-light); color: var(--green-dark); }
-.statusCancelled { background: var(--rose-light); color: var(--rose); }
+.statusCompleted { background: var(--status-success-bg); color: var(--status-success-text); }
+.statusCancelled { background: var(--status-danger-bg); color: var(--status-danger-text); }
 
 .lessonMetaRow {
   margin-top: 6px;
@@ -188,7 +302,7 @@
 .lessonAside {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .quickActions {
@@ -230,4 +344,33 @@
   text-align: center;
   color: var(--text-tertiary);
   font-size: var(--fs-13);
+}
+
+@include respond-to(sm) {
+  .toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .filterBlock {
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .listPane {
+    padding: 10px;
+  }
+
+  .lessonCardInner {
+    flex-wrap: wrap;
+    padding: 12px;
+  }
+
+  .statusPillAside {
+    order: 3;
+  }
+
+  .lessonAside {
+    width: 100%;
+    justify-content: flex-end;
+  }
 }

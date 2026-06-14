@@ -17,6 +17,8 @@ export type SegmentedControlProps<T extends string> = {
   className?: string;
   optionClassName?: string;
   activeOptionClassName?: string;
+  /** Avoid focus scroll jump when clicking inside a scrollable page (mouse only). */
+  preventScrollOnPointerDown?: boolean;
 };
 
 export function SegmentedControl<T extends string>({
@@ -27,6 +29,7 @@ export function SegmentedControl<T extends string>({
   className,
   optionClassName,
   activeOptionClassName,
+  preventScrollOnPointerDown = false,
 }: SegmentedControlProps<T>) {
   return (
     <div
@@ -48,6 +51,9 @@ export function SegmentedControl<T extends string>({
           ]
             .filter(Boolean)
             .join(' ')}
+          onMouseDown={
+            preventScrollOnPointerDown ? (event) => event.preventDefault() : undefined
+          }
           onClick={() => onValueChange(option.value)}
         >
           {option.icon ? <span className={uiStyles.segmentedIcon}>{option.icon}</span> : null}

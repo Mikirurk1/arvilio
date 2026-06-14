@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { AlertTriangle, CircleAlert } from 'lucide-react';
 import { BodyPortal, Button } from '../../components/ui';
 import { useConfirmDialogStore } from '../../stores/confirm-dialog-store';
 import styles from './ConfirmDialogHost.module.scss';
@@ -33,6 +34,8 @@ export function ConfirmDialogHost() {
   const isAlert = mode === 'alert';
   const confirmClass =
     variant === 'danger' ? styles.confirmDanger : styles.confirmPrimary;
+  const badgeClass =
+    variant === 'danger' ? styles.badgeDanger : styles.badgeDefault;
 
   const handleConfirm = async () => {
     if (!onConfirm) {
@@ -66,9 +69,15 @@ export function ConfirmDialogHost() {
           aria-labelledby="confirm-dialog-title"
           onClick={(e) => e.stopPropagation()}
         >
-          <h2 id="confirm-dialog-title" className={styles.title}>
-            {title}
-          </h2>
+          <div className={styles.header}>
+            <span className={`${styles.badge} ${badgeClass}`}>
+              {variant === 'danger' ? <AlertTriangle size={14} aria-hidden /> : <CircleAlert size={14} aria-hidden />}
+              {variant === 'danger' ? 'Danger action' : 'Confirmation'}
+            </span>
+            <h2 id="confirm-dialog-title" className={styles.title}>
+              {title}
+            </h2>
+          </div>
           {message ? <p className={styles.body}>{message}</p> : null}
           <div className={styles.actions}>
             {!isAlert ? (

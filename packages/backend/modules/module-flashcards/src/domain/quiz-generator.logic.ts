@@ -36,7 +36,14 @@ export function escapeRegex(input: string): string {
 
 export function maskWordInExample(example: string, word: string): string | null {
   if (!example || !word) return null;
-  const pattern = new RegExp(`\\b${escapeRegex(word)}\\b`, 'i');
+  const trimmed = word.trim();
+  if (!trimmed) return null;
+  if (trimmed.includes(' ')) {
+    const phrasePattern = new RegExp(escapeRegex(trimmed), 'i');
+    if (!phrasePattern.test(example)) return null;
+    return example.replace(phrasePattern, '_____');
+  }
+  const pattern = new RegExp(`\\b${escapeRegex(trimmed)}\\b`, 'i');
   if (!pattern.test(example)) return null;
   return example.replace(pattern, '_____');
 }

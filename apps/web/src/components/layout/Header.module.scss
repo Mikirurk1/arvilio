@@ -5,9 +5,12 @@
   align-items: center;
   height: var(--header-h);
   background: var(--card);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-hairline);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--border) 60%, transparent), 0 2px 8px color-mix(in srgb, var(--shadow-color, #000) 4%, transparent);
   z-index: 100;
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
 }
 
 .menuBtn {
@@ -46,6 +49,8 @@
 .mid {
   flex: 1;
   padding: 0 28px;
+  display: flex;
+  align-items: center;
 }
 
 .searchBox {
@@ -89,24 +94,33 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 14px;
+  gap: 6px;
+  padding: 8px 16px;
   border: none;
   border-radius: 10px;
   font-size: var(--fs-13);
   font-weight: 650;
+  letter-spacing: -0.01em;
   color: #fff;
   text-decoration: none;
   background: var(--fill-strong);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgb(255 255 255 / 18%);
   cursor: pointer;
   transition:
     background 0.15s ease,
+    box-shadow 0.15s ease,
     transform 0.15s ease;
 }
 
 .headerCreateLesson:hover {
   background: var(--fill-strong-hover);
+  box-shadow: var(--shadow-md), inset 0 1px 0 rgb(255 255 255 / 18%);
   transform: translateY(-1px);
+}
+
+.headerCreateLesson:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-xs), inset 0 1px 0 rgb(255 255 255 / 12%);
 }
 
 .lessonsBadge {
@@ -114,17 +128,20 @@
   align-items: center;
   gap: 6px;
   border-radius: 20px;
-  padding: 5px 12px;
-  background: color-mix(in srgb, var(--blue-light) 92%, var(--card));
-  border: 1px solid color-mix(in srgb, var(--blue) 26%, var(--border));
+  padding: 6px 12px;
+  background: color-mix(in srgb, var(--blue-light) 90%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--blue) 22%, var(--border));
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--blue) 8%, transparent);
   text-decoration: none;
   color: inherit;
   transition:
     background 0.15s ease,
-    border-color 0.15s ease;
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 
   &:hover {
-    background: color-mix(in srgb, var(--blue-light) 72%, var(--card));
+    background: color-mix(in srgb, var(--blue-light) 70%, var(--card));
+    box-shadow: 0 1px 4px color-mix(in srgb, var(--blue) 14%, transparent);
   }
 }
 
@@ -194,7 +211,10 @@
   justify-content: center;
   font-size: var(--fs-14);
   font-weight: 600;
-  transition: opacity var(--transition);
+  box-shadow: 0 0 0 2px var(--card), 0 0 0 3px var(--border);
+  transition:
+    opacity var(--transition),
+    box-shadow var(--transition);
   overflow: hidden;
 
   img {
@@ -207,7 +227,8 @@
 }
 
 .avatar:hover {
-  opacity: 0.85;
+  opacity: 0.88;
+  box-shadow: 0 0 0 2px var(--card), 0 0 0 3px var(--accent-primary);
 }
 
 @include respond-to(md) {

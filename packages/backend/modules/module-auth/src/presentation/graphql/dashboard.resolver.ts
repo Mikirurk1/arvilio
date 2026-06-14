@@ -18,8 +18,11 @@ import {
   PracticeSessionType,
   PracticeWeekSummaryType,
   RecordPracticeSessionInput,
+  StatisticsDashboardType,
   WordOfDayType,
 } from '@be/graphql';
+import { StatisticsDashboardService } from '../../application/statistics-dashboard.service';
+import type { StatsRange } from '@pkg/types';
 
 @Resolver()
 @UseGuards(GqlAuthGuard)
@@ -29,8 +32,22 @@ export class DashboardResolver {
     private readonly dashboard: DashboardService,
     private readonly dailyGoalsService: DailyGoalsService,
     private readonly practiceSessions: PracticeSessionsService,
+    private readonly statisticsDashboardService: StatisticsDashboardService,
     private readonly streak: StreakService,
   ) {}
+
+  private parseStatsRange(range: string): StatsRange {
+    if (
+      range === 'week' ||
+      range === 'month' ||
+      range === 'quarter' ||
+      range === 'year' ||
+      range === 'custom'
+    ) {
+      return range;
+    }
+    throw new Error(`Invalid statistics range: ${range}`);
+  }
 
   @Query(() => DashboardSummaryType, { name: 'dashboardSummary' })
   dashboardSummary(@CurrentGqlUser() userId: string) {
@@ -60,13 +77,38 @@ export class DashboardResolver {
     return this.dailyGoalsService.listForUser(userId);
   }
 
-  @Mutation(() => [DailyGoalType], { name: 'setDailyGoalDone' })
-  setDailyGoalDone(
+  @Query(() => StatisticsDashboardType, { name: 'statisticsDashboard' })
+  statisticsDashboard(
     @CurrentGqlUser() userId: string,
-    @Args('goalId', { type: () => ID }) goalId: string,
-    @Args('done') done: boolean,
+    @Args('range') range: string,
+    @Args('studentId', { nullable: true, type: () => ID }) studentId?: string,
+    @Args('studentScope', { nullable: true }) studentScope?: string,
+    @Args('statisticsFocus', { nullable: true }) statisticsFocus?: string,
+    @Args('rangeFrom', { nullable: true }) rangeFrom?: string,
+    @Args('rangeTo', { nullable: true }) rangeTo?: string,
+    @Args('staffUserId', { nullable: true, type: () => ID }) staffUserId?: string,
   ) {
-    return this.dailyGoalsService.setDone(userId, goalId, done);
+    return this.statisticsDashboardService.dashboardFor(
+      userId,
+      this.parseStatsRange(range),
+      studentId,
+      this.parseStudentScope(studentScope),
+      new Date(),
+      this.parseStatisticsFocus(statisticsFocus),
+      rangeFrom,
+      rangeTo,
+      staffUserId,
+    );
+  }
+
+  private parseStatisticsFocus(focus?: string): 'operations' | 'learning' {
+    if (focus === 'learning') return 'learning';
+    return 'operations';
+  }
+
+  private parseStudentScope(scope?: string): 'all' | 'my_students' | undefined {
+    if (scope === 'all' || scope === 'my_students') return scope;
+    return undefined;
   }
 
   @Query(() => PracticeWeekSummaryType, { name: 'practiceWeekSummary' })

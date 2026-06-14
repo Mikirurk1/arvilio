@@ -20,6 +20,9 @@ function mapLessonContentFields(lesson: ScheduledLessonDto) {
       kind: material.kind,
       text: material.text ?? '',
       files: material.files ?? [],
+      libraryMaterialId: material.libraryMaterialId ?? null,
+      sharedLibraryAssetIds: material.sharedLibraryAssetIds ?? [],
+      libraryMediaSelectionApplied: material.libraryMediaSelectionApplied ?? false,
     })),
     homework: {
       text: lesson.homework?.text ?? '',
@@ -67,9 +70,20 @@ export function toCreateScheduledLessonBody(
   lesson: ScheduledLessonDto,
   resolvePartyId: (numericId: number) => string | undefined,
 ): CreateScheduledLessonRequestDto | null {
-  const studentId = resolvePartyId(lesson.studentId);
+  const participantNumericIds =
+    lesson.kind === 'group' && lesson.participantIds?.length
+      ? lesson.participantIds
+      : [lesson.studentId];
+  const participantIds = participantNumericIds
+    .map((id) => resolvePartyId(id))
+    .filter((id): id is string => Boolean(id));
+  const studentId = participantIds[0] ?? resolvePartyId(lesson.studentId);
   if (!studentId) return null;
   const teacherId = resolvePartyId(lesson.teacherId);
+  const payerBackendId =
+    lesson.groupBilling?.payerUserId != null
+      ? resolvePartyId(Number(lesson.groupBilling.payerUserId))
+      : undefined;
   return {
     title: lesson.title,
     description: lesson.description,
@@ -80,6 +94,20 @@ export function toCreateScheduledLessonBody(
     timezone: getIanaForTimeZoneId(lesson.timezoneId),
     teacherId: teacherId ?? undefined,
     studentId,
+    kind: lesson.kind ?? 'individual',
+    studentGroupId: lesson.studentGroupId,
+    participantIds:
+      lesson.kind === 'group' && !lesson.studentGroupId ? participantIds : undefined,
+    groupBilling:
+      lesson.kind === 'group' && !lesson.studentGroupId && lesson.groupBilling
+        ? {
+            mode: lesson.groupBilling.mode,
+            priceMinor: lesson.groupBilling.priceMinor ?? undefined,
+            currency: lesson.groupBilling.currency ?? undefined,
+            splitMode: lesson.groupBilling.splitMode ?? undefined,
+            payerUserId: payerBackendId,
+          }
+        : undefined,
     status: statusFromId(lesson.statusId),
     notes: lesson.notes,
     lessonPlan: lesson.lessonPlan,
@@ -93,6 +121,7 @@ export function toCreateScheduledLessonBody(
 
 export function toUpdateScheduledLessonBody(
   lesson: ScheduledLessonDto,
+  resolvePartyId: (numericId: number) => string | undefined,
   options?: { includeLessonContent?: boolean },
 ): UpdateScheduledLessonRequestDto {
   const includeLessonContent = options?.includeLessonContent ?? true;
@@ -111,6 +140,26 @@ export function toUpdateScheduledLessonBody(
     weeklyDays: lesson.weeklyDays,
     seriesId: lesson.seriesId ?? undefined,
     linkedWordIds: lesson.linkedWordIds?.length ? [...lesson.linkedWordIds] : undefined,
+    kind: lesson.kind,
+    participantIds:
+      lesson.kind === 'group' && lesson.participantIds?.length
+        ? lesson.participantIds
+            .map((id) => resolvePartyId(id))
+            .filter((id): id is string => Boolean(id))
+        : undefined,
+    groupBilling:
+      lesson.kind === 'group' && lesson.groupBilling
+        ? {
+            mode: lesson.groupBilling.mode,
+            priceMinor: lesson.groupBilling.priceMinor ?? undefined,
+            currency: lesson.groupBilling.currency ?? undefined,
+            splitMode: lesson.groupBilling.splitMode ?? undefined,
+            payerUserId:
+              lesson.groupBilling.payerUserId != null
+                ? resolvePartyId(Number(lesson.groupBilling.payerUserId))
+                : undefined,
+          }
+        : undefined,
     ...(includeLessonContent ? mapLessonContentFields(lesson) : {}),
   };
 }

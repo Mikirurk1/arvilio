@@ -4,14 +4,62 @@
   padding-top: 12px;
 }
 
+.metricsGrid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.metricCard {
+  border: 1px solid color-mix(in srgb, var(--border) 85%, var(--accent-primary) 15%);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--card) 84%, var(--surface)), var(--card));
+  box-shadow: var(--shadow-xs);
+  padding: 14px 16px;
+}
+
+.metricIcon {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary-muted) 70%, var(--surface));
+}
+
+.metricLabel {
+  margin: 0;
+  font-size: var(--fs-12);
+  font-weight: var(--fw-medium);
+  color: var(--text-tertiary);
+}
+
+.metricValue {
+  margin: 6px 0 0;
+  font-size: var(--fs-24);
+  font-weight: var(--fw-semibold);
+  line-height: 1.1;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.metricSub {
+  margin: 6px 0 0;
+  font-size: var(--fs-12);
+  color: var(--text-secondary);
+}
+
 .pageHeader {
   margin-bottom: 16px;
 }
 
 .pageTitle {
-  font-size: var(--fs-24);
-  font-weight: 600;
-  color: var(--text-primary);
+  @include page-title-display;
 }
 
 .pageSub {
@@ -23,11 +71,11 @@
 .createCard,
 .listCard {
   margin-top: 20px;
-  padding: 18px 20px;
+  padding: var(--space-card-padding-lg);
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
   color: var(--text-primary);
   display: flex;
   flex-direction: column;
@@ -39,6 +87,10 @@
   align-items: center;
   gap: 12px;
   color: var(--text-primary);
+
+  svg {
+    color: var(--accent-primary);
+  }
 }
 
 .cardTitle {
@@ -80,6 +132,23 @@
   gap: 16px;
 }
 
+.formSection {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+}
+
+.sectionTitle {
+  margin: 0 0 10px;
+  padding: 0 6px;
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+}
+
 .fieldGroup {
   display: flex;
   flex-direction: column;
@@ -119,10 +188,8 @@
 
 .label {
   font-size: var(--fs-13);
-  font-weight: 600;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-weight: var(--fw-medium);
+  color: var(--text-secondary);
 }
 
 .input {
@@ -151,28 +218,17 @@
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  margin-top: 20px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
 }
 
 .submitBtn {
+  min-width: 170px;
   padding: 10px 24px;
   border-radius: var(--radius-md);
-  background: var(--fill-strong);
-  color: white;
-  border: none;
   font-size: var(--fs-14);
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover:not(:disabled) {
-    background: var(--fill-strong-hover);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
 }
 
 @include respond-to(md) {
@@ -237,6 +293,17 @@
   }
 }
 
+.staffLink {
+  color: var(--text-primary);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--blue);
+    text-decoration: underline;
+  }
+}
+
 .role {
   display: inline-block;
   padding: 3px 8px;
@@ -246,6 +313,38 @@
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-secondary);
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: var(--fs-11);
+  font-weight: var(--fw-semibold);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+}
+
+.status_active {
+  background: var(--accent-primary-muted);
+  border-color: color-mix(in srgb, var(--accent-primary) 30%, var(--border));
+  color: var(--accent-primary);
+}
+
+.status_paused {
+  background: color-mix(in srgb, var(--accent-warning-muted) 82%, var(--card));
+  border-color: color-mix(in srgb, var(--accent-warning) 28%, var(--border));
+  color: var(--accent-warning);
+}
+
+.status_leaved,
+.status_blocked {
+  background: color-mix(in srgb, var(--accent-danger-muted) 86%, var(--card));
+  border-color: color-mix(in srgb, var(--accent-danger) 30%, var(--border));
+  color: var(--accent-danger);
 }
 
 .role_student {
@@ -306,8 +405,24 @@
     background: rgba(244, 63, 94, 0.1);
   }
 
+  &[data-loading='true'] {
+    border-color: color-mix(in srgb, var(--accent-danger) 30%, var(--border));
+  }
+
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.65;
     cursor: not-allowed;
+  }
+}
+
+@include respond-to(md) {
+  .metricsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@include respond-to(sm) {
+  .metricsGrid {
+    grid-template-columns: 1fr;
   }
 }

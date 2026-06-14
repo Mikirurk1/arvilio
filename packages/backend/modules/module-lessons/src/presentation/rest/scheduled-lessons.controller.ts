@@ -69,6 +69,14 @@ export class ScheduledLessonsController {
     return this.lessons.ensureMeetLink(id, userId);
   }
 
+  @Get(':id/livekit-token')
+  async livekitToken(
+    @CurrentUser() userId: string,
+    @Param('id') id: string,
+  ): Promise<{ wsUrl: string; token: string; roomName: string }> {
+    return this.lessons.issueLiveKitToken(id, userId);
+  }
+
   @Patch(':id')
   async update(
     @CurrentUser() userId: string,

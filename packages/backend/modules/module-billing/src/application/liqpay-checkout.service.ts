@@ -51,6 +51,7 @@ export class LiqPayCheckoutService {
         lessonsGranted: pkg.lessons,
         amountMinor: pkg.amountMinor,
         currency: pkg.currency,
+        metadata: { creditTrack: pkg.creditTrack },
       },
     });
     await this.prisma.payment.update({

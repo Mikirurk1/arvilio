@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { OAuth2Client } from 'google-auth-library';
+import { getPlatformIntegrationRuntime } from '@be/platform-integration';
 import type { AuthUserDto } from '@pkg/types';
 
 const GOOGLE_OAUTH_SCOPES = [
@@ -14,12 +15,13 @@ export const PROFICIENCY_LEVELS = new Set(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']);
 export const ACCOUNT_STATUSES = new Set(['ACTIVE', 'PAUSED', 'LEAVED', 'BLOCKED']);
 
 export function getGoogleClient(): OAuth2Client | null {
-  const clientId = process.env['GOOGLE_CLIENT_ID'];
-  const clientSecret = process.env['GOOGLE_CLIENT_SECRET'];
-  const callbackUrl =
-    process.env['GOOGLE_CALLBACK_URL'] ?? 'http://localhost:3000/api/auth/google/callback';
-  if (!clientId || !clientSecret) return null;
-  return new OAuth2Client({ clientId, clientSecret, redirectUri: callbackUrl });
+  const google = getPlatformIntegrationRuntime().google;
+  if (!google.clientId || !google.clientSecret) return null;
+  return new OAuth2Client({
+    clientId: google.clientId,
+    clientSecret: google.clientSecret,
+    redirectUri: google.callbackUrl,
+  });
 }
 
 export function buildGoogleAuthUrl(): string {

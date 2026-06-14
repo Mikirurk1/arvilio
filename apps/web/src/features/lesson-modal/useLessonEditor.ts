@@ -118,6 +118,14 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
         recurrence: 'none',
         weeklyDays: [],
         timezoneId: viewerTimezoneId,
+        kind: 'individual',
+        participantIds: [student?.id ?? activeUser.id],
+        groupBillingMode: 'per_member',
+        groupPriceMinor: 0,
+        groupCurrency: 'UAH',
+        groupSplitMode: 'equal_split',
+        groupPayerUserId: student?.id ?? activeUser.id,
+        studentGroupId: null,
       });
     },
     [

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { WordDetailsDto } from '@pkg/types';
-import { X } from 'lucide-react';
+import { BookOpenText, X } from 'lucide-react';
 import { Button } from '../../components/ui';
 import { WORD_DETAILS } from '../../graphql/operations';
 import { graphqlRequest } from '../../lib/graphql-client';
@@ -15,6 +15,8 @@ import {
 } from '../../lib/word-details-payload';
 import { isUsableGloss, pickNativeDefinitions } from '../../lib/word-definitions';
 import { stripHtml } from '../../lib/strip-html';
+import { useAuth } from '../../lib/auth-context';
+import { isTeacherAdminOrSuperKey } from '../../lib/active-user-role.util';
 import { useViewerLanguageIds } from '../../hooks/use-viewer-language-ids';
 import { selectLanguagesList, useLanguagesStore } from '../../stores/languages-store';
 import { WordCardAudioButton } from './WordCardAudioButton';
@@ -23,6 +25,7 @@ import { WordDetailsHero } from './word-details/WordDetailsHero';
 import { WordDetailsRelatedWords } from './word-details/WordDetailsRelatedWords';
 import { WordDetailsSection } from './word-details/WordDetailsSection';
 import { WordDetailsTranslations } from './word-details/WordDetailsTranslations';
+import { WordDetailsProvenance } from './word-details/WordDetailsProvenance';
 import styles from './word-details-modal.module.scss';
 
 type Props = {
@@ -31,6 +34,8 @@ type Props = {
 };
 
 export function WordDetailsModal({ wordId, onClose }: Props) {
+  const { user } = useAuth();
+  const showProvenance = user ? isTeacherAdminOrSuperKey(user.role) : false;
   const languages = useLanguagesStore(selectLanguagesList);
   const { nativeLanguageId, englishLanguageId } = useViewerLanguageIds();
   const [details, setDetails] = useState<WordDetailsDto | null>(null);
@@ -104,6 +109,10 @@ export function WordDetailsModal({ wordId, onClose }: Props) {
       >
         <div className={styles.head}>
           <div className={styles.headText}>
+            <span className={styles.headBadge}>
+              <BookOpenText size={14} />
+              Dictionary entry
+            </span>
             <h2 id="word-details-title" className={styles.title}>
               {details?.text ?? 'Word details'}
             </h2>
@@ -112,6 +121,9 @@ export function WordDetailsModal({ wordId, onClose }: Props) {
             ) : details?.partOfSpeech ? (
               <p className={styles.headSubtitle}>{details.partOfSpeech}</p>
             ) : null}
+            <p className={styles.headHint}>
+              Review meaning, translation, pronunciation, and related forms in one place.
+            </p>
           </div>
           <Button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close">
             <X size={18} />
@@ -195,6 +207,8 @@ export function WordDetailsModal({ wordId, onClose }: Props) {
                 <p className={styles.paragraph}>{origin}</p>
               </WordDetailsSection>
             ) : null}
+
+            {showProvenance ? <WordDetailsProvenance details={details} /> : null}
           </div>
         ) : null}
       </div>

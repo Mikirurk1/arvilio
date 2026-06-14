@@ -17,7 +17,7 @@ All use `@UseGuards(GqlAuthGuard)` unless noted.
 
 | Resolver | Queries | Mutations |
 |----------|---------|-----------|
-| **DashboardResolver** | `dashboardSummary`, `dailyGoals`, `learningStreak`, `wordOfDay`, `practiceWeekSummary` | `setDailyGoalDone`, `recordPracticeSession` |
+| **DashboardResolver** | `dashboardSummary`, `dailyGoals`, `learningStreak`, `wordOfDay`, `practiceWeekSummary` | `recordPracticeSession` |
 | **VocabularyResolver** | `vocabularyOverview`, `lookupWord`, `wordsByIds`, `globalWords`, `studentVocabulary` | `addStudentWordCard`, `updateCardStatus` |
 | **QuizzesResolver** | `quizzes`, `quiz` | `generateQuiz` |
 | **LessonsResolver** | `scheduledLessons`, `scheduledLesson` (+ membership) | `createScheduledLesson`, `updateScheduledLesson`, `deleteScheduledLesson` |

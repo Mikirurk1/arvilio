@@ -1,3 +1,9 @@
+/**
+ * Спільні keyframes. Easing/duration задаються на місці використання —
+ * бери токени з tokens/_motion.scss: animation: slideUp var(--dur-base) var(--ease-out) both;
+ * Не додавай нових keyframes для переривчастого UI — там transitions (interruptible).
+ */
+
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -29,5 +35,32 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+/* Modal recipe (styles/_modal-recipe.scss): enter повільніший, exit швидший */
+@keyframes modalOverlayIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes modalOverlayOut {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modalDialogIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes modalDialogOut {
+  to {
+    opacity: 0;
+    transform: scale(0.98);
   }
 }

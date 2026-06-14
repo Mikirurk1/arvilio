@@ -1,4 +1,9 @@
-import type { ScheduledLessonBackendDto, StudentSummaryBackendDto, StudentWordCardDto } from '@pkg/types';
+import type {
+  LibraryMaterialDto,
+  ScheduledLessonBackendDto,
+  StudentSummaryBackendDto,
+  StudentWordCardDto,
+} from '@pkg/types';
 import {
   fromBackendLessons,
   getLessonRouteId,
@@ -8,7 +13,7 @@ import { stripHtml } from './strip-html';
 
 export type HeaderSearchResult = {
   id: string;
-  type: 'lesson' | 'student' | 'vocabulary';
+  type: 'lesson' | 'student' | 'vocabulary' | 'material';
   label: string;
   sublabel?: string;
   href: string;
@@ -29,7 +34,9 @@ export function buildHeaderSearchResults(params: {
   nameByNumericId: Map<number, string>;
   students: StudentSummaryBackendDto[];
   vocabularyCards: StudentWordCardDto[];
+  materials?: LibraryMaterialDto[];
   includeStudents: boolean;
+  includeMaterials?: boolean;
   limit?: number;
 }): HeaderSearchResult[] {
   const q = normalizeQuery(params.query);
@@ -62,6 +69,21 @@ export function buildHeaderSearchResults(params: {
         label: student.displayName,
         sublabel: student.email,
         href: `/students/${student.id}`,
+      });
+    }
+  }
+
+  if (params.includeMaterials && params.materials?.length) {
+    for (const material of params.materials) {
+      if (results.length >= limit) break;
+      const haystack = [material.title, material.description ?? '', material.publisher ?? '', material.level ?? ''].join(' ');
+      if (!matches(haystack, q)) continue;
+      results.push({
+        id: `material-${material.id}`,
+        type: 'material',
+        label: material.title,
+        sublabel: material.kind,
+        href: '/materials',
       });
     }
   }

@@ -24,6 +24,25 @@ function difficultyBadgeClass(difficulty: QuizCardDto['difficulty']): string {
   return styles.badgeGreen;
 }
 
+function formatQuizSource(source: QuizCardDto['source']): string {
+  switch (source) {
+    case 'vocabulary':
+      return 'Vocabulary';
+    case 'lesson':
+      return 'Lesson';
+    case 'mixed':
+      return 'Mixed';
+    default:
+      return 'Manual';
+  }
+}
+
+function formatQuizCreated(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
 export function QuizAssignmentCards({
   quizzes,
   onPlay,
@@ -45,11 +64,16 @@ export function QuizAssignmentCards({
     const score = quiz.attempt?.score;
     const hasPractice = Boolean(onPractice);
 
+    const cardClass = [
+      styles.card,
+      embedded ? styles.cardEmbedded : '',
+      completed ? styles.cardCompleted : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+
     return (
-      <div
-        key={quiz.id}
-        className={`${styles.card} ${completed ? styles.cardCompleted : ''}`}
-      >
+      <div key={quiz.id} className={cardClass}>
         <div className={styles.head}>
           <div className={styles.headMain}>
             <div className={styles.titleRow}>
@@ -82,7 +106,13 @@ export function QuizAssignmentCards({
             <FileText size={14} aria-hidden />
             {quiz.questionCount} questions
           </span>
+          <span className={styles.metaDot} aria-hidden>
+            ·
+          </span>
+          <span>{formatQuizSource(quiz.source)}</span>
         </div>
+
+        <p className={styles.createdAt}>Created {formatQuizCreated(quiz.createdAt)}</p>
 
         {completed && score != null ? (
           <div className={styles.scoreBox}>

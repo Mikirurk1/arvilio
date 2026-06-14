@@ -1,0 +1,23 @@
+# One unique English lemma per dictionary×translation combination (21 lines).
+# Order: dict (dictionary_api_dev, wiktionary, reverso) × trans (deepl…gtx).
+acorn
+breeze
+candle
+dolphin
+ember
+frost
+glider
+harvest
+inlet
+jungle
+kitten
+lunar
+meadow
+noble
+oasis
+plume
+quiver
+rustic
+saddle
+temple
+umber

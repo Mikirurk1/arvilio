@@ -3,6 +3,7 @@ import {
   countIncompleteAssignedQuizzes,
   countIncompleteQuizzes,
   countIncompleteQuizzesFromList,
+  countPendingSpeakingTopics,
 } from './practice-pending';
 
 describe('practice-pending', () => {
@@ -13,6 +14,16 @@ describe('practice-pending', () => {
       mockQuizCard({ attempt: mockQuizAttempt({ finishedAt: '2026-05-20T00:00:00.000Z' }) }),
     ];
     expect(countIncompleteQuizzes(quizzes)).toBe(2);
+  });
+
+  it('countPendingSpeakingTopics counts only pending assignments', () => {
+    expect(
+      countPendingSpeakingTopics([
+        { assignment: { status: 'pending' } } as never,
+        { assignment: { status: 'submitted' } } as never,
+        { assignment: null } as never,
+      ]),
+    ).toBe(1);
   });
 
   it('countIncompleteAssignedQuizzes and countIncompleteQuizzesFromList delegate', () => {

@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import type { ScheduledLessonDto } from '@pkg/types';
 import { LESSON_STATUS } from '@pkg/types';
 import { getLessonRouteId } from '../../features/lesson-modal/scheduledLessonsBackendAdapter';
@@ -38,6 +37,7 @@ export function LessonsListPanel({
   loadingMore = false,
   onLoadMore,
   listLoading = false,
+  showKindBadge = false,
 }: {
   lessons: ScheduledLessonDto[];
   canManageLessons?: boolean;
@@ -48,8 +48,8 @@ export function LessonsListPanel({
   loadingMore?: boolean;
   onLoadMore?: () => void;
   listLoading?: boolean;
+  showKindBadge?: boolean;
 }) {
-  const router = useRouter();
   const listScrollRef = useRef<HTMLDivElement>(null);
   const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState('');
@@ -140,28 +140,35 @@ export function LessonsListPanel({
           ? filteredLessons.map((lesson) => {
           const routeId = getLessonRouteId(lesson);
           return (
-          <div
-            key={lesson.backendId ?? `local-${lesson.id}`}
-            className={styles.lessonCard}
-            role="button"
-            tabIndex={0}
-            onClick={() => router.push(`/lessons/${routeId}`)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                router.push(`/lessons/${routeId}`);
-              }
-            }}
-          >
+          <div key={lesson.backendId ?? `local-${lesson.id}`} className={styles.lessonCard}>
+            {/* Stretched link covers whole card; buttons/links inside use isolation: isolate */}
+            <Link
+              href={`/lessons/${routeId}`}
+              className={styles.lessonCardStretchLink}
+              aria-label={`Open lesson: ${lesson.title}`}
+            />
             <div className={styles.lessonCardInner}>
               <div className={styles.lessonIconWrap}>
-                <span className={styles.lessonIconBadge}>
+                <span
+                  className={`${styles.lessonIconBadge} ${lesson.statusId === LESSON_STATUS.planned.id ? styles.badgePlanned : ''} ${lesson.statusId === LESSON_STATUS.completed.id ? styles.badgeCompleted : ''} ${lesson.statusId === LESSON_STATUS.cancelled.id ? styles.badgeCancelled : ''}`}
+                >
                   <BookOpen size={18} strokeWidth={2} />
                 </span>
               </div>
               <div className={styles.lessonMain}>
                 <div className={styles.lessonTitleRow}>
                   <h3 className={styles.lessonTitle}>{lesson.title}</h3>
+                  {showKindBadge ? (
+                    <span
+                      className={`${styles.kindPill} ${
+                        lesson.kind === 'group' ? styles.kindPillGroup : styles.kindPillIndividual
+                      }`}
+                    >
+                      {lesson.kind === 'group'
+                        ? `Group${lesson.participantIds && lesson.participantIds.length > 1 ? ` · ${lesson.participantIds.length}` : ''}`
+                        : 'Individual'}
+                    </span>
+                  ) : null}
                 </div>
                 <div className={styles.lessonMetaRow}>
                   <span className={styles.metaItem}>
@@ -189,24 +196,16 @@ export function LessonsListPanel({
                 <span className={styles.quickActions} aria-hidden>
                   <ChevronRight size={20} className={styles.chevron} />
                 </span>
-                <Link
-                  href={`/lessons/${routeId}`}
-                  className={styles.iconActionBtn}
-                  aria-label="Open lesson"
-                  onClick={(event) => event.stopPropagation()}
-                >
+                <span className={styles.iconActionBtn} aria-hidden>
                   <Video size={15} />
-                </Link>
+                </span>
                 {canManageLessons && onEditLesson ? (
                   <Button
                     type="button"
                     variant="ghost"
                     className={styles.iconActionBtn}
                     aria-label="Edit lesson"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onEditLesson(lesson);
-                    }}
+                    onClick={() => onEditLesson(lesson)}
                   >
                     <Pencil size={15} />
                   </Button>

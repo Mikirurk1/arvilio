@@ -32,4 +32,45 @@ describe('graphqlRequest', () => {
     });
     await expect(graphqlRequest('query')).rejects.toThrow('Forbidden');
   });
+
+  it('refreshes session and retries once on HTTP 401', async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        text: async () => 'Unauthorized',
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        text: async () => '',
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: { hello: 'world' } }),
+      });
+
+    await expect(graphqlRequest<{ hello: string }>('query')).resolves.toEqual({ hello: 'world' });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('refreshes session and retries once on graphql unauthorized error', async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ errors: [{ message: 'Unauthorized' }] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        text: async () => '',
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: { hello: 'world' } }),
+      });
+
+    await expect(graphqlRequest<{ hello: string }>('query')).resolves.toEqual({ hello: 'world' });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
 });

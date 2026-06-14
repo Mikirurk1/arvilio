@@ -15,9 +15,45 @@ type GraphqlResponse<T> = {
   errors?: Array<{ message: string }>;
 };
 
+let inFlightSessionRefresh: Promise<boolean> | null = null;
+
+function isUnauthorizedMessage(message: string): boolean {
+  return /\bunauthorized\b|\bforbidden\b/i.test(message);
+}
+
+async function refreshSessionOnce(): Promise<boolean> {
+  if (inFlightSessionRefresh) return inFlightSessionRefresh;
+  inFlightSessionRefresh = (async () => {
+    try {
+      const response = await fetch(`${API_BASE}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+        cache: 'no-store',
+      });
+      return response.ok;
+    } catch {
+      return false;
+    } finally {
+      inFlightSessionRefresh = null;
+    }
+  })();
+  return inFlightSessionRefresh;
+}
+
 export async function graphqlRequest<TData, TVariables extends Record<string, unknown> = Record<string, unknown>>(
   query: string,
   variables?: TVariables,
+): Promise<TData> {
+  return graphqlRequestInternal(query, variables, true);
+}
+
+async function graphqlRequestInternal<
+  TData,
+  TVariables extends Record<string, unknown> = Record<string, unknown>,
+>(
+  query: string,
+  variables?: TVariables,
+  allowRetry = true,
 ): Promise<TData> {
   const response = await fetch(`${API_BASE}/graphql`, {
     method: 'POST',
@@ -28,6 +64,12 @@ export async function graphqlRequest<TData, TVariables extends Record<string, un
   });
 
   if (!response.ok) {
+    if (allowRetry && (response.status === 401 || response.status === 403)) {
+      const refreshed = await refreshSessionOnce();
+      if (refreshed) {
+        return graphqlRequestInternal(query, variables, false);
+      }
+    }
     let message = `GraphQL request failed: ${response.status}`;
     try {
       const text = await response.text();
@@ -40,6 +82,12 @@ export async function graphqlRequest<TData, TVariables extends Record<string, un
 
   const payload = (await response.json()) as GraphqlResponse<TData>;
   if (payload.errors?.length) {
+    if (allowRetry && payload.errors.some((entry) => isUnauthorizedMessage(entry.message))) {
+      const refreshed = await refreshSessionOnce();
+      if (refreshed) {
+        return graphqlRequestInternal(query, variables, false);
+      }
+    }
     throw new GraphqlError(payload.errors.map((e) => e.message).join('; '), payload.errors);
   }
   if (payload.data === undefined) {

@@ -1,8 +1,8 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { Shield, Trash2, UserPlus } from 'lucide-react';
-import { Button, Field, PageHeader } from '../../components/ui';
+import { type FormEvent, useEffect, useMemo, useState } from 'react';
+import { Users, UserCheck, GraduationCap } from 'lucide-react';
+import { PageHeader } from '../../components/ui';
 import { useActiveRoleKey } from '../../lib/active-user';
 import { useOptionalAuth } from '../../lib/auth-context';
 import type { AdminUserSummaryDto } from '@pkg/types';
@@ -11,11 +11,14 @@ import { useAdminStore } from '../../stores/admin-store';
 import { confirmDialog } from '../../features/confirm';
 import { toast } from '../../features/notifications';
 import { ApiError } from '../../lib/api';
-import { formatTimeZoneOptionLabel } from '../../mocks';
-import { PROFICIENCY_LEVEL, TIME_ZONE } from '@pkg/types';
+import { TIME_ZONE } from '@pkg/types';
+import { CreateAccountForm, type CreateAccountFormValues } from './CreateAccountForm';
+import { UsersTable } from './UsersTable';
 import styles from './page.module.scss';
 
 type CreatableRole = 'student' | 'teacher' | 'admin';
+
+const TEACHING_ROLES = new Set<AdminUserSummaryDto['role']>(['teacher', 'admin', 'super_admin']);
 
 const ROLE_LABEL: Record<string, string> = {
   student: 'Student',
@@ -24,16 +27,7 @@ const ROLE_LABEL: Record<string, string> = {
   super_admin: 'Super admin',
 };
 
-const STATUS_LABEL: Record<string, string> = {
-  active: 'Active',
-  paused: 'Paused',
-  leaved: 'Left',
-  blocked: 'Blocked',
-};
-
-const ACCOUNT_STATUSES = ['active', 'paused', 'leaved', 'blocked'] as const;
-
-const emptyForm = () => ({
+const emptyForm = (): CreateAccountFormValues => ({
   email: '',
   displayName: '',
   phone: '',
@@ -41,13 +35,11 @@ const emptyForm = () => ({
   bio: '',
   nativeLanguageId: '',
   timezone: TIME_ZONE.kyiv.iana as string,
-  proficiencyLevel: '' as '' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2',
-  status: 'active' as (typeof ACCOUNT_STATUSES)[number],
+  proficiencyLevel: '',
+  status: 'active',
   teacherId: '',
-  role: 'student' as CreatableRole,
+  role: 'student',
 });
-
-const TEACHING_ROLES = new Set<AdminUserSummaryDto['role']>(['teacher', 'admin', 'super_admin']);
 
 export default function AdminUsersPage() {
   const roleKey = useActiveRoleKey();
@@ -82,6 +74,11 @@ export default function AdminUsersPage() {
   }, [fetchLanguages]);
 
   const users = usersSlice.data ?? [];
+  const studentCount = users.filter((user) => user.role === 'student').length;
+  const teacherCount = users.filter((user) =>
+    user.role === 'teacher' || user.role === 'admin' || user.role === 'super_admin',
+  ).length;
+  const activeCount = users.filter((user) => user.status === 'active').length;
   const assignableTeachers = useMemo(() => {
     const fromList = users.filter((u) => TEACHING_ROLES.has(u.role));
     const me = auth?.user;
@@ -167,294 +164,55 @@ export default function AdminUsersPage() {
         }
       />
 
-      <section className={styles.createCard} aria-label="Create account">
-        <header className={styles.cardHeader}>
-          <UserPlus size={16} />
-          <div>
-            <div className={styles.cardTitle}>Create account</div>
-            <div className={styles.cardSub}>
-              Only email is required. Role defaults to Student. Password is generated and sent by email.
-            </div>
-          </div>
-        </header>
-        <form onSubmit={onSubmit}>
-          <div className={styles.formGrid}>
-            <div className={styles.fieldGroup}>
-              <label className={styles.label} htmlFor="admin-create-email">
-                Email *
-              </label>
-              <Field
-                id="admin-create-email"
-                type="email"
-                className={styles.input}
-                autoComplete="off"
-                required
-                value={form.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-              />
-            </div>
-            <div className={styles.fieldGroup}>
-              <label className={styles.label} htmlFor="admin-create-role">
-                Role
-              </label>
-              <Field as="select"
-                id="admin-create-role"
-                className={styles.input}
-                value={form.role}
-                onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as CreatableRole }))}
-              >
-                {allowedCreatableRoles.map((role) => (
-                  <option key={role} value={role}>
-                    {ROLE_LABEL[role]}
-                  </option>
-                ))}
-              </Field>
-            </div>
-            <div className={styles.fieldGroup}>
-              <label className={styles.label} htmlFor="admin-create-name">
-                Full name
-              </label>
-              <Field
-                id="admin-create-name"
-                className={styles.input}
-                autoComplete="off"
-                placeholder="Optional — defaults from email"
-                value={form.displayName}
-                onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))}
-              />
-            </div>
-            <div className={styles.fieldGroup}>
-              <label className={styles.label} htmlFor="admin-create-status">
-                Account status
-              </label>
-              <Field as="select"
-                id="admin-create-status"
-                className={styles.input}
-                value={form.status}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    status: e.target.value as (typeof ACCOUNT_STATUSES)[number],
-                  }))
-                }
-              >
-                {ACCOUNT_STATUSES.map((status) => (
-                  <option key={status} value={status}>
-                    {STATUS_LABEL[status]}
-                  </option>
-                ))}
-              </Field>
-            </div>
-            <div className={styles.fieldGroup}>
-              <label className={styles.label} htmlFor="admin-create-phone">
-                Phone
-              </label>
-              <Field
-                id="admin-create-phone"
-                type="tel"
-                className={styles.input}
-                autoComplete="off"
-                placeholder="+380 67 123 4567"
-                value={form.phone}
-                onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-              />
-            </div>
-            <div className={styles.fieldGroup}>
-              <label className={styles.label} htmlFor="admin-create-telegram">
-                Telegram
-              </label>
-              <Field
-                id="admin-create-telegram"
-                className={styles.input}
-                autoComplete="off"
-                placeholder="@username"
-                value={form.telegram}
-                onChange={(e) => setForm((f) => ({ ...f, telegram: e.target.value }))}
-              />
-            </div>
-            <div className={styles.fieldGroup}>
-              <label className={styles.label} htmlFor="admin-create-native-language">
-                Native language
-              </label>
-              <Field as="select"
-                id="admin-create-native-language"
-                className={styles.input}
-                value={form.nativeLanguageId}
-                onChange={(e) => setForm((f) => ({ ...f, nativeLanguageId: e.target.value }))}
-              >
-                <option value="">—</option>
-                {languages.map((lang) => (
-                  <option key={lang.id} value={lang.id}>
-                    {lang.name}
-                  </option>
-                ))}
-              </Field>
-            </div>
-            <div className={styles.fieldGroup}>
-              <label className={styles.label} htmlFor="admin-create-timezone">
-                Timezone
-              </label>
-              <Field as="select"
-                id="admin-create-timezone"
-                className={styles.input}
-                value={form.timezone}
-                onChange={(e) => setForm((f) => ({ ...f, timezone: e.target.value }))}
-              >
-                {Object.values(TIME_ZONE).map((tz) => (
-                  <option key={tz.id} value={tz.iana}>
-                    {formatTimeZoneOptionLabel(tz)}
-                  </option>
-                ))}
-              </Field>
-            </div>
-            <div className={styles.fieldGroup}>
-              <label className={styles.label} htmlFor="admin-create-level">
-                English level
-              </label>
-              <Field as="select"
-                id="admin-create-level"
-                className={styles.input}
-                value={form.proficiencyLevel}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    proficiencyLevel: e.target.value as typeof form.proficiencyLevel,
-                  }))
-                }
-              >
-                <option value="">—</option>
-                {Object.values(PROFICIENCY_LEVEL).map((level) => (
-                  <option key={level.id} value={level.code}>
-                    {level.label}
-                  </option>
-                ))}
-              </Field>
-            </div>
-            {form.role === 'student' ? (
-              <div className={styles.fieldGroup}>
-                <label className={styles.label} htmlFor="admin-create-teacher">
-                  Assigned teacher
-                </label>
-                <Field as="select"
-                  id="admin-create-teacher"
-                  className={styles.input}
-                  value={form.teacherId}
-                  onChange={(e) => setForm((f) => ({ ...f, teacherId: e.target.value }))}
-                >
-                  <option value="">—</option>
-                  {assignableTeachers.map((teacher) => (
-                    <option key={teacher.id} value={teacher.id}>
-                      {teacher.displayName} ({ROLE_LABEL[teacher.role] ?? teacher.role})
-                    </option>
-                  ))}
-                </Field>
-              </div>
-            ) : null}
-          </div>
-          <div className={`${styles.fieldGroup} ${styles.fieldFull}`}>
-            <label className={styles.label} htmlFor="admin-create-bio">
-              Bio
-            </label>
-            <Field
-              id="admin-create-bio"
-              as="textarea"
-              className={`${styles.input} ${styles.textarea}`}
-              rows={3}
-              value={form.bio}
-              onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
-            />
-          </div>
-          <div className={styles.formFooter}>
-            <Button type="submit" className={styles.submitBtn} disabled={mutating}>
-              {mutating ? 'Creating…' : 'Create account'}
-            </Button>
-            {formError ? <span className={styles.error}>{formError}</span> : null}
-            {formSuccess ? <span className={styles.success}>{formSuccess}</span> : null}
-          </div>
-        </form>
+      <section className={styles.metricsGrid} aria-label="Accounts overview">
+        <article className={styles.metricCard}>
+          <span className={styles.metricIcon} aria-hidden>
+            <Users size={16} />
+          </span>
+          <p className={styles.metricLabel}>All accounts</p>
+          <p className={styles.metricValue}>{users.length}</p>
+        </article>
+        <article className={styles.metricCard}>
+          <span className={styles.metricIcon} aria-hidden>
+            <GraduationCap size={16} />
+          </span>
+          <p className={styles.metricLabel}>Students</p>
+          <p className={styles.metricValue}>{studentCount}</p>
+        </article>
+        <article className={styles.metricCard}>
+          <span className={styles.metricIcon} aria-hidden>
+            <UserCheck size={16} />
+          </span>
+          <p className={styles.metricLabel}>Active accounts</p>
+          <p className={styles.metricValue}>{activeCount}</p>
+          <p className={styles.metricSub}>
+            {teacherCount} teaching users (teachers and admins)
+          </p>
+        </article>
       </section>
 
-      <section className={styles.listCard} aria-label="Users">
-        <header className={styles.cardHeader}>
-          <Shield size={16} />
-          <div>
-            <div className={styles.cardTitle}>Existing accounts</div>
-            <div className={styles.cardSub}>
-              {canCreateAdmin
-                ? 'Showing all non-SUPER_ADMIN accounts. To manage SUPER_ADMIN use the `super-admin` CLI.'
-                : 'Showing students, teachers, and admins (admins can be assigned as teachers).'}
-            </div>
-          </div>
-          <Button
-            type="button"
-            className={styles.refreshBtn}
-            onClick={() => void fetchUsers(true)}
-            disabled={isLoading}
-          >
-            Refresh
-          </Button>
-        </header>
-        {isLoading ? <div className={styles.muted}>Loading…</div> : null}
-        {isError ? (
-          <div className={styles.error}>
-            Failed to load users: {error ?? 'unknown error'}
-          </div>
-        ) : null}
-        {!isLoading && !isError && users.length === 0 ? (
-          <div className={styles.muted}>No accounts yet.</div>
-        ) : null}
-        {users.length > 0 ? (
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Email</th>
-                  <th>Name</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Created</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => {
-                  const canDelete =
-                    user.role !== 'super_admin' &&
-                    (canCreateAdmin || user.role === 'student');
-                  return (
-                    <tr key={user.id}>
-                      <td>{user.email}</td>
-                      <td>{user.displayName}</td>
-                      <td>
-                        <span className={`${styles.role} ${styles[`role_${user.role}`]}`}>
-                          {ROLE_LABEL[user.role] ?? user.role}
-                        </span>
-                      </td>
-                      <td>{STATUS_LABEL[user.status] ?? user.status}</td>
-                      <td className={styles.created}>
-                        {new Date(user.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className={styles.rowActions}>
-                        {canDelete ? (
-                          <Button
-                            type="button"
-                            className={styles.deleteBtn}
-                            onClick={() => void onDelete(user.id, user.email, user.role)}
-                            disabled={mutating}
-                            aria-label={`Delete ${user.email}`}
-                          >
-                            <Trash2 size={14} />
-                          </Button>
-                        ) : null}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        ) : null}
-      </section>
+      <CreateAccountForm
+        form={form}
+        setForm={setForm}
+        formError={formError}
+        formSuccess={formSuccess}
+        mutating={mutating}
+        languages={languages}
+        allowedCreatableRoles={allowedCreatableRoles}
+        assignableTeachers={assignableTeachers}
+        onSubmit={onSubmit}
+      />
+
+      <UsersTable
+        users={users}
+        isLoading={isLoading}
+        isError={isError}
+        error={error}
+        canCreateAdmin={canCreateAdmin}
+        mutating={mutating}
+        onDelete={(id, label, role) => void onDelete(id, label, role)}
+        onRefresh={() => void fetchUsers(true)}
+      />
     </div>
   );
 }

@@ -348,3 +348,21 @@
     }
   }
 }
+
+.videoEmbedFrame {
+  width: 100%;
+  height: 600px;
+  background: var(--surface-2, #000);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  overflow: hidden;
+
+  // LiveKit DOM tree: [data-lk-theme] > .lk-video-conference > .lk-video-conference-inner > .lk-grid-layout-wrapper
+  // Each level needs explicit height:100% so calc(100% - 69px) resolves correctly.
+  [data-lk-theme],
+  :global(.lk-video-conference),
+  :global(.lk-video-conference-inner) {
+    height: 100%;
+  }
+
+}

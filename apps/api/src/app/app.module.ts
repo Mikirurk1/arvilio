@@ -10,6 +10,8 @@ import { PrismaModule } from '@be/prisma';
 import { AuthModule } from '@be/auth';
 import { MailModule } from '@be/mail';
 import { FlashcardsModule } from '@be/flashcards';
+import { SpeakingModule } from '@be/speaking';
+import { MaterialsModule } from '@be/materials';
 import { LessonsModule } from '@be/lessons';
 import { ProgressModule } from '@be/progress';
 import { VocabularyModule } from '@be/vocabulary';
@@ -28,6 +30,8 @@ import { BillingModule } from '@be/billing';
     ChatModule,
     VocabularyModule,
     FlashcardsModule,
+    SpeakingModule,
+    MaterialsModule,
     LessonsModule,
     ProgressModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({

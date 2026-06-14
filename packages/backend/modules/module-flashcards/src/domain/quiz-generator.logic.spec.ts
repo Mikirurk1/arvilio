@@ -39,6 +39,12 @@ describe('quiz-generator.logic', () => {
     expect(maskWordInExample('No match', 'tea')).toBeNull();
   });
 
+  it('maskWordInExample masks multi-word phrases', () => {
+    expect(maskWordInExample('We need to touch base tomorrow.', 'touch base')).toBe(
+      'We need to _____ tomorrow.',
+    );
+  });
+
   it('escapeRegex escapes special characters', () => {
     expect(escapeRegex('a+b?')).toBe('a\\+b\\?');
   });

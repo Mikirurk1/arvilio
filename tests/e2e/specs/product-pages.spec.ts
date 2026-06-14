@@ -7,8 +7,8 @@ const teacherPassword = process.env.PLAYWRIGHT_TEACHER_PASSWORD ?? 'TestPass123!
 
 async function login(page: import('@playwright/test').Page, userEmail: string, userPassword: string) {
   await page.goto('/login');
-  await page.getByLabel('Email').fill(userEmail);
-  await page.getByLabel('Password').fill(userPassword);
+  await page.getByLabel('Email', { exact: true }).fill(userEmail);
+  await page.getByLabel('Password', { exact: true }).fill(userPassword);
   await page.getByRole('button', { name: /sign in|log in|увійти/i }).click();
   await expect(page).toHaveURL(/\/dashboard/);
 }

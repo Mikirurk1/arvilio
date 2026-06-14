@@ -1,9 +1,10 @@
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { CurrentGqlUser, GqlAuthGuard } from '@be/auth';
+import { CurrentGqlUser, GqlAuthGuard, Roles, RolesGuard } from '@be/auth';
 import { StudentsAdminService } from '../../application/students-admin.service';
 import { UsersService } from '../../application/users.service';
 import { TeacherMessagesService } from '@be/notifications';
+import type { UpdateStaffUserProfileRequestDto } from '@pkg/types';
 import {
   AssignableTeacherType,
   MyProfileType,
@@ -15,6 +16,7 @@ import {
   TeacherMessageType,
   UpdateAdminStudentInput,
   UpdateMyProfileInput,
+  UpdateStaffUserProfileInput,
   ChangePasswordInput,
 } from '@be/graphql';
 
@@ -51,6 +53,16 @@ export class UsersResolver {
     return this.users.getMyProfile(userId);
   }
 
+  @Query(() => MyProfileType, { name: 'staffUserProfile' })
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  staffUserProfile(
+    @CurrentGqlUser() actorUserId: string,
+    @Args('userId', { type: () => ID }) userId: string,
+  ) {
+    return this.users.getStaffUserProfile(actorUserId, userId);
+  }
+
   @Mutation(() => MyProfileType, { name: 'updateMyProfile' })
   updateMyProfile(
     @CurrentGqlUser() userId: string,
@@ -85,6 +97,24 @@ export class UsersResolver {
     });
   }
 
+  @Mutation(() => MyProfileType, { name: 'updateStaffUserProfile' })
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  updateStaffUserProfile(
+    @CurrentGqlUser() actorUserId: string,
+    @Args('input') input: UpdateStaffUserProfileInput,
+  ) {
+    return this.users.updateStaffUserProfile(actorUserId, {
+      userId: input.userId,
+      displayName: input.displayName,
+      timezone: input.timezone,
+      phone: input.phone,
+      telegram: input.telegram,
+      bio: input.bio,
+      status: input.status as UpdateStaffUserProfileRequestDto['status'] | undefined,
+    });
+  }
+
   @Mutation(() => StudentLanguagesUpdateType, { name: 'updateStudentLanguages' })
   updateStudentLanguages(
     @CurrentGqlUser() userId: string,
@@ -96,6 +126,7 @@ export class UsersResolver {
       learningLanguageIds: input.learningLanguageIds,
       teacherId: input.teacherId,
       scheduleType: input.scheduleType,
+      lessonFormat: input.lessonFormat as import('@pkg/types').StudentLessonFormat | undefined,
       displayColor: input.displayColor,
     });
   }

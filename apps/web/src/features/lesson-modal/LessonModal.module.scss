@@ -1,16 +1,26 @@
 @use '../../styles/mixins' as *;
 
-.modalOverlay { position: fixed; inset: 0; background: rgba(26, 26, 46, 0.45); display: flex; align-items: center; justify-content: center; z-index: var(--z-modal, 2200); }
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: var(--backdrop-modal, color-mix(in srgb, var(--fill-strong) 52%, transparent));
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal, 2200);
+  padding: 12px;
+}
 .modal {
-  background: var(--card);
+  background: var(--modal-bg, var(--card));
   border-radius: var(--radius-lg);
-  width: min(860px, calc(100vw - 24px));
+  width: min(860px, 100%);
   max-height: calc(100vh - 24px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--border-strong) 40%, transparent);
-  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.14);
+  border: 1px solid color-mix(in srgb, var(--border) 78%, var(--border-strong));
+  box-shadow: var(--shadow-modal, var(--shadow-lg));
 }
 .modalHeader {
   padding: 22px 24px 16px;
@@ -19,9 +29,33 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  background: var(--card);
+  background: var(--modal-header-bg, var(--card));
 }
 .modalHeaderActions { display: flex; align-items: center; gap: 8px; }
+.modalHeaderText {
+  display: grid;
+  gap: 8px;
+}
+.modalBadge {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: var(--fs-11);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.modalBadgePrimary {
+  background: var(--accent-primary-muted);
+  color: var(--accent-primary);
+}
+.modalBadgeInfo {
+  background: var(--accent-info-muted);
+  color: var(--accent-info);
+}
 .modalIconBtn {
   width: 28px;
   height: 28px;
@@ -38,9 +72,9 @@
   cursor: pointer;
 }
 .modalIconBtnDanger {
-  color: #b42318;
-  border-color: color-mix(in srgb, #ef4444 40%, var(--border));
-  background: color-mix(in srgb, #ef4444 8%, var(--card));
+  color: var(--accent-danger);
+  border-color: color-mix(in srgb, var(--accent-danger) 40%, var(--border));
+  background: color-mix(in srgb, var(--accent-danger-muted) 72%, var(--card));
 }
 .modalCloseBtn {
   width: 28px;
@@ -59,7 +93,13 @@
   justify-content: center;
   cursor: pointer;
 }
-.modalTitle { font-family: 'Lora', serif; font-size: var(--fs-20); font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+.modalTitle {
+  font-family: var(--font-display);
+  font-size: var(--fs-20);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
 .modalSubtitle { font-size: var(--fs-13); color: var(--text-tertiary); }
 .modalLesson { font-size: var(--fs-14); color: var(--text-secondary); margin-bottom: 16px; }
 .modalScroll {
@@ -110,21 +150,18 @@
 .fieldGroup { display: flex; flex-direction: column; gap: 5px; }
 .fieldGroupFull { margin-top: 14px; }
 .modalSectionCard {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--card) 82%, var(--surface)) 0%,
-    var(--card) 100%
-  );
-  border: 1px solid color-mix(in srgb, var(--border-strong) 52%, transparent);
-  border-left: 3px solid color-mix(in srgb, var(--blue) 28%, var(--border));
+  --section-accent: var(--accent-info);
+  background: var(--modal-section-gradient, var(--card));
+  border: 1px solid var(--border-hairline);
+  border-left: 3px solid var(--section-accent);
   border-radius: var(--radius-md);
-  padding: 14px;
-  box-shadow: 0 2px 10px rgba(26, 26, 46, 0.06);
+  padding: 16px;
+  box-shadow: var(--shadow-xs);
 }
 .modalContentLayout {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 .modalContentColumns {
   display: flex;
@@ -132,29 +169,32 @@
   gap: 12px;
 }
 .lessonPlanCard {
+  --section-accent: var(--accent-info);
   margin-top: 0;
 }
+.lessonPlanCard .fieldLabel {
+  color: color-mix(in srgb, var(--accent-info) 64%, var(--text-secondary));
+}
+.lessonPlanCard .fieldInput {
+  min-height: 108px;
+}
 .homeworkCard {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--aqua-light) 68%, var(--card)) 0%,
-    var(--card) 100%
-  );
-  border-color: color-mix(in srgb, var(--aqua) 34%, var(--border));
-  border-left-color: color-mix(in srgb, var(--aqua) 55%, var(--border));
+  --section-accent: var(--accent-warning);
 }
 .homeworkCard .fieldLabel {
-  color: color-mix(in srgb, var(--aqua) 64%, var(--text-secondary));
+  color: color-mix(in srgb, var(--accent-warning-strong, var(--accent-warning)) 70%, var(--text-secondary));
 }
 .lessonVocabCard {
+  --section-accent: var(--accent-premium);
   background: var(--card);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-hairline);
+  border-left: 3px solid var(--section-accent);
   border-radius: var(--radius-md);
   padding: 12px 14px;
   margin-top: 12px;
 }
 .lessonVocabCard .fieldLabel {
-  color: var(--text-secondary);
+  color: color-mix(in srgb, var(--accent-premium) 64%, var(--text-secondary));
 }
 .lessonVocabHint {
   font-size: var(--fs-12);
@@ -202,33 +242,21 @@
   cursor: not-allowed;
 }
 .materialsCard {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--blue-light) 62%, var(--card)) 0%,
-    var(--card) 100%
-  );
-  border-color: color-mix(in srgb, var(--blue) 32%, var(--border));
-  border-left-color: color-mix(in srgb, var(--blue) 52%, var(--border));
+  --section-accent: var(--accent-primary);
 }
 .materialsCard .fieldLabel {
-  color: color-mix(in srgb, var(--blue) 62%, var(--text-secondary));
+  color: color-mix(in srgb, var(--accent-primary) 62%, var(--text-secondary));
 }
 .studentResponseCard {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--lilac-light) 64%, var(--card)) 0%,
-    var(--card) 100%
-  );
-  border-color: color-mix(in srgb, var(--lilac) 34%, var(--border));
-  border-left-color: color-mix(in srgb, var(--lilac) 55%, var(--border));
+  --section-accent: var(--rose, var(--accent-danger));
 }
 .studentResponseCard .fieldLabel {
-  color: color-mix(in srgb, var(--lilac) 62%, var(--text-secondary));
+  color: color-mix(in srgb, var(--rose, var(--accent-danger)) 64%, var(--text-secondary));
 }
 .homeworkReviewBlock {
   margin-top: 14px;
   padding-top: 14px;
-  border-top: 1px solid color-mix(in srgb, var(--lilac) 28%, var(--border));
+  border-top: 1px solid color-mix(in srgb, var(--accent-premium) 24%, var(--border));
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -271,7 +299,18 @@
 .markHomeworkCheckedBtn:hover {
   background: color-mix(in srgb, var(--lilac) 12%, var(--card));
 }
-.materialsHeader { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.materialsHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.sectionHeaderStack {
+  display: grid;
+  gap: 4px;
+}
+.sectionHint {
+  margin: 0;
+  font-size: var(--fs-12);
+  line-height: 1.45;
+  color: var(--text-tertiary);
+  max-width: 62ch;
+}
 .materialsHint { font-size: var(--fs-12); color: var(--text-faint); }
 .materialsAddBtn {
   padding: 6px 10px;
@@ -289,20 +328,16 @@
 .saveMaterialBtn {
   padding: 9px 14px;
   border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--green) 35%, var(--border));
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--green) 76%, #fff) 0%,
-    var(--green) 100%
-  );
-  color: #fff;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 35%, var(--border));
+  background: var(--accent-primary);
+  color: var(--on-inverse);
   font-size: var(--fs-13);
   font-weight: 700;
   display: inline-flex;
   align-items: center;
   gap: 7px;
   cursor: pointer;
-  box-shadow: 0 6px 14px rgba(22, 169, 122, 0.24);
+  box-shadow: var(--shadow-sm);
   transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 .materialActionsRow {
@@ -312,14 +347,10 @@
   gap: 8px;
 }
 .saveMaterialBtn:hover:not(:disabled) {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--green) 68%, #fff) 0%,
-    color-mix(in srgb, var(--green) 92%, #0f172a) 100%
-  ) !important;
-  color: #fff !important;
+  background: var(--accent-primary-hover) !important;
+  color: var(--on-inverse) !important;
   transform: translateY(-1px);
-  box-shadow: 0 10px 18px rgba(22, 169, 122, 0.28);
+  box-shadow: var(--shadow-md);
 }
 .saveMaterialBtn:disabled {
   opacity: 0.55;
@@ -352,11 +383,29 @@
   align-items: center;
   gap: 6px;
   cursor: pointer;
+  box-shadow: var(--shadow-xs);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--surface-raised);
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+  }
 }
 .materialTypeBtnActive {
   background: var(--blue-light);
   border-color: color-mix(in srgb, var(--blue) 35%, var(--border));
   color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--blue-light) 82%, var(--surface-raised));
+    border-color: color-mix(in srgb, var(--blue) 42%, var(--border));
+  }
 }
 .materialEditorCard {
   margin-top: 8px;
@@ -393,6 +442,12 @@
   background: var(--card);
   padding: 10px;
   position: relative;
+}
+
+.savedMaterialItemLibrary {
+  padding: 0;
+  border: none;
+  background: transparent;
 }
 .savedMaterialMeta {
   display: inline-flex;
@@ -557,28 +612,48 @@
 .imagePreviewOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(10, 10, 18, 0.82);
+  background: var(--backdrop-modal, rgba(10, 10, 18, 0.82));
   z-index: var(--z-modal-lightbox, 2350);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
+  backdrop-filter: blur(8px);
 }
 .imagePreviewModal {
   position: relative;
-  max-width: min(92vw, 1200px);
+  width: min(92vw, 1220px);
   max-height: 92vh;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--border) 72%, var(--border-strong));
+  background: color-mix(in srgb, var(--card) 88%, var(--surface));
+  box-shadow: var(--shadow-modal, 0 14px 40px rgba(0, 0, 0, 0.45));
+}
+.imagePreviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.imagePreviewTitle {
+  margin: 0;
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
 }
 .imagePreviewClose {
-  position: absolute;
-  top: -36px;
-  right: 0;
+  position: static;
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  background: rgba(0, 0, 0, 0.45);
-  color: #fff;
+  border: 1px solid var(--border);
+  background: var(--modal-close-bg, var(--card));
+  color: var(--text-secondary);
   font-size: var(--fs-18);
   line-height: 1;
   display: inline-flex;
@@ -588,11 +663,17 @@
 }
 .imagePreviewImg {
   display: block;
-  max-width: min(92vw, 1200px);
-  max-height: 92vh;
+  max-width: min(90vw, 1196px);
+  max-height: calc(92vh - 74px);
   object-fit: contain;
   border-radius: 12px;
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow-lg);
+}
+.imagePreviewHint {
+  margin: 0;
+  font-size: var(--fs-12);
+  color: var(--text-tertiary);
+  text-align: right;
 }
 .fileError {
   margin-top: 8px;
@@ -610,7 +691,7 @@
   gap: 10px;
   padding: 14px 24px 18px;
   border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-  background: var(--card);
+  background: var(--modal-header-bg, var(--card));
 }
 .modalActionsWithLink {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -641,30 +722,27 @@
   padding: 10px;
   border-radius: var(--radius-md);
   border: none;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--green) 74%, #fff) 0%,
-    var(--green) 100%
-  );
-  color: #fff;
+  background: var(--accent-primary);
+  color: var(--on-inverse);
   font-size: var(--fs-14);
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 8px 16px rgba(22, 169, 122, 0.22);
+  box-shadow: var(--shadow-sm);
   transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 .modalConfirmBtn:hover:not(:disabled) {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--green) 66%, #fff) 0%,
-    color-mix(in srgb, var(--green) 90%, #0f172a) 100%
-  ) !important;
-  color: #fff !important;
+  background: var(--accent-primary-hover) !important;
+  color: var(--on-inverse) !important;
   transform: translateY(-1px);
-  box-shadow: 0 12px 20px rgba(22, 169, 122, 0.28);
+  box-shadow: var(--shadow-md);
 }
 
 @include respond-to(sm) {
+  .materialsHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .materialActionsRow {
     flex-direction: column;
     align-items: stretch;
@@ -694,6 +772,72 @@
   background: var(--green-light);
   border-color: rgba(22, 169, 122, 0.35);
   color: var(--green-dark);
+}
+
+.kindToggleRow {
+  grid-column: 1 / -1;
+}
+
+.kindToggle {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.kindToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  font-size: var(--fs-13);
+}
+
+.kindToggleBtnActive {
+  border-color: rgba(22, 169, 122, 0.45);
+  background: var(--green-light);
+  color: var(--green-dark);
+}
+
+.groupStudentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.groupStudentRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.groupStudentRemove {
+  flex-shrink: 0;
+}
+
+.addStudentBtn {
+  margin-top: 8px;
+}
+
+.billingModeRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.billingRadio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-13);
+}
+
+.billingFixedGrid {
+  display: grid;
+  gap: 8px;
 }
 
 @include respond-to(sm) {

@@ -1,12 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import type { QuizDetailDto, QuizQuestionDto } from '@pkg/types';
+import { useEffect, useMemo, useState } from 'react';
+import type { QuizDetailDto } from '@pkg/types';
 import { Check, CircleX, PencilLine, Target } from 'lucide-react';
 import { Button, Field } from '../../components/ui';
+import { WordCardAudioButton } from '../vocabulary/WordCardAudioButton';
 import { useAuth } from '../../lib/auth-context';
+import { isFillInAnswerCorrect } from '../../lib/quiz-grading';
+import type { QuizPlayQuestion } from '../../lib/quiz-questions';
 import { usePracticeSessionTracker } from '../../lib/practice-session-tracker';
+import { useVocabularyStore } from '../../stores/vocabulary-store';
 import { useQuizzesStore } from '../../stores/quizzes-store';
+import type { QuizPlayResult, QuizReviewItem } from './quiz-play-types';
 import styles from '../../app/quiz/page.module.scss';
 
 type SessionRow = { selected: number | null; fill: string };
@@ -15,12 +20,7 @@ type Props = {
   quizId: string;
   studentId?: string;
   practiceMode?: boolean;
-  onDone: (result: {
-    score: number;
-    correctCount: number;
-    totalCount: number;
-    practiceMode: boolean;
-  }) => void;
+  onDone: (result: QuizPlayResult) => void;
   onCancel?: () => void;
 };
 
@@ -33,9 +33,12 @@ export function QuizPlaySession({
 }: Props) {
   const fetchQuiz = useQuizzesStore((s) => s.fetchQuiz);
   const submitQuizAttempt = useQuizzesStore((s) => s.submitQuizAttempt);
+  const fetchWordsByIds = useVocabularyStore((s) => s.fetchWordsByIds);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quiz, setQuiz] = useState<QuizDetailDto | null>(null);
+  const [questions, setQuestions] = useState<QuizPlayQuestion[]>([]);
+  const [audioByWordId, setAudioByWordId] = useState<Record<string, string | null>>({});
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [fillAnswer, setFillAnswer] = useState('');
@@ -59,12 +62,28 @@ export function QuizPlaySession({
           return;
         }
         setQuiz(detail);
+        setQuestions(detail.questions as QuizPlayQuestion[]);
         setSession(detail.questions.map(() => ({ selected: null, fill: '' })));
         setCurrent(0);
         setSelected(null);
         setFillAnswer('');
         setShowExp(false);
         setAnswers([]);
+        const wordIds = detail.questions
+          .map((question) => question.wordId)
+          .filter((id): id is string => Boolean(id));
+        if (wordIds.length > 0) {
+          void fetchWordsByIds(wordIds).then((words) => {
+            if (cancelled) return;
+            const map: Record<string, string | null> = {};
+            for (const word of words) {
+              map[word.id] = word.audioUrl ?? null;
+            }
+            setAudioByWordId(map);
+          });
+        } else {
+          setAudioByWordId({});
+        }
       })
       .catch((err) => {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load quiz');
@@ -75,9 +94,46 @@ export function QuizPlaySession({
     return () => {
       cancelled = true;
     };
-  }, [fetchQuiz, quizId]);
+  }, [fetchQuiz, fetchWordsByIds, quizId]);
 
-  const q: QuizQuestionDto | undefined = quiz?.questions[current];
+  const q = questions[current];
+  const lastCorrect = answers.length > 0 ? answers[answers.length - 1] : false;
+  const currentAudioUrl = useMemo(
+    () => (q?.wordId ? audioByWordId[q.wordId] ?? null : null),
+    [audioByWordId, q?.wordId],
+  );
+
+  const buildReview = (sessionRows: SessionRow[]): QuizReviewItem[] =>
+    questions.map((question, index) => {
+      const row = sessionRows[index];
+      if (question.type === 'multiple-choice') {
+        const selectedIndex = row?.selected ?? null;
+        const isCorrect = selectedIndex === question.correct;
+        return {
+          questionId: question.id,
+          prompt: question.question,
+          explanation: question.explanation,
+          isCorrect,
+          userAnswer:
+            selectedIndex != null && question.options?.[selectedIndex]
+              ? question.options[selectedIndex]
+              : '—',
+          correctAnswer: question.options?.[question.correct as number] ?? String(question.correct),
+          wordId: question.wordId,
+        };
+      }
+      const given = row?.fill ?? '';
+      const expected = String(question.correct);
+      return {
+        questionId: question.id,
+        prompt: question.question,
+        explanation: question.explanation,
+        isCorrect: isFillInAnswerCorrect(given, expected),
+        userAnswer: given.trim() || '—',
+        correctAnswer: expected,
+        wordId: question.wordId,
+      };
+    });
 
   const checkAnswer = () => {
     if (!q) return;
@@ -85,7 +141,7 @@ export function QuizPlaySession({
     if (q.type === 'multiple-choice') {
       correct = selected === q.correct;
     } else {
-      correct = fillAnswer.trim().toLowerCase() === String(q.correct).trim().toLowerCase();
+      correct = isFillInAnswerCorrect(fillAnswer, String(q.correct));
     }
     setSession((prev) => {
       const next = [...prev];
@@ -100,14 +156,15 @@ export function QuizPlaySession({
     if (!quiz) return;
     setSubmitting(true);
     setError(null);
+    const review = buildReview(sessionRows);
     try {
       const result = await submitQuizAttempt({
         quizId: quiz.id,
         studentId: practiceMode ? undefined : (studentId ?? user?.id),
         practiceMode,
-        answers: buildAnswerPayload(quiz.questions, sessionRows),
+        answers: buildAnswerPayload(questions, sessionRows),
       });
-      onDone(result);
+      onDone({ ...result, review });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit quiz');
     } finally {
@@ -123,7 +180,7 @@ export function QuizPlaySession({
     setShowExp(false);
     setSelected(null);
     setFillAnswer('');
-    if (current + 1 >= quiz.questions.length) {
+    if (current + 1 >= questions.length) {
       void submit(updatedSession);
       return;
     }
@@ -150,19 +207,19 @@ export function QuizPlaySession({
         </p>
       ) : null}
       {error ? <div className={styles.loadError}>{error}</div> : null}
-      <div className={styles.scoreRow}>
+      <div className={styles.scoreRow} aria-hidden>
         {answers.map((ok, i) => (
           <div
             key={i}
             className={`${styles.scoreDot} ${ok ? styles.scoreDotGreen : styles.scoreDotRed}`}
           />
         ))}
-        {Array.from({ length: quiz.questions.length - answers.length }).map((_, i) => (
+        {Array.from({ length: questions.length - answers.length }).map((_, i) => (
           <div key={`empty-${i}`} className={styles.scoreDotEmpty} />
         ))}
       </div>
 
-      <div className={styles.questionCard}>
+      <div key={current} className={styles.questionCard}>
         <div className={styles.qType}>
           {q.type === 'multiple-choice' ? (
             <>
@@ -190,6 +247,7 @@ export function QuizPlaySession({
                 <Button
                   key={i}
                   type="button"
+                  variant="ghost"
                   className={cls}
                   onClick={() => !showExp && setSelected(i)}
                   disabled={showExp}
@@ -205,7 +263,9 @@ export function QuizPlaySession({
         {q.type === 'fill-in' ? (
           <div className={styles.fillArea}>
             <Field
-              className={styles.fillInput}
+              className={`${styles.fillInput} ${
+                showExp ? (lastCorrect ? styles.fillCorrect : styles.fillWrong) : ''
+              }`}
               placeholder="Type your answer here..."
               value={fillAnswer}
               onChange={(e) => !showExp && setFillAnswer(e.target.value)}
@@ -214,15 +274,22 @@ export function QuizPlaySession({
               }
               disabled={showExp}
             />
+            {showExp && !lastCorrect ? (
+              <div className={styles.fillCorrectAnswer}>
+                Correct: <strong>{String(q.correct)}</strong>
+              </div>
+            ) : null}
           </div>
         ) : null}
 
         {showExp ? (
           <div
-            className={`${styles.explanation} ${answers[answers.length - 1] ? styles.expCorrect : styles.expWrong}`}
+            className={`${styles.explanation} ${lastCorrect ? styles.expCorrect : styles.expWrong}`}
+            role="status"
+            aria-live="polite"
           >
             <div className={styles.expIcon}>
-              {answers[answers.length - 1] ? (
+              {lastCorrect ? (
                 <>
                   <Check size={15} /> Correct!
                 </>
@@ -233,6 +300,13 @@ export function QuizPlaySession({
               )}
             </div>
             <div className={styles.expText}>{q.explanation}</div>
+            {currentAudioUrl ? (
+              <WordCardAudioButton
+                audioUrl={currentAudioUrl}
+                className={styles.quizAudioBtn}
+                label="Listen"
+              />
+            ) : null}
           </div>
         ) : null}
 
@@ -253,7 +327,7 @@ export function QuizPlaySession({
             </Button>
           ) : (
             <Button type="button" className={styles.nextBtn} onClick={next} disabled={submitting}>
-              {current + 1 >= quiz.questions.length
+              {current + 1 >= questions.length
                 ? practiceMode
                   ? 'Finish practice'
                   : 'Submit quiz'
@@ -267,7 +341,7 @@ export function QuizPlaySession({
 }
 
 function buildAnswerPayload(
-  questions: QuizDetailDto['questions'],
+  questions: QuizPlayQuestion[],
   session: SessionRow[],
 ): Array<{ questionId: string; givenAnswer: string }> {
   return questions.map((question, index) => {

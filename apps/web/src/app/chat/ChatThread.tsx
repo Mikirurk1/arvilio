@@ -1,9 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Paperclip, Send, Smile } from 'lucide-react';
+import { ArrowLeft, MessagesSquare, Paperclip, Send, Smile } from 'lucide-react';
 import type { ChatConversationDto, ChatMessageDto } from '@pkg/types';
-import { Button, Field } from '../../components/ui';
+import { Button, Field, UserAvatar } from '../../components/ui';
 import { confirmDialog } from '../../features/confirm';
 import { filterSafeFiles } from '../../features/lesson-modal/fileUtils';
 import { getChatSocket } from '../../lib/chat-socket';
@@ -151,8 +151,14 @@ export function ChatThread({
 
   if (!conversation) {
     return (
-      <section className={styles.thread}>
-        <div className={styles.threadEmpty}>Select a conversation to start messaging</div>
+      <section className={styles.thread} aria-label="Conversation">
+        <div className={styles.threadEmpty}>
+          <span className={styles.threadEmptyIcon} aria-hidden>
+            <MessagesSquare size={26} />
+          </span>
+          <p className={styles.threadEmptyTitle}>Your messages</p>
+          <p className={styles.threadEmptyHint}>Choose a conversation from the inbox to continue.</p>
+        </div>
       </section>
     );
   }
@@ -221,7 +227,7 @@ export function ChatThread({
   const showHistoryStart = !loading && messages.length > 0 && !hasMoreOlder;
 
   return (
-    <section className={styles.thread}>
+    <section className={styles.thread} aria-label={`Chat with ${conversation.title}`}>
       <header className={styles.threadHead}>
         {onBack ? (
           <Button
@@ -235,9 +241,12 @@ export function ChatThread({
           </Button>
         ) : null}
         <div className={styles.threadPeer}>
-          <span className={styles.avatar} aria-hidden>
-            {conversation.type === 'group' ? 'G' : (conversation.peer?.initials ?? '?')}
-          </span>
+          <UserAvatar
+            size="md"
+            src={conversation.type === 'direct' ? conversation.peer?.avatarUrl : null}
+            name={conversation.type === 'direct' ? (conversation.peer?.displayName ?? conversation.title) : conversation.title}
+            className={styles.avatar}
+          />
           <div>
             <h3 className={styles.threadPeerName}>{conversation.title}</h3>
             <p className={styles.threadPeerRole}>{subtitle}</p>
@@ -252,6 +261,9 @@ export function ChatThread({
       <div
         ref={scrollContainerRef}
         className={styles.messages}
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
         onScroll={handleMessagesScroll}
       >
         <div ref={topSentinelRef} className={styles.historySentinel} aria-hidden />
@@ -269,9 +281,12 @@ export function ChatThread({
                 className={`${styles.bubbleRow} ${message.isMine ? styles.bubbleRowMine : ''}`}
               >
                 {!message.isMine ? (
-                  <span className={styles.avatar} aria-hidden>
-                    {message.sender.initials}
-                  </span>
+                  <UserAvatar
+                    size="sm"
+                    src={message.sender.avatarUrl}
+                    name={message.sender.displayName}
+                    className={styles.avatar}
+                  />
                 ) : null}
                 <div>
                   <div
@@ -279,7 +294,11 @@ export function ChatThread({
                   >
                     <ChatMessageContent message={message} />
                   </div>
-                  <div className={styles.bubbleTime}>{formatMessageTime(message.createdAt)}</div>
+                  <div
+                    className={`${styles.bubbleTime} ${message.isMine ? styles.bubbleTimeMine : styles.bubbleTimeTheirs}`}
+                  >
+                    {formatMessageTime(message.createdAt)}
+                  </div>
                 </div>
               </div>
             ))
@@ -334,13 +353,15 @@ export function ChatThread({
         </div>
         <Button
           type="button"
+          variant="primary"
           className={styles.sendBtn}
-          aria-label="Send"
+          aria-label="Send message"
           disabled={!input.trim() || sending || uploading}
           loading={sending}
+          loadingLabel="Sending…"
           onClick={handleSend}
         >
-          <Send size={18} />
+          <Send size={18} aria-hidden />
         </Button>
       </footer>
     </section>

@@ -12,6 +12,14 @@ type TooltipProps = {
   className?: string;
 };
 
+/**
+ * Якщо попередній tooltip зник менше ніж INSTANT_REOPEN_WINDOW_MS тому,
+ * наступний відкривається миттєво (без entrance-анімації) — рух по тулбару
+ * відчувається швидким, а перший показ зберігає м'яку появу.
+ */
+const INSTANT_REOPEN_WINDOW_MS = 250;
+let lastTooltipHiddenAt = 0;
+
 export function Tooltip({
   open,
   content,
@@ -20,6 +28,15 @@ export function Tooltip({
   className,
 }: TooltipProps) {
   const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+  const [instant, setInstant] = useState(false);
+
+  useLayoutEffect(() => {
+    if (!open) return undefined;
+    setInstant(Date.now() - lastTooltipHiddenAt < INSTANT_REOPEN_WINDOW_MS);
+    return () => {
+      lastTooltipHiddenAt = Date.now();
+    };
+  }, [open]);
 
   useLayoutEffect(() => {
     if (!open || !targetEl) {
@@ -74,7 +91,12 @@ export function Tooltip({
     left: uiStyles.tooltipLeft,
   }[placement];
   return createPortal(
-    <div className={[uiStyles.tooltipPortal, baseClass, className].filter(Boolean).join(' ')} style={coords} role="tooltip">
+    <div
+      className={[uiStyles.tooltipPortal, baseClass, className].filter(Boolean).join(' ')}
+      style={coords}
+      role="tooltip"
+      data-instant={instant ? 'true' : undefined}
+    >
       <span className={uiStyles.tooltipArrow} aria-hidden />
       {content}
     </div>,

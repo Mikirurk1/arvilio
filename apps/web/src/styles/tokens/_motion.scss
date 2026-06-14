@@ -1,0 +1,35 @@
+/**
+ * Motion tokens — redesign v2 (docs/redesign/redesign-v2.md §2.2).
+ * Криві навмисно сильніші за вбудовані CSS easings (ease/ease-out заслабкі).
+ * Використання: transition: transform var(--dur-press) var(--ease-out);
+ * Правила: enter/feedback → --ease-out; рух на екрані → --ease-in-out;
+ * drawer/sheet → --ease-drawer; постійний рух (marquee/progress) → linear.
+ * UI ≤ 300ms; exit швидший за enter; анімувати лише transform/opacity.
+ */
+
+:root {
+  /* Easing */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Duration */
+  --dur-press: 140ms; /* press feedback кнопок */
+  --dur-fast: 180ms; /* tooltips, dropdowns, hover */
+  --dur-base: 240ms; /* popovers, tabs, list items */
+  --dur-modal: 320ms; /* modals, drawers */
+}
+
+/* Reduced motion baseline: рух зникає, стани застосовуються миттєво.
+   Точкові винятки (м'який opacity-fade) компоненти оголошують самі
+   всередині власного @media-блоку. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

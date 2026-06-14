@@ -1,6 +1,6 @@
 ---
 tags: [entity, lessons]
-updated: 2026-05-16
+updated: 2026-05-30
 ---
 
 # Entity: LessonMaterial
@@ -9,8 +9,10 @@ Attachments and content blocks on a [[entities/scheduled-lesson]].
 
 ## Fields
 
-- `kind`: TEXT, PHOTO, TEST, FILE, PRESENTATION
-- `text`, `files[]` (refs: `att:{attachmentId}` or legacy bare filename), `order`
+- `kind`: TEXT, PHOTO, TEST (legacy), FILE, PRESENTATION, **BOOK**, **BOARD**
+- `text`, `files[]`, `order`, `libraryMaterialId?`
+- `sharedLibraryAssetIds[]` — audio/video asset ids shared with the student when `libraryMediaSelectionApplied=true`
+- `libraryMediaSelectionApplied` — `false` = legacy (all student audio/video); `true` = use `sharedLibraryAssetIds`
 - API also returns `fileLinks[]` (`ref`, `fileName`, `downloadPath`) for downloads
 
 ## Code
@@ -23,3 +25,5 @@ Attachments and content blocks on a [[entities/scheduled-lesson]].
 ## Related
 
 - [[entities/scheduled-lesson]]
+- [[entities/library-material]]
+- [[concepts/materials-library]]

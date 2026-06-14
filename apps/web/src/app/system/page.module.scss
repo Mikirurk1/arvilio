@@ -1,3 +1,4 @@
+@use '../../styles/variables' as *;
 @use '../../styles/mixins' as *;
 
 .page {
@@ -9,9 +10,8 @@
 }
 
 .pageTitle {
-  font-size: var(--fs-24);
-  font-weight: 600;
-  color: var(--text-primary);
+  @include page-title-display;
+  letter-spacing: -0.01em;
 }
 
 .pageSub {
@@ -22,12 +22,82 @@
 
 .card {
   margin-top: 20px;
-  padding: 18px 20px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  padding: var(--space-card-padding-lg);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--card) 88%, var(--surface)) 0%, var(--card) 100%);
+  border: 1px solid color-mix(in srgb, var(--border) 82%, var(--accent-info) 18%);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   color: var(--text-primary);
+}
+
+.overviewGrid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.overviewCard {
+  border: 1px solid color-mix(in srgb, var(--border) 80%, var(--accent-info) 20%);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface) 74%, var(--card));
+  box-shadow: var(--shadow-xs);
+  padding: 14px 16px;
+}
+
+.overviewIcon {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  color: var(--accent-info);
+  background: color-mix(in srgb, var(--accent-info-muted) 76%, var(--surface));
+}
+
+.overviewTitle {
+  margin: 0;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.overviewText {
+  margin: 8px 0 0;
+  font-size: var(--fs-13);
+  line-height: 1.5;
+  color: var(--text-secondary);
+  max-width: 60ch;
+}
+
+.tabsList {
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tabsTrigger {
+  border-radius: var(--radius-md);
+  color: var(--text-tertiary);
+}
+
+.tabsTriggerActive {
+  border: 1px solid color-mix(in srgb, var(--accent-info) 26%, var(--border));
+  background: color-mix(in srgb, var(--accent-info-muted) 40%, var(--card));
+  color: var(--text-primary);
+  box-shadow: var(--shadow-xs);
+}
+
+.tabLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tabsPanel {
+  margin-top: 14px;
 }
 
 .statusGrid {
@@ -35,6 +105,12 @@
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 12px;
   margin-bottom: 20px;
+  transition: opacity 0.15s ease;
+}
+
+.statusGridRefreshing {
+  opacity: 0.65;
+  pointer-events: none;
 }
 
 .statusItem {
@@ -328,11 +404,51 @@
   gap: 12px;
 }
 
+.paymentsRail {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.paymentsRailCard {
+  border: 1px solid color-mix(in srgb, var(--border) 80%, var(--accent-info) 20%);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface) 76%, var(--card));
+  box-shadow: var(--shadow-xs);
+  padding: 12px 14px;
+}
+
+.paymentsRailIcon {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  color: var(--accent-info);
+  background: color-mix(in srgb, var(--accent-info-muted) 72%, var(--surface));
+}
+
+.paymentsRailTitle {
+  font-size: var(--fs-13);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.paymentsRailText {
+  margin: 6px 0 0;
+  font-size: var(--fs-12);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
 .overviewCard {
   padding: 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--surface) 54%, var(--card));
+  background: var(--surface-elevated);
 }
 
 .overviewLabel {
@@ -456,7 +572,7 @@
   padding: 18px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--surface) 62%, var(--card));
+  background: var(--surface-panel);
 }
 
 .pricingHeroLabel {
@@ -483,7 +599,7 @@
   padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  background: var(--surface);
+  background: var(--surface-panel-muted);
 
   strong {
     display: block;
@@ -969,24 +1085,6 @@
   color: var(--text-tertiary);
 }
 
-[data-theme='dark'] {
-  .overviewCard,
-  .pricingHero,
-  .pricingMainCard,
-  .pricingSidebarCard,
-  .pricingControlCard,
-  .packageRowCard {
-    background: var(--card);
-  }
-
-  .pricingHeroStat,
-  .packageFieldCard,
-  .packageFieldSummary,
-  .packageTotal {
-    background: color-mix(in srgb, var(--surface) 82%, var(--card));
-  }
-}
-
 .pricingPreviewRow {
   display: flex;
   align-items: center;
@@ -1011,9 +1109,7 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background:
-    radial-gradient(circle at top, rgb(59 130 246 / 12%), transparent 40%),
-    rgb(15 23 42 / 56%);
+  background: var(--backdrop-modal);
   backdrop-filter: blur(10px);
 }
 
@@ -1024,12 +1120,9 @@
   flex-direction: column;
   overflow: hidden;
   border-radius: 22px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--card) 88%, var(--surface)) 0%, var(--card) 100%);
+  background: var(--modal-bg);
   border: 1px solid color-mix(in srgb, var(--border-strong) 65%, transparent);
-  box-shadow:
-    0 28px 80px rgb(15 23 42 / 28%),
-    0 10px 28px rgb(15 23 42 / 12%);
+  box-shadow: var(--shadow-modal);
 }
 
 .configModalHead {
@@ -1039,8 +1132,7 @@
   gap: 16px;
   padding: 22px 24px 18px;
   border-bottom: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface) 82%, var(--card)) 0%, var(--card) 100%);
+  background: var(--modal-header-bg);
 }
 
 .configModalHeading {
@@ -1050,6 +1142,7 @@
 .configModalEyebrow {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   padding: 4px 10px;
   border-radius: 999px;
   background: rgb(59 130 246 / 0.12);
@@ -1080,7 +1173,7 @@
   flex-shrink: 0;
   margin-top: 2px;
   border-radius: 999px;
-  background: rgb(148 163 184 / 0.12);
+  background: var(--modal-close-bg);
 }
 
 .configModalBody {
@@ -1088,7 +1181,7 @@
   flex-direction: column;
   gap: 16px;
   overflow: auto;
-  padding: 20px 24px 18px;
+  padding: 20px 24px 90px;
 }
 
 .configModalBody::-webkit-scrollbar {
@@ -1108,9 +1201,8 @@
   padding: 16px;
   border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
   border-radius: 18px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface) 74%, var(--card)) 0%, var(--card) 100%);
-  box-shadow: 0 8px 24px rgb(15 23 42 / 0.05);
+  background: var(--modal-section-gradient);
+  box-shadow: var(--shadow-sm);
 }
 
 .providerHelpTop {
@@ -1132,12 +1224,12 @@
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  border: 1px solid rgb(59 130 246 / 0.16);
+  border: 1px solid var(--modal-chip-border);
   border-radius: 999px;
-  background: rgb(59 130 246 / 0.08);
+  background: var(--modal-chip-bg);
   font-size: var(--fs-12);
   font-weight: 600;
-  color: var(--blue);
+  color: var(--accent-info);
   text-decoration: none;
 }
 
@@ -1170,7 +1262,7 @@
   padding: 16px;
   border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
   border-radius: 18px;
-  background: color-mix(in srgb, var(--surface) 84%, var(--card));
+  background: var(--modal-section-bg);
 }
 
 .providerSectionTitle {
@@ -1189,7 +1281,7 @@
   padding: 16px;
   border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
   border-radius: 18px;
-  background: color-mix(in srgb, var(--surface) 84%, var(--card));
+  background: var(--modal-section-bg);
 }
 
 .configLabelRow {
@@ -1248,8 +1340,7 @@
   padding: 16px;
   border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
   border-radius: 18px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface) 78%, var(--card)) 0%, var(--card) 100%);
+  background: var(--modal-section-gradient);
 }
 
 .manualMethodToolbarActions {
@@ -1264,9 +1355,8 @@
   padding: 16px;
   border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
   border-radius: 20px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface) 74%, var(--card)) 0%, var(--card) 100%);
-  box-shadow: 0 10px 28px rgb(15 23 42 / 0.05);
+  background: var(--modal-section-gradient);
+  box-shadow: var(--shadow-sm);
 }
 
 .manualMethodHead {
@@ -1281,7 +1371,7 @@
   align-items: center;
   padding: 5px 10px;
   border-radius: 999px;
-  background: rgb(34 197 94 / 0.12);
+  background: var(--modal-success-chip-bg);
   font-size: var(--fs-11);
   font-weight: 700;
   text-transform: uppercase;
@@ -1327,6 +1417,9 @@
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
   padding: 16px 24px 20px;
   border-top: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
   background:
@@ -1334,66 +1427,15 @@
   backdrop-filter: blur(8px);
 }
 
-[data-theme='dark'] {
-  .configModalBackdrop {
-    background:
-      radial-gradient(circle at top, rgb(59 130 246 / 8%), transparent 42%),
-      rgb(2 6 23 / 72%);
-  }
-
-  .configModal {
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--card) 96%, var(--surface)) 0%,
-      var(--card) 100%
-    );
-    border-color: color-mix(in srgb, var(--border-strong) 88%, transparent);
-    box-shadow:
-      0 30px 90px rgb(0 0 0 / 58%),
-      0 12px 32px rgb(0 0 0 / 32%);
-  }
-
-  .configModalHead,
-  .providerHelpCard,
-  .manualMethodToolbar,
-  .manualMethodCard {
-    background: var(--card);
-  }
-
-  .configModalHead {
-    border-bottom-color: color-mix(in srgb, var(--border-strong) 78%, transparent);
-  }
-
-  .providerModeSection,
-  .providerFieldGrid,
-  .configModalActions {
-    background: color-mix(in srgb, var(--surface) 78%, var(--card));
-  }
-
-  .providerHelpCard,
-  .providerModeSection,
-  .providerFieldGrid,
-  .manualMethodToolbar,
-  .manualMethodCard,
-  .configModalActions {
-    border-color: color-mix(in srgb, var(--border-strong) 72%, transparent);
-  }
-
-  .configModalClose {
-    background: color-mix(in srgb, var(--surface) 72%, var(--card));
-  }
-
-  .providerHelpLink {
-    background: color-mix(in srgb, var(--blue-light) 72%, var(--card));
-    border-color: color-mix(in srgb, var(--blue) 34%, var(--border));
-  }
-
-  .manualMethodKindLabel {
-    background: color-mix(in srgb, var(--green-light) 88%, var(--card));
-  }
-}
-
 @include respond-to(sm) {
+  .paymentsRail {
+    grid-template-columns: 1fr;
+  }
+
+  .overviewGrid {
+    grid-template-columns: 1fr;
+  }
+
   .card {
     padding: 14px 16px;
   }
@@ -1455,4 +1497,280 @@
   .actions button {
     width: 100%;
   }
+}
+
+.integrationSection {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.integrationHeading {
+  margin: 0 0 12px;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: var(--fs-13);
+  color: var(--text-secondary);
+  grid-column: 1 / -1;
+}
+
+.connectionVerifyRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-top: 12px;
+}
+
+.verifyOk {
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--green-dark);
+}
+
+.verifyFail {
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--rose);
+}
+
+.generalSection {
+  margin-bottom: 24px;
+}
+
+.generalFeatureCard {
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.generalFeatureHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 0;
+}
+
+.generalFeatureIcon {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent-info-muted) 70%, var(--surface));
+  color: var(--accent-info);
+  flex-shrink: 0;
+}
+
+.generalFeatureTitle {
+  font-size: var(--fs-15);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.generalStatusSlot {
+  min-height: 1.25rem;
+  margin-top: 8px;
+}
+
+.generalStatusSlot:empty {
+  min-height: 0;
+  margin-top: 0;
+}
+
+.generalToggleRow {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-hairline);
+  width: 100%;
+  gap: 16px;
+  align-items: center;
+}
+
+.generalToggleInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.generalToggleLabel {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+  line-height: 1.4;
+  color: var(--text-primary);
+}
+
+.generalToggleRow .generalSwitch {
+  position: relative;
+  flex-shrink: 0;
+  width: 44px;
+  min-width: 44px;
+  height: 24px;
+  min-height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  background: var(--border-strong);
+  box-shadow: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.generalToggleRow .generalSwitch:hover {
+  background: color-mix(in srgb, var(--border-strong) 70%, var(--text-tertiary));
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.generalToggleRow .generalSwitchOn {
+  background: var(--green);
+}
+
+.generalToggleRow .generalSwitchOn:hover {
+  background: color-mix(in srgb, var(--green) 88%, #000);
+}
+
+.generalToggleRow .generalSwitchThumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px color-mix(in srgb, #000 14%, transparent);
+  transform: translateX(0);
+  transition: transform 0.2s ease;
+}
+
+.generalToggleRow .generalSwitch.generalSwitchOn .generalSwitchThumb {
+  transform: translateX(20px);
+}
+
+.groupLessonsSection {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.groupLessonsDefaults {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.pricingDisabledNotice {
+  margin-top: 4px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border);
+  background: color-mix(in srgb, var(--surface-muted) 60%, transparent);
+}
+
+@include respond-max($breakpoint-narrow) {
+  .fieldGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panelCard {
+  padding: 20px;
+}
+
+.panelHero {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.panelHeroIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--green) 12%, transparent);
+  color: var(--green-dark);
+}
+
+.panelText {
+  margin-top: 4px;
+  font-size: var(--fs-14);
+  color: var(--text-secondary);
+}
+
+.panelHint {
+  margin-bottom: 12px;
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+}
+
+.errorHint {
+  margin-bottom: 12px;
+  font-size: var(--fs-13);
+  color: var(--rose);
+}
+
+.payoutFormGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.panelActions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.formGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.checkboxRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-13);
+  color: var(--text);
+}
+
+.helpText {
+  font-size: var(--fs-13);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.actionsRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.successText {
+  color: var(--success, #15803d);
+  font-size: var(--fs-12);
+}
+
+.errorText {
+  color: var(--danger, #b91c1c);
+  font-size: var(--fs-12);
 }

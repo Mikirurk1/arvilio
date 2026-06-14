@@ -1,106 +1,81 @@
 @use '../../../styles/mixins' as *;
 
 .page {
-  padding-top: 12px;
+  /* entrance-анімацію сторінки володіє app/template.tsx (V1-04) */
+  min-width: 0;
 }
 
-.pageHeader {
-  margin-bottom: 24px;
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-section-sm);
 }
 
-.pageTitle {
-  font-family: 'Lora', serif;
-  font-size: var(--fs-page-title);
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.pageSub {
-  max-width: 720px;
-  font-size: var(--fs-page-sub);
-  line-height: 1.55;
-  color: var(--text-tertiary);
-}
-
-.layout {
-  display: grid;
-  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-  gap: 18px;
-  align-items: start;
-}
-
-.sessionCard {
-  display: grid;
-  gap: 14px;
-  padding: 20px;
-}
-
-.sessionIcon {
-  width: 42px;
-  height: 42px;
+.backLink {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--purple-light) 72%, var(--card));
-  color: var(--purple);
-}
-
-.sessionLabel {
-  font-size: var(--fs-12);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-tertiary);
-}
-
-.sessionValue {
-  font-size: 42px;
-  line-height: 1;
-  font-weight: 800;
-  color: var(--text-primary);
-}
-
-.sessionHint {
-  margin: 0;
-  font-size: var(--fs-14);
-  line-height: 1.55;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
   color: var(--text-secondary);
-}
+  background: var(--card);
+  text-decoration: none;
+  transition:
+    border-color var(--transition),
+    color var(--transition),
+    background-color var(--transition);
 
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
+  &:hover {
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+    background: var(--surface);
+  }
 
-.prompts {
-  display: grid;
-  gap: 14px;
-}
-
-.promptCard {
-  padding: 18px;
-}
-
-.promptIndex {
-  font-size: var(--fs-11);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-tertiary);
-}
-
-.promptText {
-  margin-top: 8px;
-  font-size: var(--fs-16);
-  line-height: 1.6;
-  color: var(--text-primary);
-}
-
-@include respond-to(md) {
-  .layout {
-    grid-template-columns: 1fr;
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
   }
 }
 
+.pageHeader {
+  margin-bottom: 0;
+}
+
+.pageTitle {
+  @include page-title-display;
+}
+
+.pageSub {
+  max-width: var(--container-max-prose);
+  font-size: var(--fs-page-sub);
+  line-height: var(--lh-body);
+  color: var(--text-secondary);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-stack-gap);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.topicList,
+.reviewList {
+  display: grid;
+  gap: var(--space-stack-gap);
+}
+
+.loadingCard {
+  padding: var(--space-card-padding);
+  color: var(--text-secondary);
+}

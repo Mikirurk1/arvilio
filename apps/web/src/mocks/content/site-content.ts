@@ -26,7 +26,6 @@ export const siteContent = {
       tag: 'Words',
       tagClass: 'tagGreen' as const,
       stat: '4 new words',
-      ctaLabel: 'Start practice',
       accent: 'green' as const,
     },
     {
@@ -39,7 +38,6 @@ export const siteContent = {
       tag: 'Grammar',
       tagClass: 'tagBlue' as const,
       stat: '3 available',
-      ctaLabel: 'Start practice',
       accent: 'blue' as const,
     },
     {
@@ -47,13 +45,24 @@ export const siteContent = {
       href: '/practice/speaking',
       title: 'Speaking',
       description:
-        'Guided speaking prompts and short reflection practice with live session tracking.',
+        'Discussion topics with optional vocabulary prompts, voice recording, and teacher feedback.',
       icon: 'mic',
       tag: 'Live',
       tagClass: 'tagAmber' as const,
-      stat: '3 prompts',
-      ctaLabel: 'Start speaking',
+      stat: 'Topics',
       accent: 'purple' as const,
+    },
+    {
+      id: 'activity-irregular-verbs',
+      href: '/practice/irregular-verbs',
+      title: 'Irregular verbs',
+      description:
+        'Browse the full irregular verb table and run a Three Forms Drill on past simple and past participle.',
+      icon: 'repeat',
+      tag: 'Grammar',
+      tagClass: 'tagAmber' as const,
+      stat: 'Drill ready',
+      accent: 'amber' as const,
     },
     {
       id: 'activity-games',
@@ -66,7 +75,6 @@ export const siteContent = {
       tagClass: 'tagMuted' as const,
       disabled: true,
       stat: 'Coming soon',
-      ctaLabel: 'Coming soon',
       accent: 'amber' as const,
     },
     {
@@ -80,7 +88,6 @@ export const siteContent = {
       tagClass: 'tagMuted' as const,
       disabled: true,
       stat: 'Coming soon',
-      ctaLabel: 'Coming soon',
       accent: 'rose' as const,
     },
   ],
@@ -122,6 +129,9 @@ export const siteContent = {
         cancelReason: 'Cancel reason',
         credited: 'Credited',
         weekDays: 'Week days',
+        lessonType: 'Lesson type',
+        studentGroup: 'Learning group',
+        students: 'Students',
         student: 'Student',
         lessonPlan: 'Lesson plan',
         materials: 'Materials',
@@ -143,6 +153,8 @@ export const siteContent = {
         teacherAbsent: 'Teacher absent',
         credited: 'Credited',
         notCredited: 'Not credited',
+        individualLesson: 'Individual',
+        groupLesson: 'Group',
       },
       hints: {
         recurrenceFixedOnly:
@@ -163,6 +175,8 @@ export const siteContent = {
         test: 'Test',
         file: 'File',
         presentation: 'Presentation',
+        book: 'Book',
+        board: 'Board',
       },
       actions: {
         addFile: 'Add file',

@@ -11,7 +11,7 @@ import {
   Users,
 } from 'lucide-react';
 import type { ScheduledLessonBackendDto, StudentSummaryBackendDto } from '@pkg/types';
-import { SectionHeader, SurfaceCard } from '../../components/ui';
+import { Button, SectionHeader, SurfaceCard } from '../../components/ui';
 import { isTeacherAdminOrSuperKey, useActiveRoleKey } from '../../lib/active-user';
 import {
   formatShortWeekdayDate,
@@ -96,26 +96,36 @@ export function DashboardQuickActions() {
     <div className={styles.quickActions}>
       {actions.map((action) => {
         const key = action.href ?? action.label;
-        const content = (
-          <>
-            <span className={styles.quickActionIcon}>{action.icon}</span>
+        if (action.onClick) {
+          return (
+            <Button
+              key={key}
+              type="button"
+              variant="ghost"
+              className={styles.quickAction}
+              onClick={action.onClick}
+              startIcon={<span className={styles.quickActionIcon}>{action.icon}</span>}
+            >
+              <span className={styles.quickActionLabel}>{action.label}</span>
+              {action.badge !== undefined ? (
+                <span className={styles.quickActionBadge}>{action.badge > 99 ? '99+' : action.badge}</span>
+              ) : null}
+            </Button>
+          );
+        }
+        return (
+          <Button
+            key={key}
+            variant="ghost"
+            href={action.href!}
+            className={styles.quickAction}
+            startIcon={<span className={styles.quickActionIcon}>{action.icon}</span>}
+          >
             <span className={styles.quickActionLabel}>{action.label}</span>
             {action.badge !== undefined ? (
               <span className={styles.quickActionBadge}>{action.badge > 99 ? '99+' : action.badge}</span>
             ) : null}
-          </>
-        );
-        if (action.onClick) {
-          return (
-            <button key={key} type="button" className={styles.quickAction} onClick={action.onClick}>
-              {content}
-            </button>
-          );
-        }
-        return (
-          <Link key={key} href={action.href!} className={styles.quickAction}>
-            {content}
-          </Link>
+          </Button>
         );
       })}
     </div>

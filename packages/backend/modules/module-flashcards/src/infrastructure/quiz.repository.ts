@@ -29,28 +29,35 @@ export class QuizRepository {
     lessonId: string | undefined,
     source: 'vocabulary' | 'lesson' | 'mixed' | 'manual',
     nativeLanguageId: string | null,
+    mistakesOnly = false,
   ): Promise<WordRow[]> {
-    if (source === 'lesson') {
+    const statusFilter = mistakesOnly ? { status: 'MISTAKES_WORK' as const } : {};
+    if (source === 'lesson' || source === 'mixed') {
       if (!lessonId) {
-        throw new BadRequestException('lessonId is required when source is lesson');
+        throw new BadRequestException(
+          `lessonId is required when source is ${source}`,
+        );
       }
+    }
+
+    if (source === 'lesson') {
       const cards = await this.prisma.studentWordCard.findMany({
-        where: { userId: studentId, lessonId },
+        where: { userId: studentId, lessonId, ...statusFilter },
         include: cardWordInclude,
         orderBy: { firstSeenAt: 'desc' },
       });
       return weightedShuffleWords(wordsFromCards(cards as CardWithWord[], nativeLanguageId));
     }
 
-    if (source === 'mixed' && lessonId) {
+    if (source === 'mixed') {
       const [lessonCards, allCards] = await Promise.all([
         this.prisma.studentWordCard.findMany({
-          where: { userId: studentId, lessonId },
+          where: { userId: studentId, lessonId, ...statusFilter },
           include: cardWordInclude,
           orderBy: { firstSeenAt: 'desc' },
         }),
         this.prisma.studentWordCard.findMany({
-          where: { userId: studentId },
+          where: { userId: studentId, ...statusFilter },
           include: cardWordInclude,
           orderBy: { firstSeenAt: 'desc' },
         }),
@@ -63,11 +70,14 @@ export class QuizRepository {
       const otherWords = wordsFromCards(otherCards, nativeLanguageId).filter(
         (word) => !lessonWordIds.has(word.id),
       );
-      return weightedShuffleWords([...lessonWords, ...otherWords]);
+      return [
+        ...weightedShuffleWords(lessonWords),
+        ...weightedShuffleWords(otherWords),
+      ];
     }
 
     const cards = await this.prisma.studentWordCard.findMany({
-      where: { userId: studentId },
+      where: { userId: studentId, ...statusFilter },
       include: cardWordInclude,
       orderBy: { firstSeenAt: 'desc' },
     });

@@ -4,8 +4,16 @@ import { Suspense, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ScheduledLessonDto } from '@pkg/types';
 import { LESSON_STATUS } from '@pkg/types';
-import { BookOpen, Calendar, CheckCircle2, CircleAlert, Clock, FileText, Users } from 'lucide-react';
-import { PageHeader, SurfaceCard } from '../../components/ui';
+import {
+  BookOpen,
+  Calendar,
+  CheckCircle2,
+  CircleAlert,
+  Clock,
+  Users,
+} from 'lucide-react';
+import Link from 'next/link';
+import { Button, PageHeader, SurfaceCard } from '../../components/ui';
 import { USER_ROLE, type UserRole } from '../../mocks';
 import { useActiveUser } from '../../lib/active-user';
 import {
@@ -189,20 +197,37 @@ function LessonsPageInner() {
     () => (previousLesson ? homeworkHighlightStatus(previousLesson, role) : null),
     [previousLesson, role],
   );
+  const lessonStats = useMemo(() => {
+    const planned = visibleLessons.filter((lesson) => lesson.statusId === LESSON_STATUS.planned.id).length;
+    const completed = visibleLessons.filter((lesson) => lesson.statusId === LESSON_STATUS.completed.id).length;
+    const cancelled = visibleLessons.filter((lesson) => lesson.statusId === LESSON_STATUS.cancelled.id).length;
+    return { planned, completed, cancelled };
+  }, [visibleLessons]);
 
   return (
     <div className={`${styles.page} container container--page`}>
-      <PageHeader
-        className={styles.pageHeader}
-        titleClassName={styles.pageTitle}
-        subtitleClassName={styles.pageSub}
-        title="Lessons"
-        subtitle="Browse your schedule, open a lesson, or jump to the calendar"
-      />
+      <div className={styles.stack}>
+        <PageHeader
+          className={styles.pageHeader}
+          titleClassName={styles.pageTitle}
+          subtitleClassName={styles.pageSub}
+          title="Lessons"
+          subtitle="Your course schedule — upcoming and past lessons in one place."
+          actions={
+            <Button variant="primary" href="/calendar" className={styles.openCalendarBtn}>
+              Open calendar
+            </Button>
+          }
+        />
 
-      <div className={styles.highlightsGrid}>
+        <section className={styles.scheduleSection} aria-label="Lesson highlights">
+          <div className={styles.sectionHead}>
+            <h2 className={styles.sectionHeading}>Highlights</h2>
+            <span className={styles.sectionHint}>Next and previous checkpoints</span>
+          </div>
+          <div className={styles.highlightsGrid}>
         <SurfaceCard
-          className={`${styles.highlightCard} ${nextLesson ? styles.highlightCardClickable : ''}`}
+          className={`${styles.highlightCard} ${styles.highlightCardNext} ${nextLesson ? styles.highlightCardClickable : ''}`}
           role={nextLesson ? 'button' : undefined}
           tabIndex={nextLesson ? 0 : undefined}
           onClick={() => (nextLesson ? router.push(`/lessons/${getLessonRouteId(nextLesson)}`) : undefined)}
@@ -227,6 +252,10 @@ function LessonsPageInner() {
           {nextLesson ? (
             <>
               <div className={styles.highlightLessonTitle}>{nextLesson.title}</div>
+              {/* V3-01: Time is the hero element — large Lora display number */}
+              <div className={styles.highlightTimeHero} aria-label={`${nextLesson.startTime} to ${nextLesson.endTime}`}>
+                {nextLesson.startTime}
+              </div>
               <div className={styles.lessonMetaRow}>
                 <span className={styles.metaItem}>
                   <Calendar size={14} aria-hidden />
@@ -234,7 +263,7 @@ function LessonsPageInner() {
                 </span>
                 <span className={styles.metaItem}>
                   <Clock size={14} aria-hidden />
-                  {nextLesson.startTime}–{nextLesson.endTime} · {nextLesson.duration} min
+                  –{nextLesson.endTime} · {nextLesson.duration} min
                 </span>
                 <span className={styles.metaItem}>
                   <Users size={14} aria-hidden />
@@ -246,14 +275,10 @@ function LessonsPageInner() {
               <p className={styles.highlightDescription}>
                 {nextLesson.lessonPlan || nextLesson.notes || 'No lesson notes yet.'}
               </p>
-              <div className={styles.highlightExtras}>
-                <div className={styles.highlightExtraRow}>
-                  <span className={styles.highlightExtraIcon}><FileText size={13} /></span>
-                  <strong>Materials:</strong> {nextLesson.materials?.length ?? 0}
-                </div>
+              <div className={styles.highlightFooter}>
                 <div className={styles.highlightExtraRow}>
                   <span className={styles.highlightExtraIcon}><BookOpen size={13} /></span>
-                  <strong>Homework:</strong> {nextLesson.homework?.text || 'No homework assigned.'}
+                  <strong>Materials:</strong> {nextLesson.materials?.length ?? 0}
                 </div>
                 <div className={styles.highlightExtraRow}>
                   <span className={styles.highlightExtraIcon}>
@@ -273,12 +298,12 @@ function LessonsPageInner() {
               </div>
             </>
           ) : (
-            <div className={styles.emptySmall}>No upcoming lessons.</div>
+            <div className={styles.emptySmall}>No upcoming lessons scheduled yet.</div>
           )}
         </SurfaceCard>
 
         <SurfaceCard
-          className={`${styles.highlightCard} ${previousLesson ? styles.highlightCardClickable : ''}`}
+          className={`${styles.highlightCard} ${styles.highlightCardPrevious} ${previousLesson ? styles.highlightCardClickable : ''}`}
           role={previousLesson ? 'button' : undefined}
           tabIndex={previousLesson ? 0 : undefined}
           onClick={() =>
@@ -324,14 +349,10 @@ function LessonsPageInner() {
               <p className={styles.highlightDescription}>
                 {previousLesson.lessonPlan || previousLesson.notes || 'No lesson notes yet.'}
               </p>
-              <div className={styles.highlightExtras}>
-                <div className={styles.highlightExtraRow}>
-                  <span className={styles.highlightExtraIcon}><FileText size={13} /></span>
-                  <strong>Materials:</strong> {previousLesson.materials?.length ?? 0}
-                </div>
+              <div className={styles.highlightFooter}>
                 <div className={styles.highlightExtraRow}>
                   <span className={styles.highlightExtraIcon}><BookOpen size={13} /></span>
-                  <strong>Homework:</strong> {previousLesson.homework?.text || 'No homework assigned.'}
+                  <strong>Materials:</strong> {previousLesson.materials?.length ?? 0}
                 </div>
                 <div className={styles.highlightExtraRow}>
                   <span className={styles.highlightExtraIcon}>
@@ -351,13 +372,41 @@ function LessonsPageInner() {
               </div>
             </>
           ) : (
-            <div className={styles.emptySmall}>No previous lessons.</div>
+            <div className={styles.emptySmall}>No previous lessons available yet.</div>
           )}
         </SurfaceCard>
-      </div>
+          </div>
+        </section>
 
-      <div className={styles.workspace}>
-        <LessonsListPanel
+        <section className={styles.overviewStrip} aria-label="Lesson workspace overview">
+          <SurfaceCard className={styles.kpiCard}>
+            <div className={styles.kpiGrid}>
+              <div className={styles.kpiItem}>
+                <span className={styles.kpiLabel}>Planned</span>
+                <span className={styles.kpiValue}>{lessonStats.planned}</span>
+              </div>
+              <div className={styles.kpiItem}>
+                <span className={styles.kpiLabel}>Completed</span>
+                <span className={styles.kpiValue}>{lessonStats.completed}</span>
+              </div>
+              <div className={styles.kpiItem}>
+                <span className={styles.kpiLabel}>Cancelled</span>
+                <span className={styles.kpiValue}>{lessonStats.cancelled}</span>
+              </div>
+            </div>
+          </SurfaceCard>
+        </section>
+
+        <section className={styles.listSection} aria-labelledby="lessons-list-heading">
+          <div className={styles.listSectionHead}>
+            <h2 id="lessons-list-heading" className={styles.sectionTitle}>
+              All lessons
+            </h2>
+            <Link href="/calendar" className={styles.listSectionLink}>
+              Calendar view →
+            </Link>
+          </div>
+          <LessonsListPanel
           lessons={listLessons}
           canManageLessons={canManageLessons}
           onEditLesson={openEditModal}
@@ -366,7 +415,8 @@ function LessonsPageInner() {
           loadingMore={lessonsPage.loadingMore}
           listLoading={lessonsPage.status === 'loading' || lessonsPage.status === 'idle'}
           onLoadMore={() => void loadMoreLessonsPage()}
-        />
+          />
+        </section>
       </div>
 
       {form ? (

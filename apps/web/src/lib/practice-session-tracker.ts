@@ -7,9 +7,24 @@ import { usePracticeStore } from '../stores/practice-store';
 export const PRACTICE_SESSION_LOGGED_EVENT = 'practice-session-logged';
 
 /** Ignore very short visits (mis-clicks, instant back). */
-const MIN_SESSION_MS = 30_000;
+export const MIN_PRACTICE_SESSION_MS = 30_000;
+
+/** Pause engaged-time accumulation after this idle period (games, quiz, vocabulary play). */
+export const DEFAULT_PRACTICE_IDLE_TIMEOUT_MS = 60_000;
 
 export type PracticeSessionKind = RecordPracticeSessionRequestDto['kind'];
+
+export type PracticeSessionTrackerOptions = {
+  /**
+   * `false` — count wall-clock time while active (e.g. speaking aloud without clicks).
+   * `number` — count only engaged time; pause after this many ms without input. Default 60s.
+   */
+  idleTimeoutMs?: number | false;
+  /** Pause engaged time when the tab is hidden. Default true when idle tracking is on. */
+  pauseWhenHidden?: boolean;
+};
+
+const ACTIVITY_EVENTS = ['pointerdown', 'keydown', 'touchstart'] as const;
 
 export async function recordPracticeSession(
   userId: string | undefined,
@@ -17,8 +32,20 @@ export async function recordPracticeSession(
   startedAtMs: number,
   endedAtMs = Date.now(),
 ): Promise<void> {
-  if (!userId || endedAtMs - startedAtMs < MIN_SESSION_MS) return;
+  if (!userId) return;
+  await recordPracticeSessionDuration(userId, kind, endedAtMs - startedAtMs);
+}
 
+/** Persist a session from accumulated engaged milliseconds (maps to startedAt/endedAt for the API). */
+export async function recordPracticeSessionDuration(
+  userId: string | undefined,
+  kind: PracticeSessionKind,
+  durationMs: number,
+): Promise<void> {
+  if (!userId || durationMs < MIN_PRACTICE_SESSION_MS) return;
+
+  const endedAtMs = Date.now();
+  const startedAtMs = endedAtMs - durationMs;
   const startedAt = new Date(startedAtMs).toISOString();
   const endedAt = new Date(endedAtMs).toISOString();
 
@@ -33,33 +60,107 @@ export async function recordPracticeSession(
 }
 
 /**
- * Tracks wall-clock time while `active` is true and persists via GraphQL.
+ * Tracks practice time while `active` is true.
+ * Default: engaged time only — pauses after idle timeout or when the tab is hidden.
  */
 export function usePracticeSessionTracker(
   userId: string | undefined,
   kind: PracticeSessionKind,
   active: boolean,
+  options?: PracticeSessionTrackerOptions,
 ): void {
-  const startedAtRef = useRef<number | null>(null);
+  const idleTimeoutMs = options?.idleTimeoutMs ?? DEFAULT_PRACTICE_IDLE_TIMEOUT_MS;
+  const pauseWhenHidden = options?.pauseWhenHidden ?? idleTimeoutMs !== false;
+  const wallClockStartedRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!userId) return;
 
-    if (!active) {
-      if (startedAtRef.current !== null) {
-        void recordPracticeSession(userId, kind, startedAtRef.current);
-        startedAtRef.current = null;
+    if (idleTimeoutMs === false) {
+      if (!active) {
+        if (wallClockStartedRef.current !== null) {
+          void recordPracticeSession(userId, kind, wallClockStartedRef.current);
+          wallClockStartedRef.current = null;
+        }
+        return;
       }
-      return;
+
+      wallClockStartedRef.current = Date.now();
+
+      return () => {
+        if (wallClockStartedRef.current !== null) {
+          void recordPracticeSession(userId, kind, wallClockStartedRef.current);
+          wallClockStartedRef.current = null;
+        }
+      };
     }
 
-    startedAtRef.current = Date.now();
+    if (!active) return;
 
-    return () => {
-      if (startedAtRef.current !== null) {
-        void recordPracticeSession(userId, kind, startedAtRef.current);
-        startedAtRef.current = null;
+    let engagedMs = 0;
+    let engagedSpanStart: number | null = Date.now();
+    let isPaused = false;
+    let idleTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const clearIdleTimer = () => {
+      if (idleTimer !== null) {
+        clearTimeout(idleTimer);
+        idleTimer = null;
       }
     };
-  }, [active, userId, kind]);
+
+    const flushEngagedSpan = () => {
+      if (engagedSpanStart === null) return;
+      engagedMs += Date.now() - engagedSpanStart;
+      engagedSpanStart = null;
+    };
+
+    const pauseEngaged = () => {
+      flushEngagedSpan();
+      isPaused = true;
+      clearIdleTimer();
+    };
+
+    const scheduleIdleCheck = () => {
+      clearIdleTimer();
+      idleTimer = setTimeout(() => {
+        pauseEngaged();
+      }, idleTimeoutMs);
+    };
+
+    const resumeEngaged = () => {
+      if (document.visibilityState === 'hidden' && pauseWhenHidden) return;
+      isPaused = false;
+      engagedSpanStart = Date.now();
+      scheduleIdleCheck();
+    };
+
+    const onActivity = () => {
+      if (document.visibilityState === 'hidden' && pauseWhenHidden) return;
+      if (isPaused) resumeEngaged();
+      else scheduleIdleCheck();
+    };
+
+    const onVisibilityChange = () => {
+      if (!pauseWhenHidden) return;
+      if (document.visibilityState === 'hidden') pauseEngaged();
+    };
+
+    scheduleIdleCheck();
+
+    for (const eventName of ACTIVITY_EVENTS) {
+      window.addEventListener(eventName, onActivity, { passive: true });
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      for (const eventName of ACTIVITY_EVENTS) {
+        window.removeEventListener(eventName, onActivity);
+      }
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      clearIdleTimer();
+      flushEngagedSpan();
+      void recordPracticeSessionDuration(userId, kind, engagedMs);
+    };
+  }, [active, userId, kind, idleTimeoutMs, pauseWhenHidden]);
 }

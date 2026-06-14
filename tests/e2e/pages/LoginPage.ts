@@ -12,8 +12,8 @@ export class LoginPage {
     let lastStatus = 0;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      await this.page.getByLabel(/email/i).fill(email);
-      await this.page.getByLabel(/password/i).fill(password);
+      await this.page.getByLabel('Email', { exact: true }).fill(email);
+      await this.page.getByLabel('Password', { exact: true }).fill(password);
       const loginResponse = this.page.waitForResponse(
         (res) =>
           res.url().includes('/api/auth/login') && res.request().method() === 'POST',

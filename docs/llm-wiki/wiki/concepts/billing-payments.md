@@ -10,7 +10,8 @@ updated: 2026-05-27
 `/system` → **Payments** tab. GraphQL: `paymentSettings`, `updatePaymentSettings`.
 
 - `enabledPaymentMethods`: `manual_invoice` | `stripe` | `liqpay` | `wayforpay` | `lemonsqueezy` | `paddle` | `monopay` | `paypal`
-- `paymentConfig` JSON: `defaultPricePerLessonMinor`, `allowedCurrencies`, `defaultCurrency`, `minPackageLessons` (default 3), packages (`lessons` + `label`), `manualInvoiceMethods[]`, plus per-provider config blocks for Stripe / LiqPay / WayForPay / Lemon Squeezy / Paddle / MonoPay / PayPal
+- `paymentConfig` JSON: `defaultPricePerLessonMinor`, `allowedCurrencies`, `defaultCurrency`, `minPackageLessons` (default 3), packages (`lessons` + `label`), `manualInvoiceMethods[]`, `groupLessons` (`enabled`, default billing for new [[entities/student-group|learning groups]]), plus per-provider config blocks for Stripe / LiqPay / WayForPay / Lemon Squeezy / Paddle / MonoPay / PayPal
+- Staff (non–super-admin) read flag via GraphQL `schoolGroupLessonsSettings` (no payment secrets)
 - Provider config blocks are mode-aware:
   - shared mode: `live` | `test`
   - Stripe: `livePublishableKey`, `testPublishableKey`
@@ -22,7 +23,7 @@ updated: 2026-05-27
   - PayPal: `liveClientId`, `testClientId`
 - Provider secrets are no longer assumed to be platform-global env only:
   - `PlatformSettings.paymentSecrets` stores encrypted provider secrets for the current school/system profile
-  - `PAYMENT_SECRETS_ENCRYPTION_KEY` is the platform-level master key used to encrypt/decrypt those secrets
+  - `PLATFORM_SECRETS_ENCRYPTION_KEY` or `PAYMENT_SECRETS_ENCRYPTION_KEY` (same role; either env name) is the platform-level master key used to encrypt/decrypt those secrets
   - legacy provider env vars are still accepted only as fallback for installs that have not saved school secrets yet
 - UI: payment method **cards**; Payments tab is grouped into sections: currencies & per-currency lesson rates, payment methods (+ checkout-currency matrix), package templates (currency per row), and “Ready for students” review before save. Currency = checkbox list from `PAYMENT_CURRENCY_OPTIONS` + default select; cards show active provider mode (`Test mode` / `Live mode`) when relevant.
 
@@ -62,7 +63,8 @@ updated: 2026-05-27
 
 ## Currency model (platform)
 
-- Admin UI (`System → Payments`): `allowedCurrencies` checkbox list from `PAYMENT_CURRENCY_OPTIONS` = **UAH, USD, EUR, GBP, PLN**; one **`defaultCurrency`** for self-serve checkout and package totals.
+- Admin UI (`System → Payments` → **Currencies & lesson rates**): tabbed **Individual lessons** (existing currency/price grid) and **Group payments** (default billing for new [[entities/student-group|learning groups]] when `groupLessons.enabled` in **General**). Same hero + control-card + sidebar layout as individual pricing.
+- **`allowedCurrencies`** checkbox list from `PAYMENT_CURRENCY_OPTIONS` = **UAH, USD, EUR, GBP, PLN**; one **`defaultCurrency`** for self-serve checkout and package totals.
 - **`pricePerLessonByCurrency`** — one lesson price (minor units) per allowed currency, stored in `paymentConfig` JSON and exposed on GraphQL `PaymentConfigType`. Legacy installs migrate from `defaultPricePerLessonMinor` into the default currency row via `finalizePaymentConfig` / `normalizePricePerLessonByCurrency`.
 - `defaultPricePerLessonMinor` stays in sync with the default currency row (backward compatibility for older clients).
 - **Per-package `currency`** — each platform package template stores ISO currency (admin select per row). `finalizePaymentConfig` defaults missing currency to `defaultCurrency`. Package total = `lessons × getPricePerLessonForCurrency(config, pkg.currency)`.
@@ -115,7 +117,8 @@ Env:
 
 ## Student experience
 
-- Recent balance activity: shared `LessonBalanceLedgerActivity` (`apps/web/src/components/billing/`) with human-readable kind labels (`PURCHASE`, `MANUAL_CREDIT`, `CONSUMPTION`, `REVERSAL`), icons, grouped by day, relative timestamps, and `+N lessons` / `N lessons left` copy. Helpers in `apps/web/src/lib/billing/ledger-display.ts`.
+- Recent balance activity: shared `LessonBalanceLedgerActivity` (`apps/web/src/components/billing/`) with human-readable kind labels (`PURCHASE`, `MANUAL_CREDIT`, `CONSUMPTION`, `REVERSAL`, `GROUP_PURCHASE`, `GROUP_MANUAL_CREDIT`, `GROUP_CONSUMPTION`, `GROUP_REVERSAL`, `GROUP_CHARGE`, `GROUP_CHARGE_REVERSAL`), icons, grouped by day, relative timestamps, and `+N lessons` / `N lessons left` copy. Helpers in `apps/web/src/lib/billing/ledger-display.ts`.
+- **Dual credit balances** ([[concepts/group-lessons]]): `StudentLessonBalance.balance` = individual prepaid credits; `groupBalance` = group per-member prepaid credits. Individual lessons consume `CONSUMPTION` (−1 from `balance`). Group `PER_MEMBER` consumes `GROUP_CONSUMPTION` (−1 from `groupBalance`). Group `FIXED_TOTAL` still uses `GROUP_CHARGE` rows with `amountMinor` (`delta: 0`, no credit bucket). Platform group per-member default price: `paymentConfig.groupLessons.defaultPriceMinor`; student override: `groupPricePerLessonMinor`. Package templates may set `creditTrack: individual | group` so checkout tops up the correct bucket. Ledger unique `(scheduledLessonId, userId, kind)`. Staff student profile: dual-track summary via `apps/web/src/lib/billing/student-billing-tracks.ts`.
 - `/payment` — when self-serve packages are enabled: **(1)** choose a package (grouped by currency when multiple ISO codes exist; currency badge on card), **(2)** order summary (“You buy …”, amount, lessons, balance after), **(3)** pay online — only providers compatible with the selected package currency (`apps/web/src/lib/billing/checkout-display.ts`; Lemon Squeezy uses `myLessonBalance.lemonSqueezyVariantCurrency`). Hidden providers show a short “not available for {currency}” note. Bank transfer section includes “Transfer {amount} {currency}” when a package is selected. Balance hero “Your rate” only when `showPerLessonPricing` (per-lesson / both mode), in `defaultCurrency`.
 - Backend checkout: all `*CheckoutService.createCheckout` call `assertProviderSupportsPackageCurrency` (`checkout-currency.util.ts`) after resolving the package.
 - Student-facing provider copy: `apps/web/src/app/payment/payment-page-meta.ts` (`PAYMENT_METHOD_STUDENT_META`)

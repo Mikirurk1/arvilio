@@ -3,6 +3,8 @@ import type {
   StudentBillingModeDto,
   StudentPackageOverrideDto,
 } from './payment-billing';
+import type { SchoolGroupLessonsSettingsDto } from './group-lessons-settings';
+import type { StudentGroupMembershipSummaryDto, StudentLessonFormat } from './group-lesson';
 
 /** Role catalog: each entry has a stable id and a machine-friendly name (slug). */
 export const USER_ROLE = {
@@ -34,7 +36,8 @@ export const PROFICIENCY_LEVEL = {
   c2: { id: 6, code: 'C2', label: 'Proficient' },
 } as const;
 
-export type ProficiencyLevelEntry = (typeof PROFICIENCY_LEVEL)[keyof typeof PROFICIENCY_LEVEL];
+export type ProficiencyLevelEntry =
+  (typeof PROFICIENCY_LEVEL)[keyof typeof PROFICIENCY_LEVEL];
 
 export type ProficiencyLevelId = ProficiencyLevelEntry['id'];
 
@@ -47,8 +50,12 @@ export const PROFICIENCY_LEVEL_ID_LIST: readonly ProficiencyLevelId[] = [
   PROFICIENCY_LEVEL.c2.id,
 ];
 
-export function getProficiencyLevelById(id: ProficiencyLevelId): ProficiencyLevelEntry | undefined {
-  for (const key of Object.keys(PROFICIENCY_LEVEL) as (keyof typeof PROFICIENCY_LEVEL)[]) {
+export function getProficiencyLevelById(
+  id: ProficiencyLevelId,
+): ProficiencyLevelEntry | undefined {
+  for (const key of Object.keys(
+    PROFICIENCY_LEVEL,
+  ) as (keyof typeof PROFICIENCY_LEVEL)[]) {
     const entry = PROFICIENCY_LEVEL[key];
     if (entry.id === id) return entry;
   }
@@ -58,9 +65,24 @@ export function getProficiencyLevelById(id: ProficiencyLevelId): ProficiencyLeve
 /** IANA zones for calendar math; labels use country + capital for stable UX copy. */
 export const TIME_ZONE = {
   kyiv: { id: 1, iana: 'Europe/Kyiv', country: 'Ukraine', capital: 'Kyiv' },
-  warsaw: { id: 2, iana: 'Europe/Warsaw', country: 'Poland', capital: 'Warsaw' },
-  london: { id: 3, iana: 'Europe/London', country: 'United Kingdom', capital: 'London' },
-  newYork: { id: 4, iana: 'America/New_York', country: 'United States', capital: 'New York' },
+  warsaw: {
+    id: 2,
+    iana: 'Europe/Warsaw',
+    country: 'Poland',
+    capital: 'Warsaw',
+  },
+  london: {
+    id: 3,
+    iana: 'Europe/London',
+    country: 'United Kingdom',
+    capital: 'London',
+  },
+  newYork: {
+    id: 4,
+    iana: 'America/New_York',
+    country: 'United States',
+    capital: 'New York',
+  },
   tokyo: { id: 5, iana: 'Asia/Tokyo', country: 'Japan', capital: 'Tokyo' },
 } as const;
 
@@ -96,7 +118,8 @@ export const USER_ACCOUNT_STATUS = {
   blocked: { id: 4, name: 'blocked' },
 } as const;
 
-export type UserAccountStatusEntry = (typeof USER_ACCOUNT_STATUS)[keyof typeof USER_ACCOUNT_STATUS];
+export type UserAccountStatusEntry =
+  (typeof USER_ACCOUNT_STATUS)[keyof typeof USER_ACCOUNT_STATUS];
 
 export type UserAccountStatusId = UserAccountStatusEntry['id'];
 
@@ -110,7 +133,9 @@ export const USER_ACCOUNT_STATUS_ID_LIST: readonly UserAccountStatusId[] = [
 export function getUserAccountStatusById(
   id: UserAccountStatusId,
 ): UserAccountStatusEntry | undefined {
-  for (const key of Object.keys(USER_ACCOUNT_STATUS) as (keyof typeof USER_ACCOUNT_STATUS)[]) {
+  for (const key of Object.keys(
+    USER_ACCOUNT_STATUS,
+  ) as (keyof typeof USER_ACCOUNT_STATUS)[]) {
     const entry = USER_ACCOUNT_STATUS[key];
     if (entry.id === id) return entry;
   }
@@ -136,14 +161,19 @@ export type VocabularyWordStatusEntry =
 export type VocabularyWordStatusId = VocabularyWordStatusEntry['id'];
 export type VocabularyWordStatusName = VocabularyWordStatusEntry['name'];
 
-export const VOCABULARY_WORD_STATUS_LABELS: Record<VocabularyWordStatusName, string> = {
+export const VOCABULARY_WORD_STATUS_LABELS: Record<
+  VocabularyWordStatusName,
+  string
+> = {
   new: VOCABULARY_WORD_STATUS.new.label,
   repeated: VOCABULARY_WORD_STATUS.repeated.label,
   mistakes_work: VOCABULARY_WORD_STATUS.mistakesWork.label,
   learned: VOCABULARY_WORD_STATUS.learned.label,
 };
 
-export function vocabularyStatusLabel(status: VocabularyWordStatusName): string {
+export function vocabularyStatusLabel(
+  status: VocabularyWordStatusName,
+): string {
   return VOCABULARY_WORD_STATUS_LABELS[status] ?? status.replace(/_/g, ' ');
 }
 
@@ -191,7 +221,8 @@ export const PROFILE_VOCABULARY_PROGRESS_EVENT = {
 
 export type ProfileVocabularyProgressEventEntry =
   (typeof PROFILE_VOCABULARY_PROGRESS_EVENT)[keyof typeof PROFILE_VOCABULARY_PROGRESS_EVENT];
-export type ProfileVocabularyProgressEventTypeId = ProfileVocabularyProgressEventEntry['id'];
+export type ProfileVocabularyProgressEventTypeId =
+  ProfileVocabularyProgressEventEntry['id'];
 
 export type ProfileVocabularyProgressEvent = {
   id: number;
@@ -213,7 +244,8 @@ export const PRACTICE_SESSION_TYPE = {
   lesson: { id: 6, name: 'lesson' },
 } as const;
 
-export type PracticeSessionTypeEntry = (typeof PRACTICE_SESSION_TYPE)[keyof typeof PRACTICE_SESSION_TYPE];
+export type PracticeSessionTypeEntry =
+  (typeof PRACTICE_SESSION_TYPE)[keyof typeof PRACTICE_SESSION_TYPE];
 export type PracticeSessionTypeId = PracticeSessionTypeEntry['id'];
 
 export type PracticeSessionLogEntry = {
@@ -347,12 +379,16 @@ export type PaymentMethodKindDto =
   | 'monopay'
   | 'paypal';
 
+export type LessonCreditTrackDto = 'individual' | 'group';
+
 export type LessonPackageDto = {
   id: string;
   lessons: number;
   label: string;
   /** Per-package currency override; falls back to platform defaultCurrency. */
   currency?: string;
+  /** Which prepaid balance purchases top up. Defaults to individual. */
+  creditTrack?: LessonCreditTrackDto;
 };
 
 /** Package with resolved price for a specific student (or platform default). */
@@ -361,11 +397,16 @@ export type ResolvedLessonPackageDto = LessonPackageDto & {
   pricePerLessonMinor: number;
   currency: string;
   isCustomPrice: boolean;
+  creditTrack: LessonCreditTrackDto;
   /** Fixed lesson count for this student; student cannot pick another size. */
   lessonsLocked: boolean;
 };
 
-export type ManualInvoiceMethodKindDto = 'iban_sepa' | 'swift_wire' | 'card_transfer' | 'custom';
+export type ManualInvoiceMethodKindDto =
+  | 'iban_sepa'
+  | 'swift_wire'
+  | 'card_transfer'
+  | 'custom';
 
 export type ManualInvoiceMethodBaseDto = {
   id: string;
@@ -445,7 +486,8 @@ export type StudentPaymentMethodSelectionDto = {
 
 export type PaymentEnvironmentModeDto = 'live' | 'test';
 
-export const DEFAULT_PAYMENT_ENVIRONMENT_MODE: PaymentEnvironmentModeDto = 'live';
+export const DEFAULT_PAYMENT_ENVIRONMENT_MODE: PaymentEnvironmentModeDto =
+  'live';
 
 export type StripeConfigDto = {
   mode: PaymentEnvironmentModeDto;
@@ -611,6 +653,7 @@ export type PaymentConfigDto = {
   paddle?: PaddleConfigDto;
   monopay?: MonoPayConfigDto;
   paypal?: PayPalConfigDto;
+  groupLessons?: SchoolGroupLessonsSettingsDto;
 };
 
 export type PaymentMethodStatusDto = {
@@ -632,6 +675,8 @@ export type UpdateStudentLessonPricingRequestDto = {
   studentId: string;
   /** null clears override and uses platform default. */
   pricePerLessonMinor: number | null;
+  /** null clears group per-member price override. */
+  groupPricePerLessonMinor?: number | null;
 };
 
 export type UpdateStudentLessonBillingRequestDto = {
@@ -656,11 +701,17 @@ export type LessonBalanceLedgerEntryDto = {
   note: string | null;
   createdAt: string;
   scheduledLessonId: string | null;
+  /** Monetary amount for GROUP_CHARGE / GROUP_CHARGE_REVERSAL (minor units). */
+  amountMinor?: number | null;
+  currency?: string | null;
 };
 
 export type StudentLessonBalanceDto = {
   balance: number;
   isDebt: boolean;
+  /** Prepaid credits for group per-member lessons. */
+  groupBalance: number;
+  groupIsDebt: boolean;
   availableMethods: PaymentMethodKindDto[];
   /** Platform-enabled methods (for staff assignment UI). */
   enabledPaymentMethods: PaymentMethodKindDto[];
@@ -680,18 +731,28 @@ export type StudentLessonBalanceDto = {
   pricePerLessonMinor: number | null;
   defaultPricePerLessonMinor: number;
   resolvedPricePerLessonMinor: number;
-  defaultCurrency: string;
+  groupPricePerLessonMinor: number | null;
+  defaultGroupPricePerLessonMinor: number;
+  resolvedGroupPricePerLessonMinor: number;
+  groupCurrency: string;
   isCustomPrice: boolean;
+  isCustomGroupPrice: boolean;
+  defaultCurrency: string;
   packages: ResolvedLessonPackageDto[];
   recentLedger: LessonBalanceLedgerEntryDto[];
   /** Active Lemon Squeezy variant currency for student checkout filtering. */
   lemonSqueezyVariantCurrency?: string | null;
+  /** Present when school group lessons are enabled. */
+  lessonFormat?: StudentLessonFormat | null;
+  groupMemberships?: StudentGroupMembershipSummaryDto[];
 };
 
 export type AdjustStudentLessonBalanceRequestDto = {
   studentId: string;
   lessons: number;
   note?: string | null;
+  /** Which prepaid balance to credit. Defaults to individual. */
+  creditTrack?: LessonCreditTrackDto;
 };
 
 export type CreateLessonPurchaseCheckoutRequestDto = {
@@ -710,6 +771,8 @@ export type UpdateAdminStudentRequestDto = {
   teacherId?: string | null;
   /** `true` = fixed schedule (recurrence allowed). */
   scheduleType?: boolean;
+  /** Individual / group / mixed lesson participation. */
+  lessonFormat?: StudentLessonFormat;
   /** Calendar/roster accent (#RRGGBB). Staff only. */
   displayColor?: string | null;
 };
@@ -740,10 +803,46 @@ export type SystemMailStatusDto = {
   smtpPort: number | null;
   mailFrom: string;
   templatesDir: string;
+  smtpMode?: string | null;
 };
 
 /** Active word lookup provider (platform setting). */
-export type WordDictionaryProviderId = 'dictionary_api_dev' | 'wiktionary';
+export type WordDictionaryProviderId =
+  | 'dictionary_api_dev'
+  | 'wiktionary'
+  | 'reverso';
+
+export type TranslationProviderId =
+  | 'deepl'
+  | 'google'
+  | 'microsoft'
+  | 'reverso'
+  | 'mymemory'
+  | 'libretranslate'
+  | 'gtx';
+
+export type TranslationProviderInfoDto = {
+  id: TranslationProviderId;
+  name: string;
+  description: string;
+  docsUrl: string;
+  requiresServiceSubscription: boolean;
+};
+
+export type TranslationApiUrlsDto = {
+  deeplApiUrl: string;
+  googleTranslateApiUrl: string;
+  microsoftTranslatorApiUrl: string;
+  myMemoryUrl: string;
+  reversoApiUrl: string;
+  libreTranslateUrl: string | null;
+};
+
+export type TranslationSettingsDto = {
+  activeProvider: TranslationProviderId;
+  providers: TranslationProviderInfoDto[];
+  apiUrls: TranslationApiUrlsDto;
+};
 
 export type WordDictionaryProviderInfoDto = {
   id: WordDictionaryProviderId;
@@ -755,6 +854,177 @@ export type WordDictionaryProviderInfoDto = {
 export type WordDictionarySettingsDto = {
   activeProvider: WordDictionaryProviderId;
   providers: WordDictionaryProviderInfoDto[];
+};
+
+/** SMTP: use deployment env defaults vs explicit platform SMTP in DB. */
+export type SmtpConfigModeDto = 'server_default' | 'custom';
+
+export type PlatformTranslationConfigDto = {
+  /** Primary translation provider; others follow in fixed fallback order. */
+  activeProvider: TranslationProviderId;
+  /** MyMemory contact email (raises free quota). API URL is `TRANSLATION_API_URL` in env. */
+  apiEmail: string | null;
+  /** Request contextual examples with translation responses. */
+  reversoContextResults: boolean;
+  /** Target ISO code for Reverso dictionary context (e.g. uk). */
+  reversoContextTargetLang: string;
+};
+
+export type PlatformSmtpConfigDto = {
+  mode: SmtpConfigModeDto;
+  host: string | null;
+  port: number | null;
+  user: string | null;
+  mailFrom: string;
+  secure: boolean;
+};
+
+export type PlatformTelegramConfigDto = {
+  botUsername: string | null;
+  devPolling: boolean;
+};
+
+export type PlatformGoogleConfigDto = {
+  clientId: string | null;
+  callbackUrl: string;
+  successRedirect: string;
+  linkSuccessRedirect: string | null;
+  failureRedirect: string | null;
+};
+
+export type PlatformFacebookConfigDto = {
+  appId: string | null;
+  callbackUrl: string;
+};
+
+export type VideoMeetingProviderId = 'google' | 'zoom' | 'livekit';
+
+export type PlatformLiveKitConfigDto = {
+  /** WebSocket URL of the LiveKit server (e.g. `wss://example.livekit.cloud` or self-hosted `wss://livekit.your-domain`). */
+  wsUrl: string;
+  /** Public LiveKit API key — used to sign JWTs (secret stored separately). */
+  apiKey: string | null;
+};
+
+export type PlatformZoomConfigDto = {
+  /** Public OAuth client id (secret stored separately). */
+  clientId: string | null;
+  /** OAuth callback URL exposed to Zoom. */
+  callbackUrl: string;
+  /** When true, use Server-to-Server OAuth (no per-user link required). */
+  useServerToServer: boolean;
+};
+
+export type PlatformVideoMeetingConfigDto = {
+  /** Active provider used when creating new scheduled lessons. */
+  provider: VideoMeetingProviderId;
+  livekit: PlatformLiveKitConfigDto;
+  zoom: PlatformZoomConfigDto;
+};
+
+export type MaterialSttProviderId = 'local_whisper' | 'openai_whisper' | 'disabled';
+
+export type PlatformMediaCaptionsConfigDto = {
+  enabled: boolean;
+  sttProvider: MaterialSttProviderId;
+  /** BCP-47; null = auto-detect via Whisper. */
+  sourceLanguage: string | null;
+  /** Languages to auto-translate captions into (excluding detected source). */
+  targetLanguages: string[];
+};
+
+export type PlatformIntegrationConfigDto = {
+  translation: PlatformTranslationConfigDto;
+  mediaCaptions: PlatformMediaCaptionsConfigDto;
+  smtp: PlatformSmtpConfigDto;
+  telegram: PlatformTelegramConfigDto;
+  google: PlatformGoogleConfigDto;
+  facebook: PlatformFacebookConfigDto;
+  videoMeeting: PlatformVideoMeetingConfigDto;
+};
+
+/** Write-only secret fields (omit = keep existing; empty string = clear stored). */
+export type PlatformIntegrationSecretsDto = {
+  smtpPass?: string | null;
+  libreTranslateApiKey?: string | null;
+  reversoApiKey?: string | null;
+  deeplAuthKey?: string | null;
+  googleTranslateApiKey?: string | null;
+  azureTranslatorKey?: string | null;
+  openaiWhisperApiKey?: string | null;
+  telegramBotToken?: string | null;
+  googleClientSecret?: string | null;
+  facebookAppSecret?: string | null;
+  zoomClientSecret?: string | null;
+  zoomWebhookSecret?: string | null;
+  livekitApiSecret?: string | null;
+};
+
+export type IntegrationSecretFieldStatusDto = {
+  configured: boolean;
+  source: 'stored' | 'env' | 'missing';
+};
+
+export type IntegrationSecretStatusesDto = {
+  smtpPass: IntegrationSecretFieldStatusDto;
+  libreTranslateApiKey: IntegrationSecretFieldStatusDto;
+  reversoApiKey: IntegrationSecretFieldStatusDto;
+  deeplAuthKey: IntegrationSecretFieldStatusDto;
+  googleTranslateApiKey: IntegrationSecretFieldStatusDto;
+  azureTranslatorKey: IntegrationSecretFieldStatusDto;
+  openaiWhisperApiKey: IntegrationSecretFieldStatusDto;
+  telegramBotToken: IntegrationSecretFieldStatusDto;
+  googleClientSecret: IntegrationSecretFieldStatusDto;
+  facebookAppSecret: IntegrationSecretFieldStatusDto;
+  zoomClientSecret: IntegrationSecretFieldStatusDto;
+  zoomWebhookSecret: IntegrationSecretFieldStatusDto;
+  livekitApiSecret: IntegrationSecretFieldStatusDto;
+};
+
+export type PlatformIntegrationSettingsDto = {
+  config: PlatformIntegrationConfigDto;
+  /** Effective secret values for super-admin System UI (stored + env fallback). */
+  secrets: PlatformIntegrationSecretsDto;
+  secretStatuses: IntegrationSecretStatusesDto;
+  /** True when `PAYMENT_SECRETS_ENCRYPTION_KEY` (or `PLATFORM_SECRETS_ENCRYPTION_KEY`) is set on the API. */
+  secretsStorageAvailable: boolean;
+};
+
+/** Partial sections/fields for GraphQL `updatePlatformIntegrationSettings`. */
+export type PlatformIntegrationConfigPatchDto = {
+  translation?: Partial<PlatformTranslationConfigDto>;
+  mediaCaptions?: Partial<PlatformMediaCaptionsConfigDto>;
+  smtp?: Partial<PlatformSmtpConfigDto>;
+  telegram?: Partial<PlatformTelegramConfigDto>;
+  google?: Partial<PlatformGoogleConfigDto>;
+  facebook?: Partial<PlatformFacebookConfigDto>;
+  videoMeeting?: {
+    provider?: VideoMeetingProviderId;
+    livekit?: Partial<PlatformLiveKitConfigDto>;
+    zoom?: Partial<PlatformZoomConfigDto>;
+  };
+};
+
+export type UpdatePlatformIntegrationSettingsRequestDto = {
+  config?: PlatformIntegrationConfigPatchDto;
+  secrets?: PlatformIntegrationSecretsDto;
+};
+
+export type PlatformConnectionProviderId =
+  | 'google'
+  | 'facebook'
+  | 'telegram'
+  | 'zoom';
+
+export type VerifyPlatformConnectionRequestDto = {
+  provider: PlatformConnectionProviderId;
+  config?: PlatformIntegrationConfigPatchDto;
+  secrets?: PlatformIntegrationSecretsDto;
+};
+
+export type VerifyPlatformConnectionResultDto = {
+  ok: boolean;
+  message: string;
 };
 
 export type SendTestWelcomeEmailRequestDto = {
@@ -799,6 +1069,7 @@ export type StudentSummaryBackendDto = {
   learningLanguageIds: string[];
   /** `true` = fixed schedule (recurrence allowed). */
   scheduleType: boolean;
+  lessonFormat: StudentLessonFormat;
   /** User color for calendar (#RRGGBB). */
   displayColor: string | null;
   createdAt: string;
@@ -822,7 +1093,7 @@ export const DEFAULT_NOTIFICATION_PREFS: ProfileNotificationPrefs = {
 };
 
 export type ProfileLinkedAccountDto = {
-  provider: 'google' | 'facebook' | 'telegram';
+  provider: 'google' | 'facebook' | 'telegram' | 'zoom';
   linked: boolean;
   connectedAs?: string | null;
   /** Google only: Calendar + Meet tokens stored for lesson scheduling. */
@@ -867,6 +1138,16 @@ export type UpdateMyProfileRequestDto = {
   bio?: string | null;
   nativeLanguageId?: string | null;
   notificationPrefs?: Partial<ProfileNotificationPrefs>;
+};
+
+export type UpdateStaffUserProfileRequestDto = {
+  userId: string;
+  displayName?: string;
+  timezone?: string;
+  phone?: string | null;
+  telegram?: string | null;
+  bio?: string | null;
+  status?: 'active' | 'paused' | 'leaved' | 'blocked';
 };
 
 export type SendTeacherMessageRequestDto = {
@@ -965,15 +1246,7 @@ export type WordOfDayDto = {
   example: string | null;
 };
 
-export type DailyGoalDto = {
-  id: string;
-  templateId: string;
-  text: string;
-  difficulty: 1 | 2 | 3 | 4;
-  done: boolean;
-  xpReward: number;
-  dateKey: string;
-};
+export type { DailyGoalDto, GoalKind, GoalDifficulty } from './daily-goals';
 
 export type PracticeWeekMetricDto = {
   id: string;
@@ -1104,6 +1377,8 @@ export type GenerateQuizRequestDto = {
   category?: string;
   /** When true (default), include past / past-participle drills for irregular verbs in the pool. */
   includeIrregularVerbDrills?: boolean;
+  /** When true, build the quiz only from vocabulary cards in mistakes_work status. */
+  mistakesOnly?: boolean;
 };
 
 export type QuizAttemptSummaryDto = {
@@ -1159,21 +1434,44 @@ export type ScheduledLessonBackendDto = {
   studentId: string;
   studentName: string;
   status: 'planned' | 'completed' | 'cancelled';
-  cancelReason?: 'student_absent' | 'student_requested_cancel' | 'teacher_absent' | null;
+  cancelReason?:
+    | 'student_absent'
+    | 'student_requested_cancel'
+    | 'teacher_absent'
+    | null;
   credited: boolean;
   recurrence: 'none' | 'daily' | 'weekly' | 'monthly';
   weeklyDays: number[];
   seriesId?: string | null;
   order: number;
+  /** Active video provider for this lesson (when a meeting was created). */
+  videoProvider?: VideoMeetingProviderId | null;
+  /** Meeting URL students/teachers click to join (Meet/Zoom/Jitsi). */
+  videoMeetingUrl?: string | null;
+  videoMeetingExternalId?: string | null;
+  videoMeetingStartedAt?: string | null;
+  videoMeetingEndedAt?: string | null;
+  /** @deprecated Use `videoMeetingUrl`. Kept for backward compatibility. */
   googleMeetUrl?: string | null;
   googleCalendarEventId?: string | null;
   meetCreatedAt?: string | null;
   materials: Array<{
     id: string;
-    kind: 'text' | 'photo' | 'test' | 'file' | 'presentation';
+    kind:
+      | 'text'
+      | 'photo'
+      | 'test'
+      | 'file'
+      | 'presentation'
+      | 'book'
+      | 'board';
     text: string;
     files: string[];
     fileLinks: LessonFileLinkDto[];
+    libraryMaterialId?: string | null;
+    sharedLibraryAssetIds?: string[];
+    libraryMediaSelectionApplied?: boolean;
+    libraryMaterial?: LibraryMaterialDto | null;
   }>;
   homework: {
     text: string;
@@ -1189,6 +1487,27 @@ export type ScheduledLessonBackendDto = {
     teacherHomeworkFeedback: string;
   };
   linkedWordIds: string[];
+  kind: 'individual' | 'group';
+  participants: Array<{
+    userId: string;
+    displayName: string;
+    role: 'student' | 'payer';
+    sortOrder: number;
+    studentResponse: {
+      text: string;
+      files: string[];
+      status: 'not_submitted' | 'submitted' | 'needs_rework' | 'accepted';
+      homeworkChecked: boolean;
+      teacherHomeworkFeedback: string;
+    };
+  }>;
+  groupBilling?: {
+    mode: 'per_member' | 'fixed_total';
+    priceMinor?: number | null;
+    currency?: string | null;
+    splitMode?: 'single_payer' | 'equal_split' | null;
+    payerUserId?: string | null;
+  } | null;
 };
 
 export type CreateScheduledLessonRequestDto = {
@@ -1201,6 +1520,18 @@ export type CreateScheduledLessonRequestDto = {
   timezone?: string;
   teacherId?: string;
   studentId: string;
+  kind?: 'individual' | 'group';
+  /** When set, participants and billing are copied from this admin-defined group. */
+  studentGroupId?: string;
+  /** Required for group lessons (min 2). First id becomes primary `studentId`. */
+  participantIds?: string[];
+  groupBilling?: {
+    mode: 'per_member' | 'fixed_total';
+    priceMinor?: number;
+    currency?: string;
+    splitMode?: 'single_payer' | 'equal_split';
+    payerUserId?: string;
+  };
   status?: 'planned' | 'completed' | 'cancelled';
   notes?: string;
   lessonPlan?: string;
@@ -1222,16 +1553,33 @@ export type CreateScheduledLessonRequestDto = {
   };
   materials?: Array<{
     id?: string;
-    kind: 'text' | 'photo' | 'test' | 'file' | 'presentation';
+    kind:
+      | 'text'
+      | 'photo'
+      | 'test'
+      | 'file'
+      | 'presentation'
+      | 'book'
+      | 'board';
     text?: string;
     files?: string[];
+    libraryMaterialId?: string | null;
+    sharedLibraryAssetIds?: string[];
+    libraryMediaSelectionApplied?: boolean;
   }>;
 };
 
-export type UpdateScheduledLessonRequestDto = Partial<CreateScheduledLessonRequestDto> & {
-  cancelReason?: 'student_absent' | 'student_requested_cancel' | 'teacher_absent' | null;
-  credited?: boolean;
-};
+export type UpdateScheduledLessonRequestDto =
+  Partial<CreateScheduledLessonRequestDto> & {
+    cancelReason?:
+      | 'student_absent'
+      | 'student_requested_cancel'
+      | 'teacher_absent'
+      | null;
+    credited?: boolean;
+    /** Replace participants while lesson is PLANNED (group only). */
+    participantIds?: string[];
+  };
 
 export type ScheduledLessonDto = {
   id: number;
@@ -1259,10 +1607,21 @@ export type ScheduledLessonDto = {
   lessonPlan?: string;
   materials?: Array<{
     id: string;
-    kind: 'text' | 'photo' | 'test' | 'file' | 'presentation';
+    kind:
+      | 'text'
+      | 'photo'
+      | 'test'
+      | 'file'
+      | 'presentation'
+      | 'book'
+      | 'board';
     text: string;
     files: string[];
     fileLinks?: LessonFileLinkDto[];
+    libraryMaterialId?: string | null;
+    sharedLibraryAssetIds?: string[];
+    libraryMediaSelectionApplied?: boolean;
+    libraryMaterial?: LibraryMaterialDto | null;
   }>;
   homework?: {
     text: string;
@@ -1280,7 +1639,11 @@ export type ScheduledLessonDto = {
     teacherHomeworkFeedback?: string;
   };
   order: number;
-  /** Google Meet join URL when Calendar integration created the event. */
+  /** Active video provider for this lesson. */
+  videoProvider?: VideoMeetingProviderId | null;
+  /** Meeting join URL (Meet/Zoom/Jitsi). */
+  videoMeetingUrl?: string | null;
+  /** @deprecated Use `videoMeetingUrl`. */
   googleMeetUrl?: string | null;
   recurrence: LessonRecurrence;
   weeklyDays?: number[];
@@ -1289,4 +1652,177 @@ export type ScheduledLessonDto = {
   linkedVocabularyIds?: number[];
   /** Global Word ids (cuid) linked to this lesson. */
   linkedWordIds?: string[];
+  kind?: 'individual' | 'group';
+  studentGroupId?: string;
+  /** Numeric party ids (UI); parallel to `participants` when loaded from API. */
+  participantIds?: number[];
+  participants?: Array<{
+    userId: number;
+    displayName: string;
+    role: 'student' | 'payer';
+    sortOrder: number;
+  }>;
+  groupBilling?: {
+    mode: 'per_member' | 'fixed_total';
+    priceMinor?: number | null;
+    currency?: string | null;
+    splitMode?: 'single_payer' | 'equal_split' | null;
+    payerUserId?: string | null;
+  };
+};
+
+export type SpeakingTopicAssignmentStatusDto =
+  | 'pending'
+  | 'submitted'
+  | 'reviewed';
+export type SpeakingSubmissionStatusDto = 'submitted' | 'reviewed';
+
+export type CreateSpeakingTopicRequestDto = {
+  title: string;
+  prompt: string;
+  wordIds?: string[];
+  studentId?: string;
+  personalNote?: string;
+  dueDate?: string;
+};
+
+export type SpeakingTopicAssignmentDto = {
+  id: string;
+  studentId: string;
+  status: SpeakingTopicAssignmentStatusDto;
+  personalNote: string | null;
+  dueDate: string | null;
+};
+
+export type SpeakingSubmissionSummaryDto = {
+  id: string;
+  status: SpeakingSubmissionStatusDto;
+  durationSec: number | null;
+  teacherFeedback: string | null;
+  submittedAt: string;
+  hasAudio: boolean;
+};
+
+export type SpeakingTopicCardDto = {
+  id: string;
+  title: string;
+  prompt: string;
+  wordIds: string[];
+  ownerId: string;
+  createdAt: string;
+  assignment: SpeakingTopicAssignmentDto | null;
+  latestSubmission: SpeakingSubmissionSummaryDto | null;
+};
+
+export type SpeakingSubmissionDto = SpeakingSubmissionSummaryDto & {
+  topicId: string;
+  assignmentId: string | null;
+  studentId: string;
+  topicTitle: string;
+  topicPrompt: string;
+  topicWordIds: string[];
+};
+
+export type SubmitSpeakingRecordingRequestDto = {
+  topicId: string;
+  assignmentId?: string;
+  durationSec?: number;
+};
+
+export type ReviewSpeakingSubmissionRequestDto = {
+  submissionId: string;
+  teacherFeedback: string;
+};
+
+export type LibraryMaterialKindName =
+  | 'board'
+  | 'presentation'
+  | 'book'
+  | 'other';
+
+export type LibraryMaterialAssetRoleName =
+  | 'student_book'
+  | 'teacher_book'
+  | 'workbook'
+  | 'audio'
+  | 'video'
+  | 'slides'
+  | 'link'
+  | 'other';
+
+export type LibraryMaterialDeliveryKindName = 'url' | 'file';
+
+export type LibraryMaterialAssetDto = {
+  id: string;
+  role: LibraryMaterialAssetRoleName;
+  deliveryKind: LibraryMaterialDeliveryKindName;
+  url: string | null;
+  label: string | null;
+  sortOrder: number;
+  fileAttachmentId: string | null;
+  fileName: string | null;
+  downloadPath: string | null;
+  previewDownloadPath: string | null;
+};
+
+export type LibraryMaterialDto = {
+  id: string;
+  title: string;
+  description: string | null;
+  kind: LibraryMaterialKindName;
+  tags: string[];
+  level: string | null;
+  publisher: string | null;
+  schoolId: string | null;
+  createdById: string;
+  createdAt: string;
+  updatedAt: string;
+  coverAttachmentId: string | null;
+  coverDownloadPath: string | null;
+  assets: LibraryMaterialAssetDto[];
+};
+
+export type LibraryMaterialKindCountsDto = {
+  all: number;
+  board: number;
+  presentation: number;
+  book: number;
+  other: number;
+};
+
+export type LibraryMaterialsPageDto = {
+  items: LibraryMaterialDto[];
+  nextCursor: string | null;
+  kindCounts: LibraryMaterialKindCountsDto;
+};
+
+export type LibraryMaterialAssetInputDto = {
+  role: LibraryMaterialAssetRoleName;
+  deliveryKind: LibraryMaterialDeliveryKindName;
+  url?: string;
+  fileAttachmentId?: string;
+  label?: string;
+  sortOrder?: number;
+};
+
+export type CreateLibraryMaterialRequestDto = {
+  title: string;
+  description?: string;
+  kind: LibraryMaterialKindName;
+  tags?: string[];
+  level?: string;
+  publisher?: string;
+  schoolId?: string | null;
+  coverAttachmentId?: string | null;
+  assets?: LibraryMaterialAssetInputDto[];
+};
+
+export type UpdateLibraryMaterialRequestDto = Partial<
+  Omit<CreateLibraryMaterialRequestDto, 'assets'>
+> & {
+  assets?: LibraryMaterialAssetInputDto[];
+};
+
+export type UpsertLibraryMaterialAssetsRequestDto = {
+  assets: LibraryMaterialAssetInputDto[];
 };

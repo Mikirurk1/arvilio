@@ -34,42 +34,63 @@ export default function ForgotPasswordPage() {
     <div className={styles.shell}>
       <div className={styles.card}>
         <div className={styles.brand}>
-          <BrandLogo size="lg" className={styles.brandLogo} />
+          <BrandLogo size="lg" href={null} className={styles.brandLogo} />
         </div>
-        <div>
-          <h1 className={styles.title}>Forgot password</h1>
+
+        <div className={styles.intro}>
+          <h1 className={styles.title}>Forgot password?</h1>
           <p className={styles.subtitle}>
-            Enter your email and we&apos;ll send you a password reset link.
+            No worries — enter your email and we&apos;ll send a secure link to choose a new
+            password.
           </p>
         </div>
-        {error ? <div className={styles.error}>{error}</div> : null}
-        {success ? (
-          <div className={styles.success}>
-            If an account with that email exists, a reset link has been sent.
+
+        {error ? (
+          <div className={styles.error} role="alert">
+            {error}
           </div>
         ) : null}
-        <form className={styles.actions} onSubmit={onSubmit}>
-          <div className={styles.field}>
-            <label htmlFor="forgot-password-email">Email</label>
+        {success ? (
+          <div className={styles.success} role="status">
+            <strong className={styles.successTitle}>Check your inbox</strong>
+            <p className={styles.successBody}>
+              If an account exists for that address, you&apos;ll receive a reset link shortly. The
+              link expires for your security.
+            </p>
+          </div>
+        ) : null}
+
+        {!success ? (
+          <form className={styles.actions} onSubmit={onSubmit} noValidate>
             <Field
               id="forgot-password-email"
+              label="Email"
               type="email"
               autoComplete="email"
-              required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
             />
-          </div>
-          <Button className={styles.primary} type="submit" disabled={submitting}>
-            {submitting ? 'Sending…' : 'Send reset link'}
-          </Button>
-        </form>
+            <Button
+              variant="primary"
+              className={styles.submitBtn}
+              type="submit"
+              loading={submitting}
+              loadingLabel="Sending…"
+            >
+              Send reset link
+            </Button>
+          </form>
+        ) : null}
+
         <p className={styles.helperText}>
-          The link expires automatically. If you use Google sign-in only, contact your
-          administrator instead.
+          Sign in with Google only? You don&apos;t need a password — ask your administrator if you
+          can&apos;t access your account.
         </p>
+
         <p className={styles.footer}>
-          <Link href="/login">Back to sign in</Link>
+          <Link className={styles.footerLink} href="/login">
+            Back to sign in
+          </Link>
         </p>
       </div>
     </div>

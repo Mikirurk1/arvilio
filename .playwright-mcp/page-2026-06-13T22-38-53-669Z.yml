@@ -1,0 +1,169 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to main content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=e5]:
+      - link "SoEnglish — go to dashboard" [ref=e7] [cursor=pointer]:
+        - /url: /dashboard
+        - img [ref=e9]
+        - generic [ref=e11]:
+          - generic [ref=e12]: SoEnglish
+          - generic [ref=e13]: English Platform
+      - search [ref=e16]:
+        - img [ref=e17]
+        - searchbox "Search" [ref=e21]
+      - generic [ref=e22]:
+        - button "Create lesson" [ref=e23] [cursor=pointer]
+        - generic [ref=e24]:
+          - 'link "My: 0 today · 0 left" [ref=e25] [cursor=pointer]':
+            - /url: /lessons
+            - img [ref=e26]
+            - generic [ref=e28]: "My: 0 today"
+            - generic [ref=e29]: · 0 left
+          - link "Messages" [ref=e31] [cursor=pointer]:
+            - /url: /chat
+            - img [ref=e32]
+          - link "Profile & settings" [ref=e34] [cursor=pointer]:
+            - /url: /profile
+    - generic [ref=e35]:
+      - complementary [ref=e36]:
+        - navigation "Main navigation" [ref=e37]:
+          - generic [ref=e38]:
+            - generic [ref=e39]: Learn
+            - link "Dashboard" [ref=e41] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e44]
+              - generic [ref=e49]: Dashboard
+            - link "Lessons" [ref=e51] [cursor=pointer]:
+              - /url: /lessons
+              - img [ref=e54]
+              - generic [ref=e56]: Lessons
+            - link "Practice" [ref=e58] [cursor=pointer]:
+              - /url: /practice
+              - img [ref=e61]
+              - generic [ref=e65]: Practice
+            - link "Materials" [ref=e67] [cursor=pointer]:
+              - /url: /materials
+              - img [ref=e70]
+              - generic [ref=e72]: Materials
+          - generic [ref=e73]:
+            - generic [ref=e74]: Schedule
+            - link "Calendar" [ref=e76] [cursor=pointer]:
+              - /url: /calendar
+              - img [ref=e79]
+              - generic [ref=e81]: Calendar
+          - generic [ref=e82]:
+            - generic [ref=e83]: Connect
+            - link "Chat" [ref=e85] [cursor=pointer]:
+              - /url: /chat
+              - img [ref=e88]
+              - generic [ref=e90]: Chat
+            - link "Students" [ref=e92] [cursor=pointer]:
+              - /url: /students
+              - img [ref=e95]
+              - generic [ref=e100]: Students
+            - link "Staff" [ref=e102] [cursor=pointer]:
+              - /url: /staff
+              - img [ref=e105]
+              - generic [ref=e117]: Staff
+          - generic [ref=e118]:
+            - generic [ref=e119]: Account
+            - link "Finance" [ref=e121] [cursor=pointer]:
+              - /url: /finance
+              - img [ref=e124]
+              - generic [ref=e127]: Finance
+            - link "Profile & Settings" [ref=e129] [cursor=pointer]:
+              - /url: /profile
+              - img [ref=e132]
+              - generic [ref=e135]: Profile & Settings
+          - generic [ref=e136]:
+            - generic [ref=e137]: Platform
+            - link "Admin" [ref=e139] [cursor=pointer]:
+              - /url: /admin
+              - img [ref=e142]
+              - generic [ref=e145]: Admin
+            - link "System" [ref=e147] [cursor=pointer]:
+              - /url: /system
+              - img [ref=e150]
+              - generic [ref=e153]: System
+        - button "Collapse sidebar" [expanded] [ref=e155] [cursor=pointer]:
+          - img [ref=e156]
+      - main [ref=e159]:
+        - generic [ref=e162]:
+          - generic [ref=e163]:
+            - generic [ref=e164]:
+              - heading "Calendar" [level=1] [ref=e166]
+              - generic [ref=e167]:
+                - radiogroup "Calendar view" [ref=e168]:
+                  - radio "Month" [ref=e169] [cursor=pointer]
+                  - radio "Week" [checked] [ref=e170] [cursor=pointer]
+                - radiogroup "Calendar audience" [ref=e171]:
+                  - radio "All" [checked] [ref=e172] [cursor=pointer]
+                  - radio "My students" [ref=e173] [cursor=pointer]
+                - button "All teachers" [ref=e175] [cursor=pointer]:
+                  - generic [ref=e176]: All teachers
+                  - img [ref=e178]
+            - paragraph [ref=e180]: Week schedule · 3 students on calendar
+          - generic [ref=e181]:
+            - generic [ref=e182]:
+              - generic [ref=e183]:
+                - button "←" [ref=e184] [cursor=pointer]
+                - heading "June 2026" [level=2] [ref=e185]
+                - button "→" [ref=e186] [cursor=pointer]
+              - generic [ref=e187]:
+                - generic [ref=e188]:
+                  - generic [ref=e190] [cursor=pointer]:
+                    - generic [ref=e191]: Mon
+                    - generic [ref=e192]: "8"
+                  - generic [ref=e193] [cursor=pointer]:
+                    - generic [ref=e194]: Tue
+                    - generic [ref=e195]: "9"
+                  - generic [ref=e196] [cursor=pointer]:
+                    - generic [ref=e197]: Wed
+                    - generic [ref=e198]: "10"
+                  - generic [ref=e199] [cursor=pointer]:
+                    - generic [ref=e200]: Thu
+                    - generic [ref=e201]: "11"
+                  - generic [ref=e202] [cursor=pointer]:
+                    - generic [ref=e203]: Fri
+                    - generic [ref=e204]: "12"
+                  - generic [ref=e205] [cursor=pointer]:
+                    - generic [ref=e206]: Sat
+                    - generic [ref=e207]: "13"
+                  - generic [ref=e208] [cursor=pointer]:
+                    - generic [ref=e209]: Sun
+                    - generic [ref=e210]: "14"
+                - generic [ref=e212]:
+                  - generic:
+                    - generic: 01:38
+                  - generic [ref=e213]:
+                    - generic [ref=e214]: 0:00
+                    - generic [ref=e215]: 1:00
+                    - generic [ref=e216]: 2:00
+                    - generic [ref=e217]: 3:00
+                    - generic [ref=e218]: 4:00
+                    - generic [ref=e219]: 5:00
+                    - generic [ref=e220]: 6:00
+                    - generic [ref=e221]: 7:00
+                    - generic [ref=e222]: 8:00
+                    - generic [ref=e223]: 9:00
+                    - generic [ref=e224]: 10:00
+                    - generic [ref=e225]: 11:00
+                    - generic [ref=e226]: 12:00
+                    - generic [ref=e227]: 13:00
+                    - generic [ref=e228]: 14:00
+                    - generic [ref=e229]: 15:00
+                    - generic [ref=e230]: 16:00
+                    - generic [ref=e231]: 17:00
+                    - generic [ref=e232]: 18:00
+                    - generic [ref=e233]: 19:00
+                    - generic [ref=e234]: 20:00
+                    - generic [ref=e235]: 21:00
+                    - generic [ref=e236]: 22:00
+                    - generic [ref=e237]: 23:00
+                    - generic [ref=e238]: 24:00
+            - generic [ref=e247]:
+              - generic [ref=e248]: Sunday 14 June
+              - generic [ref=e249]: No lessons scheduled
+  - button "Open Next.js Dev Tools" [ref=e255] [cursor=pointer]:
+    - img [ref=e256]

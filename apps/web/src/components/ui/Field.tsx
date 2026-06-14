@@ -18,8 +18,15 @@ import type {
   TextareaHTMLAttributes,
 } from 'react';
 import { MOBILE_MAX_WIDTH } from '../../lib/breakpoints';
+import { formatDateLabel, formatTimeLabel } from '../../lib/date-picker-utils';
 import { formatTelMask } from '../../lib/tel-mask';
+import { stripNativeValidationProps } from '../../lib/strip-native-validation';
+import { findSelectOption, parseSelectOptionChildren } from './advanced-select-options';
+import type { AdvancedSelectOption } from './advanced-select-options';
 import { Button } from './Button';
+import { AdvancedSelectControl } from './AdvancedSelectControl';
+import { DatePickerControl } from './DatePickerControl';
+import { TimePickerControl } from './TimePickerControl';
 import uiStyles from './ui.module.scss';
 
 type SharedProps = {
@@ -36,6 +43,10 @@ type SharedProps = {
    * Optional formatter for read-only text mode.
    */
   formatValue?: (value: unknown) => React.ReactNode;
+  /** Extra class on the label + control wrapper (`.fieldRoot`). */
+  rootClassName?: string;
+  /** Extra class on the `<label>`. */
+  labelClassName?: string;
 };
 
 type FieldInputProps = SharedProps & {
@@ -49,6 +60,20 @@ type FieldTextareaProps = SharedProps & {
 export type FieldSelectProps = SharedProps & {
   as: 'select';
 } & SelectHTMLAttributes<HTMLSelectElement>;
+
+export type FieldAdvancedSelectProps = SharedProps & {
+  as: 'advancedSelect';
+  options?: AdvancedSelectOption[];
+  placeholder?: string;
+  searchPlaceholder?: string;
+  onSearch?: (query: string) => void;
+  onLoadMore?: () => void;
+  hasMore?: boolean;
+  loadingMore?: boolean;
+  loading?: boolean;
+  emptyMessage?: string;
+  searchDebounceMs?: number;
+} & Omit<SelectHTMLAttributes<HTMLSelectElement>, 'multiple'>;
 
 type FieldCheckboxProps = SharedProps & {
   as: 'checkbox';
@@ -64,6 +89,7 @@ export type FieldProps =
   | FieldInputProps
   | FieldTextareaProps
   | FieldSelectProps
+  | FieldAdvancedSelectProps
   | FieldCheckboxProps
   | FieldFileButtonProps;
 
@@ -75,6 +101,10 @@ type SelectControlProps = {
   errorId: string;
   hintId: string;
 } & SelectHTMLAttributes<HTMLSelectElement>;
+
+function mergeSelectControlClass(className?: string): string | undefined {
+  return [uiStyles.fieldControl, className].filter(Boolean).join(' ') || undefined;
+}
 
 const SelectControl = forwardRef<HTMLSelectElement, SelectControlProps>(function SelectControl(
   {
@@ -247,6 +277,52 @@ const SelectControl = forwardRef<HTMLSelectElement, SelectControlProps>(function
 
 SelectControl.displayName = 'SelectControl';
 
+function FieldShell({
+  label,
+  hint,
+  error,
+  id,
+  errorId,
+  hintId,
+  rootClassName,
+  labelClassName,
+  children,
+}: {
+  label?: string;
+  hint?: string;
+  error?: string;
+  id: string;
+  errorId: string;
+  hintId: string;
+  rootClassName?: string;
+  labelClassName?: string;
+  children: React.ReactNode;
+}) {
+  if (!label && !hint && !error) return <>{children}</>;
+  const rootClass = [uiStyles.fieldRoot, rootClassName].filter(Boolean).join(' ') || undefined;
+  const labelClass = [uiStyles.fieldLabel, labelClassName].filter(Boolean).join(' ') || undefined;
+  return (
+    <div className={rootClass}>
+      {label ? (
+        <label htmlFor={id} className={labelClass}>
+          {label}
+        </label>
+      ) : null}
+      {children}
+      {error ? (
+        <small id={errorId} className={uiStyles.fieldError} role="alert">
+          {error}
+        </small>
+      ) : null}
+      {hint && !error ? (
+        <small id={hintId} className={uiStyles.fieldHint}>
+          {hint}
+        </small>
+      ) : null}
+    </div>
+  );
+}
+
 export const Field = forwardRef<
   HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement,
   FieldProps
@@ -259,6 +335,11 @@ export const Field = forwardRef<
     .filter(Boolean)
     .join(' ') || undefined;
   const isTextMode = Boolean(props.readOnly);
+  const [showPassword, setShowPassword] = useState(false);
+  const fieldShellLayout = {
+    rootClassName: props.rootClassName,
+    labelClassName: props.labelClassName,
+  };
 
   const resolveReadonlyValue = (): React.ReactNode => {
     if (props.as === 'checkbox') {
@@ -266,15 +347,13 @@ export const Field = forwardRef<
       return props.formatValue ? props.formatValue(checked) : checked ? 'Yes' : 'No';
     }
 
-    if (props.as === 'select') {
-      const selected = Children.toArray(props.children).find((child) => {
-        if (!isValidElement(child)) return false;
-        if (child.type !== 'option') return false;
-        return String((child.props as { value?: unknown }).value ?? '') === String(props.value ?? '');
-      });
-      const selectedLabel = isValidElement<{ children?: React.ReactNode }>(selected)
-        ? selected.props.children
-        : props.value;
+    if (props.as === 'select' || props.as === 'advancedSelect') {
+      const options =
+        props.as === 'advancedSelect' && props.options?.length
+          ? props.options
+          : parseSelectOptionChildren(props.children);
+      const selected = findSelectOption(options, String(props.value ?? ''));
+      const selectedLabel = selected?.label ?? props.value;
       return props.formatValue ? props.formatValue(selectedLabel) : (selectedLabel ?? '—');
     }
 
@@ -285,6 +364,9 @@ export const Field = forwardRef<
     const rawValue = (props as FieldInputProps | FieldTextareaProps).value;
     if (props.formatValue) return props.formatValue(rawValue);
     if (rawValue === undefined || rawValue === null || rawValue === '') return '—';
+    const inputType = (props as FieldInputProps).type;
+    if (inputType === 'date') return formatDateLabel(String(rawValue), '—');
+    if (inputType === 'time') return formatTimeLabel(String(rawValue), '—');
     return String(rawValue);
   };
 
@@ -300,47 +382,123 @@ export const Field = forwardRef<
   }
 
   if (props.as === 'textarea') {
-    const { as, label, hint, error, id: _id, formatValue: _formatValue, ...t } = props;
+    const { as, label, hint, error, id: _id, formatValue: _formatValue, className, ...t } = props;
     void as;
-    void label;
-    void hint;
-    void error;
     void _id;
     void _formatValue;
+    const controlProps = stripNativeValidationProps(t);
     return (
-      <>
+      <FieldShell
+        label={label}
+        hint={hint}
+        error={error}
+        id={id}
+        errorId={errorId}
+        hintId={hintId}
+        {...fieldShellLayout}
+      >
         <textarea
           ref={ref as React.ForwardedRef<HTMLTextAreaElement>}
           id={id}
+          className={[uiStyles.fieldControl, className].filter(Boolean).join(' ') || undefined}
           aria-invalid={props.error ? true : undefined}
           aria-describedby={describedBy}
-          {...t}
+          {...controlProps}
         />
-        {props.error ? <small id={errorId}>{props.error}</small> : null}
-        {props.hint && !props.error ? <small id={hintId}>{props.hint}</small> : null}
-      </>
+      </FieldShell>
+    );
+  }
+
+  if (props.as === 'advancedSelect') {
+    const {
+      as,
+      children,
+      label,
+      hint,
+      error,
+      id: _id,
+      formatValue: _formatValue,
+      options,
+      placeholder,
+      searchPlaceholder,
+      onSearch,
+      onLoadMore,
+      hasMore,
+      loadingMore,
+      loading,
+      emptyMessage,
+      searchDebounceMs,
+      ...s
+    } = props;
+    void as;
+    void _id;
+    void _formatValue;
+    const controlProps = stripNativeValidationProps(s);
+    return (
+      <FieldShell
+        label={label}
+        hint={hint}
+        error={error}
+        id={id}
+        errorId={errorId}
+        hintId={hintId}
+        {...fieldShellLayout}
+      >
+        <AdvancedSelectControl
+          ref={ref as React.ForwardedRef<HTMLSelectElement>}
+          id={id}
+          describedBy={describedBy}
+          error={error}
+          options={options}
+          placeholder={placeholder}
+          searchPlaceholder={searchPlaceholder}
+          onSearch={onSearch}
+          onLoadMore={onLoadMore}
+          hasMore={hasMore}
+          loadingMore={loadingMore}
+          loading={loading}
+          emptyMessage={emptyMessage}
+          searchDebounceMs={searchDebounceMs}
+          {...controlProps}
+          value={controlProps.value != null ? String(controlProps.value) : undefined}
+          className={mergeSelectControlClass(controlProps.className)}
+        >
+          {children}
+        </AdvancedSelectControl>
+      </FieldShell>
     );
   }
 
   if (props.as === 'select') {
     const { as, children, label, hint, error, id: _id, formatValue: _formatValue, ...s } = props;
     void as;
-    void label;
     void _id;
     void _formatValue;
+    const controlProps = stripNativeValidationProps(s);
     return (
-      <SelectControl
-        ref={ref as React.ForwardedRef<HTMLSelectElement>}
-        id={id}
-        describedBy={describedBy}
-        error={error}
+      <FieldShell
+        label={label}
         hint={hint}
+        error={error}
+        id={id}
         errorId={errorId}
         hintId={hintId}
-        {...s}
+        {...fieldShellLayout}
       >
-        {children}
-      </SelectControl>
+        <SelectControl
+          ref={ref as React.ForwardedRef<HTMLSelectElement>}
+          id={id}
+          describedBy={describedBy}
+          error={error}
+          hint={hint}
+          errorId={errorId}
+          hintId={hintId}
+          {...controlProps}
+          className={mergeSelectControlClass(controlProps.className)}
+        >
+          {children}
+        </SelectControl>
+      </FieldShell>
     );
   }
 
@@ -352,6 +510,7 @@ export const Field = forwardRef<
     void error;
     void _id;
     void _formatValue;
+    const controlProps = stripNativeValidationProps(c);
     return (
       <>
         <input
@@ -360,7 +519,7 @@ export const Field = forwardRef<
           type="checkbox"
           aria-invalid={props.error ? true : undefined}
           aria-describedby={describedBy}
-          {...c}
+          {...controlProps}
         />
         {props.error ? <small id={errorId}>{props.error}</small> : null}
         {props.hint && !props.error ? <small id={hintId}>{props.hint}</small> : null}
@@ -387,6 +546,7 @@ export const Field = forwardRef<
     void error;
     void _id;
     void _formatValue;
+    const controlProps = stripNativeValidationProps(f);
     return (
       <>
         <input
@@ -400,7 +560,7 @@ export const Field = forwardRef<
             onFilesSelected?.(e.target.files);
             e.currentTarget.value = '';
           }}
-          {...f}
+          {...controlProps}
         />
         <Button
           type="button"
@@ -427,20 +587,94 @@ export const Field = forwardRef<
   void _id;
   void _formatValue;
 
-  const isTelInput = i.type === 'tel';
-  const isPasswordInput = i.type === 'password';
-  const [showPassword, setShowPassword] = useState(false);
+  const dateMin = (i as FieldInputProps).min;
+  const dateMax = (i as FieldInputProps).max;
+  const controlProps = stripNativeValidationProps(i);
+  const isDateInput = controlProps.type === 'date';
+  const isTimeInput = controlProps.type === 'time';
+  const toDateAttr = (value: string | number | undefined) =>
+    value === undefined || value === '' ? undefined : String(value);
+  const isTelInput = controlProps.type === 'tel';
+  const isPasswordInput = controlProps.type === 'password';
+
+  if (isDateInput) {
+    const { type: _type, ...dateProps } = controlProps;
+    void _type;
+    return (
+      <FieldShell
+        label={label}
+        hint={hint}
+        error={error}
+        id={id}
+        errorId={errorId}
+        hintId={hintId}
+        {...fieldShellLayout}
+      >
+        <DatePickerControl
+          id={id}
+          value={String(dateProps.value ?? '')}
+          onChange={dateProps.onChange}
+          disabled={dateProps.disabled}
+          className={dateProps.className}
+          min={toDateAttr(dateMin)}
+          max={toDateAttr(dateMax)}
+          placeholder={dateProps.placeholder}
+          aria-describedby={describedBy}
+          aria-invalid={props.error ? true : undefined}
+        />
+      </FieldShell>
+    );
+  }
+
+  if (isTimeInput) {
+    const { type: _type, ...timeProps } = controlProps;
+    void _type;
+    return (
+      <FieldShell
+        label={label}
+        hint={hint}
+        error={error}
+        id={id}
+        errorId={errorId}
+        hintId={hintId}
+        {...fieldShellLayout}
+      >
+        <TimePickerControl
+          id={id}
+          value={String(timeProps.value ?? '')}
+          onChange={timeProps.onChange}
+          disabled={timeProps.disabled}
+          className={timeProps.className}
+          placeholder={timeProps.placeholder}
+          aria-describedby={describedBy}
+          aria-invalid={props.error ? true : undefined}
+        />
+      </FieldShell>
+    );
+  }
   const telOnChange = isTelInput
     ? (event: ChangeEvent<HTMLInputElement>) => {
         const masked = formatTelMask(event.target.value);
         if (masked !== event.target.value) {
           event.target.value = masked;
         }
-        i.onChange?.(event);
+        controlProps.onChange?.(event);
       }
-    : i.onChange;
-  const inputType = isTelInput ? 'tel' : isPasswordInput && showPassword ? 'text' : i.type;
-  const inputClassName = [i.className, isPasswordInput ? uiStyles.passwordToggleInput : '']
+    : controlProps.onChange;
+  const inputType = isTelInput ? 'tel' : isPasswordInput && showPassword ? 'text' : controlProps.type;
+  // range/color — нативні типи зі своїм виглядом: текстовий .fieldControl їм не пасує
+  const isRangeInput = controlProps.type === 'range';
+  const isColorInput = controlProps.type === 'color';
+  const baseControlClass = isRangeInput
+    ? uiStyles.fieldRange
+    : isColorInput
+      ? uiStyles.fieldColor
+      : uiStyles.fieldControl;
+  const inputClassName = [
+    baseControlClass,
+    controlProps.className,
+    isPasswordInput ? uiStyles.passwordToggleInput : '',
+  ]
     .filter(Boolean)
     .join(' ');
   const inputControl = (
@@ -449,17 +683,25 @@ export const Field = forwardRef<
       id={id}
       aria-invalid={props.error ? true : undefined}
       aria-describedby={describedBy}
-      {...i}
+      {...controlProps}
       className={inputClassName || undefined}
       type={inputType}
-      inputMode={isTelInput ? 'tel' : i.inputMode}
-      autoComplete={isTelInput ? (i.autoComplete ?? 'tel') : i.autoComplete}
+      inputMode={isTelInput ? 'tel' : controlProps.inputMode}
+      autoComplete={isTelInput ? (controlProps.autoComplete ?? 'tel') : controlProps.autoComplete}
       onChange={telOnChange}
     />
   );
 
   return (
-    <>
+    <FieldShell
+      label={label}
+      hint={hint}
+      error={error}
+      id={id}
+      errorId={errorId}
+      hintId={hintId}
+      {...fieldShellLayout}
+    >
       {isPasswordInput ? (
         <div className={uiStyles.passwordToggleWrap}>
           {inputControl}
@@ -468,7 +710,7 @@ export const Field = forwardRef<
             className={uiStyles.passwordToggleButton}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
             aria-pressed={showPassword}
-            disabled={Boolean(i.disabled)}
+            disabled={Boolean(controlProps.disabled)}
             onClick={() => setShowPassword((value) => !value)}
           >
             {showPassword ? <EyeOff size={16} aria-hidden /> : <Eye size={16} aria-hidden />}
@@ -477,9 +719,7 @@ export const Field = forwardRef<
       ) : (
         inputControl
       )}
-      {props.error ? <small id={errorId}>{props.error}</small> : null}
-      {props.hint && !props.error ? <small id={hintId}>{props.hint}</small> : null}
-    </>
+    </FieldShell>
   );
 });
 

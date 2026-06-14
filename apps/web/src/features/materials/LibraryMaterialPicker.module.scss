@@ -1,0 +1,131 @@
+@use '../../styles/mixins' as *;
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal, 2200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: var(--backdrop-modal, color-mix(in srgb, var(--fill-strong) 52%, transparent));
+  backdrop-filter: blur(8px);
+}
+
+.modal {
+  width: min(640px, 100%);
+  max-height: calc(100vh - 24px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--modal-bg, var(--card));
+  border: 1px solid color-mix(in srgb, var(--border) 78%, var(--border-strong));
+  box-shadow: var(--shadow-modal, var(--shadow-lg));
+}
+
+.header,
+.footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 24px;
+}
+
+.header {
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+}
+
+.footer {
+  border-top: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--fs-section-title);
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 24px;
+}
+
+.searchWrap {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+.searchField {
+  padding-left: 2.25rem;
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-strong);
+  }
+}
+
+.rowSelected {
+  border-color: color-mix(in srgb, var(--blue) 45%, var(--border));
+  background: color-mix(in srgb, var(--blue) 8%, var(--surface));
+}
+
+.rowTitle {
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.rowMeta {
+  font-size: var(--fs-12);
+  color: var(--text-tertiary);
+}
+
+.hint {
+  margin: 0;
+  color: var(--text-tertiary);
+  font-size: var(--fs-13);
+}

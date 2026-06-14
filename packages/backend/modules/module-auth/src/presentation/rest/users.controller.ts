@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import type { UpdateMyProfileRequestDto } from '@pkg/types';
 import { UsersService } from '../../application/users.service';
 import { AuthGuard } from '../guards/auth.guard';
 import { CurrentUser } from '../guards/current-user';
@@ -21,7 +22,7 @@ export class UsersController {
   @Post('me/profile')
   async updateMyProfile(
     @CurrentUser() userId: string,
-    @Body() body: import('@pkg/types').UpdateMyProfileRequestDto,
+    @Body() body: UpdateMyProfileRequestDto,
   ) {
     return this.users.updateMyProfile(userId, body);
   }

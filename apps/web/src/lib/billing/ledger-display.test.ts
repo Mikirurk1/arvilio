@@ -24,6 +24,10 @@ describe('ledger-display', () => {
     expect(title.length).toBeGreaterThan(label.length);
   });
 
+  it('describes group monetary charges', () => {
+    expect(getLedgerKindMeta('GROUP_CHARGE').title).toBe('Group lesson charge');
+  });
+
   it('groups entries by calendar day', () => {
     const groups = groupLedgerByDay([
       {

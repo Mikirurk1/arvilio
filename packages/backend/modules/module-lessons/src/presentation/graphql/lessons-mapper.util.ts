@@ -1,5 +1,6 @@
 import type { UpdateScheduledLessonRequestDto } from '@pkg/types';
 import type {
+  GroupLessonBillingInput,
   LessonHomeworkInput,
   LessonMaterialInput,
   StudentResponseInput,
@@ -10,9 +11,19 @@ export function mapLessonMaterialsInput(
 ): UpdateScheduledLessonRequestDto['materials'] {
   if (!materials) return undefined;
   return materials.map((material) => ({
-    kind: material.kind as 'text' | 'photo' | 'test' | 'file' | 'presentation',
+    kind: material.kind as
+      | 'text'
+      | 'photo'
+      | 'test'
+      | 'file'
+      | 'presentation'
+      | 'book'
+      | 'board',
     text: material.text ?? '',
     files: material.files ?? [],
+    libraryMaterialId: material.libraryMaterialId ?? null,
+    sharedLibraryAssetIds: material.sharedLibraryAssetIds ?? [],
+    libraryMediaSelectionApplied: material.libraryMediaSelectionApplied ?? false,
   }));
 }
 
@@ -23,6 +34,19 @@ export function mapLessonHomeworkInput(
   return {
     text: homework.text,
     files: homework.files,
+  };
+}
+
+export function mapGroupBillingInput(
+  groupBilling: GroupLessonBillingInput | undefined,
+): UpdateScheduledLessonRequestDto['groupBilling'] {
+  if (!groupBilling) return undefined;
+  return {
+    mode: groupBilling.mode as 'per_member' | 'fixed_total',
+    priceMinor: groupBilling.priceMinor,
+    currency: groupBilling.currency,
+    splitMode: groupBilling.splitMode as 'single_payer' | 'equal_split' | undefined,
+    payerUserId: groupBilling.payerUserId,
   };
 }
 

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { forwardRef, isValidElement, useEffect, useState } from 'react';
 import type { ButtonHTMLAttributes, CSSProperties, MouseEventHandler, ReactNode } from 'react';
 import uiStyles from './ui.module.scss';
@@ -28,7 +29,9 @@ function isThenable(value: unknown): value is PromiseLike<unknown> {
 }
 
 export type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onClick' | 'style'> & {
-  variant?: 'default' | 'ghost' | 'dashed' | 'danger';
+  variant?: 'default' | 'primary' | 'ghost' | 'dashed' | 'danger';
+  /** Renders as Next.js Link with button styles (for in-app navigation CTAs). */
+  href?: string;
   active?: boolean;
   startIcon?: ReactNode;
   endIcon?: ReactNode;
@@ -55,6 +58,7 @@ export type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onClick
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   {
     variant = 'default',
+    href,
     active = false,
     startIcon,
     endIcon,
@@ -106,6 +110,18 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     .filter(Boolean)
     .join(' ');
 
+  const variantClass =
+    uiStyles[`buttonVariant${variant.charAt(0).toUpperCase() + variant.slice(1)}`];
+
+  const sharedClassName = [
+    uiStyles.buttonBase,
+    variantClass,
+    isLoading ? uiStyles.buttonPending : undefined,
+    rootClassName,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   const labelContent =
     visibleLabel != null && visibleLabel !== false
       ? classNames.text
@@ -115,29 +131,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
         : visibleLabel
       : null;
 
-  return (
-    <button
-      ref={ref}
-      type={type}
-      data-variant={variant}
-      data-active={active ? 'true' : 'false'}
-      data-loading={isLoading ? 'true' : 'false'}
-      data-icon-only={isIconOnly ? 'true' : undefined}
-      className={[
-        uiStyles.buttonBase,
-        uiStyles[`buttonVariant${variant.charAt(0).toUpperCase() + variant.slice(1)}`],
-        isLoading ? uiStyles.buttonPending : undefined,
-        rootClassName,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-      style={style}
-      onClick={handleClick}
-      disabled={computedDisabled}
-      aria-busy={isLoading || undefined}
-      aria-label={isLoading ? loadingAriaLabel ?? loadingLabel?.toString() : ariaLabel}
-      {...props}
-    >
+  const inner = (
+    <>
       {startIcon && !isLoading ? (
         <span className={classNames.startIcon} aria-hidden>
           {startIcon}
@@ -156,6 +151,50 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
           {endIcon}
         </span>
       ) : null}
+    </>
+  );
+
+  if (href && !computedDisabled) {
+    return (
+      <Link
+        href={href}
+        data-variant={variant}
+        data-active={active ? 'true' : 'false'}
+        className={sharedClassName}
+        style={style}
+        aria-label={ariaLabel}
+        onClick={(event) => {
+          if (isLoading) event.preventDefault();
+          if (!onClick || isLoading) return;
+          if (Array.isArray(onClick)) {
+            onClick.forEach((fn) => fn());
+            return;
+          }
+          onClick(event as unknown as React.MouseEvent<HTMLButtonElement>);
+        }}
+      >
+        {inner}
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      ref={ref}
+      type={type}
+      data-variant={variant}
+      data-active={active ? 'true' : 'false'}
+      data-loading={isLoading ? 'true' : 'false'}
+      data-icon-only={isIconOnly ? 'true' : undefined}
+      className={sharedClassName}
+      style={style}
+      onClick={handleClick}
+      disabled={computedDisabled}
+      aria-busy={isLoading || undefined}
+      aria-label={isLoading ? loadingAriaLabel ?? loadingLabel?.toString() : ariaLabel}
+      {...props}
+    >
+      {inner}
     </button>
   );
 });

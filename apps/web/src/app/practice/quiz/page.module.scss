@@ -1,0 +1,176 @@
+@use '../../../styles/mixins' as *;
+
+.page {
+  /* entrance-анімацію сторінки володіє app/template.tsx (V1-04) */
+  min-width: 0;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-section-md);
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  font-size: var(--fs-13);
+  font-weight: var(--fw-medium);
+  color: var(--text-tertiary);
+  text-decoration: none;
+  transition: color var(--transition);
+
+  &:hover {
+    color: var(--accent-primary);
+  }
+}
+
+.pageHeader {
+  margin-bottom: 0;
+}
+
+.pageTitle {
+  @include page-title-display;
+}
+
+.pageSub {
+  max-width: var(--container-max-prose);
+  font-size: var(--fs-page-sub);
+  line-height: var(--lh-body);
+  color: var(--text-secondary);
+}
+
+.heroCard {
+  display: grid;
+  gap: var(--space-stack-gap);
+  padding: var(--space-card-padding-lg);
+  background: var(--surface-offer);
+}
+
+.heroIcon {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent-info) 12%, var(--surface));
+  color: var(--blue);
+}
+
+.heroLabel {
+  margin: 0;
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.heroTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-22);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.heroMeta {
+  margin: 0;
+  font-size: var(--fs-14);
+  color: var(--text-tertiary);
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.secondaryLink {
+  font-size: var(--fs-13);
+  font-weight: var(--fw-medium);
+  color: var(--accent-primary);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.sectionBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-stack-gap);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-20);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.quizList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quizRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
+}
+
+.quizRowDone {
+  border-color: color-mix(in srgb, var(--accent-primary) 28%, var(--border));
+}
+
+.quizRowMain {
+  min-width: 0;
+}
+
+.quizRowTitle {
+  margin: 0;
+  font-size: var(--fs-15);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.quizRowMeta {
+  margin: 4px 0 0;
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+}
+
+.topicsWrap {
+  margin-top: 4px;
+}
+
+.staffCard {
+  display: grid;
+  gap: 14px;
+  padding: var(--space-card-padding-lg);
+}
+
+.staffText {
+  margin: 0;
+  font-size: var(--fs-15);
+  line-height: var(--lh-body);
+  color: var(--text-secondary);
+  max-width: var(--container-max-prose);
+}
+
+.emptyState {
+  margin: 0;
+}

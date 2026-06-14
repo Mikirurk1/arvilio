@@ -1,0 +1,140 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to main content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=e5]:
+      - link "SoEnglish — go to dashboard" [ref=e7] [cursor=pointer]:
+        - /url: /dashboard
+        - img [ref=e9]
+        - generic [ref=e11]:
+          - generic [ref=e12]: SoEnglish
+          - generic [ref=e13]: English Platform
+      - search [ref=e16]:
+        - img [ref=e17]
+        - searchbox "Search" [ref=e21]
+      - generic [ref=e22]:
+        - button "Create lesson" [ref=e23] [cursor=pointer]
+        - generic [ref=e24]:
+          - 'link "My: 0 today · 0 left" [ref=e25] [cursor=pointer]':
+            - /url: /lessons
+            - img [ref=e26]
+            - generic [ref=e28]: "My: 0 today"
+            - generic [ref=e29]: · 0 left
+          - link "Messages" [ref=e31] [cursor=pointer]:
+            - /url: /chat
+            - img [ref=e32]
+          - link "Profile & settings" [ref=e34] [cursor=pointer]:
+            - /url: /profile
+    - generic [ref=e35]:
+      - complementary [ref=e36]:
+        - navigation "Main navigation" [ref=e37]:
+          - generic [ref=e38]:
+            - generic [ref=e39]: Learn
+            - link "Dashboard" [ref=e41] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e44]
+              - generic [ref=e49]: Dashboard
+            - link "Lessons" [ref=e51] [cursor=pointer]:
+              - /url: /lessons
+              - img [ref=e54]
+              - generic [ref=e56]: Lessons
+            - link "Practice" [ref=e58] [cursor=pointer]:
+              - /url: /practice
+              - img [ref=e61]
+              - generic [ref=e65]: Practice
+            - link "Materials" [ref=e67] [cursor=pointer]:
+              - /url: /materials
+              - img [ref=e70]
+              - generic [ref=e72]: Materials
+          - generic [ref=e73]:
+            - generic [ref=e74]: Schedule
+            - link "Calendar" [ref=e76] [cursor=pointer]:
+              - /url: /calendar
+              - img [ref=e79]
+              - generic [ref=e81]: Calendar
+          - generic [ref=e82]:
+            - generic [ref=e83]: Connect
+            - link "Chat" [ref=e85] [cursor=pointer]:
+              - /url: /chat
+              - img [ref=e88]
+              - generic [ref=e90]: Chat
+            - link "Students" [ref=e92] [cursor=pointer]:
+              - /url: /students
+              - img [ref=e95]
+              - generic [ref=e100]: Students
+            - link "Staff" [ref=e102] [cursor=pointer]:
+              - /url: /staff
+              - img [ref=e105]
+              - generic [ref=e117]: Staff
+          - generic [ref=e118]:
+            - generic [ref=e119]: Account
+            - link "Finance" [ref=e121] [cursor=pointer]:
+              - /url: /finance
+              - img [ref=e124]
+              - generic [ref=e127]: Finance
+            - link "Profile & Settings" [ref=e129] [cursor=pointer]:
+              - /url: /profile
+              - img [ref=e132]
+              - generic [ref=e135]: Profile & Settings
+          - generic [ref=e136]:
+            - generic [ref=e137]: Platform
+            - link "Admin" [ref=e139] [cursor=pointer]:
+              - /url: /admin
+              - img [ref=e142]
+              - generic [ref=e145]: Admin
+            - link "System" [ref=e147] [cursor=pointer]:
+              - /url: /system
+              - img [ref=e150]
+              - generic [ref=e153]: System
+        - button "Collapse sidebar" [expanded] [ref=e155] [cursor=pointer]:
+          - img [ref=e156]
+      - main [ref=e159]:
+        - generic [ref=e162]:
+          - generic [ref=e163]:
+            - heading "Profile & Settings" [level=1] [ref=e166]
+            - paragraph [ref=e167]: Manage your account and preferences · Super admin
+          - generic [ref=e169]:
+            - generic [ref=e171]:
+              - button "Change avatar" [ref=e173] [cursor=pointer]:
+                - generic [ref=e174]: "?"
+                - img [ref=e176]
+              - generic [ref=e179]:
+                - generic [ref=e180]: C2 · Super admin
+                - generic [ref=e181]: teriv168@gmail.com · Ukraine — Kyiv (Europe/Kyiv)
+                - generic [ref=e182]:
+                  - generic [ref=e183]: Proficient
+                  - generic [ref=e184]: Super admin
+            - list [ref=e185]:
+              - listitem [ref=e186]:
+                - generic [ref=e187]:
+                  - img [ref=e189]
+                  - generic [ref=e191]: Words
+                - generic [ref=e192]: …
+              - listitem [ref=e193]:
+                - generic [ref=e194]:
+                  - img [ref=e196]
+                  - generic [ref=e198]: Lessons
+                - generic [ref=e199]: …
+              - listitem [ref=e200]:
+                - generic [ref=e201]:
+                  - img [ref=e203]
+                  - generic [ref=e205]: Streak
+                - generic [ref=e206]: …
+          - region "Recent achievements" [ref=e207]:
+            - heading "Recent achievements" [level=2] [ref=e208]
+            - generic [ref=e210]:
+              - img [ref=e212]
+              - generic [ref=e215]: Welcome Aboard
+          - generic [ref=e216]:
+            - tablist "Profile tabs" [ref=e217]:
+              - tab "Profile" [selected]
+              - tab "Statistics" [ref=e218] [cursor=pointer]
+              - tab "Notifications" [ref=e219] [cursor=pointer]
+              - tab "Connections" [ref=e220] [cursor=pointer]
+              - tab "Appearance" [ref=e221] [cursor=pointer]
+              - tab "Achievements" [ref=e222] [cursor=pointer]
+              - tab "Account" [ref=e223] [cursor=pointer]
+            - tabpanel "Profile" [ref=e224]:
+              - paragraph [ref=e226]: Loading profile…
+  - button "Open Next.js Dev Tools" [ref=e232] [cursor=pointer]:
+    - img [ref=e233]

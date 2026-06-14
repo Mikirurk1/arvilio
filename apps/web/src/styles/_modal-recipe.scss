@@ -1,0 +1,40 @@
+/**
+ * Modal recipe — спільний вигляд і рух модалок (redesign v2 §2.2).
+ * Keyframes (modalOverlayIn/Out, modalDialogIn/Out) — глобальні в _animations.scss.
+ * Enter: overlay fade + dialog від scale(0.96); origin — center (модалка
+ * не прив'язана до тригера, на відміну від попаверів).
+ * Exit: швидший за enter — додай *-closing клас перед unmount
+ * (setTimeout(MOTION_DURATION_UI_MS) або onanimationend).
+ */
+
+@mixin overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: var(--backdrop-modal, color-mix(in srgb, var(--fill-strong) 45%, transparent));
+  backdrop-filter: blur(8px);
+  animation: modalOverlayIn var(--dur-modal) var(--ease-out);
+}
+
+@mixin overlay-closing {
+  animation: modalOverlayOut var(--dur-fast) var(--ease-out) forwards;
+}
+
+@mixin dialog {
+  background: var(--modal-bg, var(--card));
+  border: 1px solid color-mix(in srgb, var(--border) 78%, var(--border-strong));
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-modal, var(--shadow-lg));
+  animation: modalDialogIn var(--dur-modal) var(--ease-out);
+}
+
+@mixin dialog-closing {
+  animation: modalDialogOut var(--dur-fast) var(--ease-out) forwards;
+}
+
+@mixin section-divider {
+  border-bottom: 1px solid var(--border-subtle);
+}

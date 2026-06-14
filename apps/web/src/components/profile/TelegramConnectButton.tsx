@@ -213,7 +213,7 @@ export function TelegramConnectButton({ onLinked }: Props) {
     return (
       <span
         className={`${styles.linkedBadge} ${styles.linkedBadgeOff}`}
-        title="Add TELEGRAM_BOT_TOKEN to .env (from @BotFather), restart dev server"
+        title="Configure Telegram in System → Connections (super-admin), then restart the API"
       >
         Not configured
       </span>

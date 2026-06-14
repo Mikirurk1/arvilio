@@ -14,6 +14,10 @@ describe('achievements', () => {
         quizzesCompleted: 40,
         perfectQuizCount: 10,
         speakingSessions: 30,
+        speakingSubmissions: 10,
+        speakingReviewsReceived: 5,
+        speakingMinutesTotal: 120,
+        gamesSessions: 30,
         practiceMinutesTotal: 600,
         lessonMinutesTotal: 1500,
         weeklyGoalsCompleted: 3,
@@ -30,6 +34,10 @@ describe('achievements', () => {
         'ach_quizzes_40',
         'ach_perfect_quiz_10',
         'ach_speaking_30',
+        'ach_speaking_record_10',
+        'ach_speaking_feedback_5',
+        'ach_speaking_minutes_60',
+        'ach_irregular_drills_30',
         'ach_consistency_master',
         'ach_elite_learner',
         'ach_profile_complete',
@@ -47,6 +55,10 @@ describe('achievements', () => {
         quizzesCompleted: 1,
         perfectQuizCount: 1,
         speakingSessions: 3,
+        speakingSubmissions: 1,
+        speakingReviewsReceived: 0,
+        speakingMinutesTotal: 0,
+        gamesSessions: 1,
       },
       { profileComplete: true },
     );
@@ -60,6 +72,8 @@ describe('achievements', () => {
     expect(achievements.find((row) => row.label === 'Conversation Starter')?.unlocked).toBe(
       true,
     );
+    expect(achievements.find((row) => row.label === 'First Recording')?.unlocked).toBe(true);
+    expect(achievements.find((row) => row.label === 'First Drill')?.unlocked).toBe(true);
     expect(achievements.find((row) => row.label === 'Profile Complete')?.unlocked).toBe(true);
   });
 });

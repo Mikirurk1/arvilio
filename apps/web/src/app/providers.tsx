@@ -6,7 +6,11 @@ import { AuthProvider } from '../lib/auth-context';
 import { ConfirmDialogHost } from '../features/confirm';
 import { ToastViewport } from '../features/notifications/ToastViewport';
 import { useUiStore } from '../stores/ui-store';
-import type { ThemeMode } from '../lib/appearance/initial-appearance';
+import {
+  applyAppearanceToElement,
+  prefersDarkColorScheme,
+  resolveThemeMode,
+} from '../lib/appearance/apply-appearance';
 
 type ProviderProps = {
   children: ReactNode;
@@ -17,34 +21,27 @@ type AppearanceSyncProps = {
   children: ReactNode;
 };
 
-function resolveSystemTheme(): Exclude<ThemeMode, 'auto'> {
-  if (typeof window === 'undefined') return 'light';
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-/** Applies theme/font-size from Zustand to the document. */
+/** Applies theme/font-size from Zustand to the document (kept in sync with initial-appearance script). */
 function AppearanceSync({ children }: AppearanceSyncProps) {
   const theme = useUiStore((state) => state.theme);
   const fontSize = useUiStore((state) => state.fontSize);
 
   useEffect(() => {
     const root = document.documentElement;
-    const applyTheme = () => {
-      const resolvedTheme = theme === 'auto' ? resolveSystemTheme() : theme;
-      root.setAttribute('data-theme', resolvedTheme);
-      root.style.colorScheme = resolvedTheme;
+    const apply = () => {
+      applyAppearanceToElement(
+        root,
+        resolveThemeMode(theme, prefersDarkColorScheme()),
+        fontSize,
+      );
     };
-    applyTheme();
+    apply();
     if (theme !== 'auto') return;
     const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const listener = () => applyTheme();
+    const listener = () => apply();
     media.addEventListener('change', listener);
     return () => media.removeEventListener('change', listener);
-  }, [theme]);
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-font-size', fontSize);
-  }, [fontSize]);
+  }, [theme, fontSize]);
 
   return children;
 }

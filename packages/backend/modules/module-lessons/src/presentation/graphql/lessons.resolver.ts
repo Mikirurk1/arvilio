@@ -9,7 +9,9 @@ import {
   UpdateScheduledLessonInput,
 } from '@be/graphql';
 import { LessonsService } from '../../application/lessons.service';
+import { isLessonMember } from '../../domain/lessons-access.util';
 import {
+  mapGroupBillingInput,
   mapLessonHomeworkInput,
   mapLessonMaterialsInput,
   mapStudentResponseInput,
@@ -48,7 +50,7 @@ export class LessonsResolver {
   ) {
     const lesson = await this.lessons.fetchLesson(id);
     if (!lesson) throw new NotFoundException('Lesson not found');
-    if (lesson.teacherId !== userId && lesson.studentId !== userId) {
+    if (!isLessonMember(lesson, userId)) {
       throw new ForbiddenException();
     }
     return this.lessons.toDto(lesson);
@@ -77,6 +79,10 @@ export class LessonsResolver {
       seriesId: input.seriesId,
       linkedWordIds: input.linkedWordIds,
       createMeetLink: input.createMeetLink,
+      kind: input.kind as 'individual' | 'group' | undefined,
+      studentGroupId: input.studentGroupId,
+      participantIds: input.participantIds,
+      groupBilling: mapGroupBillingInput(input.groupBilling),
       materials: mapLessonMaterialsInput(input.materials),
       homework: mapLessonHomeworkInput(input.homework),
       studentResponse: mapStudentResponseInput(input.studentResponse),
@@ -110,6 +116,9 @@ export class LessonsResolver {
         | 'teacher_absent'
         | undefined,
       credited: input.credited,
+      kind: input.kind as 'individual' | 'group' | undefined,
+      participantIds: input.participantIds,
+      groupBilling: mapGroupBillingInput(input.groupBilling),
       materials: mapLessonMaterialsInput(input.materials),
       homework: mapLessonHomeworkInput(input.homework),
       studentResponse: mapStudentResponseInput(input.studentResponse),

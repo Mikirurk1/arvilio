@@ -6,7 +6,9 @@ import {
   DEFAULT_ALLOWED_CURRENCIES,
   DEFAULT_PAYMENT_ENVIRONMENT_MODE,
   DEFAULT_MIN_PACKAGE_LESSONS,
+  DEFAULT_SCHOOL_GROUP_LESSONS_SETTINGS,
   normalizePricePerLessonByCurrency,
+  type SchoolGroupLessonsSettingsDto,
   type LessonPriceByCurrencyDto,
   type PaymentCurrencyCode,
   type AdjustStudentLessonBalanceRequestDto,
@@ -72,6 +74,7 @@ function mapPaymentSettingsFromApi(raw: {
     paypalMode?: 'live' | 'test' | null;
     paypalLiveClientId?: string | null;
     paypalTestClientId?: string | null;
+    groupLessons?: SchoolGroupLessonsSettingsDto | null;
   };
 }): PaymentSettingsDto {
   const allowedCurrencies =
@@ -137,6 +140,7 @@ function mapPaymentSettingsFromApi(raw: {
         liveClientId: raw.config.paypalLiveClientId ?? undefined,
         testClientId: raw.config.paypalTestClientId ?? undefined,
       },
+      groupLessons: raw.config.groupLessons ?? DEFAULT_SCHOOL_GROUP_LESSONS_SETTINGS,
     },
   };
 }
@@ -242,6 +246,15 @@ export const useBillingStore = create<BillingState>()(
               paypalMode: input.config.paypal?.mode ?? DEFAULT_PAYMENT_ENVIRONMENT_MODE,
               paypalLiveClientId: input.config.paypal?.liveClientId ?? null,
               paypalTestClientId: input.config.paypal?.testClientId ?? null,
+              groupLessons: input.config.groupLessons
+                ? {
+                    enabled: input.config.groupLessons.enabled,
+                    defaultBillingMode: input.config.groupLessons.defaultBillingMode,
+                    defaultPriceMinor: input.config.groupLessons.defaultPriceMinor,
+                    defaultCurrency: input.config.groupLessons.defaultCurrency,
+                    defaultSplitMode: input.config.groupLessons.defaultSplitMode,
+                  }
+                : null,
             },
             secrets: input.secrets
               ? {

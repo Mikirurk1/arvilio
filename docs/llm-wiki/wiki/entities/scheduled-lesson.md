@@ -1,21 +1,25 @@
 ---
 tags: [entity, lessons]
-updated: 2026-05-16
+updated: 2026-06-08
 ---
 
 # Entity: ScheduledLesson
 
-1:1 live lesson between a teacher and student (not the catalog `Lesson` model).
+Live lesson between a teacher and one or more students (not the catalog `Lesson` model).
 
 ## Key fields
 
 | Field | Notes |
 |-------|-------|
-| `teacherId`, `studentId` | Required participants |
+| `kind` | `INDIVIDUAL` (default) or `GROUP` |
+| `teacherId`, `studentId` | Teacher + **primary** student (first participant for groups) |
+| `participants` | Junction `ScheduledLessonParticipant` — all students, per-participant homework |
+| `groupBillingMode`, `groupPriceMinor`, `groupSplitMode`, `groupPayerUserId` | Group billing — see [[concepts/group-lessons]] |
 | `date`, `startTime`, `endTime`, `timezone` | Wall-clock scheduling |
 | `status` | PLANNED, COMPLETED, CANCELLED |
 | `recurrence`, `weeklyDays`, `seriesId` | Recurring series |
-| `googleMeetUrl`, `googleCalendarEventId` | Meet integration |
+| `videoProvider`, `videoMeetingUrl`, `videoMeetingExternalId`, `videoMeetingRawId`, `videoMeetingStartedAt`, `videoMeetingEndedAt` | Generalized video meeting fields — see [[concepts/video-meeting-providers]] |
+| `googleMeetUrl`, `googleCalendarEventId`, `googleConferenceId`, `meetCreatedAt` | **Legacy** Google Meet fields. Kept for backward compat — new code reads `videoMeetingUrl ?? googleMeetUrl`. Mirrored on Google provider writes. |
 | Homework fields | `homeworkText`, `studentResponseStatus`, `teacherHomeworkFeedback`, etc. |
 
 ## Relations
@@ -33,9 +37,13 @@ updated: 2026-05-16
 ## Web
 
 - Calendar, lesson modal — [[concepts/lessons-calendar]]
-- Meet join: `LessonMeetButton.tsx` matches lesson by title → `googleMeetUrl`
+- Meeting join — `LessonVideoButton` (provider-aware label) for Google/Zoom; `LessonVideoEmbed` (iframe) for Jitsi. Reads `videoMeetingUrl ?? googleMeetUrl`.
 
 ## Related
 
+- [[concepts/group-lessons]]
 - [[concepts/lessons-calendar]]
+- [[concepts/video-meeting-providers]]
+- [[entities/zoom-connection]]
+- [[entities/google-calendar-connection]]
 - [[entities/lesson]] (catalog — different model)

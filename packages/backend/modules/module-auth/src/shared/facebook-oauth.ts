@@ -1,4 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
+import { getPlatformIntegrationRuntime } from '@be/platform-integration';
 
 export type FacebookTokenResponse = {
   access_token: string;
@@ -13,12 +14,13 @@ export type FacebookProfile = {
 };
 
 function facebookConfig() {
-  const appId = process.env['FACEBOOK_APP_ID'];
-  const appSecret = process.env['FACEBOOK_APP_SECRET'];
-  const callbackUrl =
-    process.env['FACEBOOK_CALLBACK_URL'] ?? 'http://localhost:3000/api/auth/facebook/callback';
-  if (!appId || !appSecret) return null;
-  return { appId, appSecret, callbackUrl };
+  const facebook = getPlatformIntegrationRuntime().facebook;
+  if (!facebook.appId || !facebook.appSecret) return null;
+  return {
+    appId: facebook.appId,
+    appSecret: facebook.appSecret,
+    callbackUrl: facebook.callbackUrl,
+  };
 }
 
 export function buildFacebookAuthUrl(): string {

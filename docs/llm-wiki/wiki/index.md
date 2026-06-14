@@ -13,8 +13,12 @@ Catalog of all wiki pages. Updated: 2026-05-16 (full project bootstrap).
 
 - [[entities/user]] — identity, roles, relations
 - [[entities/language]] — catalog, native + learning languages
-- [[entities/scheduled-lesson]] — 1:1 live lessons, Meet, homework
+- [[entities/scheduled-lesson]] — live lessons (1:1 or group), Meet, homework
+- [[entities/student-group]] — admin learning groups (billing template, members)
 - [[entities/lesson-material]] — materials on scheduled lessons
+- [[entities/library-material]] — school materials library (boards, books, assets)
+- [[entities/library-file-user-annotation]] — per-user PDF book annotations (vector JSON)
+- [[entities/library-file-caption-track]] — auto STT/translation WebVTT tracks for audio/video
 - [[entities/lesson]] — catalog curriculum lesson
 - [[entities/exercise]] — catalog exercise step
 - [[entities/word]] — global dictionary entry
@@ -22,11 +26,14 @@ Catalog of all wiki pages. Updated: 2026-05-16 (full project bootstrap).
 - [[entities/review-queue]] — spaced repetition queue
 - [[entities/quiz]] — quiz definition
 - [[entities/quiz-assignment]] — quiz assigned to student
+- [[entities/speaking-topic]] — speaking discussion topic + assignment + submission
 - [[entities/quiz-attempt]] — student quiz run
 - [[entities/progress]] — catalog lesson completion
 - [[entities/google-calendar-connection]] — Google Calendar OAuth
+- [[entities/zoom-connection]] — Zoom OAuth tokens for video lessons
 - [[entities/student-lesson-balance]] — prepaid lesson credits per student
 - [[entities/lesson-balance-ledger]] — balance audit (purchase, consumption, reversal)
+- [[entities/staff-payout]] — manual staff compensation payout record
 
 ## Concepts
 
@@ -36,15 +43,21 @@ Catalog of all wiki pages. Updated: 2026-05-16 (full project bootstrap).
 - [[concepts/testing]] — Jest unit/integration, Playwright E2E, commands
 - [[concepts/transactional-email]] — welcome email, Mailtrap, templates
 - [[concepts/profile-notifications]] — profile toggles, cron delivery, teacher messages
+- [[concepts/unified-profile-form]] — shared profile tab UI (`UnifiedProfilePanel`) for self, student, staff
 - [[concepts/roles-matrix]] — STUDENT / TEACHER / ADMIN / SUPER_ADMIN tables
 - [[concepts/graphql-api]] — resolvers and operations
-- [[concepts/lessons-calendar]] — scheduling, Meet, calendar UI
+- [[concepts/lessons-calendar]] — scheduling, video meetings, calendar UI
+- [[concepts/video-meeting-providers]] — Google Meet / Zoom / LiveKit resolver, configuration
+- [[concepts/group-lessons]] — multi-student lessons, billing modes, participants
+- [[concepts/materials-library]] — school library tab, assets, lesson attach
 - [[concepts/vocabulary]] — words, cards, dictionary API
 - [[concepts/quizzes-flashcards]] — quizzes, assignments, attempts
 - [[concepts/chat]] — realtime messaging, Socket.IO, visibility rules
 - [[concepts/progress-tracking]] — catalog + dashboard progress
 - [[concepts/achievements]] — live achievement counters and unlock rules
 - [[concepts/daily-goals]] — dashboard daily goals (student)
+- [[concepts/statistics-dashboard]] — period statistics API + profile/student UI
+- [[concepts/staff-payouts]] — staff compensation accrual, payouts, finance UI
 - [[concepts/web-app]] — Next routes, stores, API clients
 - [[concepts/ui-design-system]] — `components/ui` primitives, SCSS tokens
 - [[concepts/redesign-plan]] — Preply/Edvibe-style UI refresh; `docs/redesign/plan.md` step IDs

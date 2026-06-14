@@ -1,0 +1,199 @@
+@use '../../styles/mixins' as *;
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  padding-left: 15px;
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  border: 1px solid var(--border-hairline);
+  border-left: 3px solid color-mix(in srgb, var(--accent-info) 70%, var(--accent-primary));
+  box-shadow: var(--shadow-xs);
+  transition: border-color var(--transition), box-shadow var(--transition);
+
+  @include motion-allow {
+    &:hover {
+      border-color: color-mix(in srgb, var(--accent-info) 38%, var(--border-hairline));
+      border-left-color: var(--accent-info);
+      box-shadow: var(--shadow-sm);
+    }
+  }
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.headMain {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--fs-15);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--fs-11);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.badgePending {
+  background: color-mix(in srgb, var(--accent-warning) 14%, var(--surface));
+  color: var(--accent-warning);
+}
+
+.badgeSubmitted {
+  background: color-mix(in srgb, var(--accent-info) 14%, var(--surface));
+  color: var(--accent-info);
+}
+
+.badgeReviewed {
+  background: color-mix(in srgb, var(--accent-primary) 14%, var(--surface));
+  color: var(--green-dark);
+}
+
+.headActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.prompt {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--fs-13);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent-info) 8%, var(--surface));
+  color: var(--text-secondary);
+  font-size: var(--fs-12);
+  line-height: 1.5;
+  border: 1px solid color-mix(in srgb, var(--accent-info) 16%, var(--border-hairline));
+
+  svg {
+    flex-shrink: 0;
+    /* align icon to cap-height of first line: (line-height - icon-height) / 2 ≈ 2px */
+    margin-top: 2px;
+  }
+}
+
+.words {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  flex-wrap: nowrap;
+}
+
+.submissionAudio {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.submissionAudioLabel {
+  font-size: var(--fs-11);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+}
+
+.feedback {
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border-left: 2px solid var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 5%, var(--card));
+
+  strong {
+    display: block;
+    margin-bottom: 3px;
+    font-size: var(--fs-11);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-tertiary);
+  }
+
+  p {
+    margin: 0;
+    font-size: var(--fs-13);
+    color: var(--text-secondary);
+  }
+}
+
+.recordBtn {
+  align-self: flex-start;
+  flex-shrink: 0;
+}
+
+/*
+  Delete (icon-only ghost): match record button height; red border on hover.
+  .headActions prefix beats ui buttonBase[data-icon-only] and ghost:hover in cascade.
+*/
+.headActions .deleteBtn[data-icon-only='true'] {
+  padding: 8px 10px;
+  min-height: 36px;
+  min-width: 36px;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+
+.headActions .deleteBtn[data-icon-only='true'][data-variant='ghost']:hover {
+  background: color-mix(in srgb, var(--accent-danger) 8%, transparent);
+  border-color: var(--accent-danger);
+  color: var(--accent-danger);
+  box-shadow: none;
+}
+
+.headActions .deleteBtn[data-icon-only='true'][data-variant='ghost']:active {
+  background: color-mix(in srgb, var(--accent-danger) 14%, transparent);
+  border-color: var(--accent-danger);
+  color: var(--accent-danger);
+}
+
+.cardRecording {
+  border-left-color: var(--accent-danger);
+  background: color-mix(in srgb, var(--accent-danger) 3%, var(--card));
+}
+
+.recordingPanel {
+  border-top: 1px solid var(--border-hairline);
+  padding-top: 10px;
+  margin-top: 2px;
+}

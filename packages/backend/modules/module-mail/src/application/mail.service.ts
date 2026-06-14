@@ -2,6 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
 import {
+  getPlatformIntegrationRuntime,
+  type ResolvedPlatformIntegration,
+} from '@be/platform-integration';
+import {
   renderEmail,
   renderEmailFromVars,
   type EmailTemplateId,
@@ -30,25 +34,32 @@ const TEMPLATES_SOURCE = '@be/email-templates (React Email)';
 export class MailService {
   private readonly logger = new Logger(MailService.name);
   private transporter: Transporter | null = null;
+  private transporterKey: string | null = null;
+
+  private smtpRuntimeKey(): string {
+    const smtp = getPlatformIntegrationRuntime().smtp;
+    return [smtp.host, smtp.port, smtp.user ?? '', smtp.pass ?? '', smtp.secure].join('|');
+  }
 
   private getTransporter(): Transporter | null {
-    if (this.transporter) return this.transporter;
-    const host = process.env['SMTP_HOST'];
-    if (!host) return null;
-    const port = Number(process.env['SMTP_PORT'] ?? 587);
-    const user = process.env['SMTP_USER'];
-    const pass = process.env['SMTP_PASS'];
+    const smtp = getPlatformIntegrationRuntime().smtp;
+    if (!smtp.host?.trim()) return null;
+
+    const key = this.smtpRuntimeKey();
+    if (this.transporter && this.transporterKey === key) return this.transporter;
+
+    this.transporterKey = key;
     this.transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465,
-      auth: user && pass ? { user, pass } : undefined,
+      host: smtp.host,
+      port: smtp.port,
+      secure: smtp.secure,
+      auth: smtp.user && smtp.pass ? { user: smtp.user, pass: smtp.pass } : undefined,
     });
     return this.transporter;
   }
 
   isConfigured(): boolean {
-    return Boolean(process.env['SMTP_HOST']);
+    return Boolean(getPlatformIntegrationRuntime().smtp.host?.trim());
   }
 
   getStatus(): {
@@ -57,22 +68,48 @@ export class MailService {
     smtpPort: number | null;
     mailFrom: string;
     templatesDir: string;
+    smtpMode: string;
   } {
+    const smtp = getPlatformIntegrationRuntime().smtp;
     return {
       configured: this.isConfigured(),
-      smtpHost: process.env['SMTP_HOST'] ?? null,
-      smtpPort: process.env['SMTP_PORT'] ? Number(process.env['SMTP_PORT']) : null,
-      mailFrom: process.env['MAIL_FROM'] ?? 'SoEnglish <noreply@soenglish.local>',
+      smtpHost: smtp.host || null,
+      smtpPort: smtp.port ?? null,
+      mailFrom: smtp.mailFrom,
       templatesDir: TEMPLATES_SOURCE,
+      smtpMode: smtp.source,
     };
   }
 
-  async verifyConnection(): Promise<void> {
-    const transport = this.getTransporter();
-    if (!transport) {
-      throw new Error('SMTP is not configured (SMTP_HOST missing)');
+  /** Verify SMTP using an explicit resolved config (form draft or saved runtime). */
+  async verifySmtpEndpoint(smtp: ResolvedPlatformIntegration['smtp']): Promise<void> {
+    if (!smtp.host?.trim()) {
+      throw new Error('SMTP is not configured (set server defaults in .env or custom SMTP in System)');
     }
-    await transport.verify();
+    const transport = nodemailer.createTransport({
+      host: smtp.host,
+      port: smtp.port,
+      secure: smtp.secure,
+      auth: smtp.user && smtp.pass ? { user: smtp.user, pass: smtp.pass } : undefined,
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 15_000,
+    });
+    try {
+      await transport.verify();
+    } finally {
+      transport.close();
+    }
+  }
+
+  async verifyConnection(): Promise<void> {
+    await this.verifySmtpEndpoint(getPlatformIntegrationRuntime().smtp);
+  }
+
+  /** Drop cached transporter after platform SMTP settings change. */
+  clearTransporterCache(): void {
+    this.transporter = null;
+    this.transporterKey = null;
   }
 
   appUrl(): string {
@@ -133,11 +170,11 @@ export class MailService {
   ): Promise<boolean> {
     const transport = this.getTransporter();
     if (!transport) {
-      this.logger.warn(`SMTP_HOST is not set; skipping ${label} email`);
+      this.logger.warn(`SMTP is not configured; skipping ${label} email`);
       return false;
     }
 
-    const from = process.env['MAIL_FROM'] ?? 'SoEnglish <noreply@soenglish.local>';
+    const from = getPlatformIntegrationRuntime().smtp.mailFrom;
 
     try {
       await transport.sendMail({

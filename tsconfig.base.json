@@ -26,7 +26,12 @@
       "@be/graphql": ["packages/backend/shared/graphql/src/index.ts"],
       "@be/auth": ["packages/backend/modules/module-auth/src/index.ts"],
       "@be/vocabulary": ["packages/backend/modules/module-vocabulary/src/index.ts"],
+      "@be/platform-integration": [
+        "packages/backend/modules/module-vocabulary/src/application/platform-integration/index.ts"
+      ],
       "@be/flashcards": ["packages/backend/modules/module-flashcards/src/index.ts"],
+      "@be/speaking": ["packages/backend/modules/module-speaking/src/index.ts"],
+      "@be/materials": ["packages/backend/modules/module-materials/src/index.ts"],
       "@be/lessons": ["packages/backend/modules/module-lessons/src/index.ts"],
       "@be/progress": ["packages/backend/modules/module-progress/src/index.ts"],
       "@be/email-templates": ["packages/backend/email-templates/dist/index.d.ts"],

@@ -1,3 +1,11 @@
+export function normalizeQuizFillAnswer(text: string): string {
+  return text
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase()
+    .replace(/[.!?]+$/, '');
+}
+
 export function gradeQuizAnswers(
   questions: Array<{
     id: string;
@@ -18,7 +26,7 @@ export function gradeQuizAnswers(
       isCorrect = Number.parseInt(given, 10) === Number.parseInt(question.correctAnswer, 10);
     } else {
       isCorrect =
-        given.trim().toLowerCase() === question.correctAnswer.trim().toLowerCase();
+        normalizeQuizFillAnswer(given) === normalizeQuizFillAnswer(question.correctAnswer);
     }
     if (isCorrect) correctCount += 1;
     return { questionId: question.id, givenAnswer: given, isCorrect };

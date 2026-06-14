@@ -1,4 +1,8 @@
-import type { ManualInvoiceMethodDto, PaymentMethodKindDto } from './shared-types';
+import type {
+  LessonCreditTrackDto,
+  ManualInvoiceMethodDto,
+  PaymentMethodKindDto,
+} from './shared-types';
 
 /** ISO 4217 codes supported in payment settings UI. */
 export const PAYMENT_CURRENCY_OPTIONS = ['UAH', 'USD', 'EUR', 'GBP', 'PLN'] as const;
@@ -8,6 +12,16 @@ export type PaymentCurrencyCode = (typeof PAYMENT_CURRENCY_OPTIONS)[number];
 export const DEFAULT_ALLOWED_CURRENCIES: PaymentCurrencyCode[] = ['UAH', 'USD', 'EUR'];
 
 export const DEFAULT_MIN_PACKAGE_LESSONS = 3;
+
+export function parseLessonCreditTrack(raw: unknown): LessonCreditTrackDto {
+  return raw === 'group' ? 'group' : 'individual';
+}
+
+export function getDefaultGroupPricePerLessonMinor(config: {
+  groupLessons?: { defaultPriceMinor?: number };
+}): number {
+  return Math.max(0, Math.round(config.groupLessons?.defaultPriceMinor ?? 0));
+}
 
 export type LessonPriceByCurrencyDto = {
   currency: PaymentCurrencyCode;

@@ -37,8 +37,8 @@ describe('lessons-map.util', () => {
     expect(statusFromDto('completed')).toBe('COMPLETED');
     expect(recurrenceToDto('WEEKLY')).toBe('weekly');
     expect(recurrenceFromDto('daily')).toBe('DAILY');
-    expect(materialKindToDto('FILE')).toBe('file');
-    expect(materialKindFromDto('presentation')).toBe('PRESENTATION');
+    expect(materialKindToDto('BOOK')).toBe('book');
+    expect(materialKindFromDto('board')).toBe('BOARD');
     expect(studentResponseStatusToDto('SUBMITTED')).toBe('submitted');
     expect(studentResponseStatusFromDto('needs_rework')).toBe('NEEDS_REWORK');
   });

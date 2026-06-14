@@ -24,7 +24,9 @@ export class QuizAttemptService {
 
     const quiz = await this.prisma.quiz.findUnique({
       where: { id: body.quizId },
-      include: { questions: { orderBy: { order: 'asc' } } },
+      include: {
+        questions: { orderBy: { order: 'asc' }, select: { id: true, type: true, correctAnswer: true, wordId: true } },
+      },
     });
     if (!quiz) throw new NotFoundException('Quiz not found');
 
@@ -58,6 +60,13 @@ export class QuizAttemptService {
       where: { quizId_studentId: { quizId: body.quizId, studentId } },
     });
 
+    const wrongWordIds = new Set<string>();
+    for (const row of graded.answerRows) {
+      if (row.isCorrect) continue;
+      const question = quiz.questions.find((q) => q.id === row.questionId);
+      if (question?.wordId) wrongWordIds.add(question.wordId);
+    }
+
     const attempt = await this.prisma.$transaction(async (tx) => {
       const created = await tx.quizAttempt.create({
         data: {
@@ -78,6 +87,16 @@ export class QuizAttemptService {
           isCorrect: row.isCorrect,
         })),
       });
+      if (wrongWordIds.size > 0) {
+        await tx.studentWordCard.updateMany({
+          where: {
+            userId: studentId,
+            wordId: { in: [...wrongWordIds] },
+            status: { not: 'LEARNED' },
+          },
+          data: { status: 'MISTAKES_WORK' },
+        });
+      }
       if (assignment) {
         await tx.quizAssignment.update({
           where: { id: assignment.id },

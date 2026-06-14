@@ -80,6 +80,8 @@ export const apiClient = {
     request<T>(path, { ...options, method: 'POST', body }),
   patch: <T>(path: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     request<T>(path, { ...options, method: 'PATCH', body }),
+  put: <T>(path: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>) =>
+    request<T>(path, { ...options, method: 'PUT', body }),
   delete: <T>(path: string, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     request<T>(path, { ...options, method: 'DELETE' }),
 };
@@ -94,8 +96,17 @@ export async function getApiData<T>(path: string, fallback: T): Promise<T> {
 
 export const API_BASE = API_BASE_URL;
 
+/** Same-origin API path for href/src/fetch in UI (consistent on SSR + client). */
+export function browserApiPath(path: string): string {
+  if (path.startsWith('http')) return path;
+  const normalized = path.startsWith('/') ? path : `/${path}`;
+  return normalized.startsWith('/api/') ? normalized : `/api${normalized}`;
+}
+
 /** OAuth must use same-origin path in the browser (Next `/api` rewrite). */
 export const GOOGLE_SIGN_IN_URL = '/api/auth/google';
 /** Link Google + Calendar to the current session (Profile → Connections). */
 export const GOOGLE_LINK_URL = '/api/auth/google/link';
 export const FACEBOOK_LINK_URL = '/api/auth/facebook/link';
+/** Link Zoom OAuth to the current session for video meetings. */
+export const ZOOM_LINK_URL = '/api/auth/zoom/link';

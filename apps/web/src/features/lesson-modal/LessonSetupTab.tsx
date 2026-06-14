@@ -1,12 +1,24 @@
 'use client';
 
-import type { LessonRecurrence } from '@pkg/types';
+import { useEffect, useMemo, useState } from 'react';
+import type { LessonRecurrence, StudentGroupDto, StudentLessonFormat } from '@pkg/types';
 import { LESSON_STATUS } from '@pkg/types';
+import { User, Users } from 'lucide-react';
 import { LessonPartyScheduleTimes } from '../../components/lessons/LessonPartyScheduleTimes';
 import { Button, Field } from '../../components/ui';
+import { StudentSelectField } from '../../components/students';
 import { isAdminOrSuper, USER_ROLE } from '../../mocks';
+import { useSchoolGroupLessons } from '../../hooks/use-school-group-lessons';
+import { STUDENT_GROUPS } from '../../graphql/operations';
+import { graphqlRequest } from '../../lib/graphql-client';
+import { partyNumericId } from './scheduledLessonsBackendAdapter';
 import type { SetupTabProps } from './tabTypes';
+import type { LessonFormState } from './types';
 import styles from './LessonModal.module.scss';
+
+function canPickForIndividual(lessonFormat?: StudentLessonFormat): boolean {
+  return !lessonFormat || lessonFormat === 'individual_only' || lessonFormat === 'mixed';
+}
 
 export function LessonSetupTab({
   text,
@@ -23,6 +35,43 @@ export function LessonSetupTab({
   const canEditWeekDays = canEdit && role !== USER_ROLE.student.id;
   const selectedStudent = students.find((student) => student.id === form.studentId);
   const selectedTeacher = teachers.find((teacher) => teacher.id === form.teacherId);
+  const { enabled: groupLessonsEnabled } = useSchoolGroupLessons();
+  const [studentGroups, setStudentGroups] = useState<StudentGroupDto[]>([]);
+  const selectedGroup = useMemo(
+    () => studentGroups.find((group) => group.id === form.studentGroupId) ?? null,
+    [studentGroups, form.studentGroupId],
+  );
+
+  useEffect(() => {
+    if (!groupLessonsEnabled || role === USER_ROLE.student.id) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const data = await graphqlRequest<{ studentGroups: StudentGroupDto[] }>(STUDENT_GROUPS);
+        if (!cancelled) setStudentGroups(data.studentGroups);
+      } catch {
+        if (!cancelled) setStudentGroups([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [groupLessonsEnabled, role]);
+
+  const applyStudentGroup = (group: StudentGroupDto) => {
+    const participantIds = group.members.map((member) => partyNumericId(member.userId));
+    const primaryId = participantIds[0] ?? form.studentId;
+    const primaryStudent = students.find((s) => s.id === primaryId);
+    onChange({
+      ...form,
+      kind: 'group',
+      studentGroupId: group.id,
+      participantIds,
+      studentId: primaryId,
+      studentName: primaryStudent?.fullName ?? form.studentName,
+    });
+  };
+
   return (
     <div className={`${styles.modalFieldsGrid} ${styles.modalSetupGrid}`}>
       <div className={styles.fieldGroup}>
@@ -161,27 +210,118 @@ export function LessonSetupTab({
         </div>
       ) : null}
       {role !== USER_ROLE.student.id ? (
-        <div className={styles.fieldGroup}>
-          <label className={styles.fieldLabel}>{text.fields.student}</label>
-          <Field as="select" className={styles.fieldInput} value={String(form.studentId)} readOnly={!canEdit} onChange={(e) => {
-            const nextStudent = students.find((student) => student.id === Number(e.target.value));
-            if (!nextStudent) return;
-            const flexible = nextStudent.scheduleType === false;
-            onChange({
-              ...form,
-              studentId: nextStudent.id,
-              studentName: nextStudent.fullName,
-              recurrence: flexible ? 'none' : form.recurrence,
-              weeklyDays: flexible ? [] : form.weeklyDays,
-            });
-          }}>
-            {students.map((student) => (
-              <option key={student.id} value={student.id}>
-                {student.fullName}
-              </option>
-            ))}
-          </Field>
-        </div>
+        <>
+          {groupLessonsEnabled ? (
+            <div className={`${styles.fieldGroup} ${styles.kindToggleRow}`}>
+              <label className={styles.fieldLabel}>{text.fields.lessonType ?? 'Lesson type'}</label>
+              <div className={styles.kindToggle}>
+                <Button
+                  type="button"
+                  className={`${styles.kindToggleBtn} ${form.kind === 'individual' ? styles.kindToggleBtnActive : ''}`}
+                  disabled={!canEdit}
+                  onClick={() =>
+                    onChange({
+                      ...form,
+                      kind: 'individual',
+                      studentGroupId: null,
+                      participantIds: [form.studentId],
+                    })
+                  }
+                >
+                  <User size={16} aria-hidden />
+                  <span>{text.options?.individualLesson ?? 'Individual'}</span>
+                </Button>
+                <Button
+                  type="button"
+                  className={`${styles.kindToggleBtn} ${form.kind === 'group' ? styles.kindToggleBtnActive : ''}`}
+                  disabled={!canEdit || studentGroups.length === 0}
+                  onClick={() => {
+                    const first = studentGroups[0];
+                    if (first) applyStudentGroup(first);
+                    else onChange({ ...form, kind: 'group', studentGroupId: null });
+                  }}
+                >
+                  <Users size={16} aria-hidden />
+                  <span>{text.options?.groupLesson ?? 'Group'}</span>
+                </Button>
+              </div>
+            </div>
+          ) : null}
+          {form.kind === 'group' && groupLessonsEnabled ? (
+            <>
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>
+                  {text.fields.studentGroup ?? 'Learning group'}
+                </label>
+                <Field
+                  as="select"
+                  className={styles.fieldInput}
+                  value={form.studentGroupId ?? ''}
+                  readOnly={!canEdit}
+                  onChange={(e) => {
+                    const group = studentGroups.find((row) => row.id === e.target.value);
+                    if (group) applyStudentGroup(group);
+                  }}
+                >
+                  <option value="" disabled>
+                    Select a group
+                  </option>
+                  {studentGroups.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                      {group.teacherName ? ` · ${group.teacherName}` : ''}
+                    </option>
+                  ))}
+                </Field>
+                {studentGroups.length === 0 ? (
+                  <p className={styles.fieldHint}>
+                    No groups yet. An admin can create learning groups under Students → Groups.
+                  </p>
+                ) : null}
+              </div>
+              {selectedGroup ? (
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>{text.fields.students ?? 'Students'}</label>
+                  <ul className={styles.groupStudentsReadonly}>
+                    {selectedGroup.members.map((member) => (
+                      <li key={member.userId}>{member.displayName}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </>
+          ) : (
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel}>{text.fields.student}</label>
+              <StudentSelectField
+                className={styles.fieldInput}
+                value={String(form.studentId)}
+                valueKind="partyId"
+                readOnly={!canEdit}
+                fallbackLabel={form.studentName}
+                filter={(student) =>
+                  !groupLessonsEnabled || canPickForIndividual(student.lessonFormat ?? 'mixed')
+                }
+                onValueChange={(nextValue, student) => {
+                  if (!student) return;
+                  const nextId = Number(nextValue);
+                  const flexible = student.scheduleType === false;
+                  onChange({
+                    ...form,
+                    studentId: nextId,
+                    studentName: student.displayName,
+                    participantIds: [nextId],
+                    recurrence: flexible ? 'none' : form.recurrence,
+                    weeklyDays: flexible ? [] : form.weeklyDays,
+                    groupPayerUserId: nextId,
+                    studentGroupId: null,
+                    kind: 'individual',
+                  });
+                }}
+              />
+            </div>
+          )}
+        </>
       ) : null}
     </div>
   );
