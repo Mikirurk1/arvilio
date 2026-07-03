@@ -3,6 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { PrismaService } from '@be/prisma';
+import { TenantModule } from '@be/tenant';
 import { AuthModule, ACCESS_COOKIE, REFRESH_COOKIE } from '@be/auth';
 import { hashRefreshToken } from '../../src/shared/auth-cookies';
 import {
@@ -39,7 +40,7 @@ describe('Auth API (integration)', () => {
     process.env.JWT_SECRET =
       process.env.JWT_SECRET ?? 'integration-test-jwt-secret-32chars';
     const moduleRef = await Test.createTestingModule({
-      imports: [AuthModule],
+      imports: [TenantModule, AuthModule],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -85,6 +86,152 @@ describe('Auth API (integration)', () => {
     const me = await agent.get('/api/auth/me').expect(200);
     expect(me.body.user.email).toBe(TEST_USERS.student.email);
     expect(me.body.user.role).toBe('student');
+  });
+
+  it('POST /api/auth/register-school provisions school + admin + 7-day trial', async () => {
+    const email = `jest-signup-${Date.now()}@soenglish.test`;
+    const schoolName = `Jest Signup ${Date.now()}`;
+    let schoolId: string | undefined;
+    try {
+      const res = await request(app.getHttpServer())
+        .post('/api/auth/register-school')
+        .send({ schoolName, email, password: 'TestPass123!' })
+        .expect(201);
+
+      const cookies = setCookieHeader(res);
+      expect(cookies.some((c) => c.startsWith(`${ACCESS_COOKIE}=`))).toBe(true);
+      expect(res.body.user.email).toBe(email);
+      expect(res.body.user.role).toBe('admin');
+
+      const membership = await prisma.schoolMembership.findFirst({
+        where: { user: { email } },
+        include: { school: { include: { subscription: true } } },
+      });
+      expect(membership?.role).toBe('ADMIN');
+      expect(membership?.status).toBe('ACTIVE');
+      expect(membership?.school.status).toBe('TRIAL');
+      expect(membership?.school.subscription?.status).toBe('TRIALING');
+      expect(membership?.school.subscription?.trialEndsAt).toBeTruthy();
+      schoolId = membership?.schoolId;
+
+      // the trial surfaces on the web session (drives the countdown banner)
+      const session = await request(app.getHttpServer())
+        .get('/api/auth/web-session')
+        .set('Cookie', cookies)
+        .expect(200);
+      expect(session.body.trial).toBeTruthy();
+      expect(session.body.trial.daysLeft).toBeGreaterThan(0);
+      expect(session.body.trial.daysLeft).toBeLessThanOrEqual(7);
+
+      // duplicate email is rejected
+      await request(app.getHttpServer())
+        .post('/api/auth/register-school')
+        .send({ schoolName: 'Another', email, password: 'TestPass123!' })
+        .expect(400);
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      if (schoolId) await prisma.school.delete({ where: { id: schoolId } }).catch(() => undefined);
+    }
+  });
+
+  it('POST /api/auth/register-school applies a promo code to extend the trial', async () => {
+    const email = `jest-promo-${Date.now()}@soenglish.test`;
+    const code = `JESTPROMO${Date.now()}`;
+    let schoolId: string | undefined;
+    const promo = await prisma.promoCode.create({
+      data: { code, kind: 'TRIAL_EXTENSION', trialDays: 14, maxRedemptions: 5 },
+    });
+    try {
+      await request(app.getHttpServer())
+        .post('/api/auth/register-school')
+        .send({ schoolName: `Promo School ${Date.now()}`, email, password: 'TestPass123!', promoCode: code.toLowerCase() })
+        .expect(201);
+
+      const membership = await prisma.schoolMembership.findFirst({
+        where: { user: { email } },
+        include: { school: { include: { subscription: true } } },
+      });
+      schoolId = membership?.schoolId;
+      const trialEndsAt = membership?.school.subscription?.trialEndsAt;
+      const days = (new Date(trialEndsAt as Date).getTime() - Date.now()) / 86_400_000;
+      expect(Math.round(days)).toBe(14);
+
+      const refreshed = await prisma.promoCode.findUnique({ where: { id: promo.id } });
+      expect(refreshed?.redeemedCount).toBe(1);
+      const redemption = await prisma.promoRedemption.findFirst({ where: { promoCodeId: promo.id } });
+      expect(redemption?.schoolId).toBe(schoolId);
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      if (schoolId) await prisma.school.delete({ where: { id: schoolId } }).catch(() => undefined);
+      await prisma.promoCode.delete({ where: { id: promo.id } }).catch(() => undefined);
+    }
+  });
+
+  it('onboarding wizard: admin saves steps + completes; student is forbidden', async () => {
+    try {
+      const admin = await loginAs(app, 'admin');
+
+      const initial = await admin.get('/api/onboarding').expect(200);
+      expect(initial.body).toEqual({ completed: false, currentStep: null, steps: {} });
+
+      const afterStep = await admin
+        .patch('/api/onboarding/step')
+        .send({ step: 'profile', data: { name: 'Jest School' } })
+        .expect(200);
+      expect(afterStep.body.currentStep).toBe('profile');
+      expect(afterStep.body.steps.profile).toEqual({ name: 'Jest School' });
+
+      await admin.patch('/api/onboarding/step').send({ step: 'bogus' }).expect(400);
+
+      const completed = await admin.post('/api/onboarding/complete').expect(201);
+      expect(completed.body.completed).toBe(true);
+      // step data persists through completion
+      expect(completed.body.steps.profile).toEqual({ name: 'Jest School' });
+
+      // student (non-admin) cannot write
+      const student = await loginAs(app, 'student');
+      await student.patch('/api/onboarding/step').send({ step: 'profile', data: {} }).expect(403);
+    } finally {
+      await prisma.school
+        .update({ where: { id: 'school_default' }, data: { onboardingState: {} } })
+        .catch(() => undefined);
+    }
+  });
+
+  it('product tour: completes once per user and is idempotent', async () => {
+    try {
+      const student = await loginAs(app, 'student');
+
+      const initial = await student.get('/api/onboarding/tour').expect(200);
+      expect(initial.body.completed).toBe(false);
+
+      const done = await student.post('/api/onboarding/tour/complete').expect(201);
+      expect(done.body.completed).toBe(true);
+      const firstAt = done.body.completedAt;
+      expect(firstAt).toBeTruthy();
+
+      // idempotent: second complete keeps the first timestamp
+      const again = await student.post('/api/onboarding/tour/complete').expect(201);
+      expect(again.body.completedAt).toBe(firstAt);
+
+      const after = await student.get('/api/onboarding/tour').expect(200);
+      expect(after.body.completed).toBe(true);
+    } finally {
+      await prisma.user
+        .updateMany({ where: { email: TEST_USERS.student.email }, data: { tourCompletedAt: null } })
+        .catch(() => undefined);
+    }
+  });
+
+  it('GET /api/billing/entitlements returns the school plan + usage meter', async () => {
+    const admin = await loginAs(app, 'admin');
+    const res = await admin.get('/api/billing/entitlements').expect(200);
+    expect(typeof res.body.plan).toBe('string');
+    expect(res.body.storage).toBeTruthy();
+    expect(typeof res.body.storage.usedBytes).toBe('string');
+    expect(typeof res.body.storage.quotaBytes).toBe('string');
+    expect(res.body.storage.percentUsed).toBeGreaterThanOrEqual(0);
+    expect(res.body.activeStudentCount).toBeGreaterThanOrEqual(0);
   });
 
   it('GET /api/auth/web-session returns anonymous without cookies', async () => {

@@ -213,7 +213,7 @@ export const useBillingStore = create<BillingState>()(
           input: {
             enabledMethods: input.enabledMethods,
             config: {
-              packages: input.config.packages,
+              packages: input.config.packages.map(({ id, lessons, label, currency }) => ({ id, lessons, label, currency })),
               defaultPricePerLessonMinor: input.config.defaultPricePerLessonMinor,
               pricePerLessonByCurrency: input.config.pricePerLessonByCurrency,
               defaultCurrency: input.config.defaultCurrency,

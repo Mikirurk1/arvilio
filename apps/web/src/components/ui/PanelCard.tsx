@@ -1,4 +1,4 @@
-import type { ElementType, HTMLAttributes, ReactNode } from 'react';
+import { createElement, type ElementType, type HTMLAttributes, type ReactNode } from 'react';
 import uiStyles from './ui.module.scss';
 
 export type PanelCardProps = HTMLAttributes<HTMLElement> & {
@@ -18,19 +18,19 @@ export function PanelCard({
   className,
   ...props
 }: PanelCardProps) {
-  return (
-    <Tag
-      className={[
+  return createElement(
+    Tag,
+    {
+      className: [
         uiStyles.panelCard,
         interactive ? uiStyles.panelCardInteractive : '',
         fillHeight ? uiStyles.panelCardFillHeight : '',
         className,
       ]
         .filter(Boolean)
-        .join(' ')}
-      {...props}
-    >
-      {children}
-    </Tag>
+        .join(' '),
+      ...props,
+    },
+    children,
   );
 }

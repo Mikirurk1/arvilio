@@ -35,6 +35,47 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+.statCardActive {
+  border-color: color-mix(in srgb, var(--stat-accent, var(--border)) 40%, var(--border));
+  border-left-color: var(--stat-accent, var(--border));
+  border-left-width: 3px;
+  background: color-mix(in srgb, var(--stat-accent-bg, var(--surface)) 50%, var(--card));
+  box-shadow: var(--shadow-sm);
+}
+
+.statCardAll {
+  --stat-accent: var(--text-tertiary);
+  --stat-accent-bg: var(--surface);
+}
+
+.statCardBoard {
+  --stat-accent: var(--blue);
+  --stat-accent-bg: var(--blue-light);
+}
+
+.statCardPresentation {
+  --stat-accent: var(--lilac);
+  --stat-accent-bg: var(--lilac-light);
+}
+
+.statCardBook {
+  --stat-accent: var(--accent-primary);
+  --stat-accent-bg: var(--accent-primary-light);
 }
 
 .statValue {
@@ -57,13 +98,12 @@
 
 .toolbar {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
 
-  @include respond-to(md) {
-    flex-direction: row;
-    align-items: flex-end;
-    justify-content: space-between;
+  @include respond-to(sm) {
+    flex-wrap: wrap;
   }
 }
 
@@ -85,14 +125,6 @@
   padding-left: 2.25rem;
 }
 
-.kindFilters {
-  overflow-x: auto;
-}
-
-.count {
-  margin-left: 0.35rem;
-  opacity: 0.75;
-}
 
 .loadingHint {
   margin: 0;

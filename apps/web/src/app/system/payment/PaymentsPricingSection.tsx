@@ -220,8 +220,8 @@ function IndividualRatesPanel({
                 </Field>
               </div>
               <div className={styles.fieldGroup}>
-                <label className={styles.label}>Min lessons</label>
-                <Field type="number" className={styles.input} min={1} value={String(minPackageLessons)}
+                <label className={styles.label} htmlFor="min-package-lessons">Min lessons</label>
+                <Field id="min-package-lessons" type="number" className={styles.input} min={1} value={String(minPackageLessons)}
                   onChange={(e) => onSetMinLessons(Math.max(1, Number.parseInt(e.target.value, 10) || 1))}
                 />
               </div>

@@ -50,11 +50,11 @@
 }
 .modalBadgePrimary {
   background: var(--accent-primary-muted);
-  color: var(--accent-primary);
+  color: var(--green-dark); /* --accent-primary fails WCAG AA on the muted background */
 }
 .modalBadgeInfo {
   background: var(--accent-info-muted);
-  color: var(--accent-info);
+  color: var(--blue-dark); /* --accent-info fails WCAG AA on the muted background */
 }
 .modalIconBtn {
   width: 28px;
@@ -493,6 +493,11 @@
   color: var(--text-primary);
   outline: none;
   background: var(--field-bg);
+
+  &[aria-invalid='true'] {
+    border-color: var(--accent-danger);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-danger) 15%, transparent);
+  }
 }
 .fieldInput[rows] { resize: none; }
 .modalSectionCard small {

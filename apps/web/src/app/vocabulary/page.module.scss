@@ -133,7 +133,7 @@
 
   .statNum,
   .statLbl {
-    color: var(--blue);
+    color: var(--blue-dark); /* --blue fails WCAG AA on the tinted chip */
   }
 }
 
@@ -143,7 +143,7 @@
 
   .statNum,
   .statLbl {
-    color: var(--amber);
+    color: var(--accent-warning-strong); /* --amber fails WCAG AA on the tinted chip */
   }
 }
 
@@ -163,7 +163,7 @@
 
   .statNum,
   .statLbl {
-    color: var(--rose);
+    color: var(--rose-dark); /* --rose fails WCAG AA on the tinted chip */
   }
 }
 

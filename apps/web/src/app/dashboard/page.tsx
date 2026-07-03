@@ -7,6 +7,7 @@ import {
   Button,
   DashboardLessonCard,
   EmptyStateCard,
+  EntitlementsWidget,
   PageHeader,
   SectionHeader,
   StatTile,
@@ -118,6 +119,9 @@ export default function DashboardPage() {
   const heroCta =
     hero.kind === 'lesson' ? 'Open lesson' : hero.kind === 'vocabulary' ? 'Review words' : 'Go to practice';
 
+  const heroTime = hero.kind === 'lesson' ? hero.subtitle.split(' · ')[0] : null;
+  const heroStatus = hero.kind === 'lesson' ? hero.subtitle.split(' · ')[1] : null;
+
   const lessonsLoading =
     backendLessons.status === 'loading' || backendLessons.status === 'idle';
 
@@ -138,31 +142,104 @@ export default function DashboardPage() {
         />
 
         <section className={styles.heroBanner} aria-labelledby="dashboard-hero-title">
-          <div className={styles.heroContent}>
-            <p className={styles.heroLabel}>{heroLabel}</p>
-            {heroProgressPct !== null ? (
-              /* Editorial display number — Lora, tabular-nums */
-              <p className={styles.heroNumber} aria-hidden="true">{heroProgressPct}%</p>
-            ) : null}
-            <h2 id="dashboard-hero-title" className={styles.heroTitle}>
-              {hero.title}
-            </h2>
-            <p className={styles.heroSub}>{hero.subtitle}</p>
-            {heroProgressPct !== null ? (
-              <div className={styles.heroProgress}>
-                <div className={styles.heroBar}>
-                  <div
-                    className={styles.heroBarFill}
-                    style={{ width: `${heroProgressPct}%` }}
-                  />
+          <div className={styles.heroInner}>
+            {/* Top row: eyebrow + time badge */}
+            <div className={styles.heroTop}>
+              <p className={styles.heroEyebrow}>{heroLabel}</p>
+              {heroTime ? (
+                <span className={styles.heroTimeBadge} aria-hidden="true">{heroTime}</span>
+              ) : heroProgressPct !== null ? (
+                <span className={styles.heroTimeBadge} aria-hidden="true">{heroProgressPct}%</span>
+              ) : null}
+            </div>
+
+            {/* Big title + subtitle */}
+            <div className={styles.heroBody}>
+              <h2 id="dashboard-hero-title" className={styles.heroTitle}>{hero.title}</h2>
+              {heroStatus ? (
+                <span className={`${styles.heroStatusBadge} ${styles[`heroStatus${heroStatus.replace(/\s+/g, '')}`] ?? ''}`}>
+                  {heroStatus}
+                </span>
+              ) : (
+                <p className={styles.heroSub}>{hero.subtitle}</p>
+              )}
+              {heroProgressPct !== null ? (
+                <div className={styles.heroProgress}>
+                  <div className={styles.heroBar}>
+                    <div className={styles.heroBarFill} style={{ width: `${heroProgressPct}%` }} />
+                  </div>
+                  <span className={styles.heroPct}>{heroProgressPct}% mastered</span>
                 </div>
-                <span className={styles.heroPct}>{heroProgressPct}% mastered</span>
+              ) : null}
+            </div>
+
+            {/* Bottom row: stats + CTA */}
+            <div className={styles.heroFooter}>
+              <div className={styles.heroStats}>
+                {isStudent ? (
+                  <>
+                    <div className={styles.heroStat}>
+                      <span className={styles.heroStatVal}>{liveSummary ? liveSummary.lessonsToday : todayLessons.length}</span>
+                      <span className={styles.heroStatLabel}>lessons today</span>
+                    </div>
+                    <div className={styles.heroStatDivider} />
+                    <div className={styles.heroStat}>
+                      <span className={styles.heroStatVal}>{liveSummary ? liveSummary.lessonsThisWeek : weekLessons.length}</span>
+                      <span className={styles.heroStatLabel}>this week</span>
+                    </div>
+                    {liveSummary ? (
+                      <>
+                        <div className={styles.heroStatDivider} />
+                        <div className={styles.heroStat}>
+                          <span className={styles.heroStatVal}>{liveSummary.vocabularyCount}</span>
+                          <span className={styles.heroStatLabel}>vocab cards</span>
+                        </div>
+                      </>
+                    ) : null}
+                  </>
+                ) : (
+                  <>
+                    <div className={styles.heroStat}>
+                      <span className={styles.heroStatVal}>{todayLessons.length}</span>
+                      <span className={styles.heroStatLabel}>lessons today</span>
+                    </div>
+                    <div className={styles.heroStatDivider} />
+                    <div className={styles.heroStat}>
+                      <span className={styles.heroStatVal}>{weekLessons.length}</span>
+                      <span className={styles.heroStatLabel}>upcoming</span>
+                    </div>
+                    <div className={styles.heroStatDivider} />
+                    <div className={styles.heroStat}>
+                      <span className={styles.heroStatVal}>{studentsList.data?.length ?? '—'}</span>
+                      <span className={styles.heroStatLabel}>students</span>
+                    </div>
+                    {pendingHomeworkCount > 0 ? (
+                      <>
+                        <div className={styles.heroStatDivider} />
+                        <div className={styles.heroStat}>
+                          <span className={`${styles.heroStatVal} ${styles.heroStatAccent}`}>{pendingHomeworkCount}</span>
+                          <span className={styles.heroStatLabel}>to review</span>
+                        </div>
+                      </>
+                    ) : null}
+                  </>
+                )}
+                {streak.data && streak.data.streakDays > 0 ? (
+                  <>
+                    <div className={styles.heroStatDivider} />
+                    <div className={styles.heroStat}>
+                      <span className={styles.heroStatVal}>{streak.data.streakDays} 🔥</span>
+                      <span className={styles.heroStatLabel}>day streak</span>
+                    </div>
+                  </>
+                ) : null}
               </div>
-            ) : null}
+              <Button variant="primary" href={hero.href} className={styles.heroCta}>
+                {heroCta}
+              </Button>
+            </div>
           </div>
-          <Button variant="primary" href={hero.href} className={styles.heroCta}>
-            {heroCta}
-          </Button>
+          <div className={styles.heroDecor} aria-hidden="true" />
         </section>
 
         <div className={styles.statsGrid}>
@@ -270,6 +347,10 @@ export default function DashboardPage() {
         </div>
 
         <DashboardQuickActions />
+
+        {(roleKey === 'admin' || roleKey === 'super_admin') && (
+          <EntitlementsWidget />
+        )}
 
         <div className={styles.twoCol}>
         <div className={styles.leftCol}>

@@ -9,6 +9,8 @@ import {
 import { PrismaService } from '@be/prisma';
 import { getPlatformIntegrationRuntime } from '@be/platform-integration';
 import { TranslationService } from '@be/vocabulary';
+import { EntitlementsService } from '@be/billing';
+import { TenantContextService } from '@be/tenant';
 import type {
   LibraryCaptionTrackDto,
   LibraryFileCaptionsResponseDto,
@@ -53,6 +55,8 @@ export class LibraryFileCaptionService {
     @Inject(forwardRef(() => MaterialAttachmentService))
     private readonly attachments: MaterialAttachmentService,
     private readonly translation: TranslationService,
+    private readonly entitlements: EntitlementsService,
+    private readonly tenant: TenantContextService,
   ) {}
 
   async getAttachmentMeta(userId: string, attachmentId: string): Promise<MaterialAttachmentMetaDto> {
@@ -153,7 +157,17 @@ export class LibraryFileCaptionService {
     }
     await this.assertSttProviderReady(config.sttProvider, runtime.mediaCaptions.openaiWhisperApiKey);
 
+    const schoolId = this.tenant.schoolId;
+    if (schoolId) {
+      await this.entitlements.assertAiCredit(schoolId);
+    }
+
     this.enqueueForAttachment(attachmentId);
+
+    if (schoolId) {
+      await this.entitlements.consumeAiCredit(schoolId);
+    }
+
     return this.listCaptions(userId, attachmentId);
   }
 

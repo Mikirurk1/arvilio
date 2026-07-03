@@ -1,10 +1,12 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@be/prisma';
-import { createReadStream, promises as fs } from 'node:fs';
+import { EntitlementsService, StorageAccountingService } from '@be/billing/entitlements';
+import { FILE_STORAGE_PORT, type FileStoragePort } from '@be/storage';
 import * as path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { ReadStream } from 'node:fs';
@@ -52,11 +54,12 @@ const ALLOWED_EXTENSIONS = [
 
 @Injectable()
 export class LessonAttachmentService {
-  constructor(private readonly prisma: PrismaService) {}
-
-  getUploadDir(): string {
-    return process.env['LESSON_UPLOAD_DIR'] ?? path.join(process.cwd(), 'data', 'lesson-uploads');
-  }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly entitlements: EntitlementsService,
+    private readonly storage: StorageAccountingService,
+    @Inject(FILE_STORAGE_PORT) private readonly fileStorage: FileStoragePort,
+  ) {}
 
   downloadPath(attachmentId: string): string {
     return `/lessons/files/${attachmentId}`;
@@ -83,33 +86,30 @@ export class LessonAttachmentService {
     return { safeName };
   }
 
-  newStorageKey(originalName: string): string {
+  /** Key convention: `schools/{schoolId}/lessons/{uuid}{ext}` */
+  newStorageKey(schoolId: string, originalName: string): string {
     const ext = path.extname(originalName).slice(0, 16);
-    return `${randomUUID()}${ext}`;
+    return `schools/${schoolId}/lessons/${randomUUID()}${ext}`;
   }
 
-  async saveToDisk(buffer: Buffer, storageKey: string): Promise<void> {
-    const dir = this.getUploadDir();
-    await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(path.join(dir, storageKey), buffer);
+  async saveToDisk(buffer: Buffer, storageKey: string, mimeType = 'application/octet-stream'): Promise<void> {
+    await this.fileStorage.put(storageKey, buffer, mimeType);
   }
 
   async removeFromDisk(storageKey: string): Promise<void> {
-    try {
-      await fs.unlink(path.join(this.getUploadDir(), storageKey));
-    } catch {
-      // file may already be gone
-    }
+    await this.fileStorage.delete(storageKey);
   }
 
   async openReadStream(storageKey: string): Promise<ReadStream> {
-    const fullPath = path.join(this.getUploadDir(), storageKey);
     try {
-      await fs.access(fullPath);
+      return await this.fileStorage.getReadStream(storageKey);
     } catch {
       throw new NotFoundException('File not found');
     }
-    return createReadStream(fullPath);
+  }
+
+  async getSignedDownloadUrl(storageKey: string): Promise<string | null> {
+    return this.fileStorage.getSignedUrl(storageKey);
   }
 
   async createAttachment(
@@ -117,8 +117,14 @@ export class LessonAttachmentService {
     file: { buffer: Buffer; mimetype: string; size: number; originalname: string },
   ): Promise<{ id: string; fileName: string; downloadPath: string }> {
     const { safeName } = this.assertFileAllowed(file);
-    const storageKey = this.newStorageKey(safeName);
-    await this.saveToDisk(file.buffer, storageKey);
+    const lesson = await this.prisma.scheduledLesson.findUnique({
+      where: { id: lessonId },
+      select: { schoolId: true },
+    });
+    // Storage-quota gate (Phase 5): block over-quota uploads before writing.
+    if (lesson) await this.entitlements.assertCanUpload(lesson.schoolId, file.size);
+    const storageKey = this.newStorageKey(lesson?.schoolId ?? 'unknown', safeName);
+    await this.saveToDisk(file.buffer, storageKey, file.mimetype || 'application/octet-stream');
     try {
       const row = await this.prisma.lessonFileAttachment.create({
         data: {
@@ -129,6 +135,7 @@ export class LessonAttachmentService {
           storageKey,
         },
       });
+      if (lesson) await this.storage.add(lesson.schoolId, row.sizeBytes);
       return {
         id: row.id,
         fileName: row.fileName,

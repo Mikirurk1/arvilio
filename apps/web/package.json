@@ -28,6 +28,7 @@
     "payload": "^3.85.1",
     "pdfjs-dist": "^6.0.227",
     "plyr": "^3.8.4",
+    "posthog-js": "^1.395.0",
     "react-day-picker": "^9.14.0",
     "react-konva": "^19.2.4"
   }

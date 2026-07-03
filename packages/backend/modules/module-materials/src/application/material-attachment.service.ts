@@ -7,7 +7,8 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '@be/prisma';
-import { createReadStream, promises as fs } from 'node:fs';
+import { EntitlementsService, StorageAccountingService } from '@be/billing/entitlements';
+import { FILE_STORAGE_PORT, type FileStoragePort } from '@be/storage';
 import * as path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { ReadStream } from 'node:fs';
@@ -76,6 +77,9 @@ export class MaterialAttachmentService {
     private readonly compressor: MaterialFileCompressorService,
     @Inject(forwardRef(() => LibraryFileCaptionService))
     private readonly captions: LibraryFileCaptionService,
+    private readonly entitlements: EntitlementsService,
+    private readonly storage: StorageAccountingService,
+    @Inject(FILE_STORAGE_PORT) private readonly fileStorage: FileStoragePort,
   ) {}
 
   private maybeEnqueueCaptions(attachmentId: string, mimeType: string): void {
@@ -83,10 +87,6 @@ export class MaterialAttachmentService {
     if (mediaKind === 'audio' || mediaKind === 'video') {
       this.captions.enqueueForAttachment(attachmentId);
     }
-  }
-
-  getUploadDir(): string {
-    return process.env['MATERIAL_UPLOAD_DIR'] ?? path.join(process.cwd(), 'data', 'material-uploads');
   }
 
   downloadPath(attachmentId: string): string {
@@ -113,18 +113,6 @@ export class MaterialAttachmentService {
     return path.posix.join(LIBRARY_STORAGE_PREFIX, materialId);
   }
 
-  resolveFullPath(storageKey: string): string {
-    if (!storageKey || storageKey.includes('..')) {
-      throw new BadRequestException('Invalid storage key');
-    }
-    const root = path.resolve(this.getUploadDir());
-    const full = path.resolve(root, storageKey);
-    if (full !== root && !full.startsWith(`${root}${path.sep}`)) {
-      throw new BadRequestException('Invalid storage key');
-    }
-    return full;
-  }
-
   assertFileAllowed(file: {
     originalname: string;
     mimetype: string;
@@ -148,34 +136,25 @@ export class MaterialAttachmentService {
     return { safeName };
   }
 
-  async saveToDisk(buffer: Buffer, storageKey: string): Promise<void> {
-    const fullPath = this.resolveFullPath(storageKey);
-    await fs.mkdir(path.dirname(fullPath), { recursive: true });
-    await fs.writeFile(fullPath, buffer);
+  async saveToDisk(buffer: Buffer, storageKey: string, mimeType = 'application/octet-stream'): Promise<void> {
+    await this.fileStorage.put(storageKey, buffer, mimeType);
   }
 
   async removeFromDisk(storageKey: string): Promise<void> {
-    try {
-      await fs.unlink(this.resolveFullPath(storageKey));
-    } catch {
-      // file may already be gone
-    }
+    await this.fileStorage.delete(storageKey);
   }
 
   async removeMaterialDir(materialId: string): Promise<void> {
-    try {
-      await fs.rm(this.resolveFullPath(this.materialDirKey(materialId)), {
-        recursive: true,
-        force: true,
-      });
-    } catch {
-      // directory may already be gone
-    }
+    await this.fileStorage.deleteByPrefix(this.materialDirKey(materialId));
   }
 
   async readFileBuffer(storageKey: string): Promise<Buffer> {
-    const fullPath = this.resolveFullPath(storageKey);
-    return fs.readFile(fullPath);
+    return this.fileStorage.getBuffer(storageKey);
+  }
+
+  /** Returns a pre-signed URL (S3 mode) or null (local mode → use streaming endpoint). */
+  async getSignedDownloadUrl(storageKey: string): Promise<string | null> {
+    return this.fileStorage.getSignedUrl(storageKey);
   }
 
   async ensurePdfTitlePagePreview(attachmentId: string): Promise<string | null> {
@@ -204,7 +183,7 @@ export class MaterialAttachmentService {
     if (!jpeg) return null;
 
     const previewKey = previewStorageKeyForAttachment(row.materialId, row.id);
-    await this.saveToDisk(jpeg, previewKey);
+    await this.saveToDisk(jpeg, previewKey, 'image/jpeg');
     await this.prisma.libraryFileAttachment.update({
       where: { id: row.id },
       data: { previewStorageKey: previewKey },
@@ -236,28 +215,23 @@ export class MaterialAttachmentService {
   }
 
   async openReadStream(storageKey: string): Promise<ReadStream> {
-    const fullPath = this.resolveFullPath(storageKey);
     try {
-      await fs.access(fullPath);
+      return await this.fileStorage.getReadStream(storageKey);
     } catch {
       throw new NotFoundException('File not found');
     }
-    return createReadStream(fullPath);
   }
 
   async getFileSizeBytes(storageKey: string): Promise<number> {
-    const fullPath = this.resolveFullPath(storageKey);
     try {
-      const stat = await fs.stat(fullPath);
-      return stat.size;
+      return await this.fileStorage.getSizeBytes(storageKey);
     } catch {
       throw new NotFoundException('File not found');
     }
   }
 
   openReadStreamRange(storageKey: string, start: number, end: number): ReadStream {
-    const fullPath = this.resolveFullPath(storageKey);
-    return createReadStream(fullPath, { start, end });
+    return this.fileStorage.getReadStreamRange(storageKey, start, end);
   }
 
   async createAttachment(
@@ -274,11 +248,13 @@ export class MaterialAttachmentService {
   }> {
     const material = await this.prisma.libraryMaterial.findUnique({
       where: { id: materialId },
-      select: { id: true },
+      select: { id: true, schoolId: true },
     });
     if (!material) throw new NotFoundException('Material not found');
 
     const { safeName } = this.assertFileAllowed(file);
+    // Storage-quota gate (Phase 5): block over-quota uploads before writing.
+    await this.entitlements.assertCanUpload(material.schoolId, file.size);
     const mediaKind = resolveMaterialMediaKind(file.mimetype, safeName);
     const level = parseMaterialCompressLevel(compressLevel);
     const deferPdfCompression =
@@ -287,14 +263,27 @@ export class MaterialAttachmentService {
       process.env['MATERIAL_DEFER_PDF_COMPRESS'] !== 'false';
 
     if (deferPdfCompression) {
-      return this.createAttachmentWithDeferredCompression(materialId, file, safeName, level);
+      return this.createAttachmentWithDeferredCompression(
+        materialId,
+        material.schoolId,
+        file,
+        safeName,
+        level,
+      );
     }
 
-    return this.createAttachmentWithSyncCompression(materialId, file, safeName, level);
+    return this.createAttachmentWithSyncCompression(
+      materialId,
+      material.schoolId,
+      file,
+      safeName,
+      level,
+    );
   }
 
   private async createAttachmentWithDeferredCompression(
     materialId: string,
+    schoolId: string,
     file: { buffer: Buffer; mimetype: string; size: number; originalname: string },
     safeName: string,
     compressLevel: MaterialCompressLevel,
@@ -309,7 +298,7 @@ export class MaterialAttachmentService {
     const attachmentId = randomUUID();
     const storageKey = this.newStorageKey(materialId, attachmentId, safeName);
 
-    await this.saveToDisk(file.buffer, storageKey);
+    await this.saveToDisk(file.buffer, storageKey, file.mimetype || 'application/pdf');
 
     try {
       const row = await this.prisma.libraryFileAttachment.create({
@@ -323,7 +312,9 @@ export class MaterialAttachmentService {
         },
       });
 
-      void this.compressStoredAttachment(row.id, compressLevel).catch((error) => {
+      await this.storage.add(schoolId, row.sizeBytes);
+
+      void this.compressStoredAttachment(row.id, schoolId, compressLevel).catch((error) => {
         this.logger.warn(
           `Background PDF compression failed for ${safeName}: ${String(error)}`,
         );
@@ -347,6 +338,7 @@ export class MaterialAttachmentService {
 
   private async compressStoredAttachment(
     attachmentId: string,
+    schoolId: string,
     compressLevel: MaterialCompressLevel = 'balanced',
   ): Promise<void> {
     const row = await this.prisma.libraryFileAttachment.findUnique({
@@ -379,7 +371,7 @@ export class MaterialAttachmentService {
       row.id,
       prepared.extension || path.extname(row.fileName),
     );
-    await this.saveToDisk(prepared.buffer, nextStorageKey);
+    await this.saveToDisk(prepared.buffer, nextStorageKey, prepared.mimeType || row.mimeType);
     if (nextStorageKey !== row.storageKey) {
       await this.removeFromDisk(row.storageKey);
     }
@@ -393,6 +385,9 @@ export class MaterialAttachmentService {
       },
     });
 
+    // Reconcile storage accounting by the compression delta (negative).
+    await this.storage.add(schoolId, prepared.sizeBytes - row.sizeBytes);
+
     this.logger.log(
       `Background compressed ${row.fileName}: ${prepared.originalSizeBytes} → ${prepared.sizeBytes} bytes (${prepared.codec})`,
     );
@@ -400,6 +395,7 @@ export class MaterialAttachmentService {
 
   private async createAttachmentWithSyncCompression(
     materialId: string,
+    schoolId: string,
     file: { buffer: Buffer; mimetype: string; size: number; originalname: string },
     safeName: string,
     compressLevel: MaterialCompressLevel,
@@ -423,7 +419,7 @@ export class MaterialAttachmentService {
       attachmentId,
       prepared.extension || path.extname(safeName),
     );
-    await this.saveToDisk(prepared.buffer, storageKey);
+    await this.saveToDisk(prepared.buffer, storageKey, prepared.mimeType || file.mimetype);
     if (prepared.codec !== 'none') {
       this.logger.log(
         `Compressed material file ${safeName}: ${prepared.originalSizeBytes} → ${prepared.sizeBytes} bytes (${prepared.codec})`,
@@ -440,6 +436,7 @@ export class MaterialAttachmentService {
           storageKey,
         },
       });
+      await this.storage.add(schoolId, row.sizeBytes);
       this.maybeEnqueueCaptions(row.id, row.mimeType);
       return {
         id: row.id,

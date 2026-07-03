@@ -1,32 +1,12 @@
-import { Global, Injectable, Module, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { Global, Module } from '@nestjs/common';
+import { PrismaService } from './prisma.service';
+import { TenantPrismaService } from './tenant-prisma.service';
 
-function buildAdapter(): PrismaPg {
-  const connectionString =
-    process.env['DATABASE_URL'] ??
-    'postgresql://soenglish:soenglish@localhost:5432/soenglish?schema=public';
-  return new PrismaPg({ connectionString });
-}
-
-@Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-  constructor() {
-    super({ adapter: buildAdapter() });
-  }
-
-  async onModuleInit(): Promise<void> {
-    await this.$connect();
-  }
-
-  async onModuleDestroy(): Promise<void> {
-    await this.$disconnect();
-  }
-}
+export { PrismaService } from './prisma.service';
 
 @Global()
 @Module({
-  providers: [PrismaService],
-  exports: [PrismaService],
+  providers: [PrismaService, TenantPrismaService],
+  exports: [PrismaService, TenantPrismaService],
 })
 export class PrismaModule {}

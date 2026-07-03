@@ -19,6 +19,6 @@ describe('NotificationsMailService', () => {
     ).resolves.toBe(true);
     expect(mail.sendTemplated).toHaveBeenCalledWith('user@test.com', 'streak-alert', {
       displayName: 'User',
-    });
+    }, undefined);
   });
 });

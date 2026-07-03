@@ -11,27 +11,35 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { getTelegramWidgetConfig } from '@be/notifications/telegram';
 import type { Request, Response } from 'express';
 import type {
   AuthSessionDto,
   ForgotPasswordRequestDto,
   LoginRequestDto,
+  RegisterSchoolRequestDto,
   ResetPasswordRequestDto,
   WebRequestSessionDto,
 } from '@pkg/types';
 import { AuthService } from '../../application/auth.service';
+import { CaptchaService } from '../../application/captcha.service';
+import { SchoolSignupService } from '../../application/school-signup.service';
 import { TelegramLinkService } from '../../application/telegram-link.service';
 import {
+  clearAccessCookie,
   clearAuthCookies,
   clearFacebookOAuthCookies,
   clearGoogleOAuthCookies,
+  clearOAuthSchoolCookie,
   readFacebookLinkUserId,
   readGoogleLinkUserId,
+  readOAuthSchoolId,
   REFRESH_COOKIE,
   setAuthCookies,
   setFacebookLinkCookies,
   setGoogleLinkCookies,
+  setOAuthSchoolCookie,
 } from '../../shared/auth-cookies';
 import { buildFacebookAuthUrl, exchangeFacebookCode } from '../../shared/facebook-oauth';
 import { profileConnectionsRedirect, webOrigin } from '../../shared/oauth-link-redirect';
@@ -40,14 +48,19 @@ import { buildGoogleAuthUrl, getGoogleClient, mapUserToDto } from '../../shared/
 import type { TelegramLoginPayload } from '../../shared/telegram-auth';
 import { AuthGuard } from '../guards/auth.guard';
 import { CurrentUser } from '../guards/current-user';
+import { TenantContextService } from '@be/tenant';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly captcha: CaptchaService,
+    private readonly schoolSignup: SchoolSignupService,
     private readonly telegramLinkService: TelegramLinkService,
+    private readonly tenant: TenantContextService,
   ) {}
 
+  @Throttle({ auth: { ttl: 900_000, limit: 10 } })
   @Post('login')
   async login(
     @Body() body: LoginRequestDto,
@@ -63,6 +76,31 @@ export class AuthController {
     return { user: mapUserToDto(user) };
   }
 
+  /**
+   * Self-serve "create your school" signup (Phase 4.5.1, G19/G28). Public, no card.
+   * Provisions the school + admin + 7-day trial and auto-logs the admin in.
+   */
+  @Throttle({ auth: { ttl: 900_000, limit: 5 } })
+  @Post('register-school')
+  async registerSchool(
+    @Body() body: RegisterSchoolRequestDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthSessionDto> {
+    const captchaOk = await this.captcha.verify(body.captchaToken, req.ip);
+    if (!captchaOk) throw new BadRequestException('Captcha verification failed');
+    const { userId } = await this.schoolSignup.registerSchool(body);
+    const tokens = await this.authService.issueTokens(userId, {
+      userAgent: req.headers['user-agent'] ?? undefined,
+      ip: req.ip,
+    });
+    setAuthCookies(res, tokens);
+    const user = await this.authService.getUserWithProviders(userId);
+    if (!user) throw new UnauthorizedException();
+    return { user: mapUserToDto(user) };
+  }
+
+  @Throttle({ auth: { ttl: 900_000, limit: 10 } })
   @Post('forgot-password')
   async forgotPassword(
     @Body() body: ForgotPasswordRequestDto,
@@ -74,9 +112,17 @@ export class AuthController {
     });
   }
 
+  @Throttle({ auth: { ttl: 900_000, limit: 10 } })
   @Post('reset-password')
   async resetPassword(@Body() body: ResetPasswordRequestDto): Promise<{ ok: true }> {
     return this.authService.resetPassword(body);
+  }
+
+  /** 10 verify attempts per IP per 10 minutes — prevents token enumeration (G37). */
+  @Throttle({ auth: { ttl: 600_000, limit: 10 } })
+  @Get('verify-email')
+  async verifyEmail(@Query('token') token: string): Promise<{ ok: true }> {
+    return this.authService.verifyEmail(token ?? '');
   }
 
   @Post('refresh')
@@ -125,10 +171,32 @@ export class AuthController {
     });
   }
 
+  /**
+   * Stop impersonation (ADR-009). Runs while the impersonation token is the active
+   * session, so it requires only AuthGuard (the impersonated user is authenticated)
+   * — not the platform guard. Clears the access cookie to return to the operator.
+   */
+  @UseGuards(AuthGuard)
+  @Post('impersonate/stop')
+  async stopImpersonation(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ stopped: boolean }> {
+    const result = await this.authService.stopImpersonation(
+      req as Request & { cookies?: Record<string, string> },
+    );
+    clearAccessCookie(res);
+    return result;
+  }
+
   @Get('google')
   google(@Res() res: Response): void {
     try {
       clearGoogleOAuthCookies(res);
+      // ADR-008: carry school context through the OAuth round-trip.
+      const schoolId = this.tenant.schoolId;
+      if (schoolId) setOAuthSchoolCookie(res, schoolId);
+      else clearOAuthSchoolCookie(res);
       res.redirect(buildGoogleAuthUrl());
     } catch {
       res.status(500).json({ error: 'Google OAuth is not configured' });
@@ -154,10 +222,17 @@ export class AuthController {
   ): Promise<void> {
     const linkUserId = readGoogleLinkUserId(req);
     const isLinkFlow = Boolean(linkUserId);
+    const preferredSchoolId = readOAuthSchoolId(req);
+
+    // Clear all Google + school OAuth cookies on every exit path.
+    const clearAll = () => {
+      clearGoogleOAuthCookies(res);
+      clearOAuthSchoolCookie(res);
+    };
 
     const client = getGoogleClient();
     if (!client || !code) {
-      clearGoogleOAuthCookies(res);
+      clearAll();
       if (isLinkFlow) {
         res.redirect(profileConnectionsRedirect({ google_link_error: 'missing_code' }));
         return;
@@ -190,7 +265,7 @@ export class AuthController {
         picture: verified.picture,
       };
     } catch (err) {
-      clearGoogleOAuthCookies(res);
+      clearAll();
       if (isLinkFlow) {
         const message =
           err instanceof Error ? err.message : 'Google sign-in failed';
@@ -212,7 +287,7 @@ export class AuthController {
     };
 
     if (isLinkFlow && linkUserId) {
-      clearGoogleOAuthCookies(res);
+      clearAll();
       try {
         await this.authService.linkGoogleToUser(linkUserId, googlePayload);
       } catch (err) {
@@ -227,7 +302,7 @@ export class AuthController {
       return;
     }
 
-    clearGoogleOAuthCookies(res);
+    clearAll();
 
     let user;
     try {
@@ -250,6 +325,7 @@ export class AuthController {
     const issued = await this.authService.issueTokens(user.id, {
       userAgent: req.headers['user-agent'] ?? undefined,
       ip: req.ip,
+      preferredSchoolId: preferredSchoolId ?? undefined,
     });
     setAuthCookies(res, issued);
     const redirectUrl = process.env['GOOGLE_SUCCESS_REDIRECT'] ?? `${webOrigin()}/dashboard`;

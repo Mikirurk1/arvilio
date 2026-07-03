@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { NotificationKind } from '@prisma/client';
 import { PrismaService } from '@be/prisma';
+import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import type { SendTeacherMessageRequestDto, TeacherMessageDto } from '@pkg/types';
 import { NotificationDispatchService } from './notification-dispatch.service';
 import { NotificationsMailService } from './notifications-mail.service';
@@ -17,6 +18,7 @@ const TEACHING_ROLES = new Set(['TEACHER', 'ADMIN', 'SUPER_ADMIN']);
 export class TeacherMessagesService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly tenant: TenantContextService,
     private readonly dispatch: NotificationDispatchService,
     private readonly mail: NotificationsMailService,
   ) {}
@@ -25,10 +27,14 @@ export class TeacherMessagesService {
     const trimmed = body.body?.trim();
     if (!trimmed) throw new BadRequestException('Message body is required');
 
-    const actor = await this.prisma.user.findUnique({
-      where: { id: actorUserId },
-      select: { id: true, role: true, displayName: true },
-    });
+    const schoolId = this.tenant.schoolId ?? DEFAULT_SCHOOL_ID;
+    const [actor, school] = await Promise.all([
+      this.prisma.user.findUnique({
+        where: { id: actorUserId },
+        select: { id: true, role: true, displayName: true },
+      }),
+      this.prisma.school.findUnique({ where: { id: schoolId }, select: { name: true } }),
+    ]);
     if (!actor) throw new ForbiddenException();
     if (!TEACHING_ROLES.has(actor.role)) {
       throw new ForbiddenException('Only staff can send teacher messages');
@@ -56,6 +62,7 @@ export class TeacherMessagesService {
       data: {
         teacherId: actor.id,
         studentId: student.id,
+        schoolId,
         body: trimmed,
       },
     });
@@ -72,6 +79,7 @@ export class TeacherMessagesService {
       const dedupeKey = `message:${message.id}`;
       const appUrl = this.mail.appUrl();
       await this.dispatch.dispatch({
+        schoolName: school?.name ?? null,
         userId: student.id,
         email: student.email,
         displayName: student.displayName,

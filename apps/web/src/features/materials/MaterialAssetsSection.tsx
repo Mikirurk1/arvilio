@@ -1,6 +1,7 @@
 'use client';
 
 import { ExternalLink, FileUp, FolderOpen, Layers, Link2, Plus, Trash2, Upload, X } from 'lucide-react';
+import Link from 'next/link';
 import { Button, Field } from '../../components/ui';
 import uiStyles from '../../components/ui/ui.module.scss';
 import {
@@ -9,6 +10,8 @@ import {
   materialFileTooLargeMessage,
 } from '../../lib/material-upload-limits';
 import { libraryMaterialFileHref, libraryMaterialPreviewHref } from '../../lib/material-upload';
+import { openMediaViewer } from '../../stores/media-viewer-store';
+import { materialViewerHref } from './material-viewer-url';
 import {
   MATERIAL_COMPRESS_LEVEL_OPTIONS,
   type MaterialCompressLevel,
@@ -279,14 +282,17 @@ export function MaterialAssetsSection({
                     {fileEntries.length > 0 ? (
                       <div className={styles.fileList}>
                         {fileEntries.map((entry) => {
-                          const openHref = entry.downloadPath
-                            ? libraryMaterialFileHref(entry.downloadPath)
-                            : entry.fileAttachmentId
-                              ? libraryMaterialFileHref(`/materials/files/${entry.fileAttachmentId}`)
-                              : null;
                           const previewHref = entry.previewDownloadPath
                             ? libraryMaterialPreviewHref(entry.previewDownloadPath)
                             : null;
+                          const isBook = ['student_book', 'teacher_book', 'workbook'].includes(asset.role);
+                          const isMedia = ['audio', 'video'].includes(asset.role);
+                          const internalId = entry.fileAttachmentId;
+                          const externalHref = entry.downloadPath
+                            ? libraryMaterialFileHref(entry.downloadPath)
+                            : internalId
+                              ? libraryMaterialFileHref(`/materials/files/${internalId}`)
+                              : null;
                           return (
                             <div key={entry.clientKey} className={styles.fileChip}>
                               {previewHref ? (
@@ -296,9 +302,26 @@ export function MaterialAssetsSection({
                                 <FileUp size={14} className={styles.fileChipIcon} aria-hidden />
                               )}
                               <span className={styles.fileChipName}>{entry.fileName ?? 'File'}</span>
-                              {openHref ? (
+                              {internalId && isBook ? (
+                                <Link
+                                  href={materialViewerHref({ fileAttachmentId: internalId })}
+                                  className={styles.fileChipOpen}
+                                  aria-label={`Open ${entry.fileName ?? 'file'}`}
+                                >
+                                  <ExternalLink size={12} aria-hidden />
+                                </Link>
+                              ) : internalId && isMedia ? (
+                                <button
+                                  type="button"
+                                  className={styles.fileChipOpen}
+                                  aria-label={`Open ${entry.fileName ?? 'file'}`}
+                                  onClick={() => openMediaViewer(internalId)}
+                                >
+                                  <ExternalLink size={12} aria-hidden />
+                                </button>
+                              ) : externalHref ? (
                                 <a
-                                  href={openHref}
+                                  href={externalHref}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className={styles.fileChipOpen}

@@ -227,52 +227,57 @@
   }
 }
 
-/* V3-01: Editorial lesson cards — full-width stack, not equal-column grid. */
 .highlightsGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  /* Outer border radius clipping — children fill the container flush. */
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  border: 1px solid var(--border-hairline);
-  box-shadow: var(--shadow-xs);
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 12px;
+  align-items: stretch;
 }
 
-/* Concert-ticket layout: full-width, 4px left accent per status, sharp dividers. */
 .highlightCard {
-  border: none;
-  border-left: 4px solid var(--border-subtle);
-  border-radius: 0;
-  padding: 20px 24px;
+  height: 100%;
+  border-radius: var(--radius-lg);
+  padding: 24px;
   background: var(--card);
-  box-shadow: none;
+  border: 1px solid var(--border-hairline);
+  box-shadow: var(--shadow-xs);
+  position: relative;
+  overflow: hidden;
 
-  & + & {
-    border-top: 1px solid var(--border-hairline);
+  /* top accent strip */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: var(--border-subtle);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   }
 }
 
-/* Next lesson: 4px green left rail + green-tinted surface — editorial hero. */
 .highlightCardNext {
-  border-left-color: var(--green);
-  background: color-mix(in srgb, var(--green-light) 28%, var(--card));
+  &::before {
+    background: linear-gradient(90deg, var(--green) 0%, color-mix(in srgb, var(--green) 55%, transparent) 100%);
+  }
 }
 
 .highlightCardPrevious {
-  border-left-color: var(--border);
-  background: var(--card);
+  background: var(--surface);
+
+  .highlightLessonTitle {
+    font-size: var(--fs-section-title);
+    color: var(--text-secondary);
+  }
 }
 
 .highlightCardClickable {
   cursor: pointer;
-  transition:
-    background-color var(--transition),
-    border-left-color var(--transition);
+  transition: box-shadow var(--transition), transform var(--transition);
 
   @include motion-allow {
     &:hover {
-      background: color-mix(in srgb, var(--surface) 60%, var(--card));
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
     }
 
     &:focus-visible {
@@ -322,30 +327,18 @@
 .highlightDescription {
   margin: 12px 0 0;
   font-size: var(--fs-13);
-  line-height: 1.5;
+  line-height: 1.6;
   color: var(--text-secondary);
-  padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-  border-radius: 12px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--surface) 78%, var(--card)) 0%,
-    color-mix(in srgb, var(--card) 94%, var(--surface)) 100%
-  );
+  padding-top: 12px;
+  border-top: 1px solid var(--border-hairline);
 }
 
 .highlightFooter {
   margin-top: 12px;
   display: grid;
-  gap: 8px;
-  padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, var(--border) 68%, transparent);
-  border-radius: 12px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--surface) 82%, var(--card)) 0%,
-    color-mix(in srgb, var(--card) 96%, var(--surface)) 100%
-  );
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-hairline);
 }
 
 .highlightExtraRow {
@@ -402,6 +395,32 @@
   font-size: var(--fs-14);
   color: var(--text-secondary);
   line-height: 1.45;
+}
+
+.emptyHighlight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 0 4px;
+}
+
+.emptyHighlightTitle {
+  margin: 0;
+  font-size: var(--fs-16);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.emptyHighlightHint {
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.emptyHighlightCta {
+  margin-top: 4px;
 }
 
 .listColumn {
@@ -1034,7 +1053,9 @@ button.btnPrimary {
     grid-template-columns: 1fr;
   }
 
-  /* V3-01: highlightsGrid is already a column stack — no override needed */
+  .highlightsGrid {
+    grid-template-columns: 1fr;
+  }
 
   .list {
     max-height: none;

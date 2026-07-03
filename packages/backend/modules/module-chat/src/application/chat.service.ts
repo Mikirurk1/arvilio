@@ -6,7 +6,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ChatConversationType, type UserRole } from '@prisma/client';
-import { PrismaService } from '@be/prisma';
+import { PrismaService, TenantPrismaService } from '@be/prisma';
+import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import type {
   ChatAttachmentDto,
   ChatConversationDto,
@@ -41,7 +42,14 @@ export class ChatService {
     private readonly prisma: PrismaService,
     private readonly visibility: ChatVisibilityService,
     private readonly attachments: ChatAttachmentService,
+    private readonly tenant: TenantContextService,
+    private readonly tenantPrisma: TenantPrismaService,
   ) {}
+
+  /** Tenant-scoped client: ChatConversation reads/writes are auto-filtered by school. */
+  private get db() {
+    return this.tenantPrisma.client;
+  }
 
   async inbox(actorId: string): Promise<ChatConversationDto[]> {
     const page = await this.inboxPage(actorId, 500);
@@ -114,7 +122,7 @@ export class ChatService {
   async findOrCreateDirect(actorId: string, peerUserId: string): Promise<ChatConversationDto> {
     await this.visibility.assertCanMessage(actorId, peerUserId);
     const key = directKeyFor(actorId, peerUserId);
-    const existing = await this.prisma.chatConversation.findUnique({
+    const existing = await this.db.chatConversation.findUnique({
       where: { directKey: key },
       include: this.conversationInclude(),
     });
@@ -124,8 +132,9 @@ export class ChatService {
       return this.toConversationDto(actorId, existing);
     }
 
-    const created = await this.prisma.chatConversation.create({
+    const created = await this.db.chatConversation.create({
       data: {
+        schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
         type: ChatConversationType.DIRECT,
         directKey: key,
         createdById: actorId,
@@ -166,8 +175,9 @@ export class ChatService {
       }
     }
 
-    const created = await this.prisma.chatConversation.create({
+    const created = await this.db.chatConversation.create({
       data: {
+        schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
         type: ChatConversationType.GROUP,
         title: trimmedTitle,
         createdById: actorId,
@@ -189,7 +199,7 @@ export class ChatService {
     const trimmed = body.trim();
     if (!trimmed) throw new BadRequestException('Message cannot be empty');
 
-    const message = await this.prisma.$transaction(async (tx) => {
+    const message = await this.db.$transaction(async (tx) => {
       const created = await tx.chatMessage.create({
         data: { conversationId, senderId: actorId, body: trimmed },
         include: {
@@ -223,7 +233,7 @@ export class ChatService {
     await this.attachments.saveToDisk(file.buffer, storageKey);
 
     try {
-      const message = await this.prisma.$transaction(async (tx) => {
+      const message = await this.db.$transaction(async (tx) => {
         const created = await tx.chatMessage.create({
           data: {
             conversationId,

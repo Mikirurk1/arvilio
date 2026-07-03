@@ -1,6 +1,7 @@
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaService } from '@be/prisma';
+import { TenantContextService } from '@be/tenant';
 import { StudentsAdminService } from './students-admin.service';
 import { LanguagesService } from './languages.service';
 
@@ -25,6 +26,7 @@ describe('StudentsAdminService', () => {
       providers: [
         StudentsAdminService,
         { provide: PrismaService, useValue: prisma },
+        { provide: TenantContextService, useValue: { schoolId: 'school_default' } },
         { provide: LanguagesService, useValue: languages },
       ],
     }).compile();

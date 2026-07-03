@@ -50,7 +50,7 @@ async function main(): Promise<void> {
     let learningLinksCreated = 0;
     for (const student of studentsWithoutLearning) {
       await prisma.studentLearningLanguage.create({
-        data: { userId: student.id, languageId: en.id },
+        data: { userId: student.id, languageId: en.id, schoolId: 'school_default' },
       });
       learningLinksCreated += 1;
     }

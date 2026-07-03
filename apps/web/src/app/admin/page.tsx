@@ -14,6 +14,7 @@ import { ApiError } from '../../lib/api';
 import { TIME_ZONE } from '@pkg/types';
 import { CreateAccountForm, type CreateAccountFormValues } from './CreateAccountForm';
 import { UsersTable } from './UsersTable';
+import { StudentImportPanel } from '../../features/student-import/StudentImportPanel';
 import styles from './page.module.scss';
 
 type CreatableRole = 'student' | 'teacher' | 'admin';
@@ -202,6 +203,8 @@ export default function AdminUsersPage() {
         assignableTeachers={assignableTeachers}
         onSubmit={onSubmit}
       />
+
+      <StudentImportPanel />
 
       <UsersTable
         users={users}

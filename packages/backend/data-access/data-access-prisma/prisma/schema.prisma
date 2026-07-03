@@ -48,6 +48,10 @@ model Language {
 model User {
   id               String            @id @default(cuid())
   email            String            @unique
+  /// Set when the user confirms their email address (G37).
+  emailVerifiedAt  DateTime?
+  /// Short-lived token for the email-verification link; cleared on verify (G37).
+  emailVerifyToken String?           @unique
   /// Optional for users registered via Google only.
   passwordHash     String?
   displayName      String
@@ -57,6 +61,8 @@ model User {
   proficiencyLevel ProficiencyLevel?
   /// IANA timezone identifier, e.g. "Europe/Kyiv".
   timezone         String            @default("Europe/Kyiv")
+  /// User's preferred UI locale (G33). Null = inherit school default or platform default.
+  locale           String?
   /// E.164-style phone, e.g. "+380671234567".
   phone            String?
   /// Telegram handle, e.g. "@username".
@@ -74,6 +80,8 @@ model User {
   lessonFormat     StudentLessonFormat @default(MIXED)
   /// Calendar / roster accent color (#RRGGBB). Assigned on create; staff may edit.
   displayColor     String?
+  /// First-login product tour completion (Phase 4.5.4); user-scoped, set once.
+  tourCompletedAt  DateTime?
   students         User[]            @relation("StudentTeacher")
   learningLanguages StudentLearningLanguage[]
 
@@ -138,6 +146,13 @@ model User {
   staffPayoutsReceived     StaffPayout[]             @relation("StaffPayoutPayee")
   staffPayoutsCreated      StaffPayout[]             @relation("StaffPayoutCreator")
 
+  // Multi-tenancy (ADR-006): global identity ↔ schools + platform-operator axis.
+  schoolMemberships   SchoolMembership[]
+  platformOperator    PlatformOperator?
+  platformAuditLogs   PlatformAuditLog[]   @relation("PlatformAuditActor")
+  invitationsCreated  SchoolInvitation[]   @relation("InvitationsCreated")
+  acquisitionLeads    StudentAcquisitionLead[]
+
   @@index([teacherId])
   @@index([nativeLanguageId])
 }
@@ -160,7 +175,9 @@ enum PracticeSessionSource {
 model PracticeSession {
   id          String                @id @default(cuid())
   userId      String
+  schoolId    String
   user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  school      School                @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   kind        PracticeSessionKind
   source      PracticeSessionSource @default(PRACTICE)
   startedAt   DateTime
@@ -170,6 +187,7 @@ model PracticeSession {
   createdAt DateTime @default(now())
 
   @@index([userId, startedAt])
+  @@index([schoolId])
 }
 
 /// Student daily goal completion (UTC date key, one row per difficulty tier per day).
@@ -198,40 +216,49 @@ enum NotificationKind {
 model NotificationDelivery {
   id        String           @id @default(cuid())
   userId    String
+  schoolId  String
   kind      NotificationKind
   dedupeKey String
   channel   String           @default("email")
   sentAt    DateTime         @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@unique([userId, kind, dedupeKey, channel])
   @@index([userId, kind])
+  @@index([schoolId])
 }
 
 model TeacherMessage {
   id        String   @id @default(cuid())
   teacherId String
   studentId String
+  schoolId  String
   body      String
   createdAt DateTime @default(now())
 
-  teacher User @relation("MessageTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
-  student User @relation("MessageStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  teacher User   @relation("MessageTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  student User   @relation("MessageStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  school  School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@index([studentId, createdAt])
   @@index([teacherId, createdAt])
+  @@index([schoolId])
 }
 
 /// Languages a student is learning (admin-managed only).
 model StudentLearningLanguage {
   userId     String
   languageId String
+  schoolId   String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   language   Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  school     School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@id([userId, languageId])
   @@index([languageId])
+  @@index([schoolId])
 }
 
 enum OAuthProvider {
@@ -398,6 +425,7 @@ enum VocabularyStatus {
 model StudentWordCard {
   id               String           @id @default(cuid())
   userId           String
+  schoolId         String
   wordId           String
   /// Optional link to the lesson that introduced the word.
   lessonId         String?
@@ -414,11 +442,13 @@ model StudentWordCard {
   user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   word   Word             @relation(fields: [wordId], references: [id], onDelete: Cascade)
   lesson ScheduledLesson? @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  school School           @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@unique([userId, wordId])
   @@index([userId, status])
   @@index([lessonId])
   @@index([nextReviewAt])
+  @@index([schoolId])
 }
 
 model ReviewQueue {
@@ -541,6 +571,8 @@ enum StudentLessonFormat {
 
 model ScheduledLesson {
   id          String  @id @default(cuid())
+  /// Owning tenant (ADR-005). Backfilled to school_default, then required.
+  schoolId    String
   title       String
   description String?
   notes       String?
@@ -586,6 +618,8 @@ model ScheduledLesson {
   videoMeetingRawId      String?
   videoMeetingStartedAt  DateTime?
   videoMeetingEndedAt    DateTime?
+  /// Byte size of the lesson recording file (populated when egress completes). Counts toward school storageUsedBytes.
+  recordingSizeBytes     Int?
 
   // Google Meet integration (legacy fields — kept for backward compat; new code reads videoMeetingUrl with fallback)
   googleCalendarEventId String?
@@ -605,6 +639,7 @@ model ScheduledLesson {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  school           School                 @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   teacher          User                   @relation("LessonTeacher", fields: [teacherId], references: [id], onDelete: Restrict)
   student          User                   @relation("LessonStudent", fields: [studentId], references: [id], onDelete: Restrict)
   groupPayer       User?                  @relation("GroupLessonPayer", fields: [groupPayerUserId], references: [id], onDelete: SetNull)
@@ -616,6 +651,7 @@ model ScheduledLesson {
   quizzes          Quiz[]
   balanceLedger    LessonBalanceLedger[]
 
+  @@index([schoolId, date])
   @@index([teacherId, date])
   @@index([studentId, date])
   @@index([seriesId])
@@ -626,6 +662,7 @@ model ScheduledLesson {
 model StudentGroup {
   id               String                 @id @default(cuid())
   name             String
+  schoolId         String
   teacherId        String?
   groupBillingMode GroupLessonBillingMode @default(PER_MEMBER)
   groupPriceMinor  Int?
@@ -637,10 +674,12 @@ model StudentGroup {
 
   teacher    User?                  @relation("StudentGroupTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
   groupPayer User?                  @relation("StudentGroupPayer", fields: [groupPayerUserId], references: [id], onDelete: SetNull)
+  school     School                 @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   members    StudentGroupMember[]
   lessons    ScheduledLesson[]
 
   @@index([teacherId])
+  @@index([schoolId])
 }
 
 model StudentGroupMember {
@@ -660,6 +699,7 @@ model ScheduledLessonParticipant {
   id                String                @id @default(cuid())
   scheduledLessonId String
   userId            String
+  schoolId          String
   role              LessonParticipantRole @default(STUDENT)
   sortOrder         Int                   @default(0)
   studentResponseText     String?
@@ -672,9 +712,11 @@ model ScheduledLessonParticipant {
 
   lesson ScheduledLesson @relation(fields: [scheduledLessonId], references: [id], onDelete: Cascade)
   user   User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  school School            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@unique([scheduledLessonId, userId])
   @@index([userId])
+  @@index([schoolId])
 }
 
 enum MaterialKind {
@@ -754,12 +796,13 @@ model LibraryMaterial {
   publisher   String?
   /// Optional hero/cover image for library cards (uploaded image).
   coverAttachmentId String? @unique
-  /// Tenant seam — nullable while single-school.
-  schoolId    String?
+  /// Owning tenant (ADR-005). Backfilled to school_default, then required.
+  schoolId    String
   createdById String
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
 
+  school          School                  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   createdBy       User                    @relation("LibraryMaterialCreator", fields: [createdById], references: [id], onDelete: Cascade)
   coverAttachment LibraryFileAttachment?  @relation("MaterialCover", fields: [coverAttachmentId], references: [id], onDelete: SetNull)
   assets          LibraryMaterialAsset[]
@@ -889,6 +932,8 @@ enum QuizAssignmentStatus {
 
 model Quiz {
   id         String         @id @default(cuid())
+  /// Owning tenant (ADR-005). Backfilled to school_default, then required.
+  schoolId   String
   title      String
   category   String
   difficulty QuizDifficulty @default(MEDIUM)
@@ -898,12 +943,14 @@ model Quiz {
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
 
+  school      School           @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   owner       User             @relation("QuizOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   lesson      ScheduledLesson? @relation(fields: [lessonId], references: [id], onDelete: SetNull)
   questions   QuizQuestion[]
   assignments QuizAssignment[]
   attempts    QuizAttempt[]
 
+  @@index([schoolId])
   @@index([ownerId])
   @@index([lessonId])
 }
@@ -936,6 +983,7 @@ model QuizAssignment {
   id           String               @id @default(cuid())
   quizId       String
   studentId    String
+  schoolId     String
   assignedById String
   dueDate      DateTime?
   personalNote String?
@@ -947,17 +995,20 @@ model QuizAssignment {
   quiz       Quiz          @relation(fields: [quizId], references: [id], onDelete: Cascade)
   student    User          @relation("AssignmentStudent", fields: [studentId], references: [id], onDelete: Cascade)
   assignedBy User          @relation("AssignmentAssignedBy", fields: [assignedById], references: [id], onDelete: Cascade)
+  school     School        @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   attempts   QuizAttempt[]
 
   @@unique([quizId, studentId])
   @@index([studentId])
   @@index([assignedById])
+  @@index([schoolId])
 }
 
 model QuizAttempt {
   id           String    @id @default(cuid())
   quizId       String
   studentId    String
+  schoolId     String
   assignmentId String?
   score        Float?
   correctCount Int       @default(0)
@@ -970,10 +1021,12 @@ model QuizAttempt {
   quiz       Quiz            @relation(fields: [quizId], references: [id], onDelete: Cascade)
   student    User            @relation(fields: [studentId], references: [id], onDelete: Cascade)
   assignment QuizAssignment? @relation(fields: [assignmentId], references: [id], onDelete: SetNull)
+  school     School          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   answers    QuizAnswer[]
 
   @@index([quizId])
   @@index([studentId])
+  @@index([schoolId])
 }
 
 model QuizAnswer {
@@ -1007,6 +1060,8 @@ enum SpeakingSubmissionStatus {
 
 model SpeakingTopic {
   id        String   @id @default(cuid())
+  /// Owning tenant (ADR-005). Backfilled to school_default, then required.
+  schoolId  String
   title     String
   prompt    String
   ownerId   String
@@ -1014,10 +1069,12 @@ model SpeakingTopic {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  school      School                    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   owner       User                      @relation("SpeakingTopicOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   assignments SpeakingTopicAssignment[]
   submissions SpeakingSubmission[]
 
+  @@index([schoolId])
   @@index([ownerId])
 }
 
@@ -1047,7 +1104,10 @@ model SpeakingSubmission {
   topicId         String
   assignmentId    String?
   studentId       String
+  schoolId        String
   audioStorageKey String?
+  /// Audio byte size for storage accounting (Phase 5, G42).
+  audioSizeBytes  Int?
   durationSec     Int?
   mimeType        String?
   status          SpeakingSubmissionStatus @default(SUBMITTED)
@@ -1060,10 +1120,12 @@ model SpeakingSubmission {
   assignment SpeakingTopicAssignment? @relation(fields: [assignmentId], references: [id], onDelete: SetNull)
   student    User                     @relation("SpeakingSubmissionStudent", fields: [studentId], references: [id], onDelete: Cascade)
   reviewer   User?                    @relation("SpeakingSubmissionReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  school     School                   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@index([topicId])
   @@index([studentId])
   @@index([assignmentId])
+  @@index([schoolId])
 }
 
 // =====================
@@ -1077,6 +1139,8 @@ enum ChatConversationType {
 
 model ChatConversation {
   id          String               @id @default(cuid())
+  /// Owning tenant (ADR-005). Backfilled to school_default, then required.
+  schoolId    String
   type        ChatConversationType
   title       String?
   /// For DIRECT: sorted pair `${minUserId}:${maxUserId}` for uniqueness.
@@ -1085,10 +1149,12 @@ model ChatConversation {
   createdAt   DateTime             @default(now())
   updatedAt   DateTime             @updatedAt
 
+  school       School            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   createdBy    User              @relation("ChatCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   participants ChatParticipant[]
   messages     ChatMessage[]
 
+  @@index([schoolId])
   @@index([createdById])
   @@index([updatedAt])
 }
@@ -1152,6 +1218,9 @@ model PlatformSettings {
   id                     String                 @id @default("default")
   wordDictionaryProvider WordDictionaryProvider @default(DICTIONARY_API_DEV)
   enabledPaymentMethods  PaymentMethodKind[]    @default([])
+  /// Platform-wide payment-method allowlist (ADR-009): schools may only enable
+  /// methods in this set. Empty = no restriction (all methods allowed).
+  allowedPaymentMethods  PaymentMethodKind[]    @default([])
   paymentConfig          Json                   @default("{}")
   paymentSecrets         String?
   /// Platform-wide integrations (translation, SMTP, OAuth, Telegram) — non-secret fields.
@@ -1212,6 +1281,8 @@ enum StaffPayFrequency {
 model StaffCompensationProfile {
   id                String                 @id @default(cuid())
   userId            String                 @unique
+  schoolId          String
+  school            School                 @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   user              User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   mode              StaffCompensationMode?
   perLessonRateMinor Int?
@@ -1225,13 +1296,17 @@ model StaffCompensationProfile {
   graceDays         Int?
   createdAt         DateTime               @default(now())
   updatedAt         DateTime               @updatedAt
+
+  @@index([schoolId])
 }
 
 /// Manual staff payout records entered by admin/super-admin.
 model StaffPayout {
   id              String   @id @default(cuid())
   userId          String
+  schoolId        String
   user            User     @relation("StaffPayoutPayee", fields: [userId], references: [id], onDelete: Cascade)
+  school          School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   amountMinor     Int
   currency        String
   paidAt          DateTime
@@ -1244,6 +1319,7 @@ model StaffPayout {
 
   @@index([userId, paidAt])
   @@index([createdAt])
+  @@index([schoolId])
 }
 
 enum StudentBillingMode {
@@ -1255,6 +1331,8 @@ enum StudentBillingMode {
 /// One row per student; balance may be negative (debt).
 model StudentLessonBalance {
   userId               String              @id
+  schoolId             String
+  school               School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   balance              Int                 @default(0)
   /// Prepaid credits for group per-member lessons (separate from individual balance).
   groupBalance         Int                 @default(0)
@@ -1272,11 +1350,14 @@ model StudentLessonBalance {
   manualInvoiceSelection Json?
   updatedAt            DateTime            @updatedAt
   user                 User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([schoolId])
 }
 
 model LessonBalanceLedger {
   id                String                  @id @default(cuid())
   userId            String
+  schoolId          String
   delta             Int
   balanceAfter      Int
   kind              LessonBalanceLedgerKind
@@ -1290,17 +1371,20 @@ model LessonBalanceLedger {
   createdAt         DateTime                @default(now())
 
   user            User             @relation("LessonBalanceLedgerUser", fields: [userId], references: [id], onDelete: Cascade)
+  school          School           @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   scheduledLesson ScheduledLesson? @relation(fields: [scheduledLessonId], references: [id], onDelete: SetNull)
   payment         Payment?         @relation(fields: [paymentId], references: [id], onDelete: SetNull)
   createdBy       User?            @relation("LessonBalanceLedgerCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
 
   @@unique([scheduledLessonId, userId, kind])
   @@index([userId, createdAt])
+  @@index([schoolId])
 }
 
 model Payment {
   id             String            @id @default(cuid())
   userId         String
+  schoolId       String
   method         PaymentMethodKind
   status         PaymentStatus     @default(PENDING)
   lessonsGranted Int               @default(0)
@@ -1312,7 +1396,364 @@ model Payment {
   updatedAt      DateTime          @updatedAt
 
   user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  school        School                @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   ledgerEntries LessonBalanceLedger[]
 
   @@index([userId, createdAt])
+  @@index([schoolId])
+}
+
+// =====================
+// Multi-tenancy (arvilio) — Phase 1
+// ADR-005 (data isolation), ADR-006 (identity/memberships),
+// ADR-007 (domains), ADR-008 (operators/billing).
+// NOTE: `schoolId` columns on existing tenant models + backfill are a
+// separate DB-bound migration step; these are the new tenant anchor tables.
+// =====================
+
+enum SchoolStatus {
+  TRIAL
+  ACTIVE
+  SUSPENDED
+}
+
+enum DomainKind {
+  SUBDOMAIN
+  CUSTOM
+}
+
+enum SchoolMembershipRole {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum SchoolMembershipStatus {
+  ACTIVE
+  INVITED
+  REMOVED
+}
+
+enum PlatformRole {
+  PLATFORM_ADMIN
+  PLATFORM_SUPPORT
+  PLATFORM_BILLING
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+/// Tenant anchor. All school-scoped data hangs off this (ADR-005).
+model School {
+  id        String       @id @default(cuid())
+  slug      String       @unique
+  name      String
+  status    SchoolStatus @default(TRIAL)
+
+  /// Per-school config migrated off PlatformSettings (ADR-005). Non-secret.
+  paymentConfig         Json     @default("{}")
+  /// AES-GCM encrypted JSON (PSP secrets).
+  paymentSecrets        String?
+  enabledPaymentMethods PaymentMethodKind[] @default([])
+  integrationConfig     Json     @default("{}")
+  integrationSecrets    String?
+  staffPayoutDefaults   Json     @default("{}")
+
+  /// Resumable signup wizard progress (Phase 4.5).
+  onboardingState Json @default("{}")
+
+  /// Default locale for all users of this school (G33). ISO 639-1: 'uk' | 'en'.
+  /// Null = inherit platform default ('uk').
+  defaultLocale String?
+
+  /// White-label branding (Phase 6 / G18). Null = use platform defaults.
+  /// brandColor: hex string e.g. "#159970". Overrides --accent-primary CSS token.
+  brandColor String?
+  /// logoUrl: absolute URL to the school's logo image.
+  logoUrl    String?
+
+  /// Storage entitlement accounting (Phase 3/5, G6/G42).
+  storageUsedBytes    BigInt   @default(0)
+  /// Daily AI-assist credit usage (G42). Reset to 0 at midnight by TrialLifecycleScheduler.
+  aiCreditsUsedToday  Int      @default(0)
+  aiCreditsResetAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  domains      SchoolDomain[]
+  memberships  SchoolMembership[]
+  subscription SchoolSubscription?
+  libraryMaterials LibraryMaterial[]
+  scheduledLessons ScheduledLesson[]
+  quizzes          Quiz[]
+  speakingTopics   SpeakingTopic[]
+  chatConversations ChatConversation[]
+  payments              Payment[]
+  studentLessonBalances StudentLessonBalance[]
+  lessonBalanceLedgers  LessonBalanceLedger[]
+  staffCompensationProfiles StaffCompensationProfile[]
+  studentGroups         StudentGroup[]
+  staffPayouts          StaffPayout[]
+  practiceSessions      PracticeSession[]
+  studentWordCards      StudentWordCard[]
+  studentLearningLanguages StudentLearningLanguage[]
+  notificationDeliveries NotificationDelivery[]
+  teacherMessages       TeacherMessage[]
+  scheduledLessonParticipants ScheduledLessonParticipant[]
+  quizAssignments       QuizAssignment[]
+  quizAttempts          QuizAttempt[]
+  speakingSubmissions   SpeakingSubmission[]
+  platformAuditLogs     PlatformAuditLog[]
+  promoRedemptions      PromoRedemption[]
+  invitations           SchoolInvitation[]
+  acquisitionLeads      StudentAcquisitionLead[]
+  platformLedger        PlatformLedger[]
+
+  @@index([status])
+}
+
+/// Hostname → school mapping for subdomain + custom-domain routing (ADR-007).
+model SchoolDomain {
+  id          String     @id @default(cuid())
+  schoolId    String
+  hostname    String     @unique
+  kind        DomainKind
+  verified    Boolean    @default(false)
+  verifyToken String?
+  isPrimary   Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([schoolId])
+}
+
+/// Global identity ↔ school link; role lives here, not on User (ADR-006).
+model SchoolMembership {
+  id        String                 @id @default(cuid())
+  schoolId  String
+  userId    String
+  role      SchoolMembershipRole   @default(STUDENT)
+  status    SchoolMembershipStatus @default(ACTIVE)
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @updatedAt
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([schoolId, userId])
+  @@index([userId])
+  @@index([schoolId, role])
+}
+
+/// One-time invitation link for joining a school.
+model SchoolInvitation {
+  id          String               @id @default(cuid())
+  schoolId    String
+  email       String
+  role        SchoolMembershipRole @default(STUDENT)
+  token       String               @unique @default(cuid())
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  revokedAt   DateTime?
+  createdById String
+  createdAt   DateTime             @default(now())
+
+  school     School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdBy  User   @relation("InvitationsCreated", fields: [createdById], references: [id])
+
+  @@index([schoolId])
+  @@index([token])
+  @@index([email, schoolId])
+}
+
+/// Platform-operator axis, separate from school membership (ADR-008).
+model PlatformOperator {
+  id        String       @id @default(cuid())
+  userId    String       @unique
+  role      PlatformRole
+  createdAt DateTime     @default(now())
+
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ledgerEntries  PlatformLedger[]
+}
+
+/// Audit trail for platform-operator actions (Phase 4 / ADR-009).
+/// Every cross-tenant action via @be/platform-admin records actor + target +
+/// before/after so suspend/impersonate/etc. are accountable.
+model PlatformAuditLog {
+  id            String   @id @default(cuid())
+  actorUserId   String
+  action        String
+  targetSchoolId String?
+  metadata      Json?
+  ip            String?
+  createdAt     DateTime @default(now())
+
+  actor        User    @relation("PlatformAuditActor", fields: [actorUserId], references: [id], onDelete: Cascade)
+  targetSchool School?  @relation(fields: [targetSchoolId], references: [id], onDelete: SetNull)
+
+  @@index([actorUserId, createdAt])
+  @@index([targetSchoolId, createdAt])
+  @@index([action, createdAt])
+}
+
+/// School → platform subscription, Layer B (ADR-008). Stub for Phase 5 depth.
+model SchoolSubscription {
+  id                   String             @id @default(cuid())
+  schoolId             String             @unique
+  status               SubscriptionStatus @default(TRIALING)
+  plan                 String?
+  trialEndsAt          DateTime?
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?            @unique
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+}
+
+/// Promo-code kinds (Phase 4.5.2, G29). PERCENT_OFF/FIXED_OFF added in Phase 5 for checkout discounts.
+enum PromoCodeKind {
+  TRIAL_EXTENSION
+  PERCENT_OFF
+  FIXED_OFF
+}
+
+/// Platform-issued promo code (Phase 4.5.2 + Phase 5). TRIAL_EXTENSION extends trial;
+/// PERCENT_OFF/FIXED_OFF apply a Stripe coupon at platform subscription checkout.
+model PromoCode {
+  id             String        @id @default(cuid())
+  code           String        @unique
+  kind           PromoCodeKind @default(TRIAL_EXTENSION)
+  /// TRIAL_EXTENSION: trial length in days from school signup. Null for discount kinds.
+  trialDays      Int?
+  /// PERCENT_OFF: 1–100 integer percent off first billing period.
+  discountPercent Int?
+  /// FIXED_OFF: discount in the smallest currency unit (cents). Requires discountCurrency.
+  discountFixed   Int?
+  /// ISO-4217 currency code (lowercase) for FIXED_OFF, e.g. "usd".
+  discountCurrency String?
+  maxRedemptions Int?
+  redeemedCount  Int           @default(0)
+  validFrom      DateTime?
+  validTo        DateTime?
+  active         Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  redemptions PromoRedemption[]
+}
+
+/// One promo redemption per school (Phase 4.5.2).
+model PromoRedemption {
+  id          String   @id @default(cuid())
+  promoCodeId String
+  schoolId    String
+  redeemedAt  DateTime @default(now())
+
+  promoCode PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+  school    School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([promoCodeId, schoolId])
+  @@index([schoolId])
+}
+
+// ── Phase 6 seams ─────────────────────────────────────────────────────────────
+// These models establish attribution + ledger shape so Phase 6 business logic
+// can be added without schema rewrites. No service layer yet — just the seam.
+
+/// How a student was acquired by a school. Used for commission attribution.
+enum AcquisitionChannel {
+  /// Student found the school independently (no platform commission).
+  DIRECT
+  /// Student was matched to the school by the platform marketplace.
+  PLATFORM_MATCH
+  /// School imported an existing contact (e.g. CSV import).
+  IMPORT
+}
+
+/// Lifecycle of a platform-sourced student lead.
+enum LeadStatus {
+  /// Lead created — student expressed interest or was matched.
+  PENDING
+  /// School accepted the lead and enrolled the student.
+  ENROLLED
+  /// Lead was rejected or the student dropped off.
+  REJECTED
+  /// Enrolled but within clawback window (e.g. no-show / refund).
+  CLAWBACK
+}
+
+/// Platform ledger entry kinds (double-entry, Phase 6 billing model layer 3).
+enum LedgerEntryKind {
+  /// Platform commission charged to a school on a platform-sourced student.
+  COMMISSION_CHARGE
+  /// Commission reversed due to clawback (no-show / refund within window).
+  COMMISSION_CLAWBACK
+  /// Platform subscription invoice (SaaS fee — layer 2, for reconciliation).
+  SUBSCRIPTION_CHARGE
+  /// Manual adjustment by platform operator.
+  ADJUSTMENT
+}
+
+/// Attribution record for a student who arrived via the platform marketplace.
+/// Created when a lead is generated; updated as they move through the funnel.
+/// Commission is calculated and recorded in PlatformLedger on ENROLLED.
+model StudentAcquisitionLead {
+  id        String          @id @default(cuid())
+  schoolId  String
+  /// Platform User who is the prospective student (may be null before signup).
+  userId    String?
+  channel   AcquisitionChannel @default(PLATFORM_MATCH)
+  status    LeadStatus         @default(PENDING)
+  /// Snapshot of the matched/offered school at lead creation (for commission calc).
+  metaJson  Json               @default("{}")
+  enrolledAt  DateTime?
+  rejectedAt  DateTime?
+  clawbackAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  school  School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  user    User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  ledgerEntries PlatformLedger[]
+
+  @@index([schoolId])
+  @@index([userId])
+  @@index([status])
+}
+
+/// Platform-level double-entry ledger for money flows between schools and
+/// the platform (layer 3 of the 3-layer billing model). Each row is one
+/// accounting event; credits/debits are in the school's billing currency.
+model PlatformLedger {
+  id        String          @id @default(cuid())
+  schoolId  String
+  /// Optional link to the lead that triggered this entry.
+  leadId    String?
+  kind      LedgerEntryKind
+  /// Amount in minor units (e.g. cents). Positive = school owes platform.
+  amountMinor Int
+  currency    String          @default("UAH")
+  /// Human-readable description for audit/reconciliation.
+  description String          @default("")
+  /// Optional reference to external invoice / Stripe charge ID.
+  externalRef String?
+  createdAt   DateTime @default(now())
+  /// Operator who recorded a manual adjustment (null for automated entries).
+  recordedByOperatorId String?
+
+  school   School           @relation(fields: [schoolId], references: [id], onDelete: Restrict)
+  lead     StudentAcquisitionLead? @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  operator PlatformOperator?       @relation(fields: [recordedByOperatorId], references: [id], onDelete: SetNull)
+
+  @@index([schoolId])
+  @@index([leadId])
+  @@index([createdAt])
 }

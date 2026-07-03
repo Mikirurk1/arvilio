@@ -4,7 +4,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '@be/prisma';
+import { PrismaService, TenantPrismaService } from '@be/prisma';
+import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import { PaymentSettingsService } from '@be/billing';
 import type {
   CreateStudentGroupRequestDto,
@@ -25,8 +26,15 @@ const TEACHING_ROLES = new Set(['TEACHER', 'ADMIN', 'SUPER_ADMIN']);
 export class StudentGroupsService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly tenant: TenantContextService,
     private readonly paymentSettings: PaymentSettingsService,
+    private readonly tenantPrisma: TenantPrismaService,
   ) {}
+
+  /** Tenant-scoped client: StudentGroup reads/writes are auto-filtered by school. */
+  private get db() {
+    return this.tenantPrisma.client;
+  }
 
   private async assertGroupLessonsFeatureEnabled(): Promise<void> {
     const { config } = await this.paymentSettings.getRuntimePaymentSettings();
@@ -65,7 +73,7 @@ export class StudentGroupsService {
   async listForActor(actorUserId: string): Promise<StudentGroupDto[]> {
     await this.assertGroupLessonsFeatureEnabled();
     const actor = await this.resolveActor(actorUserId);
-    const groups = await this.prisma.studentGroup.findMany({
+    const groups = await this.db.studentGroup.findMany({
       where: actor.role === 'TEACHER' ? { teacherId: actor.id } : undefined,
       include: this.groupInclude(),
       orderBy: { name: 'asc' },
@@ -76,7 +84,7 @@ export class StudentGroupsService {
   async getById(actorUserId: string, id: string): Promise<StudentGroupDto> {
     await this.assertGroupLessonsFeatureEnabled();
     const actor = await this.resolveActor(actorUserId);
-    const group = await this.prisma.studentGroup.findUnique({
+    const group = await this.db.studentGroup.findUnique({
       where: { id },
       include: this.groupInclude(),
     });
@@ -107,9 +115,10 @@ export class StudentGroupsService {
       await this.assertTeacher(body.teacherId);
     }
     const billing = billingFieldsFromGroupInput(body);
-    const group = await this.prisma.studentGroup.create({
+    const group = await this.db.studentGroup.create({
       data: {
         name,
+        schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
         teacherId: body.teacherId ?? null,
         ...billing,
         members: {
@@ -132,7 +141,7 @@ export class StudentGroupsService {
     await this.assertGroupLessonsFeatureEnabled();
     const actor = await this.resolveActor(actorUserId);
     this.assertAdmin(actor);
-    const existing = await this.prisma.studentGroup.findUnique({ where: { id } });
+    const existing = await this.db.studentGroup.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Student group not found');
 
     const memberUserIds =
@@ -180,7 +189,7 @@ export class StudentGroupsService {
     if (body.teacherId) await this.assertTeacher(body.teacherId);
 
     const billing = billingFieldsFromGroupInput(merged);
-    await this.prisma.$transaction(async (tx) => {
+    await this.db.$transaction(async (tx) => {
       await tx.studentGroup.update({
         where: { id },
         data: {
@@ -201,7 +210,7 @@ export class StudentGroupsService {
       }
     });
 
-    const group = await this.prisma.studentGroup.findUnique({
+    const group = await this.db.studentGroup.findUnique({
       where: { id },
       include: this.groupInclude(),
     });
@@ -212,9 +221,9 @@ export class StudentGroupsService {
     await this.assertGroupLessonsFeatureEnabled();
     const actor = await this.resolveActor(actorUserId);
     this.assertAdmin(actor);
-    const existing = await this.prisma.studentGroup.findUnique({ where: { id } });
+    const existing = await this.db.studentGroup.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Student group not found');
-    await this.prisma.studentGroup.delete({ where: { id } });
+    await this.db.studentGroup.delete({ where: { id } });
     return { ok: true };
   }
 

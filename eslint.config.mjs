@@ -163,4 +163,36 @@ export default [
       ],
     },
   },
+  // Multi-tenant isolation guardrails (ADR-005, G5): raw SQL bypasses the
+  // tenant `$extends` scoping, and `asPlatform()` is the single audited
+  // cross-tenant bypass. Exclude tests and the data-access package itself
+  // (which owns the Prisma client + defines `asPlatform`). When the
+  // platform-admin module lands, add its path to `ignores` (it may call
+  // `asPlatform()`).
+  {
+    files: ['apps/api/**/*.{ts,tsx}', 'packages/backend/**/*.{ts,tsx}'],
+    ignores: [
+      '**/*.spec.ts',
+      'tests/**',
+      'packages/backend/data-access/data-access-prisma/**',
+      // platform-admin is the single authorized consumer of asPlatform() (ADR-009).
+      'packages/backend/modules/module-platform-admin/**',
+    ],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "MemberExpression[property.name=/^\\$(queryRaw|queryRawUnsafe|executeRaw|executeRawUnsafe)$/]",
+          message:
+            'Raw SQL bypasses tenant $extends scoping (G5). Use TenantPrismaService.client; for audited cross-tenant access use asPlatform() in @be/platform-admin.',
+        },
+        {
+          selector: "CallExpression[callee.property.name='asPlatform']",
+          message:
+            'asPlatform() is the audited cross-tenant bypass — only @be/platform-admin (and its tests) may call it. For tenant data use the request-scoped TenantPrismaService.client.',
+        },
+      ],
+    },
+  },
 ];

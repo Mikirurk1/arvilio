@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { LibraryMaterialDto } from '@pkg/types';
 import { Grid3x3, List, Plus, Search } from 'lucide-react';
 import {
@@ -14,10 +14,7 @@ import {
 import { confirmDialog } from '../../features/confirm';
 import { MaterialCard } from '../../features/materials/MaterialCard';
 import { MaterialFormModal } from '../../features/materials/MaterialFormModal';
-import {
-  LIBRARY_KIND_FILTER_OPTIONS,
-  type LibraryKindFilter,
-} from '../../features/materials/material-asset-presets';
+import type { LibraryKindFilter } from '../../features/materials/material-asset-presets';
 import {
   clearMaterialPendingSave,
   readMaterialPendingSave,
@@ -85,26 +82,6 @@ export default function MaterialsPage() {
   const isInitialLoading = !hasCachedList && (list.status === 'loading' || list.status === 'idle');
   const isRefreshing = hasCachedList && list.status === 'loading';
   const isError = list.status === 'error';
-
-  const filterOptions = useMemo(
-    () =>
-      LIBRARY_KIND_FILTER_OPTIONS.map((option) => ({
-        value: option.value,
-        label: (
-          <>
-            {option.label}
-            {kindCounts ? (
-              <span className={styles.count}>
-                {option.value === 'all'
-                  ? kindCounts.all
-                  : kindCounts[option.value as keyof typeof kindCounts]}
-              </span>
-            ) : null}
-          </>
-        ),
-      })),
-    [kindCounts],
-  );
 
   const onKindChange = (kind: LibraryKindFilter) => {
     setListKind(kind);
@@ -198,22 +175,26 @@ export default function MaterialsPage() {
 
       {kindCounts ? (
         <div className={styles.statsRow}>
-          <SurfaceCard padding="compact" className={styles.statCard}>
-            <span className={styles.statValue}>{kindCounts.all}</span>
-            <span className={styles.statLabel}>Total</span>
-          </SurfaceCard>
-          <SurfaceCard padding="compact" className={styles.statCard}>
-            <span className={styles.statValue}>{kindCounts.board}</span>
-            <span className={styles.statLabel}>Boards</span>
-          </SurfaceCard>
-          <SurfaceCard padding="compact" className={styles.statCard}>
-            <span className={styles.statValue}>{kindCounts.presentation}</span>
-            <span className={styles.statLabel}>Presentations</span>
-          </SurfaceCard>
-          <SurfaceCard padding="compact" className={styles.statCard}>
-            <span className={styles.statValue}>{kindCounts.book}</span>
-            <span className={styles.statLabel}>Books</span>
-          </SurfaceCard>
+          {([
+            { key: 'all', label: 'Total', count: kindCounts.all, tone: styles.statCardAll },
+            { key: 'board', label: 'Boards', count: kindCounts.board, tone: styles.statCardBoard },
+            { key: 'presentation', label: 'Presentations', count: kindCounts.presentation, tone: styles.statCardPresentation },
+            { key: 'book', label: 'Books', count: kindCounts.book, tone: styles.statCardBook },
+          ] as const).map(({ key, label, count, tone }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => onKindChange(key)}
+              className={[
+                styles.statCard,
+                tone,
+                listKind === key ? styles.statCardActive : '',
+              ].join(' ')}
+            >
+              <span className={styles.statValue}>{count}</span>
+              <span className={styles.statLabel}>{label}</span>
+            </button>
+          ))}
         </div>
       ) : null}
 
@@ -227,7 +208,7 @@ export default function MaterialsPage() {
               type="search"
               value={searchDraft}
               onChange={(event) => setSearchDraft(event.target.value)}
-              placeholder="Search by title, publisher, or description…"
+              placeholder="Search materials…"
               aria-label="Search materials"
             />
           </div>
@@ -243,13 +224,6 @@ export default function MaterialsPage() {
           />
         </div>
 
-        <SegmentedControl
-          className={styles.kindFilters}
-          ariaLabel="Material type"
-          value={listKind}
-          onValueChange={onKindChange}
-          options={filterOptions}
-        />
       </SurfaceCard>
 
       {isInitialLoading ? <p className={styles.loadingHint}>Loading materials…</p> : null}

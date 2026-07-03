@@ -372,3 +372,21 @@
     grid-template-columns: 1fr;
   }
 }
+
+.captionsRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.captionOk {
+  font-size: 13px;
+  color: var(--green);
+}
+
+.captionErr {
+  font-size: 13px;
+  color: var(--color-danger, #ef4444);
+}

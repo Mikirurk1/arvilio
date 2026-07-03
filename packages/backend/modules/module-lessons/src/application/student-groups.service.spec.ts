@@ -24,7 +24,15 @@ describe('StudentGroupsService feature flag', () => {
     getRuntimePaymentSettings: jest.fn(),
   };
 
-  const service = new StudentGroupsService(prisma as never, paymentSettingsMock as never);
+  const tenant = { schoolId: 'school_default' } as never;
+  // StudentGroup reads/writes go through the tenant-scoped client; route it to the same mock.
+  const tenantPrisma = { client: prisma } as never;
+  const service = new StudentGroupsService(
+    prisma as never,
+    tenant,
+    paymentSettingsMock as never,
+    tenantPrisma,
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();

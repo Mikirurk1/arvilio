@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { PrismaService } from '@be/prisma';
+import { PrismaService, TenantPrismaService } from '@be/prisma';
 import { QuizRepository } from './quiz.repository';
 
 describe('QuizRepository.collectPool', () => {
@@ -32,7 +32,12 @@ describe('QuizRepository.collectPool', () => {
       studentWordCard: { findMany: jest.fn() },
     };
     const moduleRef = await Test.createTestingModule({
-      providers: [QuizRepository, { provide: PrismaService, useValue: prisma }],
+      providers: [
+        QuizRepository,
+        { provide: PrismaService, useValue: prisma },
+        // collectPool reads StudentWordCard via the tenant-scoped client.
+        { provide: TenantPrismaService, useValue: { client: prisma } },
+      ],
     }).compile();
     repo = moduleRef.get(QuizRepository);
   });

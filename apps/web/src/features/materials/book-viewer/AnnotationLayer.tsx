@@ -5,12 +5,14 @@ import { Arrow, Ellipse, Layer, Line, Rect, Stage } from 'react-konva';
 import type {
   MaterialAnnotationDocument,
   MaterialAnnotationTool,
+  MaterialPageAnnotation,
 } from '@pkg/types';
 import {
   appendAnnotation,
   denormX,
   denormY,
   normalizeTextAnnotation,
+  normPoint,
   pageKey,
   updateAnnotation,
   type PageSize,

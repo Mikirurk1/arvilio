@@ -1,4 +1,8 @@
-export { AuthSessionService } from './application/auth-session.service';
+export {
+  AuthSessionService,
+  type ImpersonationClaim,
+  type ImpersonationContext,
+} from './application/auth-session.service';
 export { AchievementStatsService } from './application/achievement-stats.service';
 export { DashboardService } from './application/dashboard.service';
 export { AuthGuard, OptionalAuthGuard } from './presentation/guards/auth.guard';
@@ -7,6 +11,7 @@ export { GqlAuthGuard, getGqlRequest } from './presentation/guards/gql-auth.guar
 export { CurrentGqlUser } from './presentation/guards/current-gql-user';
 export { Roles, ROLES_KEY, type RoleName } from './presentation/guards/roles.decorator';
 export { RolesGuard } from './presentation/guards/roles.guard';
+export { FeatureGuard, RequiresFeature, REQUIRES_FEATURE_KEY } from './presentation/guards/feature.guard';
 export {
   ACCESS_COOKIE,
   REFRESH_COOKIE,
@@ -14,6 +19,8 @@ export {
   GOOGLE_OAUTH_USER_COOKIE,
   ZOOM_OAUTH_INTENT_COOKIE,
   ZOOM_OAUTH_USER_COOKIE,
+  setImpersonationAccessCookie,
+  clearAccessCookie,
   setZoomLinkCookies,
   clearZoomOAuthCookies,
   readZoomLinkUserId,

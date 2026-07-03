@@ -13,6 +13,35 @@ Monorepo structure:
 
 ---
 
+## Execution plan tracking
+
+When working through any text-based execution plan (e.g. `docs/multi-tenant-execution-plan.md`):
+
+- **After completing each item** — update the plan document immediately: change `☐` → `☑`, or `◐` → `☑`, and append a brief completion note with the date.
+- Do this in the **same task**, before moving to the next item. Do not batch updates.
+- If an item is partially done, mark it `◐` and append what remains under `**☐ remaining:**`.
+
+---
+
+## Handoff file (`docs/handoff.md`)
+
+**At the start of every session — read `docs/handoff.md` before doing anything else.** Do not ask what to do next until you've read it.
+
+Keep it updated throughout the session. It must always contain:
+
+- **Goal** — what we are trying to achieve
+- **Current status of the project** — what works, what is in progress, what is broken
+- **Files you're working on** — actively edited files
+- **What has changed** — summary of recent changes made in this session
+- **What was tried and didn't work** — dead ends, failed approaches, and why
+- **Next step** — the immediate next action to take
+
+**Update `docs/handoff.md` after every completed task** — not only before finishing a session. This includes: bug fixes, feature additions, refactors, config changes, and any edit that affects how the project works. Do this proactively, without being asked.
+
+**End of task checklist:** before sending your final message — update `docs/handoff.md` with what changed. Final reply includes: **Handoff:** updated — or **Handoff:** no meaningful change.
+
+---
+
 ## Karpathy behavioral guidelines
 
 Bias toward caution over speed. For trivial tasks, use judgment.

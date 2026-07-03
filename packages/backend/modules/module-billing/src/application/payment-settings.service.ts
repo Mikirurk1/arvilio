@@ -4,7 +4,8 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from '@be/prisma';
+import { PrismaService, TenantPrismaService } from '@be/prisma';
+import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import type {
   PaymentConfigDto,
   PaymentSecretStatusesDto,
@@ -48,7 +49,16 @@ const SETTINGS_ID = 'default';
 
 @Injectable()
 export class PaymentSettingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tenant: TenantContextService,
+    private readonly tenantPrisma: TenantPrismaService,
+  ) {}
+
+  /** Tenant-scoped client: StudentLessonBalance reads/writes are auto-filtered by school (request paths). */
+  private get db() {
+    return this.tenantPrisma.client;
+  }
 
   async getPaymentSettings(): Promise<PaymentSettingsDto> {
     const runtime = await this.getRuntimePaymentSettings();
@@ -63,6 +73,18 @@ export class PaymentSettingsService {
   async updatePaymentSettings(body: UpdatePaymentSettingsRequestDto): Promise<PaymentSettingsDto> {
     const row = await this.ensureSettingsRow();
     const enabled = body.enabledMethods.map(paymentMethodFromDto);
+    // Platform-wide allowlist (ADR-009): a school may only enable methods the
+    // platform permits. Empty allowlist = no restriction.
+    const allowlist = row.allowedPaymentMethods ?? [];
+    if (allowlist.length > 0) {
+      const allowed = new Set(allowlist);
+      const blocked = enabled.filter((m) => !allowed.has(m));
+      if (blocked.length > 0) {
+        throw new BadRequestException(
+          `Payment method(s) not allowed by the platform: ${blocked.join(', ')}`,
+        );
+      }
+    }
     const minLessons = Math.max(1, body.config.minPackageLessons ?? DEFAULT_PAYMENT_CONFIG.minPackageLessons);
     const methodIds = new Set<string>();
     for (const pkg of body.config.packages) {
@@ -149,12 +171,17 @@ export class PaymentSettingsService {
     const groupCurrency =
       settings.config.groupLessons?.defaultCurrency?.trim().toUpperCase() ||
       settings.config.defaultCurrency;
-    await this.prisma.studentLessonBalance.upsert({
+    await this.db.studentLessonBalance.upsert({
       where: { userId: studentId },
-      create: { userId: studentId, balance: 0, groupBalance: 0 },
+      create: {
+        userId: studentId,
+        schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
+        balance: 0,
+        groupBalance: 0,
+      },
       update: {},
     });
-    const balance = await this.prisma.studentLessonBalance.findUnique({
+    const balance = await this.db.studentLessonBalance.findUnique({
       where: { userId: studentId },
       select: { groupPricePerLessonMinor: true },
     });
@@ -179,12 +206,17 @@ export class PaymentSettingsService {
   }> {
     const settings = await this.getPaymentSettings();
     const defaultPrice = settings.config.defaultPricePerLessonMinor;
-    await this.prisma.studentLessonBalance.upsert({
+    await this.db.studentLessonBalance.upsert({
       where: { userId: studentId },
-      create: { userId: studentId, balance: 0, groupBalance: 0 },
+      create: {
+        userId: studentId,
+        schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
+        balance: 0,
+        groupBalance: 0,
+      },
       update: {},
     });
-    const balance = await this.prisma.studentLessonBalance.findUnique({
+    const balance = await this.db.studentLessonBalance.findUnique({
       where: { userId: studentId },
       select: { pricePerLessonMinor: true },
     });
@@ -204,7 +236,7 @@ export class PaymentSettingsService {
     const settings = await this.getPaymentSettings();
     const pricing = await this.resolvePricePerLessonMinor(studentId);
     const groupPricing = await this.resolveGroupPricePerLessonMinor(studentId);
-    const balance = await this.prisma.studentLessonBalance.findUnique({
+    const balance = await this.db.studentLessonBalance.findUnique({
       where: { userId: studentId },
       select: { billingMode: true, packageOverrides: true },
     });

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { isAdminOrSuper, mockUsers, USER_ROLE, type MockStudent } from '../../../mocks';
 import { useStudentsStore } from '../../../stores/students-store';
-import type { StudentSummaryBackendDto } from '@pkg/types';
+import type { StudentSummaryBackendDto, UserRoleId } from '@pkg/types';
 
 interface TeacherOption {
   backendId: string | null;
@@ -16,7 +16,7 @@ interface UseStudentProfileSaveOptions {
   teacherBackendId: string | null;
   nativeLanguageId: string;
   backendRow: Pick<StudentSummaryBackendDto, 'learningLanguageIds'> | null | undefined;
-  activeUserRole: string;
+  activeUserRole: UserRoleId;
   teacherOptions: TeacherOption[];
 }
 

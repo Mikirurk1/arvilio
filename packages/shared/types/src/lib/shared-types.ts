@@ -337,11 +337,39 @@ export type WebRequestSessionDto = {
   scope: 'school' | 'platform';
   availableScopes: Array<'school' | 'platform'>;
   tenantKey: string | null;
+  /**
+   * Set when a platform operator is impersonating a school user (Phase 4 / ADR-009).
+   * Carries the data the UI needs to render the mandatory "you are impersonating"
+   * banner. `null` for ordinary sessions.
+   */
+  impersonation: { actorUserId: string; schoolId: string } | null;
+  /**
+   * Set when the active school is on a trial (Phase 4.5.1). Drives the trial
+   * countdown banner. `null` for non-trial schools.
+   */
+  trial: { trialEndsAt: string; daysLeft: number } | null;
+  /**
+   * Resolved UI locale for this session (G33).
+   * Derived: user.locale → school.defaultLocale → Accept-Language → 'uk'.
+   */
+  locale: string;
 };
 
 export type LoginRequestDto = {
   email: string;
   password: string;
+};
+
+/** Self-serve "create your school" signup (Phase 4.5.1, G19/G28). No card. */
+export type RegisterSchoolRequestDto = {
+  schoolName: string;
+  email: string;
+  password: string;
+  displayName?: string;
+  /** Optional promo code (Phase 4.5.2) — extends the trial when valid. */
+  promoCode?: string;
+  /** Cloudflare Turnstile challenge response token (G37). Verified server-side when CAPTCHA_SECRET is set. */
+  captchaToken?: string;
 };
 
 export type ForgotPasswordRequestDto = {
@@ -1117,6 +1145,8 @@ export type MyProfileDto = {
   displayName: string;
   avatarUrl: string | null;
   timezone: string;
+  /** User's preferred UI locale (G33). Null = inherit school/platform default. */
+  locale: string | null;
   proficiencyLevel: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | null;
   phone: string | null;
   telegram: string | null;
@@ -1131,6 +1161,8 @@ export type MyProfileDto = {
 export type UpdateMyProfileRequestDto = {
   displayName?: string;
   timezone?: string;
+  /** Set to a supported locale ('uk' | 'en') or null to reset to school/platform default. */
+  locale?: string | null;
   avatarUrl?: string | null;
   proficiencyLevel?: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | null;
   phone?: string | null;

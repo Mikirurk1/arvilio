@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '@be/prisma';
+import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import type { CreateLessonPurchaseCheckoutRequestDto, LessonPurchaseCheckoutDto } from '@pkg/types';
 import {
   buildLiqPayCheckoutUrl,
@@ -17,6 +18,7 @@ import { assertProviderSupportsPackageCurrency } from '../shared/checkout-curren
 export class LiqPayCheckoutService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly tenant: TenantContextService,
     private readonly paymentSettings: PaymentSettingsService,
     private readonly lessonBalance: LessonBalanceService,
   ) {}
@@ -46,6 +48,7 @@ export class LiqPayCheckoutService {
     const payment = await this.prisma.payment.create({
       data: {
         userId,
+        schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
         method: paymentMethodFromDto('liqpay'),
         status: 'PENDING',
         lessonsGranted: pkg.lessons,

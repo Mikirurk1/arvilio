@@ -19,9 +19,15 @@ type RouteRule = {
   route: RouteAccessDescriptor;
 };
 
-const PUBLIC_ROUTES = new Set(['/login', '/forgot-password', '/reset-password']);
+const PUBLIC_ROUTES = new Set([
+  '/login',
+  '/signup',
+  '/forgot-password',
+  '/reset-password',
+  '/mascot-preview',
+]);
 const CMS_ROUTE_PREFIX = '/cms-admin';
-const AUTH_REDIRECT_ROUTES = new Set(['/login']);
+const AUTH_REDIRECT_ROUTES = new Set(['/login', '/signup']);
 
 const ROUTE_RULES: RouteRule[] = [
   {
@@ -68,7 +74,19 @@ const ROUTE_RULES: RouteRule[] = [
       isPublic: false,
       redirectAuthenticatedTo: null,
       requiredScope: 'school',
-      allowedRoles: ['super_admin'],
+      allowedRoles: ['admin', 'super_admin'],
+      deniedRedirectTo: '/dashboard',
+    },
+  },
+  {
+    match: (pathname) => matchesPath(pathname, '/billing'),
+    route: {
+      surface: 'school-app',
+      shell: 'app',
+      isPublic: false,
+      redirectAuthenticatedTo: null,
+      requiredScope: 'school',
+      allowedRoles: ['admin', 'super_admin'],
       deniedRedirectTo: '/dashboard',
     },
   },

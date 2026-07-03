@@ -324,6 +324,7 @@ export function ConnectionsPanel() {
               <input
                 id="telegram-dev-polling"
                 type="checkbox"
+                aria-label={t.telegramDevPolling.label}
                 className={styles.checkboxControl}
                 checked={config.telegram.devPolling}
                 onChange={(e) =>
@@ -401,6 +402,7 @@ export function ConnectionsPanel() {
               <input
                 id="zoom-server-to-server"
                 type="checkbox"
+                aria-label={z.zoomUseServerToServer.label}
                 className={styles.checkboxControl}
                 checked={config.videoMeeting.zoom.useServerToServer}
                 onChange={(e) =>

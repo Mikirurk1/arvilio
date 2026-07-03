@@ -11,7 +11,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard, CurrentUser } from '@be/auth';
+import { AuthGuard, CurrentUser, FeatureGuard, RequiresFeature } from '@be/auth';
 import type {
   CreateScheduledLessonRequestDto,
   ScheduledLessonBackendDto,
@@ -70,6 +70,8 @@ export class ScheduledLessonsController {
   }
 
   @Get(':id/livekit-token')
+  @UseGuards(FeatureGuard)
+  @RequiresFeature('recordings')
   async livekitToken(
     @CurrentUser() userId: string,
     @Param('id') id: string,

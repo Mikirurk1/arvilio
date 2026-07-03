@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@be/prisma';
+import { BillingModule } from '@be/billing';
 import { SpeakingAccessService } from './application/speaking-access.service';
 import { SpeakingAudioService } from './application/speaking-audio.service';
 import { SpeakingSubmissionsService } from './application/speaking-submissions.service';
@@ -8,7 +9,7 @@ import { SpeakingResolver } from './presentation/graphql/speaking.resolver';
 import { SpeakingAudioController } from './presentation/rest/speaking-audio.controller';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, BillingModule],
   controllers: [SpeakingAudioController],
   providers: [
     SpeakingAccessService,

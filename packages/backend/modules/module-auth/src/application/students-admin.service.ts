@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@be/prisma';
+import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import type { StudentLessonFormat, UpdateAdminStudentRequestDto } from '@pkg/types';
 import { LanguagesService } from './languages.service';
 import { normalizeDisplayColor } from '../shared/display-color';
@@ -22,6 +23,7 @@ type StaffActorRole = 'ADMIN' | 'SUPER_ADMIN' | 'TEACHER';
 export class StudentsAdminService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly tenant: TenantContextService,
     private readonly languages: LanguagesService,
   ) {}
 
@@ -117,10 +119,12 @@ export class StudentsAdminService {
       if (body.learningLanguageIds !== undefined) {
         await tx.studentLearningLanguage.deleteMany({ where: { userId: studentId } });
         if (body.learningLanguageIds.length > 0) {
+          const schoolId = this.tenant.schoolId ?? DEFAULT_SCHOOL_ID;
           await tx.studentLearningLanguage.createMany({
             data: body.learningLanguageIds.map((languageId) => ({
               userId: studentId,
               languageId,
+              schoolId,
             })),
           });
         }

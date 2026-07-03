@@ -1,0 +1,1 @@
+{"date":"2026-06-15","tool":"manual security review","findings":"no exploitable vulnerabilities in code changes","bcrypt":"12 rounds","execFile":"no shell injection"}

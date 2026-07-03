@@ -1,4 +1,4 @@
-import type { ElementType, ReactNode } from 'react';
+import { createElement, type ElementType, type ReactNode } from 'react';
 import uiStyles from './ui.module.scss';
 
 export type PageHeaderProps = {
@@ -34,7 +34,11 @@ export function PageHeader({
           {back ? (
             <div className={[uiStyles.pageHeaderBack, backClassName].filter(Boolean).join(' ')}>{back}</div>
           ) : null}
-          <TitleTag className={[uiStyles.pageHeaderTitle, titleClassName].filter(Boolean).join(' ')}>{title}</TitleTag>
+          {createElement(
+            TitleTag,
+            { className: [uiStyles.pageHeaderTitle, titleClassName].filter(Boolean).join(' ') },
+            title,
+          )}
         </div>
         {actions}
       </div>

@@ -84,7 +84,8 @@ export function CalendarWeekView({
           );
         })}
       </div>
-      <div className={styles.weekBody}>
+      {/* tabIndex: scrollable region must be keyboard-focusable (axe scrollable-region-focusable) */}
+      <div className={styles.weekBody} tabIndex={0} role="region" aria-label="Week schedule">
         <div className={styles.weekRow} style={{ minHeight: DAY_COLUMN_HEIGHT }}>
           {weekIncludesToday && weekNowTopPx >= 0 && weekNowTopPx <= DAY_COLUMN_HEIGHT ? (
             <div className={styles.weekNowLine} style={{ top: weekNowTopPx }} aria-hidden>

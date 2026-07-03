@@ -4,7 +4,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '@be/prisma';
+import { PrismaService, TenantPrismaService } from '@be/prisma';
+import { EntitlementsService, StorageAccountingService } from '@be/billing/entitlements';
+import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import type {
   ReviewSpeakingSubmissionRequestDto,
   SpeakingSubmissionDto,
@@ -18,15 +20,24 @@ import { mapSubmissionSummary } from '../presentation/graphql/speaking-graphql.u
 export class SpeakingSubmissionsService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly tenant: TenantContextService,
     private readonly access: SpeakingAccessService,
     private readonly audio: SpeakingAudioService,
+    private readonly tenantPrisma: TenantPrismaService,
+    private readonly entitlements: EntitlementsService,
+    private readonly storage: StorageAccountingService,
   ) {}
+
+  /** Tenant-scoped client: SpeakingTopic/SpeakingSubmission are auto-filtered by school. */
+  private get db() {
+    return this.tenantPrisma.client;
+  }
 
   async submit(
     actorId: string,
     body: SubmitSpeakingRecordingRequestDto,
   ): Promise<SpeakingSubmissionDto> {
-    const topic = await this.prisma.speakingTopic.findUnique({
+    const topic = await this.db.speakingTopic.findUnique({
       where: { id: body.topicId },
       include: {
         assignments: {
@@ -55,16 +66,17 @@ export class SpeakingSubmissionsService {
 
     await this.replacePreviousSubmissions(topic.id, assignment.id, actorId);
 
-    const submission = await this.prisma.speakingSubmission.create({
+    const submission = await this.db.speakingSubmission.create({
       data: {
         topicId: topic.id,
         assignmentId: assignment.id,
         studentId: actorId,
+        schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
         durationSec: body.durationSec ?? null,
       },
     });
 
-    await this.prisma.speakingTopicAssignment.update({
+    await this.db.speakingTopicAssignment.update({
       where: { id: assignment.id },
       data: { status: 'SUBMITTED' },
     });
@@ -84,21 +96,32 @@ export class SpeakingSubmissionsService {
       throw new ForbiddenException('Only the student who recorded can upload audio');
     }
 
+    const schoolId = this.tenant.schoolId ?? DEFAULT_SCHOOL_ID;
+    // Storage-quota gate (Phase 5, G42 — recordings count): block over-quota uploads.
+    await this.entitlements.assertCanUpload(schoolId, buffer.length);
+
+    const previous = await this.db.speakingSubmission.findUnique({
+      where: { id: submissionId },
+      select: { audioSizeBytes: true },
+    });
     const storageKey = this.audio.newStorageKey(originalName);
     await this.audio.saveToDisk(buffer, storageKey);
-    await this.prisma.speakingSubmission.update({
+    await this.db.speakingSubmission.update({
       where: { id: submissionId },
       data: {
         audioStorageKey: storageKey,
+        audioSizeBytes: buffer.length,
         mimeType,
       },
     });
+    // Net delta so a re-recording doesn't double-count (replaces the prior file).
+    await this.storage.add(schoolId, buffer.length - (previous?.audioSizeBytes ?? 0));
   }
 
   async listForStudent(viewerId: string, studentId: string): Promise<SpeakingSubmissionDto[]> {
     await this.access.assertCanViewStudent(viewerId, studentId);
 
-    const rows = await this.prisma.speakingSubmission.findMany({
+    const rows = await this.db.speakingSubmission.findMany({
       where: { studentId },
       include: { topic: true },
       orderBy: [{ status: 'asc' }, { submittedAt: 'desc' }],
@@ -123,7 +146,7 @@ export class SpeakingSubmissionsService {
       throw new BadRequestException('Teacher feedback is required');
     }
 
-    const submission = await this.prisma.speakingSubmission.findUnique({
+    const submission = await this.db.speakingSubmission.findUnique({
       where: { id: body.submissionId },
       include: { topic: true },
     });
@@ -131,7 +154,7 @@ export class SpeakingSubmissionsService {
 
     await this.access.assertCanViewStudent(actorId, submission.studentId);
 
-    const updated = await this.prisma.speakingSubmission.update({
+    const updated = await this.db.speakingSubmission.update({
       where: { id: submission.id },
       data: {
         teacherFeedback: feedback,
@@ -143,7 +166,7 @@ export class SpeakingSubmissionsService {
     });
 
     if (updated.assignmentId) {
-      await this.prisma.speakingTopicAssignment.update({
+      await this.db.speakingTopicAssignment.update({
         where: { id: updated.assignmentId },
         data: { status: 'REVIEWED' },
       });
@@ -169,7 +192,7 @@ export class SpeakingSubmissionsService {
     assignmentId: string,
     studentId: string,
   ): Promise<void> {
-    const previous = await this.prisma.speakingSubmission.findMany({
+    const previous = await this.db.speakingSubmission.findMany({
       where: { topicId, assignmentId, studentId },
       select: { id: true, audioStorageKey: true },
     });
@@ -182,7 +205,7 @@ export class SpeakingSubmissionsService {
         .map((key) => this.audio.deleteFromDisk(key)),
     );
 
-    await this.prisma.speakingSubmission.deleteMany({
+    await this.db.speakingSubmission.deleteMany({
       where: { id: { in: previous.map((row) => row.id) } },
     });
   }

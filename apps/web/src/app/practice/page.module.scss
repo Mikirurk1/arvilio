@@ -241,7 +241,7 @@
   font-weight: var(--fw-semibold);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text-faint);
+  color: var(--text-tertiary); /* --text-faint fails WCAG AA contrast */
 }
 
 .soonList {

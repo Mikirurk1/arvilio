@@ -3,12 +3,15 @@
 import { FormEvent, useState } from 'react';
 import Link from 'next/link';
 import type { ForgotPasswordRequestDto } from '@pkg/types';
+import Image from 'next/image';
 import { BrandLogo } from '../../../components/brand/BrandLogo';
 import { Button, Field } from '../../../components/ui';
 import { apiClient } from '../../../lib/api';
+import { useSchoolBranding } from '../../../lib/use-school-branding';
 import styles from '../auth.module.scss';
 
 export default function ForgotPasswordPage() {
+  const branding = useSchoolBranding();
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +37,18 @@ export default function ForgotPasswordPage() {
     <div className={styles.shell}>
       <div className={styles.card}>
         <div className={styles.brand}>
-          <BrandLogo size="lg" href={null} className={styles.brandLogo} />
+          {branding?.logoUrl ? (
+            <Image
+              src={branding.logoUrl}
+              alt="School logo"
+              width={160}
+              height={40}
+              style={{ objectFit: 'contain', maxHeight: 40 }}
+              unoptimized
+            />
+          ) : (
+            <BrandLogo size="lg" href={null} className={styles.brandLogo} />
+          )}
         </div>
 
         <div className={styles.intro}>

@@ -1,8 +1,9 @@
 'use client';
 
 import type { AuthUserDto } from '@pkg/types';
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, Suspense, useEffect } from 'react';
 import { AuthProvider } from '../lib/auth-context';
+import { AnalyticsProvider } from '../components/analytics/AnalyticsProvider';
 import { ConfirmDialogHost } from '../features/confirm';
 import { ToastViewport } from '../features/notifications/ToastViewport';
 import { useUiStore } from '../stores/ui-store';
@@ -50,9 +51,13 @@ export function AppProviders({ children, initialAuthUser }: ProviderProps) {
   return (
     <AuthProvider initialUser={initialAuthUser}>
       <AppearanceSync>
-        {children}
-        <ToastViewport />
-        <ConfirmDialogHost />
+        <Suspense>
+          <AnalyticsProvider>
+            {children}
+            <ToastViewport />
+            <ConfirmDialogHost />
+          </AnalyticsProvider>
+        </Suspense>
       </AppearanceSync>
     </AuthProvider>
   );

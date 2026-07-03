@@ -14,6 +14,9 @@ const session: WebRequestSessionDto = {
   scope: 'school',
   availableScopes: ['school'],
   tenantKey: null,
+  impersonation: null,
+  trial: null,
+  locale: 'uk',
   user: mockAuthUser(),
 };
 

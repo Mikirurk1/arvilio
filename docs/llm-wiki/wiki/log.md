@@ -4,6 +4,349 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 ---
 
+## [2026-06-27] update | G39 — Per-school email sender display name
+- **Trigger:** code change
+- **Pages:** `concepts/notifications.md` (if exists, else inline)
+- **Changes:** `buildFrom()` added to `mail.service.ts`; `schoolName?` field on `DispatchNotificationInput`; forwarded through `NotificationsMailService.sendTemplated`; all 5 notification dispatch sites (lesson-reminder, streak-alert, new-vocab, weekly-report, teacher-messages) now pass school name — emails show `"Acme School via SoEnglish" <noreply@...>` as sender. Delivery `schoolId` stamping was already done (child-table vertical, Phase 1). Per-school Telegram bot deferred.
+
+## [2026-06-27] update | G37 — Disposable-email block + rate limiting
+- **Trigger:** code change
+- **Pages:** `concepts/auth.md`
+- `isDisposableEmail(email)` util with 40+ domain blocklist; checked before `$transaction` in `SchoolSignupService`.
+- `@Throttle({ default: { ttl: 600_000, limit: 5 } })` on `POST /auth/register-school`.
+- `@Throttle({ default: { ttl: 600_000, limit: 10 } })` on `GET /auth/verify-email`.
+- +5 tests (disposable-email.spec.ts + school-signup BadRequest for disposable domain).
+
+## [2026-06-27] update | G37 — Email verification for school signup
+- **Trigger:** code change
+- **Pages:** `entities/user.md`, `concepts/auth.md`
+- `User.emailVerifiedAt DateTime?` + `User.emailVerifyToken String? @unique` (migration `20260627030000`).
+- `SchoolSignupService`: crypto.randomBytes(32) token → stored on user, `sendEmailVerification()` fire-and-forget post-tx.
+- `email-verification` React Email template + `EmailTemplateId` + `MailService.sendEmailVerification()`.
+- `AuthService.verifyEmail(token)`: find by token → set `emailVerifiedAt`, clear token → 400 on invalid.
+- `GET /auth/verify-email?token=` endpoint (no auth required).
+- `SchoolOnboardingService.dispatchInvites` gated on `admin.emailVerifiedAt !== null`.
+
+## [2026-06-27] update | G33 — User locale preference save endpoint
+- **Trigger:** code change
+- **Pages:** `entities/user.md`
+- `UpdateMyProfileRequestDto.locale?: string | null` — validated via `normalizeLocale` (rejects unsupported).
+- `UsersService.updateMyProfile` writes `User.locale`; `mapProfile` exposes it in `MyProfileDto.locale`.
+- `POST /api/users/me/profile` now accepts `locale` alongside existing profile fields.
+
+## [2026-06-27] update | G33 i18n foundation complete — locale columns + request context
+- **Trigger:** code change
+- **Pages:** `concepts/auth.md` (TenantContext.locale), `entities/school.md` (defaultLocale column), `entities/user.md` (locale column)
+- `School.defaultLocale String?` + `User.locale String?` Prisma columns (migration `20260627022800`).
+- `TenantContext.locale?: string | null`; `TenantContextService.{locale getter, setLocale()}`.
+- `AuthSessionService.resolveUserLocaleData(userId, schoolId)` — parallel fetch of both prefs.
+- `resolveWebRequestSession` now calls `resolveLocale({userPreference, schoolDefault, acceptLanguage})`, sets CLS via `tenant.setLocale`, returns `WebRequestSessionDto.locale: string`.
+- Resolution priority: `user.locale` → `school.defaultLocale` → `Accept-Language` → `'uk'`.
+
+## [2026-06-26] update | G42 — Recordings quota seam + AI daily rate cap
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments.md`
+- `ScheduledLesson.recordingSizeBytes Int?`; `School.aiCreditsUsedToday/aiCreditsResetAt`; `aiCreditsPerDay` in plan catalog (PRO: 100/day).
+- `EntitlementsService.assertAiCredit/consumeAiCredit/resetDailyAiCredits`; nightly cron reset.
+- `/livekit-token` gated by `@RequiresFeature('recordings')`; `FeatureGuard` added to LessonsModule providers.
+- Migration `20260626124643_add_recording_ai_metering`. unit 1199/1199.
+
+## [2026-06-26] update | Phase 5 — Stripe Portal (upgrade/downgrade) + UpgradePrompt UI
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments.md`
+- `PlatformSubscriptionService.createPortalSession` → Stripe Billing Portal Session (DB-first order). `POST /api/billing/subscription/portal` (admin, auth).
+- Billing page: "Manage subscription" button for active subscribers; plan picker hidden for paid plans; over-quota hint on storage bar.
+- `UpgradePrompt` + `isStorageQuotaError` in `components/ui`; wired into `MaterialFormModal` on 413 errors.
+- unit 1199/1199, typecheck 0.
+
+## [2026-06-26] update | Phase 5 — promo PERCENT_OFF/FIXED_OFF at checkout
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments.md`
+- Schema: `PromoCodeKind` +PERCENT_OFF/FIXED_OFF; `PromoCode` trialDays nullable + discountPercent/discountFixed/discountCurrency. Migration `add_promo_discount_kinds`.
+- `PromoCodesService` → discriminated union `CreatePromoCodeInput` (per-kind validation).
+- `PlatformSubscriptionService.createCheckout(schoolId, plan, promoCode?)` → validate code → `PromoRedemption` + Stripe on-the-fly coupon → `discounts:[{coupon}]` in session.
+- `SubscriptionController` passes `promoCode` from body. Billing page UI: Field "Promo code" before plan picker.
+- unit 641/641, integration 96/96, typecheck 0.
+
+## [2026-06-26] update | Phase 5 — feature-gating helper
+
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments.md`, `concepts/auth-rbac.md`
+- **What:** `EntitlementsService.hasFeature(schoolId, feature)` / `assertFeature` (customDomain/aiAssist/recordings; `PlanFeature` type). `@RequiresFeature(feature)` decorator + `FeatureGuard` (`@be/auth`, runs after AuthGuard, 403 if the school's plan lacks the feature; no decorator → pass-through). UI hides gated features via `features` from `GET /api/billing/entitlements`.
+- **Tests:** +7 (service hasFeature/assertFeature + guard pass-through/assert/deny). unit 1193/1193, integration 96/96.
+- **Remaining:** apply at concrete feature sites as they're built (custom domains, AI assist).
+
+---
+
+## [2026-06-26] update | Phase 5 — speaking upload storage enforcement (chat excluded)
+
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments.md`
+- **What:** added `SpeakingSubmission.audioSizeBytes` (migration `add_speaking_audio_size`); `SpeakingSubmissionsService.attachAudio` now `assertCanUpload(schoolId, buffer.length)` (G42 — recordings count) and `StorageAccountingService.add(net delta = new − previous)` so re-recording replaces rather than double-counts. `speaking.module` imports BillingModule. **Chat deliberately excluded** from storage accounting — its attachments are ephemeral (TTL + hourly purge), so they shouldn't consume the persistent quota.
+- **Tests:** +1 attachAudio (gate + delta); spec DI updated. unit 1189/1189, integration 96/96.
+- **Storage enforcement now covers:** materials (create+compression+delete), lessons (create-only), speaking (create+delta).
+
+---
+
+## [2026-06-26] update | Phase 5 — lessons upload storage enforcement
+
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments.md`
+- **What:** `LessonAttachmentService.createAttachment` resolves the lesson's `schoolId` (`ScheduledLesson`), calls `EntitlementsService.assertCanUpload` (413 over quota) and `StorageAccountingService.add(+sizeBytes)`. No decrement needed — lesson attachments aren't deleted (`onDelete: SetNull`, file persists). lessons.module already imports BillingModule; util spec updated with mocked entitlements/storage + `scheduledLesson.findUnique`.
+- **Tests:** unit 1188/1188, integration 96/96.
+- **Remaining storage verticals:** chat + speaking.
+
+---
+
+## [2026-06-26] update | Phase 5 — grandfathering + seat enforcement
+
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments.md`, `concepts/auth-rbac.md`
+- **What:** `EntitlementsService.resolveForSchool` now grandfathers legacy schools: paid plan → that; `School.status==='TRIAL'` → TRIAL limits; else (ACTIVE, no paid subscription = legacy single-school) → top tier (`GRANDFATHERED_PLAN_KEY = PRO`, unlimited) — so the live `school_default` is never retroactively capped (fixes the materials storage check too). `createUserAsAdmin` is now tenant-aware: creates a `SchoolMembership(role, ACTIVE)` for the new user in the current school (ADR-006) and blocks adding a STUDENT past `canAddActiveStudent` (403). Helpers: `paidPlanKey`, `GRANDFATHERED_PLAN_KEY`.
+- **Tests:** entitlements spec rewritten for grandfathering resolution; seat-limit cases. unit 1188/1188, integration 96/96 (admin-create exercises membership creation).
+- **Note:** seat enforcement only bites TRIAL-status schools at cap; legacy/paid schools are unlimited or plan-capped.
+
+---
+
+## [2026-06-26] update | Phase 5 — dunning auto-suspend cron
+
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments.md`
+- **What:** `TrialLifecycleService.suspendOverdueSubscriptions` (`@be/platform-admin`, daily `@Cron` alongside `expireTrials`) suspends ACTIVE schools whose subscription is `PAST_DUE` longer than `DUNNING_GRACE_DAYS=7` (PAST_DUE marker = subscription `updatedAt`, bumped by the Layer-B webhook). Completes the dunning chain: payment fails → PAST_DUE (grace, school stays ACTIVE) → grace lapses → SUSPENDED.
+- **Tests:** +3 (unit cutoff/suspend/no-op; integration backdating `updatedAt` via raw SQL since Prisma `@updatedAt` ignores manual values). unit 1188/1188, integration 96/96.
+- **Note:** seat enforcement deferred — needs tenant-aware user-create (memberships) + a grandfathering/default-plan decision for subscription-less legacy schools.
+
+---
+
+## [2026-06-26] update | Phase 5 — billing UI (school subscription page)
+
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments.md`
+- **What:** `apps/web/app/billing` — admin-only school subscription page (route-policy `/billing` → admin/super_admin; sidebar "Subscription" nav with Receipt icon). Shows current plan + storage/seats meters (from `GET /api/billing/entitlements`) and a Starter/Pro plan picker that calls `POST /api/billing/subscription/checkout` and redirects to Stripe; `?billing=success|cancelled` banners. `useSearchParams` wrapped in Suspense.
+- **Tests:** web build OK (route `/billing`); web jest 549/549; typecheck + lint clean.
+
+---
+
+## [2026-06-26] update | Phase 5 — Stripe Layer-B (platform subscriptions)
+
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments.md`
+- **What:** `PlatformSubscriptionService` (`@be/billing`) — school→platform subscriptions on the platform's own Stripe account (env: `STRIPE_PLATFORM_SECRET_KEY`/`STRIPE_PLATFORM_WEBHOOK_SECRET`, prices `STRIPE_PRICE_STARTER`/`STRIPE_PRICE_PRO`), distinct from per-school Layer-A PSP. `createCheckout(schoolId, plan)` creates the Stripe customer (persisted on `SchoolSubscription`) + a subscription Checkout Session. Webhook state machine `applySubscriptionEvent`: `checkout.session.completed`→ACTIVE+plan+School ACTIVE (trial→paid); `customer.subscription.created/updated`→status+plan; `invoice.payment_failed`→PAST_DUE (School stays ACTIVE = dunning grace); `customer.subscription.deleted`→CANCELED+School SUSPENDED. Pure helpers in `platform-subscription.util` (priceId↔plan, Stripe status→`SubscriptionStatus`→`SchoolStatus`). REST: public signature-verified `POST /api/platform-billing/stripe/webhook` (billing) + admin `POST /api/billing/subscription/checkout` (auth, leaf import to avoid the auth↔billing cycle).
+- **Tests:** +9 (util mapping + webhook state machine: trial→paid, dunning, cancel→suspend, resolve-by-subscription). unit 1186/1186, integration 95/95.
+- **Remaining:** proration/upgrade-downgrade, full dunning schedule + grace auto-suspend, Stripe Tax/VAT, invoices/refunds, promo discounts at checkout, billing UI.
+
+---
+
+## [2026-06-26] update | Phase 5 — entitlements/usage-meter endpoint
+
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments.md`
+- **What:** `EntitlementsService.getSummary(schoolId)` returns plan + seats (`maxActiveStudents`/`activeStudentCount`/`seatsRemaining`) + feature flags + storage usage. Exposed via `GET /api/billing/entitlements` (`EntitlementsController` in `@be/auth`, AuthGuard, school-scoped via `requireSchoolId`; imports the `@be/billing/entitlements` leaf to avoid the auth↔billing cycle).
+- **Tests:** +3 (getSummary unit incl. unlimited-PRO; integration endpoint). unit 1177/1177, integration 95/95.
+- **Remaining:** in-app meter UI; feature-gating helper; remaining upload verticals; seat enforcement at student-create.
+
+---
+
+## [2026-06-26] update | Mascot preview page (/mascot-preview)
+
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy.md`
+- **What:** added public dev preview route `apps/web/app/mascot-preview` rendering `<Mascot>` in all poses + sizes, to view Arvi without going through the first-login tour. Added `/mascot-preview` to `PUBLIC_ROUTES`. Shows 2D fallback until `public/mascot/arvi.glb` exists, then the 3D model. Build green; web jest 549/549.
+
+---
+
+## [2026-06-25] update | Web build green — cleared 17 pre-existing TS errors
+
+- **Trigger:** build fix
+- **Pages:** none (no durable behavior change; type/build fixes)
+- **What:** `build:web` is green again. Fixed all 17 pre-existing web type errors (build was already red pre-session; `@types/react` unchanged per lockfile diff): role-id typed `UserRoleId` (numeric 1–4) + `lessonFormat` typed `StudentLessonFormat` in the student-detail hooks; polymorphic UI primitives (`SurfaceCard`/`PanelCard`/`StatTile`/`TabPanelCard`/`PageHeader`) switched the dynamic `as`/`ElementType` tag to `createElement` (React-19 types collapsed `children` to `never`); `AnnotationLayer` missing imports (`MaterialPageAnnotation`, `normPoint`) added; `StatisticsDashboardCharts` `studentScope ?? ''`; `LessonSetupTab` uses `LessonPartyOption.fullName`.
+- **Tests:** web build OK; web jest 549/549; tsc(web)=0; lint clean.
+
+---
+
+## [2026-06-25] update | Web middleware→proxy consolidation (build fix)
+
+- **Trigger:** code change / build fix
+- **Pages:** `concepts/auth-rbac.md`
+- **What:** Next 16.2.x rejects having both `middleware.ts` and `proxy.ts`. Merged the Phase-2 tenant-hint logic (`classifyTenantHost` → `x-school-slug`/`x-school-host`) into `proxy.ts` as `withTenantHint`, deleted `middleware.ts`. `proxy` now also runs on `/api` + `/payload-api` (early-returns with hint headers only — no session/route logic), and the matcher was widened to exclude only `_next/static`/`_next/image`/favicon/static files. App routes fold the hint into the forwarded headers alongside auth headers.
+- **Tests:** web jest 549/549; proxy/tenant-host typecheck+lint clean.
+- **Note:** `build:web` still red on a pre-existing unrelated TS error (`StudentDetailsPage.tsx:160`, role number vs string) — separate task.
+
+---
+
+## [2026-06-25] update | Phase 4.5.4 — 3D mascot render island (Arvi)
+
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy.md`
+- **What:** `apps/web/components/mascot/` — `<Mascot pose size>` lazy R3F island (`@react-three/fiber@9` + `drei` + `three`, `next/dynamic` ssr:false; never blocks first paint). Loads `public/mascot/arvi.glb` (`useGLTF`/`useAnimations`), **asset-agnostic**: plays the pose's clip (idle/greet/point/celebrate) → first/idle clip → procedural idle bob. 2D SVG fallback via error boundary when WebGL/motion unavailable or the GLB is missing; render loop pauses on hidden tab. Wired into the product tour (pose per step), replacing the emoji placeholder. **Any `.glb` can be dropped now and swapped later** (see `public/mascot/README.md`). Deps added: three, @react-three/fiber@^9, @react-three/drei@^10, @types/three.
+- **Tests:** web jest 549/549; typecheck (mascot files) + lint clean.
+- **Known (pre-existing, unrelated):** `build:web` blocked by Next 16.2.x "both middleware.ts and proxy.ts" — needs the Phase-2 middleware hints merged into `proxy.ts`.
+
+---
+
+## [2026-06-25] decision | Mascot persona «Arvi» the Speaker-puff (4.5.4)
+
+- **Trigger:** user note (product decision)
+- **Pages:** `concepts/multi-tenancy.md`
+- **What:** virtual-assistant mascot persona decided — **Arvi**, a concept-driven "speaker-puff" (embodies voice/sound, not an animal → ownable; suits adults + kids). Round egg-shaped chibi body, big eyes, warm smile, two soundwave/headphone-cushion ears, tiny arms/feet; brand mint-green + white face/belly. Tour poses idle/greet/point/celebrate. 3D asset to be generated in Meshy.ai (prompt + A-pose/Stylized/low-poly/Draco ≤1.5 MB settings in handoff) → `apps/web/public/mascot/arvi.glb`. Render island (@react-three/fiber, lazy, 2D fallback) to be wired when the GLB lands.
+
+---
+
+## [2026-06-25] update | Phase 5 — storage accounting + quota enforcement (materials)
+
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments.md`
+- **What:** `StorageAccountingService.add(schoolId, ±bytes)` (`@be/billing`, atomic read-modify-write, clamps ≥0) maintains `School.storageUsedBytes`. Wired the materials vertical: `MaterialAttachmentService.createAttachment` → `EntitlementsService.assertCanUpload` (413 over quota) + increment on create + compression-delta reconcile; `MaterialsService.delete` → decrement summed `sizeBytes`. New leaf barrel `@be/billing/entitlements` (exports the leaf services only, no `BillingModule`) so upstream modules avoid the pre-existing auth↔billing barrel cycle (TDZ on `StaffPayrollService`); aliased in tsconfig.base + jest.paths.
+- **Tests:** +6 (StorageAccountingService increment/clamp/no-op; material-attachment asserts gate+increment). unit 1175/1175, integration 94/94.
+- **Remaining:** chat/lessons/speaking upload sites; usage-meter endpoint/UI; seat enforcement at student-create.
+
+---
+
+## [2026-06-25] update | Phase 5 — subscription plans + entitlements (core)
+
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments.md`
+- **What:** code-defined plan catalog `PLAN_CATALOG` (`@be/billing/shared/subscription-plans`): `TRIAL`/`STARTER`/`PRO` with `maxActiveStudents` (null=∞), `storageQuotaBytes`, feature flags; `planFor(plan)` keys off `SchoolSubscription.plan` (default TRIAL). `EntitlementsService` (`@be/billing`): `resolveForSchool`, `getStorageUsage` (used/quota/remaining/percent/over from `School.storageUsedBytes`), `assertCanUpload` (→ 413 over quota, the "no infinite uploads" rule), `canAddActiveStudent` (ACTIVE student-membership count vs cap).
+- **Tests:** +12 (catalog fallback; resolve/usage/over-quota/upload-block/seat-limit). unit 1172/1172.
+- **Remaining:** wire enforcement into upload sites + student-create; usage-meter endpoint/UI; Stripe Layer-B (checkout/trial→paid/dunning); promo discounts; tax/compliance.
+
+---
+
+## [2026-06-25] update | Phase 4.5.4 — product-tour UI (data-driven)
+
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy.md`
+- **What:** `apps/web/components/tour` — `TOUR_STEPS` data-driven config + `ProductTour` overlay (dependency-free). Gated by `GET /api/onboarding/tour`; Next/Back/Skip/Finish → `POST /api/onboarding/tour/complete`. Mounted in root layout for authenticated users. 2D placeholder mascot (`data-mascot`) so the 3D asset can drop in without markup changes.
+- **Remaining (design-gated):** element-anchored highlighting, 3D mascot (persona/visual decision), replay from Help menu.
+
+---
+
+## [2026-06-25] update | Phase 4.5.4 — product-tour completion state (per user)
+
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy.md`, `concepts/auth-rbac.md`
+- **What:** `User.tourCompletedAt` (migration `add_user_tour_completed`); `UserTourService` (`@be/auth`, **user-scoped** per ADR-004 #6, idempotent — keeps first timestamp). REST `GET /api/onboarding/tour`, `POST /api/onboarding/tour/complete` (AuthGuard, `@CurrentUser`). This is the seam the first-login tour hangs on.
+- **Tests:** +8 (unit: get/complete/idempotent; integration: complete once + idempotent + get). unit 1163/1163, integration 94/94.
+- **Remaining (design-gated):** persona + 3D mascot asset, tour UI (data-driven `tourSteps`), replay trigger — needs persona/visual decision.
+
+---
+
+## [2026-06-25] update | Phase 4.5.2 — promo-code console page
+
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy.md`
+- **What:** `apps/platform/promo-codes` page — create form (code/trialDays/maxRedemptions) + table with enable/disable toggle and `redeemed / max` counts; `ConsoleShell` nav item added. Consumes `GET/POST /api/platform/promo-codes` + `PATCH /:id`. Builds clean.
+
+---
+
+## [2026-06-25] update | Phase 4.5.3 — onboarding wizard web UI
+
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy.md`
+- **What:** `apps/web/app/onboarding/page.tsx` — 5-step wizard (profile/teaching/payments/invite/sample-content) on `Field`/`Button`/`SurfaceCard`. Loads `GET /api/onboarding`, resumes at the step after `currentStep`, Save&continue → `PATCH /api/onboarding/step`, Skip, Finish → `POST /api/onboarding/complete` → `/dashboard`; redirects to `/dashboard` when already completed. Signup now lands on `/onboarding`.
+- **Remaining:** per-step side effects (payments→allowlist, send invites, seed sample content).
+
+---
+
+## [2026-06-25] update | Phase 4.5.1 — trial-countdown banner
+
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy.md`, `concepts/auth-rbac.md`
+- **What:** `WebRequestSessionDto.trial = {trialEndsAt, daysLeft}`, resolved by `AuthSessionService.resolveTrialInfo` (null unless the active school is TRIAL with a `trialEndsAt`; `daysLeft` clamped ≥0). Threaded SSR like the impersonation banner: `proxy.ts` state → `x-soenglish-trial` header → `readRequestAuthState` → `layout.tsx`. `TrialBanner` (`apps/web`) renders the countdown (warning style at 0 / "trial ended").
+- **Tests:** +9 (resolveTrialInfo unit incl. clamp/ACTIVE-null/no-trialEndsAt; request-session roundtrip; integration: web-session shows trial after signup). unit 1159/1159, integration 93/93.
+
+---
+
+## [2026-06-25] update | Phase 4.5.3 — onboarding wizard state API
+
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy.md`
+- **What:** `SchoolOnboardingService` (`@be/auth`, school-scoped via tenant `requireSchoolId()`) persists the resumable signup wizard on `School.onboardingState` JSON `{completed, currentStep, steps}`. REST (AuthGuard): `GET /api/onboarding`, `PATCH /api/onboarding/step {step,data}` (ADMIN-only; validates `step ∈ ONBOARDING_STEPS=[profile,teaching,payments,invite,sample-content]`; idempotent per-step merge so it's resumable/skippable), `POST /api/onboarding/complete` (sets `completed=true`, keeps step data).
+- **Tests:** +10 (unit: parse/merge/unknown-step/admin-gate/complete; integration: admin saves+completes, 400 unknown step, 403 student). unit 1155/1155, integration 93/93.
+- **Remaining:** web wizard UI + per-step side effects (payments→allowlist, invites, sample-content seed).
+
+---
+
+## [2026-06-25] update | Phase 4.5.2 — promo codes (signup redemption + admin)
+
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy.md`, `concepts/auth-rbac.md`
+- **What:** new `PromoCode` (+`@unique code`) + `PromoRedemption` (`@@unique([promoCodeId, schoolId])`) models + `PromoCodeKind` enum (migration `add_promo_codes`). Redemption at signup: `RegisterSchoolRequestDto.promoCode` → `SchoolSignupService.redeemPromo` inside the signup `$transaction` — validates active/in-window, sets `trialDays = max(7, promo.trialDays)`, writes `PromoRedemption`, atomically increments `redeemedCount` via conditional `updateMany(redeemedCount < maxRedemptions)` (prevents over-redemption); invalid/expired/exhausted → 400. Admin: `PromoCodesService` (`@be/platform-admin`) + REST `GET/POST /api/platform/promo-codes`, `PATCH /:id` (enable/disable), audited (`platform.promo_code.create|update`).
+- **Tests:** +15 (signup promo paths, admin service, integration: create→signup→14-day trial + redemption row/count). unit 1150/1150, integration 92/92.
+- **Remaining:** promo console UI; redemption in school billing settings (today only at signup).
+
+---
+
+## [2026-06-25] update | Phase 4.5.1 — trial auto-expiry job (G4 pattern)
+
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy.md`
+- **What:** `TrialLifecycleService.expireTrials` (`@be/platform-admin`, base prisma) suspends `TRIAL` schools whose `subscription.trialEndsAt < now − TRIAL_GRACE_DAYS` (grace = 3 days); daily `TrialLifecycleScheduler` `@Cron(EVERY_DAY_AT_MIDNIGHT)`. **It iterates schools explicitly via base prisma — the reference G4-compliant tenant-aware job** (never relies on ambient tenant context). Schools without a subscription (legacy default) never match.
+- **Tests:** +3 (2 unit + 1 integration: lapsed→SUSPENDED, in-grace→TRIAL). unit 1142/1142, integration 91/91.
+- **Remaining:** trial-countdown banner (needs `trialEndsAt` on the web session); refactor existing notifications `@Cron` jobs to the same explicit-schoolId pattern.
+
+---
+
+## [2026-06-25] update | Phase 4.5.1 — self-serve school signup + 7-day trial
+
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy.md`, `concepts/auth-rbac.md`
+- **What:** new public self-serve "create your school" flow. `SchoolSignupService.registerSchool` (`@be/auth`, base prisma = asPlatform-equivalent at signup): slugifies the name (`slugifySchoolName`, retries on slug `@unique` collision) and atomically (`$transaction`) creates `School(status=TRIAL)` + admin `User(role=ADMIN)` + `SchoolMembership(ADMIN, ACTIVE)` + `SchoolSubscription(status=TRIALING, trialEndsAt=now+7d)` — `TRIAL_DAYS=7`, no card. `POST /api/auth/register-school` (public) provisions + auto-logs-in (issueTokens + cookies). Web `/(auth)/signup` page; `/signup` added to PUBLIC_ROUTES + AUTH_REDIRECT_ROUTES.
+- **Tests:** +18 (slug util, service incl. dup-email / short-password / slug-retry, integration: provisions + dup-email 400). unit 1140/1140, integration 90/90.
+- **Remaining 4.5.1:** trial-countdown banner + auto-SUSPEND at `trialEndsAt` (needs the G4 tenant-aware job).
+
+---
+
+## [2026-06-25] update | Phase 4D — cross-app SSO seam + impersonate-from-console (Phase 4 done)
+
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy.md`
+- **What:** `cookieOptions()` (auth-cookies) now applies an optional cookie `Domain` from env `AUTH_COOKIE_DOMAIN` (e.g. `.arvilio.app`) on set+clear → one session (incl. impersonation) shared across sibling subdomains. Unset (dev) = host-only (already shared across ports on the same host). Console school-detail **Impersonate admin** button POSTs `/impersonate` then redirects to `NEXT_PUBLIC_SCHOOL_APP_URL` (default `http://localhost:4200`) where the banner shows; disabled for suspended schools.
+- **Tests:** +2 unit (cookie domain default/applied). unit 1131/1131.
+- **Phase 4 / Gate 4 fully done.** Ops env: `AUTH_COOKIE_DOMAIN`, `NEXT_PUBLIC_SCHOOL_APP_URL`, `API_PROXY_TARGET`.
+
+---
+
+## [2026-06-25] update | Phase 4D — payment-method allowlist + console settings
+
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy.md`, `concepts/billing-payments.md`
+- **What:** new platform-global `PlatformSettings.allowedPaymentMethods PaymentMethodKind[]` (migration `add_platform_payment_allowlist`; **empty = no restriction**). `PlatformPaymentMethodsService` (`@be/platform-admin`, base prisma) `get`/`set` + audit `platform.payment_methods.update`. REST `GET /api/platform/payment-methods` (allowlist + full catalog), `PUT` (`@PlatformAdmin('PLATFORM_ADMIN')`, unknown kind → 400). **Enforcement:** `@be/billing PaymentSettingsService.updatePaymentSettings` rejects enabling a method outside a non-empty allowlist. Console `/settings` checkbox editor (same-origin PUT).
+- **Tests:** +5 (4 unit + 1 integration GET/PUT/400/403). unit 1129/1129, integration 89/89.
+
+---
+
+## [2026-06-25] update | Phase 4D — platform console app scaffold (apps/platform)
+
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy.md`
+- **What:** new `apps/platform` Next.js app (`@app/platform`, port 4300, standalone, `/api/*`→API rewrite). `ConsoleShell` sidebar reserves Phase-6 nav IA (Leads/Marketplace/Recruiting as disabled stubs). Surfaces (SSR via `platformGet` forwarding request cookies, 401/403→`Unauthorized`): Dashboard (stat cards), Schools (cross-tenant list → detail links), School detail `/schools/[id]` (role counts + `SchoolActions` client suspend/activate via same-origin POST + `router.refresh()`), Audit log `/audit-log`. Platform DTOs duplicated locally (frontend must not import `@be/*`). `dev:platform`/`build:platform` scripts; 4300 added to `free-dev-ports`.
+- **Known seam:** separate-origin cookies (host-only) — cross-app SSO needs a shared cookie Domain or dedicated platform login (documented in plan Phase 4D).
+- Builds clean (typecheck + lint + next build).
+
+---
+
+## [2026-06-25] update | Phase 4D — impersonation banner UI (apps/web)
+
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy.md`
+- **What:** `ImpersonationBanner` (`apps/web/src/components/layout/`) renders in the root layout when the session carries an impersonation claim. Threaded server-side: `WebRequestSessionDto.impersonation` → `proxy.ts` `RequestAuthState` → `x-soenglish-impersonation` header (`applyRequestAuthHeaders`) → `readRequestAuthState` → `layout.tsx`. "Stop impersonating" → `apiClient.post('/auth/impersonate/stop')` + reload. Banner lives in the **school** app (impersonation = a school session), not the console.
+- **Tests:** request-session roundtrip updated; unit 1125/1125.
+
+---
+
+## [2026-06-25] update | Phase 4C.2 — platform-operator impersonation (Gate 4 closed)
+
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy.md`
+- **What:** `POST /api/platform/schools/:id/impersonate` (`@PlatformAdmin('PLATFORM_ADMIN')`) → new `PlatformImpersonationService` (`@be/platform-admin`) mints a 15-min impersonation access token (`AuthSessionService.mintImpersonationAccessToken`) with an `imp` claim (`act`=operator, `sid`=school); default target = school's first active admin. Set as the **access cookie only** (`setImpersonationAccessCookie`) — operator's refresh untouched, so the session auto-returns at expiry.
+- **Banner claim:** `WebRequestSessionDto.impersonation:{actorUserId,schoolId}|null`; surfaced in `AuthSessionService.resolveWebRequestSessionAuth` (reads `imp`) → `AuthService.resolveWebRequestSession`.
+- **Stop:** `POST /api/auth/impersonate/stop` (AuthGuard only — runs as the impersonated user, cannot sit behind `PlatformAdminGuard`) → `AuthService.stopImpersonation` records `school.impersonate.stop` (attributed to operator via `readImpersonationClaim`) and `clearAccessCookie`.
+- **Tests:** +10 (auth-session mint/read/surface, PlatformImpersonationService unit, integration impersonate→web-session→stop). unit 1125/1125, integration 88/88.
+- Banner UI render + payment-method allowlist deferred to 4D (web console / platform settings).
+
+---
+
 ## [2026-06-14] update | V4 Calendar + Chat redesign styling
 
 - **Trigger:** code change (UI redesign)
@@ -1680,3 +2023,455 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 - **Trigger:** code change (V3 redesign steps 1–5)
 - **Pages:** concepts/lessons, concepts/practice, concepts/quiz, concepts/speaking
 - **Summary:** Step 1 — lessons list: `highlightsGrid` becomes a bordered container with `overflow:hidden` so child cards share one rounded border, left-rail 4px green accent on next-lesson card, Lora display time hero colored `var(--green-dark)`, eyebrow via `@include eyebrow`. Step 2 — lesson detail: `pageTitle` upgraded from `@include page-title-display` to explicit `var(--fs-display)` + `var(--fw-bold)` Lora; typographic `.sectionDivider` mixin added. Step 3 — practice hub: `PracticeActivitiesGrid` replaced with full-width shelf rows (`.shelfList`/`.shelfRow`), icon in 40px colored circle, Lora title, arrow CTA, accent left-rail; responsive mobile 2-column grid collapses to stacked. Step 4 — quiz: progress bar 4px/surface-track/green-fill, `questionCard` animation fires only on `key` remount (question change), NOT on answer click; answer feedback instant (no transition); celebration `celebrationReveal` animation only on `resultCard`; removed `slideUp` from `.explanation`. Step 5 — speaking: `recordingPulse` keyframe changed from `ease` to `linear` with `var(--rose)` color and 12px ring expansion at 50%.
+
+## [2026-06-15] update | Security hardening — helmet, throttler, MIME filter, dep updates
+- **Trigger:** code change (security session)
+- **Pages:** concepts/security (new)
+- **Summary:**
+  - Додано `helmet` і `ValidationPipe(whitelist)` в NestJS main.ts
+  - Додано `ThrottlerModule` 120req/60s глобально в AppModule
+  - Додано security headers в Next.js next.config.mjs (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, X-XSS-Protection)
+  - Додано `materialFileFilter` — MIME whitelist для file uploads в module-materials
+  - Оновлено залежності: next 16.1.7→16.2.9, turbo →2.9.18, overrides для ws/fast-uri/brace-expansion
+  - Проведено аналіз attack surface (SQL injection, IDOR, XSS, brute force, open redirect) — критичних проблем не знайдено
+
+## [2026-06-15] update | Insecure defaults remediation
+- **Trigger:** tob-insecure-defaults skill scan
+- **Pages:** `concepts/security`
+- JWT_SECRET hardcoded fallback removed → throws on missing env var
+- LiveKit devkey/devsecret fallbacks replaced with null → fail-secure null guard now triggers
+- LiveKit room HMAC key fallback removed → throws if encryption key not set
+
+## [2026-06-16] update | Multi-tenant SaaS transition plan
+- **Trigger:** user note (move to multi-tenant SaaS architecture)
+- **Pages:** `concepts/multi-tenancy` (new), `index.md`; ADR-005…009 created, ADR-004 superseded
+
+## [2026-06-16] update | Multi-tenant gap analysis + execution playbook
+- **Trigger:** user note (review plan, find weak spots, write precise execution plan)
+- **Pages:** `concepts/multi-tenancy`; new `docs/multi-tenant-execution-plan.md` (7 🔴 blockers G1–G7 confirmed in code, 13 🟠 must-haves, 8-phase plan with acceptance gates + risk register)
+
+## [2026-06-16] update | Activation: trial, promo codes, signup wizard, virtual assistant
+- **Trigger:** user note (usability, 7-day trial, promo→14 days, signup config wizard, virtual assistant)
+- **Pages:** `concepts/multi-tenancy`; ADR-008 (trial & promo subsection); `docs/multi-tenant-execution-plan.md` (new Phase 4.5 + G28–G32 + risk rows)
+
+## [2026-06-16] update | Business model + tutor-recruiting pillar
+- **Trigger:** user note (design full business model; add tutor-recruiting service; benchmark Preply/Edvibe)
+- **Pages:** `concepts/multi-tenancy`; new `docs/business-model.md`; execution-plan Phase 6 (recruiting)
+- **Decisions:** per-active-student pricing, limited Free + trial, one-time finder fee, UAH-first, recruiting pillar (placement fee + tools)
+
+## [2026-06-16] update | Design skills for services
+- **Trigger:** user note (design skills for services, not admin)
+- **Pages:** dev tooling — installed `~/.claude/skills/emil-design-eng` (Emil Kowalski, verbatim); created project `.claude/skills/soenglish-service-design` (concrete Design.md grounded in real tokens + refero method + emil taste)
+
+## [2026-06-16] update | Higgsfield MCP connected
+- **Trigger:** user note ("mcp хиксвел" = Higgsfield)
+- **Pages:** dev tooling — added remote HTTP MCP `https://mcp.higgsfield.ai/mcp` (user scope); needs OAuth via /mcp. Use: AI image/video gen for assistant avatar + marketing/marketplace visuals
+
+## [2026-06-16] update | Execution plan: Design & UX workstream
+- **Trigger:** user note (update plan with design tooling)
+- **Pages:** `docs/multi-tenant-execution-plan.md` — added cross-cutting Design & UX workstream (emil-design-eng + soenglish-service-design + Higgsfield MCP); wired into Phase 4.5 (wizard/assistant avatar), Phase 6 (marketplace visuals, white-label = token override)
+
+## [2026-06-16] update | Storage quota entitlement + admin seams for marketplace
+- **Trigger:** user note (subscription = students + disk space; admin built for next-stage student-finding marketplace; school subs = main revenue)
+- **Pages:** `concepts/multi-tenancy`; ADR-008 (2D entitlements + R1 primary); business-model (storage in tiers, value metric); execution-plan Phase 3 (storage accounting), Phase 4 (marketplace seams), Phase 5 (quota enforcement + Gate 5)
+
+## [2026-06-16] update | Platform name "arvilio" + four senior lenses
+- **Trigger:** user note (fix name arvilio; add senior-role thinking to plan)
+- **Pages:** `concepts/multi-tenancy`; execution-plan (Part 0 senior lenses + name header); business-model (renamed header)
+- **Note:** arvilio domains .com/.io/.org/.app/.ai free (RDAP 2026-06-16); SoEnglish = tenant #1
+
+## [2026-06-16] update | Assistant = 3D animated mascot
+- **Trigger:** user note (assistant character should be 3D, preferred over SVG)
+- **Pages:** execution-plan Phase 4.5.4 (3D pipeline: Blender/AI-3D → glTF/GLB, @react-three/fiber, perf budget ≤1.5MB lazy, reduced-motion/static fallback, a11y), G31, Design workstream tooling note, Gate 4.5; `concepts/multi-tenancy`
+
+## [2026-06-16] update | Plan review round 2 — gaps G33–G44
+- **Trigger:** user note (review plan for omissions)
+- **Pages:** execution-plan — added i18n (G33), product analytics (G34), payouts+KYC/Connect (G35), marketplace trust&safety (G36), signup anti-abuse (G37), data import (G38), tenant-aware notifications (G39), CI/staging/flags (G40), FinOps (G41), recordings/AI quota (G42), mobile/PWA (G43), a11y/perf budgets (G44); threaded into phases 0/2/3/4.5/5/6 + risk register + capability checklist
+
+## [2026-06-16] update | Tax compliance (UA) + status page (G45, G46)
+- **Trigger:** user note (add tax specifics + status page blocks)
+- **Pages:** execution-plan — G45 tax/financial compliance (ФОП/ТОВ, ПДВ, РРО/ПРРО fiscalization, tax invoices, accounting export; intl Stripe Tax/VAT-OSS) → Phase 5; G46 public status page + incident comms → Phase 7; capability checklist + risk register
+
+## [2026-06-16] update | Phase 0 done — tenant CLS context (@be/tenant)
+- **Trigger:** code change (Phase 0 of multi-tenant plan)
+- **Pages:** `concepts/multi-tenancy` (Phase 0 foundation shipped)
+- **What:** nestjs-cls@6.2.1; new `@be/tenant` pkg (TenantContext, TenantContextService.requireSchoolId, TenantModule=global ClsModule+HTTP middleware); wired in apps/api app.module; aliases in tsconfig.base+jest.paths; jest project registered; 4/4 tests (incl. cross-run isolation); api typecheck clean. docs/runbooks/ added.
+
+## [2026-06-16] update | Phase 1 (code slice) — tenant models + TenantPrismaService
+- **Trigger:** code change (Phase 1 multi-tenant)
+- **Pages:** `concepts/multi-tenancy`
+- **What:** Prisma models School/SchoolDomain/SchoolMembership/PlatformOperator/SchoolSubscription + enums + User back-relations (validate+generate OK, Prisma 7.7). TenantPrismaService: pure scopeArgs (fail-loud), makeTenantExtension ($extends), asPlatform() CLS bypass; registered in PrismaModule. 19/19 tests, api typecheck clean. TENANT_SCOPED_MODELS empty until schoolId columns land (DB-bound 1.2). Split PrismaService into prisma.service.ts to break import cycle.
+- **Remaining (DB-bound):** schoolId on all tenant models + backfill (1.2), per-school integration runtime (1.4), eslint bans, Gate 1 isolation test.
+
+## [2026-06-16] update | Phase 1.2 partial — tenancy migration applied + identity backfill
+- **Trigger:** code change (DB available: docker soenglish-postgres)
+- **Pages:** `concepts/multi-tenancy`
+- **What:** migration 20260616113940_add_tenancy_models applied (5 tables/6 enums, additive). Idempotent backfill-tenancy.ts (npm prisma:backfill:tenancy): school_default = tenant #1 + ACTIVE sub; SchoolMembership per user (role from User.role); SUPER_ADMIN→PlatformOperator. Verified 1 school/6 memberships/2 operators.
+- **Remaining 1.x:** schoolId on tenant data tables + register TENANT_SCOPED_MODELS, per-school integration runtime (1.4), eslint bans, Gate 1.
+
+## [2026-06-16] update | Gate 1 mechanism proven — tenant isolation integration test
+- **Trigger:** code change/debug
+- **Pages:** `concepts/multi-tenancy`
+- **What:** Registered SchoolMembership/SchoolDomain/SchoolSubscription in TENANT_SCOPED_MODELS. tests/integration/tenant-isolation.integration.spec.ts (5/5, real Postgres) proves CLS→TenantContextService→$extends→scopeArgs: active-school-only, cross-school blocked, create stamps schoolId, asPlatform bypass, fail-loud. Debug: lazy Prisma queries must be awaited inside cls.run or ALS scope is lost. Unit 19/19 still green.
+
+## [2026-06-16] update | Phase 1 — first legacy vertical scoped (LibraryMaterial)
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** LibraryMaterial.schoolId made required + FK to School; migration library_material_school_required embeds backfill UPDATE→school_default before SET NOT NULL. Registered in TENANT_SCOPED_MODELS. Isolation test extended → 6/6 (real Postgres). Unit 19/19, api typecheck clean (required schoolId didn't break existing material-create). Rollout pattern established for remaining tenant data tables.
+
+## [2026-06-16] update | Phase 1 — ScheduledLesson scoped (2nd vertical)
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** ScheduledLesson.schoolId required + FK + index([schoolId,date]); migration scheduled_lesson_school_required (expand/contract: nullable→UPDATE school_default→NOT NULL), 12 rows backfilled. Registered in TENANT_SCOPED_MODELS. New @be/tenant DEFAULT_SCHOOL_ID constant; lessons.service create site sets schoolId=DEFAULT_SCHOOL_ID (TODO(multitenant) seam). Isolation test 7/7, lessons unit 47/47, api typecheck clean.
+
+## [2026-06-16] update | Phase 3 start — tenant context seeded from membership in auth guards
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** AuthSessionService.resolveActiveMembership(userId) (raw/unscoped). seedTenantContext() sets userId/schoolId/membershipRole in CLS; wired into AuthGuard, OptionalAuthGuard, GqlAuthGuard. Authenticated REST+GraphQL requests now carry real schoolId. Guard spec updated (+ new test). Full unit suite 1071/1071, api typecheck clean. JWT reshape still pending; write sites can now move off DEFAULT_SCHOOL_ID to context.
+
+## [2026-06-17] update | lessons create uses tenant context; jest.paths @be/materials fix
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** LessonsService injects TenantContextService; ScheduledLesson create uses this.tenant.schoolId ?? DEFAULT_SCHOOL_ID. Added missing @be/materials to jest.paths.cjs (pre-existing gap that prevented integration tests from loading). Lessons unit 47/47, full unit 1071/1071, tenant-isolation integration 7/7, typecheck clean.
+- **Pre-existing (not tenancy):** graphql-lessons.integration fails with req.ip undefined in auth-session refresh path under GraphQL context (surfaced once integration could load). Separate harness/getReqRes todo.
+
+## [2026-06-17] update | Phase 1 — Quiz scoped (3rd vertical)
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** Quiz.schoolId required + FK + index; migration quiz_school_required (expand/contract, 4 rows). Registered. quiz-generate.service injects TenantContextService, create uses ctx.schoolId ?? DEFAULT_SCHOOL_ID. Isolation test 8/8 (now SchoolMembership/LibraryMaterial/ScheduledLesson/Quiz). Flashcards 28/28, full unit 1071/1071, typecheck clean.
+
+## [2026-06-19] update | Phase 1 — SpeakingTopic + ChatConversation scoped (4th vertical) + spec fix
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** SpeakingTopic & ChatConversation got schoolId (model + expand/contract migration + TENANT_SCOPED_MODELS). SpeakingTopicsService & ChatService inject TenantContextService; create sites stamp schoolId ?? DEFAULT_SCHOOL_ID. Isolation tests 10/10. Fixed chat.service.spec.ts (was 16/16 failing — Nest could not resolve TenantContextService at constructor index [3]) by adding mock provider { schoolId: 'school_default' }. Full unit suite back to 1071/1071 (197 suites).
+
+## [2026-06-19] update | Phase 1 — Financial vertical scoped (5th: Payment + balances + ledger + staff comp)
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** schoolId (required, FK Cascade, indexed) added to Payment, StudentLessonBalance, LessonBalanceLedger, StaffCompensationProfile + School back-relations. Migration financial_models_school_required (expand/contract, backfill school_default). All 4 in TENANT_SCOPED_MODELS. Create/upsert sites stamp schoolId ?? DEFAULT_SCHOOL_ID across 7 checkout services + lesson-balance + payment-settings + staff-payroll. Webhook grantPurchaseLessons runs outside CLS -> DEFAULT_SCHOOL_ID fallback (G2 seam). Isolation 11/11 (Payment added), unit 1071/1071, typecheck clean.
+- **Note:** Prisma 7 commands must run from repo root (prisma.config.ts holds datasource.url), not the package dir.
+
+## [2026-06-19] update | Phase 1 — StudentGroup scoped (6th vertical)
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** StudentGroup gets schoolId (required, FK Cascade, indexed) + School.studentGroups back-relation. Migration student_group_school_required (expand/contract). Registered in TENANT_SCOPED_MODELS. student-groups.service create stamps schoolId ?? DEFAULT_SCHOOL_ID. StudentGroupMember left unscoped (child accessed via scoped parent). Isolation 12/12, unit 1071/1071, typecheck clean.
+
+## [2026-06-19] update | Phase 1 — Learner-data vertical scoped (7th: PracticeSession + StudentWordCard + StudentLearningLanguage + StaffPayout)
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** schoolId (required, FK Cascade, indexed) added to PracticeSession, StudentWordCard, StudentLearningLanguage, StaffPayout + School back-relations. Migration learner_data_school_required (expand/contract). All 4 in TENANT_SCOPED_MODELS. Stamped create/createMany/upsert in practice-sessions, vocabulary, lessons (2x upsert), students-admin + auth (StudentLearningLanguage createMany — manual stamp since $extends doesn't cover createMany, G5), staff-payroll, and backfill-languages-words script. Added TenantContextService mock to practice-sessions + students-admin specs. Isolation 14/14, unit 1071/1071, typecheck clean.
+- **Note:** Progress, ReviewQueue, DailyGoalCompletion are dead models (zero code refs) — intentionally NOT scoped.
+
+## [2026-06-19] update | Phase 1 — Child/leaf vertical scoped (8th: NotificationDelivery + TeacherMessage + ScheduledLessonParticipant + QuizAssignment + QuizAttempt + SpeakingSubmission)
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** schoolId (required, FK Cascade, indexed) added to 6 child/leaf tables + School back-relations. Migration child_tables_school_required (expand/contract). All 6 in TENANT_SCOPED_MODELS. Stamped create/upsert/createMany + a NESTED create (participants under scheduledLesson.create — manual since $extends ignores nested writes, G5) across notification-delivery, teacher-messages, quiz-attempt, speaking-submissions, quiz-generate, lessons. Specs fixed (notification-delivery, speaking-submissions). Isolation 16/16, unit 1071/1071, typecheck clean.
+- **Note:** auto-scope $extends only applies via TenantPrismaService.client; services on base prisma are NOT filtered — model registration affects only the extended client. Manual write-stamp satisfies NOT NULL; service reads unchanged. Migrating read resolvers to TenantPrismaService.client is the remaining task to make auto-scope protect reads too.
+
+## [2026-06-19] update | Phase 2 — tenant resolution from Host header
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** Added normalizeTenantHost + HostSchoolResolver (negative-cached, TTL 60s, injectable loader/clock) to @be/tenant; TenantResolutionMiddleware in apps/api resolves req host -> verified SchoolDomain -> tenant.setSchoolId, wired via AppModule.configure forRoutes('*'). Public/unauth paths now carry schoolId from host; auth guard still overrides from membership (Phase 3). Layering preserved (@be/tenant has no @be/prisma dep — resolver loader injected). Best-effort: no-op when CLS inactive / schoolId already set / host unmapped; resolve errors swallowed. tenant-host.spec +10. Unit 1081/1081 (198 suites), typecheck clean.
+- **Caveat:** middleware must run within CLS (nestjs-cls mount first); isActive() guard makes it safe, verify ordering once real subdomains exist. No-op on localhost today.
+
+## [2026-06-19] update | Read-protection (materials → tenant client) + GqlThrottlerGuard fix + integration suite restored
+- **Trigger:** code change + debug
+- **Pages:** `concepts/multi-tenancy`
+- **What:** (1) Proved auto-scope works for unique ops — added isolation cases: cross-tenant findUnique→null, update/delete→throw (Prisma 7 accepts non-unique schoolId in unique-op where). isolation 17/17. (2) Fixed TenantPrismaService.client type: was `unknown` (ReturnType<$extends> erases across package boundary), now `PrismaClient` via local cast — unblocks read migrations. (3) Migrated MaterialsService to tenantPrisma.client (reads/updates/deletes auto-scoped); removed client-controlled schoolId from create (tenant-injection fix), now from context. (4) Found+fixed real bug: global ThrottlerGuard read request via switchToHttp() → undefined for GraphQL → req.ip threw → ALL GraphQL requests 500 (prod too). Added GqlThrottlerGuard (override getRequestResponse for graphql ctx). (5) Integration suite restored ~20/76 → 81/82: throttler fix + fixture schoolId backfills (quiz/product/rbac) + TenantModule import in auth.integration + app.module path in staff-payout. Unit 1081/1081, typecheck clean.
+- **Pre-existing remaining:** auth.integration forgot-password fails — MailService.renderEmail dynamic import() breaks under jest (no --experimental-vm-modules). Separate mail/jest-ESM todo, not tenancy.
+
+## [2026-06-19] update | Read-protection (LessonsService → tenant client)
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** 2nd read migration after materials recipe. lessons.service.ts (1085 LOC): injected TenantPrismaService, added `private get db()` → tenantPrisma.client, mass-replaced `this.prisma.<model>` → `this.db.<model>`. Reads/updates/deletes on ScheduledLesson/ScheduledLessonParticipant/StudentWordCard/StudentGroup now auto-scoped by active school; non-tenant models (User, LessonMaterial) pass through unchanged. Kept `$queryRaw` (autoComplete) + `$transaction` (replace participants) on base prisma by design (G5 — $extends doesn't cover raw); raw selects ids then `db.scheduledLesson.updateMany` re-scopes by schoolId (defense-in-depth). Create-sites fall back through scoped-client fail-loud when no context (all creates behind staff auth → context present). Gates: API typecheck clean, lessons unit 47/47, full unit 1081/1081, isolation integration 17/17.
+
+## [2026-06-22] update | Read-migration: flashcards (quiz) → tenant client + seed membership fix
+- **Trigger:** code change + debug
+- **Pages:** `concepts/multi-tenancy`
+- **What:** Migrated all 6 flashcards files (quiz-access/detail/list/generate/attempt + quiz.repository) to tenantPrisma.client (this.db) — Quiz/QuizAssignment/QuizAttempt/StudentWordCard auto-scoped; User/Word stay on base. quiz-attempt $transaction→this.db.$transaction. (vocabulary already migrated prior turn.) Root cause surfaced: integration tests failed "refusing Quiz.findMany without active schoolId" because seedTestUsers created no SchoolMembership → seedTenantContext set no schoolId → scoped client fail-loud. Fixed seedTestUsers to upsert school_default + ACTIVE membership per user; cleanup deletes memberships before users. This enables tenant context across ALL integration tests. Unit 1081/1081, integration 81/82 (only pre-existing mail/jest-ESM forgot-password fails), typecheck clean.
+- **Note:** read-migration pattern: inject TenantPrismaService, add `private get db()`, swap scoped-model ops this.prisma.X→this.db.X, keep global models (User/Word) on base. Spec mocks for migrated services need `{ provide: TenantPrismaService, useValue: { client: <prismaMock> } }`.
+
+## [2026-06-22] update | Read-migration: lessons + speaking + chat → tenant client
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** Migrated scoped-model reads to TenantPrismaService.client (this.db) in: lessons (student-groups.service + lesson-files.controller; zoom-webhook left on base — webhook), speaking (topics/submissions/access), chat (chat.service ChatConversation + $transaction; chat-attachment @Cron untouched — touches only non-scoped chatMessageAttachment). Recipe: inject TenantPrismaService, get db(), swap this.prisma.X→this.db.X for registered models, keep global (User/Word) on base; spec mocks add { provide: TenantPrismaService, useValue: { client: prismaMock } }. Unit 1081/1081, integration 81/82 (pre-existing mail/jest-ESM only), typecheck clean.
+- **Remaining:** billing read-migration (22 sites) — request-scoped services can use this.db, but webhook controllers + handleWebhook in 6 checkout services are non-request → must use asPlatform()/explicit tenant resolution (G2), not naive this.db (fail-loud).
+
+## [2026-06-22] update | Read-migration: billing (safe subset) → tenant client
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** Migrated request-scoped billing services to TenantPrismaService.client: staff-payroll (StaffCompensationProfile/StaffPayout/scheduledLesson, admin-only) and payment-settings (StudentLessonBalance price-resolution — verified reachable only from request paths; webhook grantPurchaseLessons + cron syncGroupLessonCharges do NOT call them). Left on base prisma (G2/G4 territory): lesson-balance.service (request+webhook entanglement — payment.findUnique in grantPurchaseLessons is webhook; ledger/balance writes run in webhook context with DEFAULT_SCHOOL_ID fallback), 7 checkout services + 5 webhook controllers (non-request). Unit 1081/1081, integration 81/82 (pre-existing mail/jest-ESM only), typecheck clean.
+- **Read-path migration now complete for all request-scoped services** (materials/vocabulary/flashcards/lessons/speaking/chat/billing-subset). Remaining for full billing coverage = G2 (tenant-aware webhooks: resolve school from payload + asPlatform) and G4 (tenant-aware jobs).
+
+## [2026-06-22] update | G2 — tenant-aware webhooks (PSP credit attribution)
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** All 7 PSP webhooks credit lessons via LessonBalanceService.grantPurchaseLessons. Fixed there: resolve payment.schoolId (stamped at checkout) and seed it into CLS (tenant.setSchoolId) before ledger/balance writes, only when context is active and schoolId unset (never overrides a real context). Credits now land in the correct school instead of DEFAULT_SCHOOL_ID fallback. Webhook payment reads stay on base prisma (correct — school resolved from there). +3 unit tests. Unit 1084/1084, integration 81/82 (pre-existing mail/jest-ESM only), typecheck clean.
+- **G4 note:** lesson sync currently runs in request context (autoComplete via listFor, not @Cron); revisit when real cron jobs are added (iterate schools explicitly / asPlatform).
+
+## [2026-06-22] update | Gate 1 in CI closed + best-effort password-reset email
+- **Trigger:** code change + debug
+- **Pages:** `concepts/multi-tenancy`
+- **What:** CI (ci.yml) already runs the integration suite as a required check (Postgres service + migrate:deploy + test:integration, gated by ci-success). The only red test was pre-existing auth.integration forgot-password — @react-email/render dynamic import() fails under jest CJS. Fixed in AuthService.requestPasswordReset by sending the email best-effort (try/catch + Logger.warn): the reset token is already persisted, so a transient render/SMTP failure must not 500 the request nor leak email existence. Both suites now fully green: unit 1084/1084, integration 82/82. Gate 1 (isolation + integration as required CI check) is closed.
+
+## [2026-06-23] update | G3 — per-tenant integration runtime cache
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** platform-integration.runtime.ts: process-wide `let cached` → Map<schoolId, ResolvedPlatformIntegration> keyed by active schoolId from CLS (ClsServiceManager.getClsService() + TENANT_CLS_KEY — no DI, no @be/prisma layering break), with PLATFORM_KEY platform-global fallback. getPlatformIntegrationRuntime returns per-school entry if present else platform-global. refresh/set/new invalidate take optional schoolId. Behaviour unchanged today (integrations still from PlatformSettings singleton → only PLATFORM_KEY written; all callers fall back). Removes structural cross-tenant secret-leak risk; seam ready for per-school overrides (PSP/white-label). +3 unit tests. unit 1087/1087, integration 82/82, typecheck clean.
+
+## [2026-06-23] update | ESLint isolation guardrails — Phase 1 complete
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** eslint.config.mjs adds no-restricted-syntax for apps/api + packages/backend (excluding specs/tests + data-access-prisma): bans raw SQL ($queryRaw/$queryRawUnsafe/$executeRaw*) which bypasses $extends scoping (G5), and asPlatform() calls (audited cross-tenant bypass, reserved for @be/platform-admin). Caught one real violation — lessons.service.autoCompletePastPlannedLessons raw SQL on ScheduledLesson without schoolId — fixed by adding AND sl."schoolId" = ${schoolId} + justified eslint-disable (raw needed for timezone logic; updateMany already on scoped this.db). Zero guardrail violations across backend. unit 1087/1087, integration 82/82, typecheck clean.
+- **Milestone:** Phase 1 (tenancy core & data isolation) is now COMPLETE — 8 verticals + read-migration + TenantPrismaService + G2 + G3 + ESLint guardrails + Gate 1 green in CI. Remaining MT work is Phase 2 (web routing/i18n), Phase 3 (JWT reshape, G4 jobs, G6 storage), Phase 4 (platform admin console).
+
+## [2026-06-23] update | Phase 2 — web tenant routing + backend hint consumption
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** apps/web/src/lib/tenant-host.ts (pure classifyTenantHost: apex/www/reserved/localhost/IP→platform, single-label *.ROOT_DOMAIN→subdomain slug, else→custom) + apps/web/src/middleware.ts forwarding x-school-slug/x-school-host hints to the API (non-disruptive, no redirects). Backend TenantResolutionMiddleware now resolves x-school-slug→School.slug (cached, excludes SUSPENDED) then x-school-host/Host→verified SchoolDomain. +9 web unit tests. unit 1096/1096, integration 82/82, typecheck clean (my files; web app has pre-existing unrelated TS errors).
+- **Deferred (infra/Phase4-gated):** apex landing + unknown→404 UI, full suspended-school blocking screen (Phase 4 un-suspend flow), edge KV cache w/ schoolId key (G12, Cloudflare KV), custom-domain CRUD+DNS+SSRF-safe resolver (G16), Cloudflare for SaaS runbook, JWT.schoolId↔host cross-check (gated on JWT reshape), i18n foundation (G33, large frontend task).
+
+## [2026-06-23] update | Phase 2 — i18n foundation core (G33)
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** Shared pure locale core in @pkg/types (locale.ts): SUPPORTED_LOCALES ['uk','en'], DEFAULT_LOCALE 'uk', isLocale, normalizeLocale (uk-UA→uk), parseAcceptLanguage (q-weighted), resolveLocale (userPreference → schoolDefault → acceptLanguage → default). Added a `shared-types` jest project to jest.config.cjs (shared/types tests were previously never run — also revived material-annotations.test). +5 tests. unit 1103/1103, typecheck clean.
+- **Incremental remainder:** School.defaultLocale + User.locale columns, wire resolveLocale into request context, message catalogs + UI string extraction (adopt as screens are touched). Other Phase 2 items remain infra-gated (Cloudflare KV/TLS/custom-domain DNS) or Phase-4-gated (suspended screen) or JWT-reshape-gated (host↔JWT cross-check).
+
+## [2026-06-23] update | Phase 4A — platform-admin foundation (@be/platform-admin)
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** New @be/platform-admin module (aliases in tsconfig.base/jest.paths, jest project, ESLint asPlatform allowlist → this module). PlatformAuditLog Prisma model + migration (actorUserId/action/targetSchoolId/metadata/ip, indexed). AuthSessionService.resolvePlatformRole (from PlatformOperator) + seedTenantContext seeds CLS platformRole; web-session availableScopes 'platform' now derives from PlatformOperator not User.role (ADR-008). PlatformAdminGuard + @PlatformAdmin(...roles) decorator (reads CLS platformRole; use after AuthGuard). PlatformAuditService.record() (base prisma — audit is platform-global). Integration seed creates PlatformOperator(PLATFORM_ADMIN) for super-admin. +13 tests. unit 1110/1110, integration 82/82, typecheck clean.
+- **Decisions:** platform access source = PlatformOperator (not User.role); web console = separate app (affects 4D). Next: 4B dashboard/schools read via asPlatform, 4C suspend/activate + impersonation + audit, 4D web console.
+
+## [2026-06-24] update | Phase 4B — platform console read surface
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** @be/platform-admin gains PlatformSchoolsService (cross-tenant reads via tenantPrisma.asPlatform — the sole sanctioned bypass) + REST PlatformAdminController guarded by AuthGuard+PlatformAdminGuard: GET /api/platform/dashboard (school counts by status, active users, active subs, total storageUsedBytes; MRR stub 0 until Phase 5 subscription pricing), /schools (list + active member counts), /schools/:id (role counts + primary domain). +7 tests (3 unit + 4 integration: operator 200, student 403, unauthenticated 401). unit 1113/1113, integration 86/86, typecheck clean.
+- **Next:** 4C suspend/activate (+close deferred Phase 2 suspended enforcement) + payment-method allowlist + impersonation (banner) — all audited via PlatformAuditService; then 4D web console (separate app). Gate 4 read-half proven.
+
+## [2026-06-24] update | Phase 4C — suspend/activate + audit + suspended enforcement
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy`
+- **What:** PlatformSchoolsService.setSchoolStatus (asPlatform) updates School.status + PlatformAuditService.record. Controller: POST /api/platform/schools/:id/suspend|activate (@PlatformAdmin('PLATFORM_ADMIN') only), GET /api/platform/audit-log[?schoolId]. PlatformAuditService.list (newest-first, actor name). Suspended enforcement (closes deferred Phase 2): resolveActiveMembership now returns schoolStatus; seedTenantContext returns {suspended, isPlatformOperator}; AuthGuard throws 403 for members of a SUSPENDED school, platform operators bypass (they un-suspend via console); OptionalAuthGuard stays non-throwing. +8 tests (guard suspended/bypass, service suspend/no-op, integration suspend→activate→audit on a temp school). unit 1117/1117, integration 87/87, typecheck clean.
+- **Gate 4:** list schools ✅, suspend→offline ✅, audit log ✅. Remaining: impersonation (banner) → 4C.2; then 4D web console (separate app).
+## [2026-06-26] update | G6 test fixes — LocalFileStorageAdapter + spec rewrites
+- **Trigger:** code change
+- **Pages:** concepts/object-storage
+
+
+## [2026-06-26] update | G4 notification cron jobs — SchoolMembership-scoped queries
+- **Trigger:** code change
+- **Pages:** concepts/backend-modules, concepts/multi-tenant
+
+## [2026-06-26] update | Storage accounting complete + platform admin display
+- **Trigger:** code change
+- **Pages:** concepts/object-storage, concepts/billing
+
+## [2026-06-27] update | JWT reshape (ADR-008) — schoolId/membershipRole/platformRole in token
+- **Trigger:** code change
+- **Pages:** concepts/auth, concepts/multi-tenant
+
+## [2026-06-27] update | RolesGuard — ADR-006 authorization cutover to CLS membershipRole
+- **Trigger:** code change
+- **Pages:** concepts/auth, concepts/multi-tenant
+
+## [2026-06-27] update | ADR-007 cross-school JWT check in AuthGuard
+- **Trigger:** code change
+- **Pages:** concepts/auth, concepts/multi-tenant
+
+## [2026-06-27] update | Invitations flow — SchoolInvitation model + service + controller + email template
+- **Trigger:** code change
+- **Pages:** entities/school-invitation, concepts/auth, concepts/multi-tenant
+
+## [2026-06-27] update | OAuth school context cookie (ADR-008) — Google login carries schoolId
+- **Trigger:** code change
+- **Pages:** concepts/auth, concepts/multi-tenant
+
+## [2026-06-27] update | Trial-extension promo code redemption from billing settings
+- **Trigger:** code change
+- **Pages:** concepts/billing
+
+## [2026-06-27] update | Onboarding wizard invite step side-effects
+- **Trigger:** code change
+- **Pages:** concepts/onboarding
+
+## [2026-06-27] update | Onboarding wizard sample-content seed + payments TODO
+- **Trigger:** code change
+- **Pages:** concepts/onboarding
+
+## [2026-06-27] update | G37 captcha — Cloudflare Turnstile on school signup
+- **Trigger:** code change
+- **Pages:** concepts/auth
+
+## [2026-06-27] update | KEK/JWT/Stripe secret rotation runbook
+- **Trigger:** new runbook file docs/runbooks/secret-rotation.md
+
+## [2026-06-27] update | Onboarding wizard payments step — payment method selector
+- **Trigger:** code change
+- **Pages:** concepts/onboarding — payments step wired; SchoolOnboardingService.applyPaymentsStep; PaymentsStepFields frontend component; IPaymentSettingsService local interface pattern to avoid billing circular dep in specs
+
+## [2026-06-27] update | UI audit — LessonModal save button loading state
+- **Trigger:** code change (usability audit)
+- **Pages:** concepts/lessons — LessonModal isSaving prop added; useLessonEditor.saving exported; calendar savingLesson wired
+
+## [2026-06-27] update | Custom domains (G16) — CRUD + DNS TXT verify + CF runbook
+- **Trigger:** code change
+- **Pages:** concepts/domains (new) — DomainsService, DomainsController, DomainsPanel, DNS TXT verification (SSRF-safe), Cloudflare for SaaS runbook
+
+## [2026-06-27] update | Product analytics (G34) — PostHog activation funnel
+- **Trigger:** code change
+- **Pages:** concepts/analytics (new) — PostHog wrapper, AnalyticsProvider, funnel event taxonomy, env vars to activate
+
+## [2026-06-27] update | G38 CSV student import
+- **Trigger:** code change
+- **Pages:** concepts/student-import (new) — ImportStudentsService, ImportStudentsController, StudentImportPanel, CSV format, dry-run flow, seat-cap enforcement
+
+## [2026-06-27] update | G13 per-tenant + per-user + global rate limiting
+- **Trigger:** code change
+- **Pages:** concepts/rate-limiting (new) — 3 named tiers, tenant-aware tracker key (sid→sub→IP), auth endpoint throttle decorators
+
+## [2026-06-27] update | G14 tenant-tagged structured logging
+- **Trigger:** code change
+- **Pages:** concepts/multi-tenancy — added G14 section (TenantLoggerService + TenantLoggingInterceptor)
+
+## [2026-06-27] update | G15 GDPR data export + erasure
+- **Trigger:** code change
+- **Pages:** concepts/multi-tenancy — added G15 section
+
+## [2026-06-27] update | EntitlementsWidget + G39 done
+- **Trigger:** code change
+- **Pages:** concepts/multi-tenancy — G39 notification jobs confirmed tenant-aware (no change needed); EntitlementsWidget added to admin dashboard (storage+seats gauges, gated by role)
+
+## [2026-06-27] update | aiAssist feature-gate + AI credit metering
+- **Trigger:** code change
+- **Pages:** concepts/multi-tenancy — G316 remaining item closed: @RequiresFeature('aiAssist') on STT captions/generate + assertAiCredit/consumeAiCredit metering
+
+## [2026-06-27] update | featureBlocked upgrade prompt pattern
+- **Trigger:** code change
+- **Pages:** concepts/multi-tenancy — featureBlocked 403 pattern established: backend throws structured ForbiddenException({featureBlocked}), ApiError carries it, isFeatureBlockedError() + UpgradePrompt shows upgrade CTA; first site: captions/generate → MediaViewerShell
+
+## [2026-06-27] update | Cookie consent banner (G15 GDPR)
+- **Trigger:** code change
+- **Pages:** concepts/multi-tenancy — G15 remaining: cookie consent banner implemented; PostHog initAnalytics() now gated behind explicit consent; localStorage-based (no separate consent service needed for single-school phase)
+
+## [2026-06-27] update | /privacy page + Phase 5 proration confirmed
+- **Trigger:** code change + analysis
+- **Pages:** concepts/multi-tenancy — /privacy page created (RSC); Stripe proration confirmed handled by Customer Portal; billing UI correctly gates plan-picker to non-subscribers only
+
+## [2026-06-27] update | customDomain feature gate
+- **Trigger:** code change
+- **Pages:** concepts/multi-tenancy — @RequiresFeature('customDomain') on domain write endpoints (PRO-only); DomainsPanel shows UpgradePrompt on plan-block 403
+
+## [2026-06-27] update | Sentry integration (G14 complete)
+- **Trigger:** code change
+- **Pages:** concepts/observability — @sentry/nestjs + @sentry/node installed; init in main.ts guarded by SENTRY_DSN; tenant-logger.service sets schoolId tag on errors
+
+## [2026-06-27] update | GDPR self-service UI complete
+- **Trigger:** code change
+- **Pages:** concepts/gdpr — AccountPanel now has "Export my data" (downloads JSON via GET /api/gdpr/export) and "Delete my account" (DELETE /api/gdpr/me + logout); privacy page updated to remove "coming soon"
+
+## [2026-06-27] update | Backup/DR runbook (G20)
+- **Trigger:** code change (doc)
+- **Pages:** — runbook at docs/runbooks/backup-dr.md: PITR, S3 versioning, monthly drill procedure, 4 disaster scenarios, "undelete school" SQL, drill log format
+
+## [2026-06-27] update | Public status page (G46)
+- **Trigger:** code change
+- **Pages:** — GET /api/health (AppController/AppService, checks DB via SELECT 1); /status page (Next.js client component, auto-refresh 60s, shows API + DB status badges)
+
+## [2026-06-27] update | G42 recordings storage accounting
+- **Trigger:** code change
+- **Pages:** concepts/billing — LiveKitWebhookController (POST /api/livekit/webhook): verifies JWT, on egress_ended stamps ScheduledLesson.recordingSizeBytes + increments School.storageUsedBytes via StorageAccountingService delta
+
+## [2026-06-28] update | GDPR audit log retention cron
+- **Trigger:** code change
+- **Pages:** concepts/gdpr — TrialLifecycleService.pruneAuditLogs(): daily hard-delete PlatformAuditLog entries older than 7 years; called from TrialLifecycleScheduler alongside trial/dunning sweeps
+
+## [2026-06-29] update | Playwright E2E all green (533 passed)
+- **Trigger:** code change — E2E test fixes
+- **Pages:** `concepts/testing` (if exists) — no new wiki pages needed; changes are test-layer only
+- **Key findings:**
+  - `LessonModal` overlay had `aria-hidden="true"` wrapping the `role="dialog"` element — hid it from a11y tree and Playwright `getByRole()`. Fixed by removing `aria-hidden` from overlay.
+  - ProductTour blocks lesson modal interactions — suppressed via route mock in tests.
+  - Mobile viewport (Pixel 7) hides sidebar nav and "Create lesson" button — tests now soft-skip.
+
+## [2026-06-29] update | Stage 1 Auth audit + UX fixes
+- **Trigger:** e2e-journey-test-plan.md audit cycle
+- **Pages:** `concepts/auth` (if exists) — no new wiki page; changes are UI/test layer
+- **Key changes:**
+  - `/login` error banners moved after Google OAuth button + OR divider (were incorrectly above Google btn)
+  - Client-side empty-field guard added to login `onSubmit` (email + password)
+  - Auth layout: `<div className={authMain}>` → `<main>` (a11y landmark)
+  - `docs/e2e-improvements/01-auth.md` created (10 findings, 4 fixed)
+  - `e2e-journey-test-plan.md` Etap 1 tracker: run ☑, screenshots ☑, improvements-doc ☑
+
+## [2026-07-02] update | Stage 3 STUDENT audit — WCAG AA fixes
+- **Trigger:** e2e-journey-test-plan.md audit cycle (code change)
+- **Pages:** none new — UI/token layer; findings in `docs/e2e-improvements/03-student.md`
+- **Key changes:**
+  - HeaderSearch input: `role="combobox"` + `aria-autocomplete="list"` (fixes critical `aria-allowed-attr` on every authenticated page)
+  - Theme tokens: `--text-tertiary` darkened to #656586; new `--blue-dark`/`--rose-dark`; status info/success text now use dark variants — WCAG AA on tinted surfaces
+  - Calendar: past-day dimming via colors instead of opacity; nav buttons aria-labels; week body focusable scroll region
+  - E2E: `shot()` uses `caret: 'initial'` (Playwright caret-hide inline style caused false hydration-mismatch console errors)
+  - `03-student-audit.spec.ts`: 29 passed / 0 failed; Etap 3 tracker fully ☑
+
+## [2026-07-02] update | Stage 4 TEACHER audit — modal a11y fixes
+- **Trigger:** e2e-journey-test-plan.md audit cycle (code change)
+- **Pages:** none new — findings in `docs/e2e-improvements/04-teacher.md`
+- **Key changes:**
+  - LessonModal setup tab: Title/Duration fields now label-associated via `htmlFor`/`id`
+  - `--accent-primary` on muted green backgrounds (4.26:1) replaced with `--green-dark` in LessonModal badges, MaterialFormModal mode badge, StudentSummaryCard open button (which also referenced nonexistent `--accent-primary-strong`)
+  - `04-teacher-audit.spec.ts` created: 20 passed / 0 failed; Etap 4 tracker fully ☑
+
+## [2026-07-02] update | Stages 2+5 audits: signup slug-collision P0 fix, tour timing
+- **Trigger:** e2e-journey-test-plan.md audit cycle (code change + debug)
+- **Pages:** `concepts/auth-rbac.md` relevant context: /system allowed for admin+super_admin by route-policy (plan text was stale)
+- **Key changes:**
+  - **P0:** `register-school` returned 500 on duplicate school name — slug-collision retry never matched because Prisma 7 pg driver adapter reports constraint fields under `meta.driverAdapterError.cause.constraint.fields` (not `meta.target`) and the error is not `instanceof PrismaClientKnownRequestError`. Fixed with structural check in `school-signup.service.ts`; regression unit test added.
+  - Product Tour no longer opens on `/onboarding` (blocked wizard clicks); pathname-guard in `ProductTour.tsx`, tour starts on dashboard after wizard.
+  - New specs: `02-journey-audit.spec.ts` (4 passed), `05-admin-audit.spec.ts` (13 passed). Etap 2 & 5 trackers fully ☑.
+  - Testing gotcha: Playwright `locator.isVisible()` ignores the timeout option — use `waitFor({state:'visible'})` for async-appearing UI.
+
+## [2026-07-02] update | Stage 6 /system audit — connections/payments a11y
+- **Trigger:** e2e-journey-test-plan.md audit cycle (code change)
+- **Pages:** none new — findings in `docs/e2e-improvements/06-system.md`
+- **Key changes:**
+  - ConnectionsPanel: Telegram dev-polling and Zoom S2S checkboxes got `aria-label` (were unlabeled — critical axe `label` rule)
+  - PaymentsPricingSection: "Min lessons" number input label-associated via `htmlFor`/`id`
+  - New spec `06-system-audit.spec.ts`: all 8 /system tabs render + axe clean (12 passed); Etap 6 tracker ☑ (admin-scope; no super_admin seed user)
+
+## [2026-07-03] update | Stage 8 RBAC audit — clean
+- **Trigger:** e2e-journey-test-plan.md audit cycle
+- **Pages:** none — no code changes; coverage doc `docs/e2e-improvements/08-rbac.md`
+- **Key changes:**
+  - New spec `08-rbac-audit.spec.ts` (26 passed): role-based redirects for student/teacher/admin/guest match route-policy.ts; unauthenticated API calls return 401/403. Zero findings.
+  - Etap 7 (platform app :4300) blocked: not in dev stack, no super_admin seed.
+
+## [2026-07-03] update | Stage 9 responsive audit — clean
+- **Trigger:** e2e-journey-test-plan.md audit cycle
+- **Pages:** none — no code changes; coverage doc `docs/e2e-improvements/09-responsive.md`
+- **Key changes:**
+  - New spec `09-responsive-audit.spec.ts` (15 passed): no horizontal scroll on 8 student pages (Pixel 7) and 3 tablet screens; burger nav works.
+  - Gotcha: seeded users have incomplete tour → ProductTour overlays mobile burger; tests must mock `/api/onboarding/tour` (recommend seeding `tourCompletedAt`).
+
+## [2026-07-03] update | Stage 10 a11y audit — LessonModal focus trap
+- **Trigger:** e2e-journey-test-plan.md audit cycle (code change)
+- **Pages:** none new — findings in `docs/e2e-improvements/10-a11y.md`
+- **Key changes:**
+  - LessonModal had focus-on-open + Escape but no focus trap — Tab escaped the dialog. Added Tab/Shift+Tab cycling over visible focusable elements in the existing keydown effect (`LessonModal.tsx`). Other modals (MaterialFormModal, media viewer) still lack traps — same pattern applies.
+  - New spec `10-a11y-audit.spec.ts` (7 passed): login Tab order, modal focus trap, reduced-motion render, control names. Etap 10 tracker ☑.
+
+## [2026-07-03] update | Stage 11 edge audit — graphql-client error messages; audit cycle complete
+- **Trigger:** e2e-journey-test-plan.md audit cycle (code change)
+- **Pages:** none new — findings in `docs/e2e-improvements/11-edge.md`
+- **Key changes:**
+  - `lib/graphql-client.ts`: non-OK responses threw the raw JSON body as the error message, which surfaced as a JSON dump in user-facing error cards; now parses `errors[0].message` / `message` with text fallback.
+  - New spec `11-edge-audit.spec.ts` (10 passed): 404 page, 4 invalid-id routes show friendly errors, API 500 on /lessons and /students shows error UI.
+  - Audit cycle status: stages 1–6 and 8–11 closed; stage 0 (seed) partial, stage 7 (platform app :4300) blocked.
+
+## [2026-07-03] update | Etap 0 seed extension — domain fixtures + tourCompletedAt
+- **Trigger:** code change (e2e-journey-test-plan Etap 0)
+- **Pages:** none new
+- **Key changes:**
+  - `tests/integration/seed.ts`: new idempotent `seedTestFixtures()` — lessons in all three statuses, teacher StaffCompensationProfile (PER_LESSON, UAH), 10 StudentWordCards across all VocabularyStatus values; all seeded users get `tourCompletedAt` so ProductTour never overlays E2E runs.
+  - `npm run seed:test-users` runs it; verified idempotent. Staff-profile audit (5A.3) unskipped — 05-admin now 14/14.
+  - Seed backlog: material with attachment, quiz, payment, promo code.

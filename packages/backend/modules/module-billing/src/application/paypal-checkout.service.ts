@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@be/prisma';
+import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import type { CreateLessonPurchaseCheckoutRequestDto, LessonPurchaseCheckoutDto } from '@pkg/types';
 import { LessonBalanceService } from './lesson-balance.service';
 import { PaymentSettingsService } from './payment-settings.service';
@@ -45,6 +46,7 @@ function approvalEventOrderId(payload: PayPalWebhookPayload): string | undefined
 export class PayPalCheckoutService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly tenant: TenantContextService,
     private readonly paymentSettings: PaymentSettingsService,
     private readonly lessonBalance: LessonBalanceService,
   ) {}
@@ -73,6 +75,7 @@ export class PayPalCheckoutService {
     const payment = await this.prisma.payment.create({
       data: {
         userId,
+        schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
         method: paymentMethodFromDto('paypal'),
         status: 'PENDING',
         lessonsGranted: pkg.lessons,

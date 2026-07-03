@@ -52,6 +52,7 @@ export function MaterialAssetLink({
         type="button"
         className={[styles.mediaOpenBtn, className].filter(Boolean).join(' ')}
         title={title}
+        aria-label={title}
         onClick={() => openMediaViewer(asset.fileAttachmentId!)}
       >
         {children}

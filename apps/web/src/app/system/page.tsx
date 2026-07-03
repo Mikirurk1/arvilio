@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Mail, BookOpenText, CreditCard, ShieldCheck, Cpu, Link2, Settings2, Banknote } from 'lucide-react';
+import { Mail, BookOpenText, CreditCard, ShieldCheck, Cpu, Link2, Settings2, Banknote, Globe, Palette } from 'lucide-react';
 import { PageHeader, Tabs, type TabsItem } from '../../components/ui';
 import { EmailTestPanel } from './panels';
 import { WordDictionaryPanel } from './WordDictionaryPanel';
@@ -9,9 +9,11 @@ import { ConnectionsPanel } from './connections/ConnectionsPanel';
 import { PaymentsPanel } from './payment/PaymentsPanel';
 import { PayoutsDefaultsPanel } from './payment/PayoutsDefaultsPanel';
 import { GeneralPanel } from './GeneralPanel';
+import { DomainsPanel } from './DomainsPanel';
+import { BrandingPanel } from './BrandingPanel';
 import styles from './page.module.scss';
 
-type SystemTab = 'general' | 'email' | 'dictionary' | 'connections' | 'payments' | 'payouts';
+type SystemTab = 'general' | 'email' | 'dictionary' | 'connections' | 'payments' | 'payouts' | 'domains' | 'branding';
 
 export default function SystemPage() {
   const [tab, setTab] = useState<SystemTab>('general');
@@ -77,6 +79,26 @@ export default function SystemPage() {
           </span>
         ),
         panel: <PayoutsDefaultsPanel />,
+      },
+      {
+        value: 'domains',
+        label: (
+          <span className={styles.tabLabel}>
+            <Globe size={14} aria-hidden />
+            Domains
+          </span>
+        ),
+        panel: <DomainsPanel />,
+      },
+      {
+        value: 'branding',
+        label: (
+          <span className={styles.tabLabel}>
+            <Palette size={14} aria-hidden />
+            Branding
+          </span>
+        ),
+        panel: <BrandingPanel />,
       },
     ],
     [],

@@ -3,6 +3,7 @@
 import type { ScheduledLessonDto } from '@pkg/types';
 import { useRouter } from 'next/navigation';
 import { LESSON_STATUS } from '@pkg/types';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button, CalendarEventCard, Field, SegmentedControl, SurfaceCard } from '../../components/ui';
 import { USER_ROLE, type UserRole } from '../../mocks';
 import { lessonEndTimeInZone, lessonStartTimeInZone } from '../../lib/lessonTime';
@@ -64,19 +65,21 @@ export function CalendarHeaderControls({
         />
       ) : null}
       {showAudienceToggle && audience === 'all' ? (
-        <Field as="select"
-          className={styles.teacherFilter}
-          value={teacherFilter}
-          onChange={(e) => setTeacherFilter(e.target.value)}
-          aria-label="Filter by teacher"
-        >
-          <option value="all-teachers">All teachers</option>
-          {teacherOptions.map((teacher) => (
-            <option key={teacher.id} value={teacher.id}>
-              {teacher.name}
-            </option>
-          ))}
-        </Field>
+        <div className={styles.teacherFilterWrap}>
+          <Field as="select"
+            className={styles.teacherFilter}
+            value={teacherFilter}
+            onChange={(e) => setTeacherFilter(e.target.value)}
+            aria-label="Filter by teacher"
+          >
+            <option value="all-teachers">All teachers</option>
+            {teacherOptions.map((teacher) => (
+              <option key={teacher.id} value={teacher.id}>
+                {teacher.name}
+              </option>
+            ))}
+          </Field>
+        </div>
       ) : null}
       {isStudent ? (
         <Button type="button" className={styles.createLessonBtn} onClick={onRequestLesson}>
@@ -162,9 +165,9 @@ export function CalendarMonthNavigator({
 }) {
   return (
     <div className={styles.calNav}>
-      <Button type="button" className={styles.navBtn} onClick={onPrev}>←</Button>
+      <Button type="button" className={styles.navBtn} aria-label="Previous period" onClick={onPrev}><ChevronLeft size={16} strokeWidth={2} /></Button>
       <h2 className={styles.calMonthTitle}>{monthLabel}</h2>
-      <Button type="button" className={styles.navBtn} onClick={onNext}>→</Button>
+      <Button type="button" className={styles.navBtn} aria-label="Next period" onClick={onNext}><ChevronRight size={16} strokeWidth={2} /></Button>
     </div>
   );
 }

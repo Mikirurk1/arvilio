@@ -1,0 +1,1 @@
+{"date":"2026-06-15","tool":"claude-flow security scan --depth full","critical":0,"high":4,"medium":15,"codeFindings":"all false positives"}

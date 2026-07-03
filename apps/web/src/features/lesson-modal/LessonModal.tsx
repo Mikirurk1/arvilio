@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { LessonFieldErrors } from './tabTypes';
 import Link from 'next/link';
 import { createPortal } from 'react-dom';
 import { Button, Tabs } from '../../components/ui';
@@ -54,6 +55,7 @@ export function LessonModal({
   persistedLessonId = null,
   lessonBackendId = null,
   studentBackendId = null,
+  isSaving = false,
 }: {
   mode: LessonModalMode;
   canEdit: boolean;
@@ -76,10 +78,14 @@ export function LessonModal({
   persistedLessonId?: number | null;
   lessonBackendId?: string | null;
   studentBackendId?: string | null;
+  isSaving?: boolean;
 }) {
   const text = siteContent.calendar.lessonModal;
   const [mounted, setMounted] = useState(false);
   const [tab, setTab] = useState<'setup' | 'content'>('setup');
+  const [fieldErrors, setFieldErrors] = useState<LessonFieldErrors>({});
+  const modalRef = useRef<HTMLDivElement | null>(null);
+  const setupPanelRef = useRef<HTMLDivElement | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [materialsFileStatus, setMaterialsFileStatus] = useState<string | null>(
     null,
@@ -291,6 +297,20 @@ export function LessonModal({
 
   const handleSubmit = useCallback(() => {
     const activeForm = commitMaterialDraft();
+    const errors: LessonFieldErrors = {};
+    if (!activeForm.title.trim()) errors.title = 'Title is required';
+    if (!activeForm.date) errors.date = 'Date is required';
+    if (!activeForm.startTime) errors.startTime = 'Start time is required';
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setTab('setup');
+      setTimeout(() => {
+        const firstErrorField = setupPanelRef.current?.querySelector('[data-field-error]');
+        firstErrorField?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
+      return;
+    }
+    setFieldErrors({});
     void onSubmit(activeForm);
   }, [commitMaterialDraft, onSubmit]);
 
@@ -306,18 +326,60 @@ export function LessonModal({
   }, []);
 
   useEffect(() => {
+    if (mounted) {
+      const firstFocusable = modalRef.current?.querySelector<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      firstFocusable?.focus();
+    }
+  }, [mounted]);
+
+  useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setImagePreviewUrl(null);
+      if (event.key === 'Escape') {
+        if (imagePreviewUrl) {
+          setImagePreviewUrl(null);
+        } else {
+          onClose();
+        }
+        return;
+      }
+      // Focus trap: keep Tab / Shift+Tab cycling inside the dialog.
+      if (event.key === 'Tab' && modalRef.current) {
+        const focusable = Array.from(
+          modalRef.current.querySelectorAll<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+          ),
+        ).filter((el) => !el.hasAttribute('disabled') && el.offsetParent !== null);
+        if (focusable.length === 0) return;
+        const first = focusable[0]!;
+        const last = focusable[focusable.length - 1]!;
+        const active = document.activeElement as HTMLElement | null;
+        if (!event.shiftKey && (active === last || !modalRef.current.contains(active))) {
+          event.preventDefault();
+          first.focus();
+        } else if (event.shiftKey && (active === first || !modalRef.current.contains(active))) {
+          event.preventDefault();
+          last.focus();
+        }
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [imagePreviewUrl, onClose]);
 
   if (!mounted) return null;
 
   return createPortal(
     <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modal} onClick={e => e.stopPropagation()}>
+      <div
+        ref={modalRef}
+        className={styles.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="lesson-modal-title"
+        onClick={e => e.stopPropagation()}
+      >
         <LessonModalHeader
           mode={mode}
           role={role}
@@ -345,6 +407,7 @@ export function LessonModal({
                 value: 'setup',
                 label: text.sections.setup,
                 panel: (
+                  <div ref={setupPanelRef}>
                   <LessonSetupTab
                     text={text}
                     canEdit={canEdit}
@@ -354,8 +417,13 @@ export function LessonModal({
                     teachers={teachers}
                     weekDayOptions={weekDayOptions}
                     recurrenceAllowed={recurrenceAllowed}
-                    onChange={onChange}
+                    fieldErrors={fieldErrors}
+                    onChange={(next) => {
+                      setFieldErrors({});
+                      onChange(next);
+                    }}
                   />
+                  </div>
                 ),
               },
               {
@@ -398,7 +466,7 @@ export function LessonModal({
             ]}
           />
           {fileError ? (
-            <div className={styles.fileError}>{fileError}</div>
+            <div className={styles.fileError} role="alert">{fileError}</div>
           ) : null}
         </div>
         <div
@@ -430,7 +498,9 @@ export function LessonModal({
               type='button'
               className={styles.modalConfirmBtn}
               onClick={handleSubmit}
-              disabled={!canEdit}
+              disabled={!canEdit || isSaving}
+              loading={isSaving}
+              loadingLabel="Saving…"
             >
               {mode === 'create'
                 ? text.actions.saveLesson

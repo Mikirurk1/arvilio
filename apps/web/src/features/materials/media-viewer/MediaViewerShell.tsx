@@ -1,11 +1,13 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import type { MaterialAttachmentMetaDto } from '@pkg/types';
+import { Button, UpgradePrompt, isFeatureBlockedError } from '../../../components/ui';
 import { MediaPlayer } from './MediaPlayer';
 import { SessionNotesPanel } from './SessionNotesPanel';
 import type { SessionNote } from './useSessionNotes';
+import { triggerMaterialCaptionGeneration } from './material-captions-api';
 import styles from './media-viewer.module.scss';
 
 type Props = {
@@ -26,6 +28,27 @@ export function MediaViewerShell({
   onClose,
 }: Props) {
   const mediaRef = useRef<HTMLMediaElement>(null);
+  const [captionGenerating, setCaptionGenerating] = useState(false);
+  const [captionFeedback, setCaptionFeedback] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [captionUpgrade, setCaptionUpgrade] = useState(false);
+
+  const handleGenerateCaptions = useCallback(async () => {
+    setCaptionGenerating(true);
+    setCaptionFeedback(null);
+    setCaptionUpgrade(false);
+    try {
+      await triggerMaterialCaptionGeneration(meta.fileAttachmentId);
+      setCaptionFeedback({ ok: true, msg: 'Captions generation started — refresh in a moment.' });
+    } catch (e) {
+      if (isFeatureBlockedError(e)) {
+        setCaptionUpgrade(true);
+      } else {
+        setCaptionFeedback({ ok: false, msg: e instanceof Error ? e.message : 'Failed to start caption generation.' });
+      }
+    } finally {
+      setCaptionGenerating(false);
+    }
+  }, [meta.fileAttachmentId]);
 
   const handleAddNote = useCallback(() => {
     onAddNote();
@@ -62,6 +85,25 @@ export function MediaViewerShell({
             mediaKind={mediaKind}
             mediaRef={mediaRef}
           />
+          <div className={styles.captionsRow}>
+            <Button
+              variant="default"
+              loading={captionGenerating}
+              loadingLabel="Starting…"
+              disabled={captionGenerating}
+              onClick={() => void handleGenerateCaptions()}
+            >
+              Generate captions
+            </Button>
+            {captionFeedback && (
+              <span className={captionFeedback.ok ? styles.captionOk : styles.captionErr}>
+                {captionFeedback.msg}
+              </span>
+            )}
+            {captionUpgrade && (
+              <UpgradePrompt message="AI-assisted captions require the Pro plan." />
+            )}
+          </div>
         </div>
         <SessionNotesPanel
           notes={notes}

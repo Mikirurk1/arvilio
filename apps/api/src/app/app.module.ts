@@ -1,4 +1,6 @@
-import { Module } from '@nestjs/common';
+import { Module, type MiddlewareConsumer, type NestModule } from '@nestjs/common';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
@@ -7,6 +9,8 @@ import { AppController } from './app.controller';
 import { AppResolver } from './app.resolver';
 import { AppService } from './app.service';
 import { PrismaModule } from '@be/prisma';
+import { TenantModule } from '@be/tenant';
+import { FileStorageModule } from '@be/storage';
 import { AuthModule } from '@be/auth';
 import { MailModule } from '@be/mail';
 import { FlashcardsModule } from '@be/flashcards';
@@ -18,10 +22,24 @@ import { VocabularyModule } from '@be/vocabulary';
 import { NotificationsModule } from '@be/notifications';
 import { ChatModule } from '@be/chat';
 import { BillingModule } from '@be/billing';
+import { PlatformAdminModule } from '@be/platform-admin';
+import { TenantResolutionMiddleware } from './tenant-resolution.middleware';
+import { GqlThrottlerGuard } from './gql-throttler.guard';
+import { TenantLoggingInterceptor } from './tenant-logging.interceptor';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([
+      // Global: 120 req/min per resolved key (user/school/IP). Applies everywhere.
+      { name: 'global', ttl: 60_000, limit: 120 },
+      // Auth: 10 attempts per 15 min per IP. Applied via @Throttle() on auth endpoints.
+      { name: 'auth', ttl: 900_000, limit: 10 },
+      // Tenant: 600 req/min per schoolId. Applied via @Throttle() on heavy API surfaces.
+      { name: 'tenant', ttl: 60_000, limit: 600 },
+    ]),
     ScheduleModule.forRoot(),
+    TenantModule,
+    FileStorageModule,
     PrismaModule,
     MailModule,
     AuthModule,
@@ -34,6 +52,7 @@ import { BillingModule } from '@be/billing';
     MaterialsModule,
     LessonsModule,
     ProgressModule,
+    PlatformAdminModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: true,
@@ -47,6 +66,18 @@ import { BillingModule } from '@be/billing';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, AppResolver],
+  providers: [
+    AppService,
+    AppResolver,
+    { provide: APP_GUARD, useClass: GqlThrottlerGuard },
+    { provide: APP_INTERCEPTOR, useClass: TenantLoggingInterceptor },
+  ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  // Phase 2: resolve the active tenant from the Host header before guards run,
+  // so public/unauthenticated requests carry the right schoolId. Runs within the
+  // CLS context mounted by TenantModule; a no-op when no host maps to a tenant.
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(TenantResolutionMiddleware).forRoutes('*');
+  }
+}

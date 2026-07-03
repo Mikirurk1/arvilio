@@ -1,0 +1,23 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent-warning, #e67e22) 10%, transparent);
+  color: var(--ink, #1a2b33);
+  font-size: var(--fs-14);
+  line-height: 1.5;
+}
+
+.link {
+  color: var(--accent-primary, #2f9e54);
+  text-decoration: underline;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}

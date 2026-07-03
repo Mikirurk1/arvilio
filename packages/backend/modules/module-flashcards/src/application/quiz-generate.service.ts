@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { PrismaService } from '@be/prisma';
+import { PrismaService, TenantPrismaService } from '@be/prisma';
+import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import type { GenerateQuizRequestDto, QuizDetailDto } from '@pkg/types';
 import { QuizAccessService } from './quiz-access.service';
 import {
@@ -20,7 +21,14 @@ export class QuizGenerateService {
     private readonly access: QuizAccessService,
     private readonly repo: QuizRepository,
     private readonly distractorHints: QuizDistractorService,
+    private readonly tenant: TenantContextService,
+    private readonly tenantPrisma: TenantPrismaService,
   ) {}
+
+  /** Tenant-scoped client: Quiz/QuizAssignment writes are auto-filtered by school. */
+  private get db() {
+    return this.tenantPrisma.client;
+  }
 
   async generate(actorId: string, body: GenerateQuizRequestDto): Promise<QuizDetailDto> {
     await this.access.requireStaff(actorId);
@@ -70,8 +78,10 @@ export class QuizGenerateService {
       );
     }
 
-    const quiz = await this.prisma.quiz.create({
+    const quiz = await this.db.quiz.create({
       data: {
+        // Tenant from request context (auth guard); fallback to default school.
+        schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
         title: body.title ?? defaultTitle(body, pool.length),
         category:
           body.category ??
@@ -101,13 +111,14 @@ export class QuizGenerateService {
       select: { role: true },
     });
     if (assignee?.role === 'STUDENT') {
-      await this.prisma.quizAssignment.upsert({
+      await this.db.quizAssignment.upsert({
         where: {
           quizId_studentId: { quizId: quiz.id, studentId: targetStudentId },
         },
         create: {
           quizId: quiz.id,
           studentId: targetStudentId,
+          schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
           assignedById: actorId,
           status: 'PENDING',
         },

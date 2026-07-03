@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import type { NotificationKind } from '@prisma/client';
 import { PrismaService } from '@be/prisma';
+import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 
 @Injectable()
 export class NotificationDeliveryService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tenant: TenantContextService,
+  ) {}
 
   async wasSent(
     userId: string,
@@ -30,7 +34,13 @@ export class NotificationDeliveryService {
       where: {
         userId_kind_dedupeKey_channel: { userId, kind, dedupeKey, channel },
       },
-      create: { userId, kind, dedupeKey, channel },
+      create: {
+        userId,
+        schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
+        kind,
+        dedupeKey,
+        channel,
+      },
       update: { sentAt: new Date() },
     });
   }

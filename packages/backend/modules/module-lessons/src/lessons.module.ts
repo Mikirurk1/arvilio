@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { BillingModule } from '@be/billing';
 import { PrismaModule } from '@be/prisma';
+import { FeatureGuard } from '@be/auth';
 import { LessonsService } from './application/lessons.service';
 import { LessonAttachmentService } from './application/lesson-attachment.service';
 import { GoogleCalendarService } from './infrastructure/google-calendar.service';
@@ -17,6 +18,7 @@ import { StudentGroupsService } from './application/student-groups.service';
 import { ScheduledLessonsController } from './presentation/rest/scheduled-lessons.controller';
 import { ZoomOAuthController } from './presentation/rest/zoom-oauth.controller';
 import { ZoomWebhookController } from './presentation/rest/zoom-webhook.controller';
+import { LiveKitWebhookController } from './presentation/rest/livekit-webhook.controller';
 
 @Module({
   imports: [PrismaModule, BillingModule],
@@ -25,8 +27,10 @@ import { ZoomWebhookController } from './presentation/rest/zoom-webhook.controll
     LessonFilesController,
     ZoomOAuthController,
     ZoomWebhookController,
+    LiveKitWebhookController,
   ],
   providers: [
+    FeatureGuard,
     LessonsService,
     StudentGroupsService,
     GoogleCalendarService,

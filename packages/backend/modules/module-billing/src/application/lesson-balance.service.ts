@@ -7,6 +7,7 @@ import {
 import { Prisma } from '@prisma/client';
 import type { LessonBalanceLedgerKind } from '@prisma/client';
 import { PrismaService } from '@be/prisma';
+import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import type {
   AdjustStudentLessonBalanceRequestDto,
   LessonBalanceLedgerEntryDto,
@@ -65,6 +66,7 @@ const BALANCE_ROW_SELECT = {
 export class LessonBalanceService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly tenant: TenantContextService,
     private readonly paymentSettings: PaymentSettingsService,
   ) {}
 
@@ -240,12 +242,19 @@ export class LessonBalanceService {
     creditTrack?: LessonCreditTrackDto;
   }): Promise<void> {
     if (params.lessons <= 0) return;
+    // G2 (tenant-aware webhooks): PSP webhooks carry no auth/host, so the tenant
+    // context isn't seeded by the auth guard. Resolve the school from the Payment
+    // row (stamped at checkout) and seed it here so the credited ledger/balance
+    // rows land in the right school instead of falling back to DEFAULT_SCHOOL_ID.
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: params.paymentId },
+      select: { schoolId: true, metadata: true },
+    });
+    if (payment?.schoolId && this.tenant.isActive() && !this.tenant.schoolId) {
+      this.tenant.setSchoolId(payment.schoolId);
+    }
     let creditTrack = params.creditTrack;
     if (!creditTrack) {
-      const payment = await this.prisma.payment.findUnique({
-        where: { id: params.paymentId },
-        select: { metadata: true },
-      });
       const meta =
         payment?.metadata && typeof payment.metadata === 'object'
           ? (payment.metadata as Record<string, unknown>)
@@ -617,7 +626,12 @@ export class LessonBalanceService {
   private async ensureBalanceRow(userId: string) {
     return this.prisma.studentLessonBalance.upsert({
       where: { userId },
-      create: { userId, balance: 0, groupBalance: 0 },
+      create: {
+        userId,
+        schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
+        balance: 0,
+        groupBalance: 0,
+      },
       update: {},
       select: BALANCE_ROW_SELECT,
     });
@@ -639,7 +653,12 @@ export class LessonBalanceService {
     await this.prisma.$transaction(async (tx) => {
       const row = await tx.studentLessonBalance.upsert({
         where: { userId: params.userId },
-        create: { userId: params.userId, balance: 0, groupBalance: 0 },
+        create: {
+          userId: params.userId,
+          schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
+          balance: 0,
+          groupBalance: 0,
+        },
         update: {},
       });
       const currentBalance = creditTrack === 'group' ? row.groupBalance : row.balance;
@@ -655,6 +674,7 @@ export class LessonBalanceService {
         await tx.lessonBalanceLedger.create({
           data: {
             userId: params.userId,
+            schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
             delta: params.delta,
             balanceAfter: nextBalance,
             kind: params.kind,

@@ -4,11 +4,19 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '@be/prisma';
+import { PrismaService, TenantPrismaService } from '@be/prisma';
 
 @Injectable()
 export class QuizAccessService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tenantPrisma: TenantPrismaService,
+  ) {}
+
+  /** Tenant-scoped client: Quiz/QuizAssignment reads are auto-filtered by school. */
+  private get db() {
+    return this.tenantPrisma.client;
+  }
 
   async resolveQuizTargetStudentId(
     actorId: string,
@@ -77,10 +85,10 @@ export class QuizAccessService {
   }
 
   async assertQuizAccess(userId: string, quizId: string): Promise<void> {
-    const quiz = await this.prisma.quiz.findUnique({ where: { id: quizId } });
+    const quiz = await this.db.quiz.findUnique({ where: { id: quizId } });
     if (!quiz) throw new NotFoundException('Quiz not found');
     if (quiz.ownerId === userId) return;
-    const assignment = await this.prisma.quizAssignment.findFirst({
+    const assignment = await this.db.quizAssignment.findFirst({
       where: { quizId, studentId: userId },
     });
     if (!assignment) throw new NotFoundException('Quiz not found');

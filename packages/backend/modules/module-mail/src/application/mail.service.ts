@@ -9,6 +9,7 @@ import {
   renderEmail,
   renderEmailFromVars,
   type EmailTemplateId,
+  type EmailVerificationEmailProps,
   type PasswordResetEmailProps,
   type WelcomeAccountEmailProps,
 } from '@be/email-templates';
@@ -26,6 +27,13 @@ export type PasswordResetMailParams = {
   displayName: string;
   resetUrl: string;
   expiresInMinutes: number;
+};
+
+export type EmailVerificationMailParams = {
+  to: string;
+  displayName: string;
+  verifyUrl: string;
+  expiresInHours: number;
 };
 
 const TEMPLATES_SOURCE = '@be/email-templates (React Email)';
@@ -132,8 +140,9 @@ export class MailService {
     to: string,
     templateId: EmailTemplateId,
     vars: Record<string, string>,
+    fromDisplayName?: string | null,
   ): Promise<boolean> {
-    return this.sendRendered(to, await renderEmailFromVars(templateId, vars), templateId);
+    return this.sendRendered(to, await renderEmailFromVars(templateId, vars), templateId, fromDisplayName);
   }
 
   async sendWelcomeAccount(params: WelcomeAccountMailParams): Promise<boolean> {
@@ -147,6 +156,19 @@ export class MailService {
       params.to,
       await renderEmail('welcome-account', props),
       'welcome-account',
+    );
+  }
+
+  async sendEmailVerification(params: EmailVerificationMailParams): Promise<boolean> {
+    const props: EmailVerificationEmailProps = {
+      displayName: params.displayName,
+      verifyUrl: params.verifyUrl,
+      expiresInHours: String(params.expiresInHours),
+    };
+    return this.sendRendered(
+      params.to,
+      await renderEmail('email-verification', props),
+      'email-verification',
     );
   }
 
@@ -167,6 +189,7 @@ export class MailService {
     to: string,
     rendered: { subject: string; html: string; text: string },
     label: string,
+    fromDisplayName?: string | null,
   ): Promise<boolean> {
     const transport = this.getTransporter();
     if (!transport) {
@@ -174,7 +197,8 @@ export class MailService {
       return false;
     }
 
-    const from = getPlatformIntegrationRuntime().smtp.mailFrom;
+    const rawFrom = getPlatformIntegrationRuntime().smtp.mailFrom;
+    const from = fromDisplayName ? buildFrom(rawFrom, fromDisplayName) : rawFrom;
 
     try {
       await transport.sendMail({
@@ -194,4 +218,26 @@ export class MailService {
       return false;
     }
   }
+}
+
+/**
+ * Build the SMTP `from` value with an optional display-name override.
+ * Returns a nodemailer structured { name, address } object so nodemailer
+ * performs correct RFC 5321 quoting — no hand-built header strings.
+ * The display name is sanitized: CR/LF stripped, length capped at 64 chars.
+ */
+function buildFrom(
+  mailFrom: string,
+  displayName: string,
+): { name: string; address: string } | string {
+  // Strip header-injection chars; nodemailer will quote the rest correctly.
+  const safeName = displayName.replace(/[\r\n]/g, ' ').trim().slice(0, 64);
+  if (!safeName) return mailFrom;
+
+  const match = mailFrom.match(/^"?([^"<]*)"?\s*<(.+)>$/);
+  if (match) {
+    const platformName = (match[1]!.trim() || 'SoEnglish').replace(/[\r\n]/g, '');
+    return { name: `${safeName} via ${platformName}`, address: match[2]!.trim() };
+  }
+  return { name: `${safeName} via SoEnglish`, address: mailFrom.trim() };
 }

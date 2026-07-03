@@ -10,3 +10,4 @@ export * from './lib/word-enrichment-provenance';
 export * from './lib/material-annotations';
 export * from './lib/material-media';
 export * from './lib/staff-payout';
+export * from './lib/locale';

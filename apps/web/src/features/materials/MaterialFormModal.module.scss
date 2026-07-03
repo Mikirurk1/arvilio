@@ -116,12 +116,12 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   background: var(--accent-primary-muted);
-  color: var(--accent-primary);
+  color: var(--green-dark); /* --accent-primary fails WCAG AA on the muted background */
 }
 
 .modeBadgeEdit {
   background: color-mix(in srgb, var(--blue) 12%, var(--card));
-  color: var(--blue);
+  color: var(--blue-dark); /* --blue fails WCAG AA on the tinted background */
 }
 
 .title {

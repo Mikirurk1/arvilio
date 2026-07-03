@@ -1,5 +1,9 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@be/prisma';
+import { EntitlementsService } from './application/entitlements.service';
+import { StorageAccountingService } from './application/storage-accounting.service';
+import { PlatformSubscriptionService } from './application/platform-subscription.service';
+import { PlatformSubscriptionWebhookController } from './presentation/rest/platform-subscription-webhook.controller';
 import { LemonSqueezyCheckoutService } from './application/lemonsqueezy-checkout.service';
 import { LessonBalanceService } from './application/lesson-balance.service';
 import { LiqPayCheckoutService } from './application/liqpay-checkout.service';
@@ -30,8 +34,12 @@ import { WayForPayCallbackController } from './presentation/rest/wayforpay-callb
     PaddleWebhookController,
     MonoPayWebhookController,
     PayPalWebhookController,
+    PlatformSubscriptionWebhookController,
   ],
   providers: [
+    EntitlementsService,
+    StorageAccountingService,
+    PlatformSubscriptionService,
     PaymentSettingsService,
     LessonBalanceService,
     StripeCheckoutService,
@@ -45,6 +53,13 @@ import { WayForPayCallbackController } from './presentation/rest/wayforpay-callb
     BillingResolver,
     StaffPayrollResolver,
   ],
-  exports: [LessonBalanceService, PaymentSettingsService, StaffPayrollService],
+  exports: [
+    LessonBalanceService,
+    PaymentSettingsService,
+    StaffPayrollService,
+    EntitlementsService,
+    StorageAccountingService,
+    PlatformSubscriptionService,
+  ],
 })
 export class BillingModule {}

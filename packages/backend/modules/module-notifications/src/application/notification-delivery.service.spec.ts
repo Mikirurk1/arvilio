@@ -1,5 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { PrismaService } from '@be/prisma';
+import { TenantContextService } from '@be/tenant';
 import { NotificationDeliveryService } from './notification-delivery.service';
 
 describe('NotificationDeliveryService', () => {
@@ -14,7 +15,11 @@ describe('NotificationDeliveryService', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     const moduleRef = await Test.createTestingModule({
-      providers: [NotificationDeliveryService, { provide: PrismaService, useValue: prisma }],
+      providers: [
+        NotificationDeliveryService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: TenantContextService, useValue: { schoolId: 'school_default' } },
+      ],
     }).compile();
     service = moduleRef.get(NotificationDeliveryService);
   });

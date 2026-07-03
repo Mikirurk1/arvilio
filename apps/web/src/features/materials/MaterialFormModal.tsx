@@ -7,7 +7,7 @@ import type {
   LibraryMaterialKindName,
 } from '@pkg/types';
 import { AlertCircle, Check, Pencil, Sparkles, X } from 'lucide-react';
-import { BodyPortal, Button } from '../../components/ui';
+import { BodyPortal, Button, isStorageQuotaError, UpgradePrompt } from '../../components/ui';
 import { useFocusTrap } from '../../hooks/use-focus-trap';
 import { useNavigationLock } from '../../hooks/use-navigation-lock';
 import { collectUniqueTags } from '../../lib/tag-list';
@@ -99,7 +99,9 @@ export function MaterialFormModal({ open, initial, saving = false, onClose, onSa
   const [removeCover, setRemoveCover] = useState(false);
   const [compressLevel, setCompressLevel] = useState<MaterialCompressLevel>('balanced');
   const listItems = useMaterialsStore((s) => s.list.data?.items ?? emptyLibraryMaterials);
+  const [titleError, setTitleError] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [localErrorRaw, setLocalErrorRaw] = useState<unknown>(null);
   const [saveProgress, setSaveProgress] = useState<MaterialSaveProgress | null>(null);
   const [saveSteps, setSaveSteps] = useState<ReturnType<typeof planMaterialSaveSteps>>([]);
   const [persisting, setPersisting] = useState(false);
@@ -158,6 +160,7 @@ export function MaterialFormModal({ open, initial, saving = false, onClose, onSa
       setCompressLevel('balanced');
     }
     setLocalError(null);
+    setLocalErrorRaw(null);
     setSaveProgress(null);
     setSaveSteps([]);
     setPersisting(false);
@@ -191,6 +194,14 @@ export function MaterialFormModal({ open, initial, saving = false, onClose, onSa
       level: level || undefined,
       publisher: publisher.trim() || undefined,
     };
+    if (!title.trim()) {
+      setTitleError('Title is required');
+      setTimeout(() => {
+        modalRef.current?.querySelector('[data-field-error="title"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
+      return;
+    }
+    setTitleError(null);
     const validationError = validateMaterialForm({ title, kind, assets });
     if (validationError) { setLocalError(validationError); return; }
     if (!onUpdate && initial) { setLocalError('Could not update material'); return; }
@@ -210,6 +221,7 @@ export function MaterialFormModal({ open, initial, saving = false, onClose, onSa
       onClose();
     } catch (error) {
       setLocalError(error instanceof Error ? error.message : 'Could not save material');
+      setLocalErrorRaw(error);
       setSaveProgress(null);
     } finally {
       setPersisting(false);
@@ -261,8 +273,9 @@ export function MaterialFormModal({ open, initial, saving = false, onClose, onSa
               title={title}
               description={description}
               isBusy={isBusy}
+              titleError={titleError ?? undefined}
               onKindChange={onKindChange}
-              setTitle={setTitle}
+              setTitle={(v) => { setTitleError(null); setTitle(v); }}
               setDescription={setDescription}
             />
             <MaterialDetailsSection
@@ -296,10 +309,14 @@ export function MaterialFormModal({ open, initial, saving = false, onClose, onSa
               updateAsset={updateAsset}
             />
             {localError ? (
-              <p className={styles.error} role="alert">
-                <AlertCircle size={16} aria-hidden />
-                {localError}
-              </p>
+              isStorageQuotaError(localErrorRaw) ? (
+                <UpgradePrompt message={localError} />
+              ) : (
+                <p className={styles.error} role="alert">
+                  <AlertCircle size={16} aria-hidden />
+                  {localError}
+                </p>
+              )
             ) : null}
           </div>
 

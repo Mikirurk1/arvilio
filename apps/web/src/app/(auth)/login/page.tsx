@@ -3,9 +3,11 @@
 import { FormEvent, Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '../../../lib/auth-context';
 import { BrandLogo } from '../../../components/brand/BrandLogo';
 import { Button, Field } from '../../../components/ui';
+import { useSchoolBranding } from '../../../lib/use-school-branding';
 import { AuthCardFallback } from '../auth-loading';
 import styles from '../auth.module.scss';
 
@@ -28,6 +30,7 @@ export default function LoginPage() {
 function LoginPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const branding = useSchoolBranding();
   const { login, googleSignInUrl } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -40,6 +43,8 @@ function LoginPageInner() {
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!email.trim()) { setFormError('Email is required'); return; }
+    if (!password) { setFormError('Password is required'); return; }
     setSubmitting(true);
     setFormError(null);
     try {
@@ -56,7 +61,18 @@ function LoginPageInner() {
     <div className={styles.shell}>
       <div className={styles.card}>
         <div className={styles.brand}>
-          <BrandLogo size="lg" href={null} className={styles.brandLogo} />
+          {branding?.logoUrl ? (
+            <Image
+              src={branding.logoUrl}
+              alt="School logo"
+              width={160}
+              height={40}
+              style={{ objectFit: 'contain', maxHeight: 40 }}
+              unoptimized
+            />
+          ) : (
+            <BrandLogo size="lg" href={null} className={styles.brandLogo} />
+          )}
         </div>
 
         <div className={styles.intro}>
@@ -66,16 +82,6 @@ function LoginPageInner() {
           </p>
         </div>
 
-        {formError ? (
-          <div className={styles.error} role="alert">
-            {formError}
-          </div>
-        ) : null}
-        {accountError && LOGIN_ERROR_MESSAGES[accountError] ? (
-          <div className={styles.error} role="alert">
-            {LOGIN_ERROR_MESSAGES[accountError]}
-          </div>
-        ) : null}
         {resetStatus === 'success' ? (
           <div className={styles.success}>
             Password updated. You can now sign in with your new password.
@@ -88,6 +94,17 @@ function LoginPageInner() {
         </Link>
 
         <div className={styles.divider}>or</div>
+
+        {formError ? (
+          <div className={styles.error} role="alert">
+            {formError}
+          </div>
+        ) : null}
+        {accountError && LOGIN_ERROR_MESSAGES[accountError] ? (
+          <div className={styles.error} role="alert">
+            {LOGIN_ERROR_MESSAGES[accountError]}
+          </div>
+        ) : null}
 
         <form className={styles.actions} onSubmit={onSubmit} noValidate>
           <Field

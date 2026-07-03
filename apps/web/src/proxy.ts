@@ -11,12 +11,29 @@ import {
   canRoleAccessRoute,
   canScopeAccessRoute,
 } from './lib/auth/route-policy';
+import { classifyTenantHost } from './lib/tenant-host';
 
 const PROXY_TIMING_HEADER = 'x-soenglish-proxy-ms';
 const PROXY_HIT_HEADER = 'x-soenglish-proxy-hit';
 
 function redirectTo(pathname: string, request: NextRequest): NextResponse {
   return NextResponse.redirect(new URL(pathname, request.url));
+}
+
+/**
+ * Phase 2 tenant routing: classify the Host and forward a tenant hint
+ * (`x-school-slug` / `x-school-host`) to the API. The backend stays source of
+ * truth (verified `SchoolDomain` + auth membership); this is only a hint.
+ * Non-disruptive today (single-school): no redirects/blocks.
+ */
+function withTenantHint(requestHeaders: Headers, host: string | null): Headers {
+  const tenant = classifyTenantHost(host);
+  const headers = new Headers(requestHeaders);
+  headers.delete('x-school-slug');
+  headers.delete('x-school-host');
+  if (tenant.kind === 'subdomain') headers.set('x-school-slug', tenant.slug);
+  else if (tenant.kind === 'custom') headers.set('x-school-host', tenant.hostname);
+  return headers;
 }
 
 function anonymousAuthState(route: RequestAuthState['route']): RequestAuthState {
@@ -27,6 +44,8 @@ function anonymousAuthState(route: RequestAuthState['route']): RequestAuthState 
     scope: 'school',
     availableScopes: ['school'],
     tenantKey: null,
+    impersonation: null,
+    trial: null,
     user: null,
   };
 }
@@ -45,6 +64,15 @@ function maybeLogProxyTiming(
 
 export async function proxy(request: NextRequest) {
   const startedAt = performance.now();
+  const { pathname } = request.nextUrl;
+  const host = request.headers.get('host');
+
+  // API-proxy routes: only forward the tenant hint to the backend — no session
+  // resolution or route gating (those are for rendered app routes).
+  if (pathname.startsWith('/api') || pathname.startsWith('/payload-api')) {
+    return NextResponse.next({ request: { headers: withTenantHint(request.headers, host) } });
+  }
+
   const route = classifyRouteAccess(request.nextUrl.pathname);
   const skipSession = !shouldResolveWebRequestSession(route, request.headers);
 
@@ -60,6 +88,8 @@ export async function proxy(request: NextRequest) {
         scope: session.scope,
         availableScopes: session.availableScopes,
         tenantKey: session.tenantKey,
+        impersonation: session.impersonation,
+        trial: session.trial,
         user: session.user,
       };
     } catch (error) {
@@ -104,7 +134,7 @@ export async function proxy(request: NextRequest) {
 
   const response = NextResponse.next({
     request: {
-      headers: applyRequestAuthHeaders(request.headers, state),
+      headers: applyRequestAuthHeaders(withTenantHint(request.headers, host), state),
     },
   });
 
@@ -121,5 +151,10 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|payload-api|_next/static|_next/image|favicon.ico|.*\\..*).*)'],
+  // Runs on app routes (full session/route logic) AND on /api + /payload-api
+  // (tenant-hint forwarding only, branched at the top of `proxy`). Skips Next
+  // internals and static assets.
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|ico|webp|woff2?)$).*)',
+  ],
 };

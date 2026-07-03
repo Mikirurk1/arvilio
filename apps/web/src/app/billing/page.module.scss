@@ -1,0 +1,158 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 820px;
+}
+
+.success {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--green-light, #e6f6ec);
+  color: var(--ink, #1a2b33);
+  font-size: var(--fs-14);
+}
+
+.notice {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--surface-muted, #f1f5f9);
+  color: var(--text-muted);
+  font-size: var(--fs-14);
+}
+
+.error {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent-danger, #c0392b) 12%, transparent);
+  color: var(--accent-danger, #c0392b);
+  font-size: var(--fs-14);
+}
+
+.usage {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.planRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.planLabel {
+  color: var(--text-muted);
+  font-size: var(--fs-14);
+}
+
+.planValue {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.meter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.meterHead {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-14);
+  color: var(--text-muted);
+}
+
+.bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-muted, #e2e8f0);
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: var(--green, #2f9e54);
+  border-radius: 999px;
+  transition: width 200ms ease;
+
+  &[data-over='true'] {
+    background: var(--accent-danger, #c0392b);
+  }
+}
+
+.overQuotaHint {
+  margin: 4px 0 0;
+  font-size: var(--fs-13);
+  color: var(--accent-danger, #c0392b);
+}
+
+.portalRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.portalHint {
+  font-size: var(--fs-13);
+  color: var(--text-muted);
+}
+
+.promoRow {
+  max-width: 320px;
+}
+
+.plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.planCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.planName {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.planBlurb {
+  margin: 0 0 8px;
+  color: var(--text-muted);
+  font-size: var(--fs-14);
+  line-height: 1.5;
+  flex: 1;
+}
+
+.trialPromo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.trialPromoTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.trialPromoHint {
+  margin: 0;
+  font-size: var(--fs-14);
+  color: var(--text-muted);
+}
+
+.trialPromoRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+
+  > :first-child {
+    flex: 1;
+  }
+}

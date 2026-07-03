@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { KonvaEventObject } from 'konva/lib/Node';
 import type {
   MaterialAnnotationTool,
@@ -36,8 +36,13 @@ export function useAnnotationPointer({
   editableAnnotations, commitAnnotation, setSelectedId, setEditingTextId,
 }: UseAnnotationPointerOptions) {
   const [draft, setDraft] = useState<DraftShape | null>(null);
+  const draftRef = useRef<DraftShape | null>(null);
   const drawingRef = useRef(false);
   const startRef = useRef<{ x: number; y: number } | null>(null);
+
+  useEffect(() => {
+    draftRef.current = draft;
+  }, [draft]);
 
   const pointerPos = (event: KonvaEventObject<PointerEvent>) => {
     const stage = event.target.getStage();
@@ -140,55 +145,50 @@ export function useAnnotationPointer({
     if (!drawingRef.current || readOnly) return;
     drawingRef.current = false;
 
-    setDraft((prev) => {
-      if (tool === 'pen' && prev?.type === 'pen' && prev.points.length >= 4) {
-        commitAnnotation({
-          id: newAnnotationId(),
-          type: 'pen',
-          points: normalizePenPoints(prev.points, pageSize),
-          color,
-          strokeWidth,
-        });
-      }
-
-      if (tool === 'rect' && prev?.type === 'rect' && prev.width > 2 && prev.height > 2) {
-        const [nx, ny] = normPoint(prev.x, prev.y, pageSize);
-        commitAnnotation({
-          id: newAnnotationId(),
-          type: 'rect',
-          x: nx, y: ny,
-          width: pageSize.width > 0 ? prev.width / pageSize.width : 0,
-          height: pageSize.height > 0 ? prev.height / pageSize.height : 0,
-          color, strokeWidth,
-        });
-      }
-
-      if (tool === 'ellipse' && prev?.type === 'ellipse' && prev.radiusX > 2 && prev.radiusY > 2) {
-        const [nx, ny] = normPoint(prev.x, prev.y, pageSize);
-        commitAnnotation({
-          id: newAnnotationId(),
-          type: 'ellipse',
-          x: nx, y: ny,
-          radiusX: pageSize.width > 0 ? prev.radiusX / pageSize.width : 0,
-          radiusY: pageSize.height > 0 ? prev.radiusY / pageSize.height : 0,
-          color, strokeWidth,
-        });
-      }
-
-      if (tool === 'arrow' && prev?.type === 'arrow') {
-        const [nx1, ny1] = normPoint(prev.x1, prev.y1, pageSize);
-        const [nx2, ny2] = normPoint(prev.x2, prev.y2, pageSize);
-        commitAnnotation({
-          id: newAnnotationId(),
-          type: 'arrow',
-          x1: nx1, y1: ny1, x2: nx2, y2: ny2,
-          color, strokeWidth,
-        });
-      }
-
-      return null;
-    });
+    const prev = draftRef.current;
+    setDraft(null);
     startRef.current = null;
+
+    if (!prev) return;
+
+    if (tool === 'pen' && prev.type === 'pen' && prev.points.length >= 4) {
+      commitAnnotation({
+        id: newAnnotationId(),
+        type: 'pen',
+        points: normalizePenPoints(prev.points, pageSize),
+        color,
+        strokeWidth,
+      });
+    } else if (tool === 'rect' && prev.type === 'rect' && prev.width > 2 && prev.height > 2) {
+      const [nx, ny] = normPoint(prev.x, prev.y, pageSize);
+      commitAnnotation({
+        id: newAnnotationId(),
+        type: 'rect',
+        x: nx, y: ny,
+        width: pageSize.width > 0 ? prev.width / pageSize.width : 0,
+        height: pageSize.height > 0 ? prev.height / pageSize.height : 0,
+        color, strokeWidth,
+      });
+    } else if (tool === 'ellipse' && prev.type === 'ellipse' && prev.radiusX > 2 && prev.radiusY > 2) {
+      const [nx, ny] = normPoint(prev.x, prev.y, pageSize);
+      commitAnnotation({
+        id: newAnnotationId(),
+        type: 'ellipse',
+        x: nx, y: ny,
+        radiusX: pageSize.width > 0 ? prev.radiusX / pageSize.width : 0,
+        radiusY: pageSize.height > 0 ? prev.radiusY / pageSize.height : 0,
+        color, strokeWidth,
+      });
+    } else if (tool === 'arrow' && prev.type === 'arrow') {
+      const [nx1, ny1] = normPoint(prev.x1, prev.y1, pageSize);
+      const [nx2, ny2] = normPoint(prev.x2, prev.y2, pageSize);
+      commitAnnotation({
+        id: newAnnotationId(),
+        type: 'arrow',
+        x1: nx1, y1: ny1, x2: nx2, y2: ny2,
+        color, strokeWidth,
+      });
+    }
   }, [readOnly, tool, color, strokeWidth, pageSize, commitAnnotation]);
 
   return { draft, handleStagePointerDown, handlePointerMove, handlePointerUp };

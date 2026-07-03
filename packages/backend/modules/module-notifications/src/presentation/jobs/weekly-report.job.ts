@@ -28,17 +28,31 @@ export class WeeklyReportJob {
 
   async run(): Promise<void> {
     const weekKey = this.isoWeekKey(new Date());
-    const students = await this.prisma.user.findMany({
-      where: { role: 'STUDENT', status: 'ACTIVE', notifyWeeklyReport: true },
-      select: { id: true, email: true, displayName: true, notifyWeeklyReport: true },
+    const rows = await this.prisma.schoolMembership.findMany({
+      where: {
+        role: 'STUDENT',
+        status: 'ACTIVE',
+        school: { status: { not: 'SUSPENDED' } },
+        user: { status: 'ACTIVE', notifyWeeklyReport: true },
+      },
+      select: {
+        school: { select: { name: true } },
+        user: { select: { id: true, email: true, displayName: true, notifyWeeklyReport: true } },
+      },
     });
+    const seen = new Map<string, { user: (typeof rows)[0]['user']; schoolName: string }>();
+    for (const r of rows) {
+      if (!seen.has(r.user.id)) seen.set(r.user.id, { user: r.user, schoolName: r.school.name });
+    }
+    const students = [...seen.values()];
 
-    for (const student of students) {
+    for (const { user: student, schoolName } of students) {
       const dedupeKey = `week:${weekKey}`;
       const summary = await this.dashboard.summaryFor(student.id);
       const appUrl = this.mail.appUrl();
 
       await this.dispatch.dispatch({
+        schoolName,
         userId: student.id,
         email: student.email,
         displayName: student.displayName,

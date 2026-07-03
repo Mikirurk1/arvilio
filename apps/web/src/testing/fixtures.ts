@@ -151,6 +151,7 @@ export function mockMyProfile(overrides: Partial<MyProfileDto> = {}): MyProfileD
     displayName: 'User',
     avatarUrl: null,
     timezone: 'Europe/Kyiv',
+    locale: null,
     proficiencyLevel: 'B1',
     phone: null,
     telegram: null,

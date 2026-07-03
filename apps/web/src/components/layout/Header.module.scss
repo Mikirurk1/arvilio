@@ -192,7 +192,7 @@
 
 .lessonsLbl {
   font-size: var(--fs-13);
-  color: var(--text-tertiary);
+  color: var(--text-secondary); /* tertiary fails WCAG AA on the tinted badge background */
 }
 
 .lessonsPlanned {

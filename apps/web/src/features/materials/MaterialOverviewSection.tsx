@@ -22,13 +22,14 @@ interface MaterialOverviewSectionProps {
   title: string;
   description: string;
   isBusy: boolean;
+  titleError?: string;
   onKindChange: (kind: LibraryMaterialKindName) => void;
   setTitle: (v: string) => void;
   setDescription: (v: string) => void;
 }
 
 export function MaterialOverviewSection({
-  kind, title, description, isBusy, onKindChange, setTitle, setDescription,
+  kind, title, description, isBusy, titleError, onKindChange, setTitle, setDescription,
 }: MaterialOverviewSectionProps) {
   return (
     <section className={styles.formSection} aria-labelledby="material-overview-heading">
@@ -79,6 +80,8 @@ export function MaterialOverviewSection({
         onChange={(event) => setTitle(event.target.value)}
         placeholder="e.g. B1 Grammar board, Oxford Workbook…"
         disabled={isBusy}
+        error={titleError}
+        data-field-error={titleError ? 'title' : undefined}
       />
 
       <Field

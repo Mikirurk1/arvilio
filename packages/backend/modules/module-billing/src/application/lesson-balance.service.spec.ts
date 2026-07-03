@@ -17,6 +17,7 @@ describe('LessonBalanceService', () => {
       }),
     ),
     user: { findUnique: jest.fn() },
+    payment: { findUnique: jest.fn() },
   };
 
   const paymentSettingsMock = {
@@ -26,8 +27,10 @@ describe('LessonBalanceService', () => {
   };
   const paymentSettings = paymentSettingsMock as unknown as PaymentSettingsService;
 
+  const tenant = { schoolId: 'school_default' } as never;
   const service = new LessonBalanceService(
     prisma as never,
+    tenant,
     paymentSettings,
   );
 
@@ -338,5 +341,43 @@ describe('LessonBalanceService', () => {
     expect(result.packages).toEqual([]);
     expect(result.recentLedger[0]?.amountMinor).toBeNull();
     expect(result.balance).toBe(2);
+  });
+
+  describe('grantPurchaseLessons (G2: tenant-aware webhooks)', () => {
+    function makeService(initialSchoolId: string | null) {
+      let schoolId = initialSchoolId;
+      const tenantMock = {
+        get schoolId() {
+          return schoolId;
+        },
+        isActive: () => true,
+        setSchoolId: jest.fn((id: string | null) => {
+          schoolId = id;
+        }),
+      };
+      const svc = new LessonBalanceService(prisma as never, tenantMock as never, paymentSettings);
+      return { svc, tenantMock };
+    }
+
+    it('seeds schoolId from the payment when context has none (webhook path)', async () => {
+      prisma.payment.findUnique.mockResolvedValue({ schoolId: 'school_b', metadata: null });
+      const { svc, tenantMock } = makeService(null);
+      await svc.grantPurchaseLessons({ userId: 's1', lessons: 5, paymentId: 'pay-1' });
+      expect(tenantMock.setSchoolId).toHaveBeenCalledWith('school_b');
+    });
+
+    it('does not override an already-active tenant context', async () => {
+      prisma.payment.findUnique.mockResolvedValue({ schoolId: 'school_b', metadata: null });
+      const { svc, tenantMock } = makeService('school_a');
+      await svc.grantPurchaseLessons({ userId: 's1', lessons: 5, paymentId: 'pay-1' });
+      expect(tenantMock.setSchoolId).not.toHaveBeenCalled();
+    });
+
+    it('no-ops for non-positive lessons', async () => {
+      const { svc, tenantMock } = makeService(null);
+      await svc.grantPurchaseLessons({ userId: 's1', lessons: 0, paymentId: 'pay-1' });
+      expect(tenantMock.setSchoolId).not.toHaveBeenCalled();
+      expect(prisma.payment.findUnique).not.toHaveBeenCalled();
+    });
   });
 });

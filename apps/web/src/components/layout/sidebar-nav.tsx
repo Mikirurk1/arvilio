@@ -10,6 +10,7 @@ import {
   FolderOpen,
   LayoutDashboard,
   MessageCircle,
+  Receipt,
   Settings,
   ShieldCheck,
   Target,
@@ -70,6 +71,7 @@ export const navSections = [
     items: [
       { href: '/payment', label: 'Payment', icon: 'payment' },
       { href: '/finance', label: 'Finance', icon: 'finance' },
+      { href: '/billing', label: 'Subscription', icon: 'billing' },
       { href: '/profile', label: 'Profile & Settings', icon: 'profile' },
     ] as NavItem[],
   },
@@ -95,6 +97,7 @@ export const navIcons: Record<string, NavIconComponent> = {
   staff: UserCog,
   payment: CreditCard,
   finance: Wallet,
+  billing: Receipt,
   admin: ShieldCheck,
   system: Settings,
   profile: User,

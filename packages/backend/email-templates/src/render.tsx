@@ -7,6 +7,8 @@ import { StreakAlertEmail } from './templates/streak-alert';
 import { TeacherMessageEmail } from './templates/teacher-message';
 import { WeeklyReportEmail } from './templates/weekly-report';
 import { WelcomeAccountEmail } from './templates/welcome-account';
+import { SchoolInvitationEmail } from './templates/school-invitation';
+import { EmailVerificationEmail } from './templates/email-verification';
 import type {
   EmailTemplateId,
   EmailTemplatePropsMap,
@@ -22,6 +24,8 @@ function subjectFor<T extends EmailTemplateId>(
       return 'Welcome to SoEnglish';
     case 'password-reset':
       return 'Reset your SoEnglish password';
+    case 'email-verification':
+      return 'Confirm your SoEnglish email address';
     case 'lesson-reminder':
       return `Reminder: ${(props as EmailTemplatePropsMap['lesson-reminder']).lessonTitle} starts in 30 minutes`;
     case 'streak-alert':
@@ -32,6 +36,8 @@ function subjectFor<T extends EmailTemplateId>(
       return `Word of the day: ${(props as EmailTemplatePropsMap['new-vocabulary']).word}`;
     case 'teacher-message':
       return `Message from ${(props as EmailTemplatePropsMap['teacher-message']).teacherName}`;
+    case 'school-invitation':
+      return `You're invited to join ${(props as EmailTemplatePropsMap['school-invitation']).schoolName}`;
     default:
       return 'SoEnglish';
   }
@@ -46,6 +52,8 @@ function elementFor<T extends EmailTemplateId>(
       return <WelcomeAccountEmail {...(props as EmailTemplatePropsMap['welcome-account'])} />;
     case 'password-reset':
       return <PasswordResetEmail {...(props as EmailTemplatePropsMap['password-reset'])} />;
+    case 'email-verification':
+      return <EmailVerificationEmail {...(props as EmailTemplatePropsMap['email-verification'])} />;
     case 'lesson-reminder':
       return <LessonReminderEmail {...(props as EmailTemplatePropsMap['lesson-reminder'])} />;
     case 'streak-alert':
@@ -56,6 +64,8 @@ function elementFor<T extends EmailTemplateId>(
       return <NewVocabularyEmail {...(props as EmailTemplatePropsMap['new-vocabulary'])} />;
     case 'teacher-message':
       return <TeacherMessageEmail {...(props as EmailTemplatePropsMap['teacher-message'])} />;
+    case 'school-invitation':
+      return <SchoolInvitationEmail {...(props as EmailTemplatePropsMap['school-invitation'])} />;
     default: {
       const _exhaustive: never = templateId;
       throw new Error(`Unknown email template: ${_exhaustive}`);

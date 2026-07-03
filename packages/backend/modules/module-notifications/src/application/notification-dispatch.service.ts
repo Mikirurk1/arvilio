@@ -15,6 +15,8 @@ export type DispatchNotificationInput = {
   emailTemplate: EmailTemplateId;
   emailVars: Record<string, string>;
   telegramHtml: string;
+  /** School name used as the email sender display prefix (G39). */
+  schoolName?: string | null;
 };
 
 @Injectable()
@@ -33,6 +35,7 @@ export class NotificationDispatchService {
         input.email,
         input.emailTemplate,
         input.emailVars,
+        input.schoolName ?? null,
       );
       if (sent) {
         await this.delivery.recordSent(input.userId, input.kind, input.dedupeKey, 'email');

@@ -4,6 +4,8 @@ import uiStyles from './ui.module.scss';
 
 export type SettingsToggleRowProps = {
   label: ReactNode;
+  /** Accessible label for the toggle button — required when `label` is not a plain string. */
+  'aria-label'?: string;
   description?: ReactNode;
   checked: boolean;
   onChange: (value: boolean) => void;
@@ -19,6 +21,7 @@ export type SettingsToggleRowProps = {
 
 export function SettingsToggleRow({
   label,
+  'aria-label': ariaLabel,
   description,
   checked,
   onChange,
@@ -52,7 +55,7 @@ export function SettingsToggleRow({
           .filter(Boolean)
           .join(' ')}
         aria-pressed={checked}
-        aria-label={typeof label === 'string' ? label : undefined}
+        aria-label={ariaLabel ?? (typeof label === 'string' ? label : undefined)}
         disabled={disabled}
         onClick={() => onChange(!checked)}
       >

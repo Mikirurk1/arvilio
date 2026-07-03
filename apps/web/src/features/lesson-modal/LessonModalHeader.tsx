@@ -40,7 +40,7 @@ export function LessonModalHeader({
         <span className={`${styles.modalBadge} ${isStudent ? styles.modalBadgeInfo : styles.modalBadgePrimary}`}>
           {isStudent ? 'Lesson details' : mode === 'create' ? 'Create lesson' : 'Edit lesson'}
         </span>
-        <div className={styles.modalTitle}>
+        <div id="lesson-modal-title" className={styles.modalTitle}>
           {isStudent ? 'Lesson' : mode === 'create' ? text.titleCreate : text.titleEdit}
         </div>
         <div className={styles.modalSubtitle}>

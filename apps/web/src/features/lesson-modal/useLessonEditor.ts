@@ -486,5 +486,6 @@ export function useLessonEditor(options: UseLessonEditorOptions = {}) {
     handleDeleteSeries,
     handleDeleteLesson,
     recurrenceAllowed,
+    saving,
   };
 }

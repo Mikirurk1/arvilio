@@ -5,11 +5,24 @@ updated: 2026-05-27
 
 # Billing & lesson payments
 
+## Subscription plans & entitlements (Phase 5, Layer B)
+
+Distinct from the per-student lesson billing below (Layer A). `SchoolSubscription.plan` (string) keys a **code-defined** catalog `PLAN_CATALOG` (`@be/billing/shared/subscription-plans`): `TRIAL` / `STARTER` / `PRO`, each with `maxActiveStudents` (null = unlimited), `storageQuotaBytes`, and feature flags (`customDomain`, `aiAssist`, `recordings`). `planFor(plan)` falls back to `TRIAL`.
+
+`EntitlementsService` (`@be/billing`) resolves + enforces:
+- `resolveForSchool(schoolId)` → entitlements.
+- `getStorageUsage(schoolId)` → used/quota/remaining/percent/over (reads `School.storageUsedBytes`).
+- `assertCanUpload(schoolId, bytes)` → throws `PayloadTooLargeException` if over quota (the "no infinite uploads" rule; caller surfaces the upgrade prompt — never auto-deletes).
+- `canAddActiveStudent(schoolId)` → seat-cap check (ACTIVE student memberships).
+
+`StorageAccountingService.add(schoolId, ±bytes)` (atomic, clamps ≥0) maintains `School.storageUsedBytes`. **Materials uploads are wired:** create → `assertCanUpload` + increment (compression delta reconciled), delete → decrement. Upstream modules import the leaf barrel `@be/billing/entitlements` (no `BillingModule`) to avoid the auth↔billing barrel cycle. **Usage meter:** `EntitlementsService.getSummary` + `GET /api/billing/entitlements` (school-scoped, AuthGuard) → plan, seats (max/active/remaining), feature flags, storage usage. **Layer-B (school→platform subscriptions, Phase 5):** `PlatformSubscriptionService` on the platform's own Stripe account (env `STRIPE_PLATFORM_SECRET_KEY`/`STRIPE_PLATFORM_WEBHOOK_SECRET`, prices `STRIPE_PRICE_STARTER`/`STRIPE_PRICE_PRO`). `createCheckout(schoolId, plan)` → Stripe customer + subscription Checkout Session; webhook `applySubscriptionEvent` drives `SchoolSubscription.status`/`plan` + `School.status` (checkout.completed→ACTIVE/trial→paid; invoice.payment_failed→PAST_DUE/dunning grace; subscription.deleted→CANCELED/SUSPENDED). Routes: `POST /api/platform-billing/stripe/webhook` (public, signature-verified) + `POST /api/billing/subscription/checkout` (admin). **UI:** `apps/web/app/billing` (admin-only "Subscription" page) — current plan, storage + seats meters (`GET /api/billing/entitlements`), Starter/Pro picker → checkout → Stripe redirect. **Dunning:** `TrialLifecycleService.suspendOverdueSubscriptions` (daily cron) suspends ACTIVE schools `PAST_DUE` > `DUNNING_GRACE_DAYS` (7) — completes payment-fail → grace → suspend. **Plan resolution (grandfathering):** `resolveForSchool` = paid plan if set; else `School.status==='TRIAL'`→TRIAL; else legacy ACTIVE-no-subscription → grandfathered PRO/unlimited (live `school_default` never capped). **Seat enforcement:** `createUserAsAdmin` creates the user's `SchoolMembership` and blocks a new STUDENT past `canAddActiveStudent` (403). **Storage enforcement wired:** materials (create+compression+delete), lessons (create-only — attachments not deleted), speaking (`audioSizeBytes`; create + net-delta on re-record). **Chat excluded** — ephemeral attachments (TTL + hourly purge) don't count toward the persistent quota. **Feature-gating:** `EntitlementsService.hasFeature`/`assertFeature` + `@RequiresFeature(feature)` + `FeatureGuard` (`@be/auth`, after AuthGuard, 403); UI hides gated features via the entitlements endpoint. Remaining: proration/Tax/invoices/promo-discounts; apply the guard at concrete feature sites as built.
+
 ## Platform settings (super-admin)
 
 `/system` → **Payments** tab. GraphQL: `paymentSettings`, `updatePaymentSettings`.
 
 - `enabledPaymentMethods`: `manual_invoice` | `stripe` | `liqpay` | `wayforpay` | `lemonsqueezy` | `paddle` | `monopay` | `paypal`
+- **Platform-wide allowlist (ADR-009, Phase 4D):** `PlatformSettings.allowedPaymentMethods` is a *separate* platform-operator-controlled gate (distinct from the school-level `enabledPaymentMethods` above). Managed in the platform console (`apps/platform` → Settings; REST `GET`/`PUT /api/platform/payment-methods`, `@be/platform-admin` `PlatformPaymentMethodsService`, audited `platform.payment_methods.update`). **Empty = no restriction.** When non-empty, `PaymentSettingsService.updatePaymentSettings` rejects (400) enabling any method outside it. This is the platform→school guardrail; the per-school/per-student allowlists below are downstream of it.
 - `paymentConfig` JSON: `defaultPricePerLessonMinor`, `allowedCurrencies`, `defaultCurrency`, `minPackageLessons` (default 3), packages (`lessons` + `label`), `manualInvoiceMethods[]`, `groupLessons` (`enabled`, default billing for new [[entities/student-group|learning groups]]), plus per-provider config blocks for Stripe / LiqPay / WayForPay / Lemon Squeezy / Paddle / MonoPay / PayPal
 - Staff (non–super-admin) read flag via GraphQL `schoolGroupLessonsSettings` (no payment secrets)
 - Provider config blocks are mode-aware:

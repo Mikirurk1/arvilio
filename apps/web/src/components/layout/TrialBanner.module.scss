@@ -1,0 +1,16 @@
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 7px 16px;
+  background: var(--green-light, #e6f6ec);
+  color: var(--ink, #1a2b33);
+  font-size: var(--fs-14, 0.875rem);
+  text-align: center;
+
+  &[data-ended='true'] {
+    background: var(--accent-warning, #b45309);
+    color: #fff;
+  }
+}

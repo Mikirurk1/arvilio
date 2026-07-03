@@ -4,7 +4,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '@be/prisma';
+import { PrismaService, TenantPrismaService } from '@be/prisma';
+import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import type {
   CreateSpeakingTopicRequestDto,
   SpeakingTopicCardDto,
@@ -17,7 +18,14 @@ export class SpeakingTopicsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly access: SpeakingAccessService,
+    private readonly tenant: TenantContextService,
+    private readonly tenantPrisma: TenantPrismaService,
   ) {}
+
+  /** Tenant-scoped client: SpeakingTopic/SpeakingSubmission are auto-filtered by school. */
+  private get db() {
+    return this.tenantPrisma.client;
+  }
 
   async create(actorId: string, body: CreateSpeakingTopicRequestDto): Promise<SpeakingTopicCardDto> {
     const title = body.title.trim();
@@ -52,8 +60,9 @@ export class SpeakingTopicsService {
         throw new BadRequestException('studentId must refer to a student user');
       }
 
-      const topic = await this.prisma.speakingTopic.create({
+      const topic = await this.db.speakingTopic.create({
         data: {
+          schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
           title,
           prompt,
           ownerId: actorId,
@@ -74,8 +83,9 @@ export class SpeakingTopicsService {
     }
 
     if (actor.role === 'STUDENT') {
-      const topic = await this.prisma.speakingTopic.create({
+      const topic = await this.db.speakingTopic.create({
         data: {
+          schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
           title,
           prompt,
           ownerId: actorId,
@@ -95,8 +105,9 @@ export class SpeakingTopicsService {
       return mapTopicCard(topic, assignment, null);
     }
 
-    const topic = await this.prisma.speakingTopic.create({
+    const topic = await this.db.speakingTopic.create({
       data: {
+        schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
         title,
         prompt,
         ownerId: actorId,
@@ -107,14 +118,14 @@ export class SpeakingTopicsService {
   }
 
   async delete(actorId: string, topicId: string): Promise<boolean> {
-    const topic = await this.prisma.speakingTopic.findUnique({
+    const topic = await this.db.speakingTopic.findUnique({
       where: { id: topicId },
       include: { assignments: { select: { studentId: true } } },
     });
     if (!topic) throw new NotFoundException('Speaking topic not found');
 
     if (topic.ownerId === actorId) {
-      await this.prisma.speakingTopic.delete({ where: { id: topicId } });
+      await this.db.speakingTopic.delete({ where: { id: topicId } });
       return true;
     }
 
@@ -123,7 +134,7 @@ export class SpeakingTopicsService {
       select: { role: true },
     });
     if (actor?.role === 'ADMIN' || actor?.role === 'SUPER_ADMIN') {
-      await this.prisma.speakingTopic.delete({ where: { id: topicId } });
+      await this.db.speakingTopic.delete({ where: { id: topicId } });
       return true;
     }
     if (actor?.role === 'TEACHER') {
@@ -133,7 +144,7 @@ export class SpeakingTopicsService {
           select: { teacherId: true },
         });
         if (student?.teacherId === actorId) {
-          await this.prisma.speakingTopic.delete({ where: { id: topicId } });
+          await this.db.speakingTopic.delete({ where: { id: topicId } });
           return true;
         }
       }
@@ -152,7 +163,7 @@ export class SpeakingTopicsService {
       return this.listForStudent(userId, userId);
     }
 
-    const ownedTopics = await this.prisma.speakingTopic.findMany({
+    const ownedTopics = await this.db.speakingTopic.findMany({
       where: { ownerId: userId },
       include: {
         assignments: { where: { studentId: userId } },
@@ -172,7 +183,7 @@ export class SpeakingTopicsService {
   async listForStudent(viewerId: string, studentId: string): Promise<SpeakingTopicCardDto[]> {
     await this.access.assertCanViewStudent(viewerId, studentId);
 
-    const assignments = await this.prisma.speakingTopicAssignment.findMany({
+    const assignments = await this.db.speakingTopicAssignment.findMany({
       where: { studentId },
       include: { topic: true },
       orderBy: { createdAt: 'desc' },
@@ -187,9 +198,9 @@ export class SpeakingTopicsService {
   }
 
   private async loadLatestSubmissions(studentId: string, topicIds: string[]) {
-    if (topicIds.length === 0) return new Map<string, Awaited<ReturnType<typeof this.prisma.speakingSubmission.findFirst>>>();
+    if (topicIds.length === 0) return new Map<string, Awaited<ReturnType<typeof this.db.speakingSubmission.findFirst>>>();
 
-    const rows = await this.prisma.speakingSubmission.findMany({
+    const rows = await this.db.speakingSubmission.findMany({
       where: { studentId, topicId: { in: topicIds } },
       orderBy: { submittedAt: 'desc' },
     });

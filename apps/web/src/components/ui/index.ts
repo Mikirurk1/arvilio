@@ -35,3 +35,6 @@ export { EmptyStateCard, type EmptyStateCardProps } from './EmptyStateCard';
 export { ActionRow, type ActionRowProps } from './ActionRow';
 export { SettingsToggleRow, type SettingsToggleRowProps } from './SettingsToggleRow';
 export { UserAvatar, type UserAvatarProps, type UserAvatarSize } from './UserAvatar';
+export { UpgradePrompt, isStorageQuotaError, isFeatureBlockedError } from './UpgradePrompt';
+export { EntitlementsWidget } from './EntitlementsWidget';
+export { CookieConsentBanner } from './CookieConsentBanner';

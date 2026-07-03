@@ -21,7 +21,11 @@ function resolveApiBase(): string {
 const API_BASE_URL = resolveApiBase();
 
 export class ApiError extends Error {
-  constructor(public readonly status: number, message: string) {
+  constructor(
+    public readonly status: number,
+    message: string,
+    public readonly featureBlocked?: string,
+  ) {
     super(message);
   }
 }
@@ -51,13 +55,17 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   if (!response.ok) {
     let message = `API request failed for ${path}: ${response.status}`;
+    let featureBlocked: string | undefined;
     try {
       const text = await response.text();
       if (text) {
         try {
-          const parsed = JSON.parse(text) as { message?: string | string[] };
+          const parsed = JSON.parse(text) as { message?: string | string[]; featureBlocked?: string };
           if (parsed?.message) {
             message = Array.isArray(parsed.message) ? parsed.message.join(', ') : parsed.message;
+          }
+          if (parsed?.featureBlocked) {
+            featureBlocked = parsed.featureBlocked;
           }
         } catch {
           message = text;
@@ -66,7 +74,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     } catch {
       // ignore parse errors
     }
-    throw new ApiError(response.status, message);
+    throw new ApiError(response.status, message, featureBlocked);
   }
 
   if (response.status === 204) return undefined as T;

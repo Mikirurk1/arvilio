@@ -1,5 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { PrismaModule } from '@be/prisma';
+import { BillingModule } from '@be/billing';
 import { VocabularyModule } from '@be/vocabulary';
 import { MaterialsAccessService } from './application/materials-access.service';
 import { MaterialAttachmentService } from './application/material-attachment.service';
@@ -12,7 +13,7 @@ import { LibraryFileAnnotationsService } from './application/library-file-annota
 import { LibraryFileCaptionService } from './application/library-file-caption.service';
 
 @Module({
-  imports: [PrismaModule, forwardRef(() => VocabularyModule)],
+  imports: [PrismaModule, BillingModule, forwardRef(() => VocabularyModule)],
   controllers: [MaterialFilesController, MaterialAnnotationsController],
   providers: [
     MaterialsAccessService,

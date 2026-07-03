@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { PrismaService } from '@be/prisma';
+import { PrismaService, TenantPrismaService } from '@be/prisma';
 import { dedupeById } from '../domain/quiz-generator.logic';
 import {
   cardWordInclude,
@@ -14,7 +14,15 @@ import {
 
 @Injectable()
 export class QuizRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tenantPrisma: TenantPrismaService,
+  ) {}
+
+  /** Tenant-scoped client: StudentWordCard/QuizAttempt reads are auto-filtered by school. */
+  private get db() {
+    return this.tenantPrisma.client;
+  }
 
   async findNativeLanguageId(userId: string): Promise<string | null> {
     const user = await this.prisma.user.findUnique({
@@ -41,7 +49,7 @@ export class QuizRepository {
     }
 
     if (source === 'lesson') {
-      const cards = await this.prisma.studentWordCard.findMany({
+      const cards = await this.db.studentWordCard.findMany({
         where: { userId: studentId, lessonId, ...statusFilter },
         include: cardWordInclude,
         orderBy: { firstSeenAt: 'desc' },
@@ -51,12 +59,12 @@ export class QuizRepository {
 
     if (source === 'mixed') {
       const [lessonCards, allCards] = await Promise.all([
-        this.prisma.studentWordCard.findMany({
+        this.db.studentWordCard.findMany({
           where: { userId: studentId, lessonId, ...statusFilter },
           include: cardWordInclude,
           orderBy: { firstSeenAt: 'desc' },
         }),
-        this.prisma.studentWordCard.findMany({
+        this.db.studentWordCard.findMany({
           where: { userId: studentId, ...statusFilter },
           include: cardWordInclude,
           orderBy: { firstSeenAt: 'desc' },
@@ -76,7 +84,7 @@ export class QuizRepository {
       ];
     }
 
-    const cards = await this.prisma.studentWordCard.findMany({
+    const cards = await this.db.studentWordCard.findMany({
       where: { userId: studentId, ...statusFilter },
       include: cardWordInclude,
       orderBy: { firstSeenAt: 'desc' },
@@ -89,7 +97,7 @@ export class QuizRepository {
     studentId: string,
     nativeLanguageId: string | null,
   ): Promise<WordRow[]> {
-    const cards = await this.prisma.studentWordCard.findMany({
+    const cards = await this.db.studentWordCard.findMany({
       where: { userId: studentId },
       include: cardWordInclude,
     });
@@ -115,7 +123,7 @@ export class QuizRepository {
     const finishedAttempts =
       quizIds.length === 0
         ? []
-        : await this.prisma.quizAttempt.findMany({
+        : await this.db.quizAttempt.findMany({
             where: { studentId: userId, quizId: { in: quizIds }, finishedAt: { not: null } },
             orderBy: { finishedAt: 'desc' },
           });
@@ -151,7 +159,7 @@ export class QuizRepository {
 
   async latestAttemptsByQuizIds(studentId: string, quizIds: string[]) {
     if (quizIds.length === 0) return new Map<string, never>();
-    const finishedAttempts = await this.prisma.quizAttempt.findMany({
+    const finishedAttempts = await this.db.quizAttempt.findMany({
       where: { studentId, quizId: { in: quizIds }, finishedAt: { not: null } },
       orderBy: { finishedAt: 'desc' },
     });

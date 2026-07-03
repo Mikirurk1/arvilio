@@ -149,6 +149,11 @@
     opacity: 0.6;
     cursor: not-allowed;
   }
+
+  &[aria-invalid='true'] {
+    border-color: var(--accent-danger);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-danger) 15%, transparent);
+  }
 }
 
 textarea.fieldControl {

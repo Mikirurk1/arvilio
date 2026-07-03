@@ -382,8 +382,8 @@ function envLiveKit() {
       process.env['LIVEKIT_URL']?.trim() ||
       process.env['LIVEKIT_WS_URL']?.trim() ||
       'ws://localhost:7880',
-    apiKey: process.env['LIVEKIT_API_KEY']?.trim() || 'devkey',
-    apiSecret: process.env['LIVEKIT_API_SECRET']?.trim() || 'devsecret',
+    apiKey: process.env['LIVEKIT_API_KEY']?.trim() || null,
+    apiSecret: process.env['LIVEKIT_API_SECRET']?.trim() || null,
   };
 }
 

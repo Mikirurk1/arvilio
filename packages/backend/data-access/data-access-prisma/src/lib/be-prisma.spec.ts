@@ -7,6 +7,7 @@ jest.mock('@prisma/client', () => ({
   PrismaClient: class MockPrismaClient {
     $connect = mockConnect;
     $disconnect = mockDisconnect;
+    $extends = jest.fn(() => ({}));
   },
 }));
 
@@ -21,6 +22,7 @@ jest.mock('@prisma/adapter-pg', () => {
 });
 
 import { PrismaPg } from '@prisma/adapter-pg';
+import { TenantModule } from '@be/tenant';
 import { PrismaModule, PrismaService } from './be-prisma';
 
 const PrismaPgMock = PrismaPg as jest.MockedClass<typeof PrismaPg>;
@@ -64,7 +66,7 @@ describe('PrismaService', () => {
 
   it('PrismaModule registers PrismaService', async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [PrismaModule],
+      imports: [TenantModule, PrismaModule],
     }).compile();
     const service = moduleRef.get(PrismaService);
     expect(service).toBeInstanceOf(PrismaService);

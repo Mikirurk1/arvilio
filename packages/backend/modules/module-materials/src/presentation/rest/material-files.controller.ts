@@ -15,9 +15,9 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
+import { memoryStorage, type FileFilterCallback } from 'multer';
 import type { Request, Response } from 'express';
-import { AuthGuard, CurrentUser } from '@be/auth';
+import { AuthGuard, CurrentUser, FeatureGuard, RequiresFeature } from '@be/auth';
 import {
   MATERIAL_ATTACHMENT_MAX_BYTES,
   MaterialAttachmentService,
@@ -26,6 +26,33 @@ import { MaterialsAccessService } from '../../application/materials-access.servi
 import { parseMaterialCompressLevel } from '../../application/material-compress-level';
 import { LibraryFileCaptionService } from '../../application/library-file-caption.service';
 import { parseBytesRangeHeader } from '../../application/material-byte-range.util';
+
+const ALLOWED_MIME_PREFIXES = ['image/', 'audio/', 'video/'];
+const ALLOWED_MIME_EXACT = new Set([
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+]);
+
+function materialFileFilter(
+  _req: Express.Request,
+  file: Express.Multer.File,
+  cb: FileFilterCallback,
+): void {
+  const mime = file.mimetype.toLowerCase();
+  const allowed =
+    ALLOWED_MIME_PREFIXES.some((p) => mime.startsWith(p)) ||
+    ALLOWED_MIME_EXACT.has(mime);
+  if (allowed) {
+    cb(null, true);
+  } else {
+    cb(new BadRequestException(`File type '${file.mimetype}' is not allowed`));
+  }
+}
 
 type UploadedMaterialFile = {
   buffer: Buffer;
@@ -48,6 +75,7 @@ export class MaterialFilesController {
     FileInterceptor('file', {
       storage: memoryStorage(),
       limits: { fileSize: MATERIAL_ATTACHMENT_MAX_BYTES },
+      fileFilter: materialFileFilter,
     }),
   )
   async upload(
@@ -91,6 +119,8 @@ export class MaterialFilesController {
   }
 
   @Post(':attachmentId/captions/generate')
+  @RequiresFeature('aiAssist')
+  @UseGuards(FeatureGuard)
   async generateCaptions(
     @CurrentUser() userId: string,
     @Param('attachmentId') attachmentId: string,
@@ -113,6 +143,8 @@ export class MaterialFilesController {
     }
 
     try {
+      const signedUrl = await this.attachments.getSignedDownloadUrl(meta.previewStorageKey);
+      if (signedUrl) { res.redirect(302, signedUrl); return; }
       const stream = await this.attachments.openReadStream(meta.previewStorageKey);
       res.setHeader('Content-Type', 'image/jpeg');
       res.setHeader(
@@ -125,6 +157,8 @@ export class MaterialFilesController {
       // Preview may not exist yet — generate on demand for book PDFs.
       await this.attachments.ensurePdfTitlePagePreview(attachmentId);
       meta = await this.attachments.assertPreviewDownloadable(attachmentId);
+      const signedUrl = await this.attachments.getSignedDownloadUrl(meta.previewStorageKey);
+      if (signedUrl) { res.redirect(302, signedUrl); return; }
       const stream = await this.attachments.openReadStream(meta.previewStorageKey);
       res.setHeader('Content-Type', 'image/jpeg');
       res.setHeader(
@@ -149,6 +183,11 @@ export class MaterialFilesController {
       throw new ForbiddenException();
     }
 
+    // In S3 mode: redirect to pre-signed URL (S3 handles Range natively).
+    const signedUrl = await this.attachments.getSignedDownloadUrl(meta.storageKey);
+    if (signedUrl) { res.redirect(302, signedUrl); return; }
+
+    // Local mode: stream from disk with range support.
     const fileSize = await this.attachments.getFileSizeBytes(meta.storageKey);
     const range = parseBytesRangeHeader(req.headers.range, fileSize);
 

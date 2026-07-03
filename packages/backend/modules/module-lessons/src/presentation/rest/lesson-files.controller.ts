@@ -10,7 +10,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { PrismaService } from '@be/prisma';
+import { TenantPrismaService } from '@be/prisma';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import type { Response } from 'express';
@@ -31,12 +31,13 @@ type UploadedLessonFile = {
 @UseGuards(AuthGuard)
 export class LessonFilesController {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly tenantPrisma: TenantPrismaService,
     private readonly attachments: LessonAttachmentService,
   ) {}
 
   private async assertLessonAccess(lessonId: string, userId: string): Promise<void> {
-    const lesson = await this.prisma.scheduledLesson.findUnique({
+    // Tenant-scoped: a lesson from another school resolves to null → ForbiddenException.
+    const lesson = await this.tenantPrisma.client.scheduledLesson.findUnique({
       where: { id: lessonId },
       select: { teacherId: true, studentId: true },
     });
@@ -84,6 +85,8 @@ export class LessonFilesController {
     }
     await this.assertLessonAccess(lessonId, userId);
     const meta = await this.attachments.assertDownloadable(attachmentId, lessonId);
+    const signedUrl = await this.attachments.getSignedDownloadUrl(meta.storageKey);
+    if (signedUrl) { res.redirect(302, signedUrl); return; }
     const stream = await this.attachments.openReadStream(meta.storageKey);
     res.setHeader('Content-Type', meta.mimeType);
     res.setHeader(

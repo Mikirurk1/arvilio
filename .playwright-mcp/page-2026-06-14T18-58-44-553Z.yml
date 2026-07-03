@@ -1,0 +1,610 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to main content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=e4]:
+      - link "SoEnglish — go to dashboard" [ref=e6] [cursor=pointer]:
+        - /url: /dashboard
+        - img [ref=e8]
+        - generic [ref=e10]:
+          - generic [ref=e11]: SoEnglish
+          - generic [ref=e12]: English Platform
+      - search [ref=e15]:
+        - img [ref=e16]
+        - searchbox "Search" [ref=e19]
+        - generic: ⌘K
+      - generic [ref=e20]:
+        - button "Create lesson" [ref=e21] [cursor=pointer]
+        - 'link "My: 0 today · 0 left" [ref=e22] [cursor=pointer]':
+          - /url: /lessons
+          - img [ref=e23]
+          - generic [ref=e26]: "My: 0 today"
+          - generic [ref=e27]: · 0 left
+        - link [ref=e28] [cursor=pointer]:
+          - /url: /profile
+    - generic [ref=e29]:
+      - complementary [ref=e30]:
+        - navigation "Main navigation" [ref=e31]:
+          - generic [ref=e32]:
+            - generic [ref=e33]: Learn
+            - link "Dashboard" [ref=e35] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e38]
+              - generic [ref=e43]: Dashboard
+            - link "Lessons" [ref=e45] [cursor=pointer]:
+              - /url: /lessons
+              - img [ref=e48]
+              - generic [ref=e50]: Lessons
+            - link "Practice 1" [ref=e52] [cursor=pointer]:
+              - /url: /practice
+              - img [ref=e55]
+              - generic [ref=e59]: Practice
+              - generic [ref=e60]: "1"
+            - link "Materials" [ref=e62] [cursor=pointer]:
+              - /url: /materials
+              - img [ref=e65]
+              - generic [ref=e67]: Materials
+          - generic [ref=e68]:
+            - generic [ref=e69]: Schedule
+            - link "Calendar" [ref=e71] [cursor=pointer]:
+              - /url: /calendar
+              - img [ref=e74]
+              - generic [ref=e76]: Calendar
+          - generic [ref=e77]:
+            - generic [ref=e78]: Connect
+            - link "Chat" [ref=e80] [cursor=pointer]:
+              - /url: /chat
+              - img [ref=e83]
+              - generic [ref=e85]: Chat
+            - link "Students" [ref=e87] [cursor=pointer]:
+              - /url: /students
+              - img [ref=e90]
+              - generic [ref=e95]: Students
+            - link "Staff" [ref=e97] [cursor=pointer]:
+              - /url: /staff
+              - img [ref=e100]
+              - generic [ref=e112]: Staff
+          - generic [ref=e113]:
+            - generic [ref=e114]: Account
+            - link "Finance" [ref=e116] [cursor=pointer]:
+              - /url: /finance
+              - img [ref=e119]
+              - generic [ref=e122]: Finance
+            - link "Profile & Settings" [ref=e124] [cursor=pointer]:
+              - /url: /profile
+              - img [ref=e127]
+              - generic [ref=e130]: Profile & Settings
+          - generic [ref=e131]:
+            - generic [ref=e132]: Platform
+            - link "Admin" [ref=e134] [cursor=pointer]:
+              - /url: /admin
+              - img [ref=e137]
+              - generic [ref=e140]: Admin
+            - link "System" [ref=e142] [cursor=pointer]:
+              - /url: /system
+              - img [ref=e145]
+              - generic [ref=e148]: System
+        - button "Collapse sidebar" [expanded] [ref=e150] [cursor=pointer]:
+          - img [ref=e151]
+      - main [ref=e154]:
+        - generic [ref=e158]:
+          - generic [ref=e159]:
+            - generic [ref=e160]:
+              - generic [ref=e161]:
+                - link "Back to practice" [ref=e163] [cursor=pointer]:
+                  - /url: /practice
+                  - img [ref=e164]
+                - heading "Vocabulary" [level=1] [ref=e166]
+              - radiogroup "Vocabulary mode" [ref=e168]:
+                - radio "List" [checked] [ref=e169] [cursor=pointer]:
+                  - img [ref=e171]
+                  - text: List
+                - radio "Flashcards" [ref=e173] [cursor=pointer]:
+                  - img [ref=e175]
+                  - text: Flashcards
+                - radio "Play" [ref=e178] [cursor=pointer]:
+                  - img [ref=e180]
+                  - text: Play
+            - paragraph [ref=e182]: 23 words · list, flashcards, or practice quiz
+          - group "Filter words by status" [ref=e183]:
+            - generic [ref=e184] [cursor=pointer]:
+              - generic [ref=e185]: Total
+              - generic [ref=e186]: "23"
+            - generic [ref=e187] [cursor=pointer]:
+              - generic [ref=e188]: New
+              - generic [ref=e189]: "1"
+            - generic [ref=e190] [cursor=pointer]:
+              - generic [ref=e191]: Repeated
+              - generic [ref=e192]: "19"
+            - generic [ref=e193] [cursor=pointer]:
+              - generic [ref=e194]: Review
+              - generic [ref=e195]: "0"
+            - generic [ref=e196] [cursor=pointer]:
+              - generic [ref=e197]: Learned
+              - generic [ref=e198]: "3"
+          - generic [ref=e199]:
+            - generic [ref=e200]:
+              - textbox "Search words..." [ref=e201]
+              - button "All lessons" [ref=e204] [cursor=pointer]:
+                - generic [ref=e205]: All lessons
+                - img [ref=e207]
+            - radiogroup "Part of speech" [ref=e209]:
+              - radio "All" [checked] [ref=e210] [cursor=pointer]
+              - radio "Adjective" [ref=e211] [cursor=pointer]
+              - radio "Adverb" [ref=e212] [cursor=pointer]
+              - radio "Interjection" [ref=e213] [cursor=pointer]
+              - radio "Noun" [ref=e214] [cursor=pointer]
+              - radio "Phrase" [ref=e215] [cursor=pointer]
+              - radio "Preposition" [ref=e216] [cursor=pointer]
+              - radio "Prepositional phrase" [ref=e217] [cursor=pointer]
+              - radio "Verb" [ref=e218] [cursor=pointer]
+          - generic [ref=e219]:
+            - generic [ref=e221]:
+              - textbox "Add a word or phrase (English), e.g. touch base" [ref=e222]
+              - button "Add word" [disabled] [ref=e223]
+            - generic [ref=e224]:
+              - generic [ref=e225]:
+                - generic [ref=e227]: pull out
+                - generic [ref=e228]:
+                  - button "All information" [ref=e229] [cursor=pointer]:
+                    - img [ref=e230]
+                  - button "Remove word" [ref=e232] [cursor=pointer]:
+                    - img [ref=e233]
+                  - generic [ref=e236]: New
+              - generic [ref=e237]: verb
+              - generic [ref=e238]: pull out
+              - generic [ref=e239]: "Used other than figuratively or idiomatically: see pull,‎ out."
+              - generic [ref=e240]: "\"I need to pull the splinter out of my hand.\""
+              - generic [ref=e241]:
+                - button "New" [ref=e242] [cursor=pointer]
+                - button "Repeated" [ref=e243] [cursor=pointer]
+                - button "Review" [ref=e244] [cursor=pointer]
+                - button "Learned" [ref=e245] [cursor=pointer]
+            - generic [ref=e246]:
+              - generic [ref=e247]:
+                - generic [ref=e249]: On the same page
+                - generic [ref=e250]:
+                  - button "All information" [ref=e251] [cursor=pointer]:
+                    - img [ref=e252]
+                  - button "Remove word" [ref=e254] [cursor=pointer]:
+                    - img [ref=e255]
+                  - generic [ref=e258]: Repeated
+              - generic [ref=e259]: prepositional phrase
+              - generic [ref=e260]: On the same page
+              - generic [ref=e261]: In broad agreement or sharing a common general understanding or knowledge (common in office environments).
+              - generic [ref=e262]: "\"I want to make sure we're all on the same page with the game plan for the Acme account.\""
+              - generic [ref=e263]:
+                - button "New" [ref=e264] [cursor=pointer]
+                - button "Repeated" [ref=e265] [cursor=pointer]
+                - button "Review" [ref=e266] [cursor=pointer]
+                - button "Learned" [ref=e267] [cursor=pointer]
+            - generic [ref=e268]:
+              - generic [ref=e269]:
+                - generic [ref=e271]: At the end of the day
+                - generic [ref=e272]:
+                  - button "All information" [ref=e273] [cursor=pointer]:
+                    - img [ref=e274]
+                  - button "Remove word" [ref=e276] [cursor=pointer]:
+                    - img [ref=e277]
+                  - generic [ref=e280]: Repeated
+              - generic [ref=e281]: prepositional phrase
+              - generic [ref=e282]: At the end of the day
+              - generic [ref=e283]: In summary; ultimately.
+              - generic [ref=e284]:
+                - button "New" [ref=e285] [cursor=pointer]
+                - button "Repeated" [ref=e286] [cursor=pointer]
+                - button "Review" [ref=e287] [cursor=pointer]
+                - button "Learned" [ref=e288] [cursor=pointer]
+            - generic [ref=e289]:
+              - generic [ref=e290]:
+                - generic [ref=e292]: so far so good
+                - generic [ref=e293]:
+                  - button "All information" [ref=e294] [cursor=pointer]:
+                    - img [ref=e295]
+                  - button "Remove word" [ref=e297] [cursor=pointer]:
+                    - img [ref=e298]
+                  - generic [ref=e301]: Repeated
+              - generic [ref=e302]: phrase
+              - generic [ref=e303]: so far so good
+              - generic [ref=e304]: Up to this point, all is OK.
+              - generic [ref=e305]: "\"Well, you've packed your bags for the holiday, bought your tickets, reserved the hotel and put the dog in kennels. So far so good; now let's get to Minorca.\""
+              - generic [ref=e306]:
+                - button "New" [ref=e307] [cursor=pointer]
+                - button "Repeated" [ref=e308] [cursor=pointer]
+                - button "Review" [ref=e309] [cursor=pointer]
+                - button "Learned" [ref=e310] [cursor=pointer]
+            - generic [ref=e311]:
+              - generic [ref=e312]:
+                - generic [ref=e313]:
+                  - generic [ref=e314]: Fair enough
+                  - button "Play pronunciation" [ref=e316] [cursor=pointer]:
+                    - img [ref=e317]
+                - generic [ref=e321]:
+                  - button "All information" [ref=e322] [cursor=pointer]:
+                    - img [ref=e323]
+                  - button "Remove word" [ref=e325] [cursor=pointer]:
+                    - img [ref=e326]
+                  - generic [ref=e329]: Repeated
+              - generic [ref=e330]: interjection
+              - generic [ref=e331]: Fair enough
+              - generic [ref=e332]: An expression used to concede a point; denotes that, upon consideration, something is correct or reasonable; an expression of acknowledgment or understanding.
+              - generic [ref=e333]: "\"You can play the exercises pretty well on piano, fair enough, but can you play the movement expressively?\""
+              - generic [ref=e334]:
+                - button "New" [ref=e335] [cursor=pointer]
+                - button "Repeated" [ref=e336] [cursor=pointer]
+                - button "Review" [ref=e337] [cursor=pointer]
+                - button "Learned" [ref=e338] [cursor=pointer]
+            - generic [ref=e339]:
+              - generic [ref=e340]:
+                - generic [ref=e341]:
+                  - generic [ref=e342]: search
+                  - generic [ref=e343]:
+                    - generic [ref=e344]: /sɝt͡ʃ/
+                    - button "Play pronunciation" [ref=e345] [cursor=pointer]:
+                      - img [ref=e346]
+                - generic [ref=e350]:
+                  - button "All information" [ref=e351] [cursor=pointer]:
+                    - img [ref=e352]
+                  - button "Remove word" [ref=e354] [cursor=pointer]:
+                    - img [ref=e355]
+                  - generic [ref=e358]: Repeated
+              - generic [ref=e359]: noun · verb
+              - generic [ref=e360]: search
+              - generic [ref=e361]: An attempt to find something.
+              - generic [ref=e362]: "\"With only five minutes until we were meant to leave, the search for the keys started in earnest.\""
+              - generic [ref=e363]:
+                - button "New" [ref=e364] [cursor=pointer]
+                - button "Repeated" [ref=e365] [cursor=pointer]
+                - button "Review" [ref=e366] [cursor=pointer]
+                - button "Learned" [ref=e367] [cursor=pointer]
+            - generic [ref=e368]:
+              - generic [ref=e369]:
+                - generic [ref=e370]:
+                  - generic [ref=e371]: dictionary
+                  - generic [ref=e372]:
+                    - generic [ref=e373]: /ˈdɪkʃ(ə)n(ə)ɹi/
+                    - button "Play pronunciation" [ref=e374] [cursor=pointer]:
+                      - img [ref=e375]
+                - generic [ref=e379]:
+                  - button "All information" [ref=e380] [cursor=pointer]:
+                    - img [ref=e381]
+                  - button "Remove word" [ref=e383] [cursor=pointer]:
+                    - img [ref=e384]
+                  - generic [ref=e387]: Repeated
+              - generic [ref=e388]: noun · verb
+              - generic [ref=e389]: dictionary
+              - generic [ref=e390]: A reference work with a list of words from one or more languages, normally ordered alphabetically, explaining each word's meaning, and sometimes containing information on its etymology, pronunciation, usage, translations, and other data.
+              - generic [ref=e391]:
+                - button "New" [ref=e392] [cursor=pointer]
+                - button "Repeated" [ref=e393] [cursor=pointer]
+                - button "Review" [ref=e394] [cursor=pointer]
+                - button "Learned" [ref=e395] [cursor=pointer]
+            - generic [ref=e396]:
+              - generic [ref=e397]:
+                - generic [ref=e398]:
+                  - generic [ref=e399]: Related
+                  - generic [ref=e400]:
+                    - generic [ref=e401]: /ɹɪˈleɪtɪd/
+                    - button "Play pronunciation" [ref=e402] [cursor=pointer]:
+                      - img [ref=e403]
+                - generic [ref=e407]:
+                  - button "All information" [ref=e408] [cursor=pointer]:
+                    - img [ref=e409]
+                  - button "Remove word" [ref=e411] [cursor=pointer]:
+                    - img [ref=e412]
+                  - generic [ref=e415]: Repeated
+              - generic [ref=e416]: verb · adjective
+              - generic [ref=e417]: Related
+              - generic [ref=e418]: To tell in a descriptive way.
+              - generic [ref=e419]: "\"Please relate the circumstances of your journey here today.\""
+              - generic [ref=e420]:
+                - button "New" [ref=e421] [cursor=pointer]
+                - button "Repeated" [ref=e422] [cursor=pointer]
+                - button "Review" [ref=e423] [cursor=pointer]
+                - button "Learned" [ref=e424] [cursor=pointer]
+            - generic [ref=e425]:
+              - generic [ref=e426]:
+                - generic [ref=e427]:
+                  - generic [ref=e428]: total
+                  - generic [ref=e430]: /ˈtəʊ.təl/
+                - generic [ref=e431]:
+                  - button "All information" [ref=e432] [cursor=pointer]:
+                    - img [ref=e433]
+                  - button "Remove word" [ref=e435] [cursor=pointer]:
+                    - img [ref=e436]
+                  - generic [ref=e439]: Repeated
+              - generic [ref=e440]: noun · verb · adjective
+              - generic [ref=e441]: total
+              - generic [ref=e442]: An amount obtained by the addition of smaller amounts.
+              - generic [ref=e443]: "\"A total of £145 was raised by the bring-and-buy stall.\""
+              - generic [ref=e444]:
+                - button "New" [ref=e445] [cursor=pointer]
+                - button "Repeated" [ref=e446] [cursor=pointer]
+                - button "Review" [ref=e447] [cursor=pointer]
+                - button "Learned" [ref=e448] [cursor=pointer]
+            - generic [ref=e449]:
+              - generic [ref=e450]:
+                - generic [ref=e452]: work in
+                - generic [ref=e453]:
+                  - button "All information" [ref=e454] [cursor=pointer]:
+                    - img [ref=e455]
+                  - button "Remove word" [ref=e457] [cursor=pointer]:
+                    - img [ref=e458]
+                  - generic [ref=e461]: Learned
+              - generic [ref=e462]: verb
+              - generic [ref=e463]: work in
+              - generic [ref=e464]: To find time or space for, amid other things.
+              - generic [ref=e465]: "\"It'll be a tight schedule, but we can work you in.\""
+              - generic [ref=e466]:
+                - button "New" [ref=e467] [cursor=pointer]
+                - button "Repeated" [ref=e468] [cursor=pointer]
+                - button "Review" [ref=e469] [cursor=pointer]
+                - button "Learned" [ref=e470] [cursor=pointer]
+            - generic [ref=e471]:
+              - generic [ref=e472]:
+                - generic [ref=e474]: look for
+                - generic [ref=e475]:
+                  - button "All information" [ref=e476] [cursor=pointer]:
+                    - img [ref=e477]
+                  - button "Remove word" [ref=e479] [cursor=pointer]:
+                    - img [ref=e480]
+                  - generic [ref=e483]: Learned
+              - generic [ref=e484]: verb
+              - generic [ref=e485]: look for
+              - generic [ref=e486]: To search for; to seek.
+              - generic [ref=e487]: "\"He spent his life looking for the truth.\""
+              - generic [ref=e488]:
+                - button "New" [ref=e489] [cursor=pointer]
+                - button "Repeated" [ref=e490] [cursor=pointer]
+                - button "Review" [ref=e491] [cursor=pointer]
+                - button "Learned" [ref=e492] [cursor=pointer]
+            - generic [ref=e493]:
+              - generic [ref=e494]:
+                - generic [ref=e495]:
+                  - generic [ref=e496]: involve
+                  - generic [ref=e497]:
+                    - generic [ref=e498]: /ɪnˈvɒlv/
+                    - button "Play pronunciation" [ref=e499] [cursor=pointer]:
+                      - img [ref=e500]
+                - generic [ref=e504]:
+                  - button "All information" [ref=e505] [cursor=pointer]:
+                    - img [ref=e506]
+                  - button "Remove word" [ref=e508] [cursor=pointer]:
+                    - img [ref=e509]
+                  - generic [ref=e512]: Learned
+              - generic [ref=e513]: verb
+              - generic [ref=e514]: involve
+              - generic [ref=e515]: To roll or fold up; to wind round; to entwine.
+              - generic [ref=e516]:
+                - button "New" [ref=e517] [cursor=pointer]
+                - button "Repeated" [ref=e518] [cursor=pointer]
+                - button "Review" [ref=e519] [cursor=pointer]
+                - button "Learned" [ref=e520] [cursor=pointer]
+            - generic [ref=e521]:
+              - generic [ref=e522]:
+                - generic [ref=e523]:
+                  - generic [ref=e524]: advertise
+                  - generic [ref=e526]: /ˈadvə(ɹ)taɪz/
+                - generic [ref=e527]:
+                  - button "All information" [ref=e528] [cursor=pointer]:
+                    - img [ref=e529]
+                  - button "Remove word" [ref=e531] [cursor=pointer]:
+                    - img [ref=e532]
+                  - generic [ref=e535]: Repeated
+              - generic [ref=e536]: verb
+              - generic [ref=e537]: advertise
+              - generic [ref=e538]: To give (especially public) notice of (something); to announce publicly.
+              - generic [ref=e539]:
+                - button "New" [ref=e540] [cursor=pointer]
+                - button "Repeated" [ref=e541] [cursor=pointer]
+                - button "Review" [ref=e542] [cursor=pointer]
+                - button "Learned" [ref=e543] [cursor=pointer]
+            - generic [ref=e544]:
+              - generic [ref=e545]:
+                - generic [ref=e546]:
+                  - generic [ref=e547]: expect
+                  - generic [ref=e548]:
+                    - generic [ref=e549]: /ɛkˈspɛkt/
+                    - button "Play pronunciation" [ref=e550] [cursor=pointer]:
+                      - img [ref=e551]
+                - generic [ref=e555]:
+                  - button "All information" [ref=e556] [cursor=pointer]:
+                    - img [ref=e557]
+                  - button "Remove word" [ref=e559] [cursor=pointer]:
+                    - img [ref=e560]
+                  - generic [ref=e563]: Repeated
+              - generic [ref=e564]: verb
+              - generic [ref=e565]: expect
+              - generic [ref=e566]: To predict or believe that something will happen
+              - generic [ref=e567]: "\"He never expected to be discovered.\""
+              - generic [ref=e568]:
+                - button "New" [ref=e569] [cursor=pointer]
+                - button "Repeated" [ref=e570] [cursor=pointer]
+                - button "Review" [ref=e571] [cursor=pointer]
+                - button "Learned" [ref=e572] [cursor=pointer]
+            - generic [ref=e573]:
+              - generic [ref=e574]:
+                - generic [ref=e575]:
+                  - generic [ref=e576]: variety
+                  - generic [ref=e577]:
+                    - generic [ref=e578]: /vəˈɹaɪ.ɪ.ti/
+                    - button "Play pronunciation" [ref=e579] [cursor=pointer]:
+                      - img [ref=e580]
+                - generic [ref=e584]:
+                  - button "All information" [ref=e585] [cursor=pointer]:
+                    - img [ref=e586]
+                  - button "Remove word" [ref=e588] [cursor=pointer]:
+                    - img [ref=e589]
+                  - generic [ref=e592]: Repeated
+              - generic [ref=e593]: noun
+              - generic [ref=e594]: variety
+              - generic [ref=e595]: The quality of being varied; diversity.
+              - generic [ref=e596]: "\"Variety is the spice of life.\""
+              - generic [ref=e597]:
+                - button "New" [ref=e598] [cursor=pointer]
+                - button "Repeated" [ref=e599] [cursor=pointer]
+                - button "Review" [ref=e600] [cursor=pointer]
+                - button "Learned" [ref=e601] [cursor=pointer]
+            - generic [ref=e602]:
+              - generic [ref=e603]:
+                - generic [ref=e605]: enquiries
+                - generic [ref=e606]:
+                  - button "All information" [ref=e607] [cursor=pointer]:
+                    - img [ref=e608]
+                  - button "Remove word" [ref=e610] [cursor=pointer]:
+                    - img [ref=e611]
+                  - generic [ref=e614]: Repeated
+              - generic [ref=e615]: noun
+              - generic [ref=e616]: enquiries
+              - generic [ref=e617]: A question.
+              - generic [ref=e618]:
+                - button "New" [ref=e619] [cursor=pointer]
+                - button "Repeated" [ref=e620] [cursor=pointer]
+                - button "Review" [ref=e621] [cursor=pointer]
+                - button "Learned" [ref=e622] [cursor=pointer]
+            - generic [ref=e623]:
+              - generic [ref=e624]:
+                - generic [ref=e625]:
+                  - generic [ref=e626]: representative
+                  - generic [ref=e627]:
+                    - generic [ref=e628]: /ˌɹɛpɹɪˈzɛnt(ət)ɪv/
+                    - button "Play pronunciation" [ref=e629] [cursor=pointer]:
+                      - img [ref=e630]
+                - generic [ref=e634]:
+                  - button "All information" [ref=e635] [cursor=pointer]:
+                    - img [ref=e636]
+                  - button "Remove word" [ref=e638] [cursor=pointer]:
+                    - img [ref=e639]
+                  - generic [ref=e642]: Repeated
+              - generic [ref=e643]: noun · adjective
+              - generic [ref=e644]: representative
+              - generic [ref=e645]: A delegate.
+              - generic [ref=e646]:
+                - button "New" [ref=e647] [cursor=pointer]
+                - button "Repeated" [ref=e648] [cursor=pointer]
+                - button "Review" [ref=e649] [cursor=pointer]
+                - button "Learned" [ref=e650] [cursor=pointer]
+            - generic [ref=e651]:
+              - generic [ref=e652]:
+                - generic [ref=e653]:
+                  - generic [ref=e654]: advise
+                  - generic [ref=e655]:
+                    - generic [ref=e656]: /ədˈvaɪz/
+                    - button "Play pronunciation" [ref=e657] [cursor=pointer]:
+                      - img [ref=e658]
+                - generic [ref=e662]:
+                  - button "All information" [ref=e663] [cursor=pointer]:
+                    - img [ref=e664]
+                  - button "Remove word" [ref=e666] [cursor=pointer]:
+                    - img [ref=e667]
+                  - generic [ref=e670]: Repeated
+              - generic [ref=e671]: verb
+              - generic [ref=e672]: advise
+              - generic [ref=e673]: To give advice to; to offer an opinion to, as worthy or expedient to be followed.
+              - generic [ref=e674]: "\"The dentist advised me to brush three times a day.\""
+              - generic [ref=e675]:
+                - button "New" [ref=e676] [cursor=pointer]
+                - button "Repeated" [ref=e677] [cursor=pointer]
+                - button "Review" [ref=e678] [cursor=pointer]
+                - button "Learned" [ref=e679] [cursor=pointer]
+            - generic [ref=e680]:
+              - generic [ref=e681]:
+                - generic [ref=e682]:
+                  - generic [ref=e683]: advice
+                  - generic [ref=e684]:
+                    - generic [ref=e685]: /ædˈvaɪs/
+                    - button "Play pronunciation" [ref=e686] [cursor=pointer]:
+                      - img [ref=e687]
+                - generic [ref=e691]:
+                  - button "All information" [ref=e692] [cursor=pointer]:
+                    - img [ref=e693]
+                  - button "Remove word" [ref=e695] [cursor=pointer]:
+                    - img [ref=e696]
+                  - generic [ref=e699]: Repeated
+              - generic [ref=e700]: noun
+              - generic [ref=e701]: advice
+              - generic [ref=e702]: An opinion offered in an effort to be helpful.
+              - generic [ref=e703]: "\"She was offered various piece of advice on what to do with her new-found wealth.\""
+              - generic [ref=e704]:
+                - button "New" [ref=e705] [cursor=pointer]
+                - button "Repeated" [ref=e706] [cursor=pointer]
+                - button "Review" [ref=e707] [cursor=pointer]
+                - button "Learned" [ref=e708] [cursor=pointer]
+            - generic [ref=e709]:
+              - generic [ref=e710]:
+                - generic [ref=e712]: advising
+                - generic [ref=e713]:
+                  - button "All information" [ref=e714] [cursor=pointer]:
+                    - img [ref=e715]
+                  - button "Remove word" [ref=e717] [cursor=pointer]:
+                    - img [ref=e718]
+                  - generic [ref=e721]: Repeated
+              - generic [ref=e722]: noun · verb
+              - generic [ref=e723]: advising
+              - generic [ref=e724]: Advice.
+              - generic [ref=e725]:
+                - button "New" [ref=e726] [cursor=pointer]
+                - button "Repeated" [ref=e727] [cursor=pointer]
+                - button "Review" [ref=e728] [cursor=pointer]
+                - button "Learned" [ref=e729] [cursor=pointer]
+            - generic [ref=e730]:
+              - generic [ref=e731]:
+                - generic [ref=e732]:
+                  - generic [ref=e733]: collocation
+                  - generic [ref=e735]: /ˌkɒ.lə.ˈkeɪ.ʃən/
+                - generic [ref=e736]:
+                  - button "All information" [ref=e737] [cursor=pointer]:
+                    - img [ref=e738]
+                  - button "Remove word" [ref=e740] [cursor=pointer]:
+                    - img [ref=e741]
+                  - generic [ref=e744]: Repeated
+              - generic [ref=e745]: noun
+              - generic [ref=e746]: collocation
+              - generic [ref=e747]: The grouping or juxtaposition of things, especially words or sounds.
+              - generic [ref=e748]:
+                - button "New" [ref=e749] [cursor=pointer]
+                - button "Repeated" [ref=e750] [cursor=pointer]
+                - button "Review" [ref=e751] [cursor=pointer]
+                - button "Learned" [ref=e752] [cursor=pointer]
+            - generic [ref=e753]:
+              - generic [ref=e754]:
+                - generic [ref=e755]:
+                  - generic [ref=e756]: throughout
+                  - generic [ref=e757]:
+                    - generic [ref=e758]: "[θɹuːˈʷaʊt]"
+                    - button "Play pronunciation" [ref=e759] [cursor=pointer]:
+                      - img [ref=e760]
+                - generic [ref=e764]:
+                  - button "All information" [ref=e765] [cursor=pointer]:
+                    - img [ref=e766]
+                  - button "Remove word" [ref=e768] [cursor=pointer]:
+                    - img [ref=e769]
+                  - generic [ref=e772]: Repeated
+              - generic [ref=e773]: adverb · preposition
+              - generic [ref=e774]: throughout
+              - generic [ref=e775]: Completely through, right the way through.
+              - generic [ref=e776]:
+                - button "New" [ref=e777] [cursor=pointer]
+                - button "Repeated" [ref=e778] [cursor=pointer]
+                - button "Review" [ref=e779] [cursor=pointer]
+                - button "Learned" [ref=e780] [cursor=pointer]
+            - generic [ref=e781]:
+              - generic [ref=e782]:
+                - generic [ref=e784]: obligations
+                - generic [ref=e785]:
+                  - button "All information" [ref=e786] [cursor=pointer]:
+                    - img [ref=e787]
+                  - button "Remove word" [ref=e789] [cursor=pointer]:
+                    - img [ref=e790]
+                  - generic [ref=e793]: Repeated
+              - generic [ref=e794]: noun
+              - generic [ref=e795]: obligations
+              - generic [ref=e796]: The act of binding oneself by a social, legal, or moral tie to someone.
+              - generic [ref=e797]:
+                - button "New" [ref=e798] [cursor=pointer]
+                - button "Repeated" [ref=e799] [cursor=pointer]
+                - button "Review" [ref=e800] [cursor=pointer]
+                - button "Learned" [ref=e801] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=e807] [cursor=pointer]:
+    - img [ref=e808]
+  - alert [ref=e811]

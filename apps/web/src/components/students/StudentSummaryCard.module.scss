@@ -109,7 +109,7 @@
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--accent-primary) 28%, var(--border-hairline));
   background: color-mix(in srgb, var(--accent-primary) 9%, var(--card));
-  color: var(--accent-primary-strong, var(--accent-primary));
+  color: var(--green-dark); /* --accent-primary fails WCAG AA on the tinted background */
   text-decoration: none;
   display: inline-flex;
   align-items: center;

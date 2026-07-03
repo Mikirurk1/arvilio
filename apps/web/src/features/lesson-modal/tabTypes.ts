@@ -13,6 +13,8 @@ export type FileMeta = { name: string; previewUrl: string | null; file?: File };
 
 export type LessonModalText = typeof import('../../mocks').siteContent.calendar.lessonModal;
 
+export type LessonFieldErrors = Partial<Record<'title' | 'date' | 'startTime' | 'studentId' | 'teacherId', string>>;
+
 export type SetupTabProps = {
   text: LessonModalText;
   canEdit: boolean;
@@ -22,5 +24,6 @@ export type SetupTabProps = {
   teachers: LessonPartyOption[];
   weekDayOptions: Array<{ value: number; label: string }>;
   recurrenceAllowed?: boolean;
+  fieldErrors?: LessonFieldErrors;
   onChange: (next: LessonFormState) => void;
 };

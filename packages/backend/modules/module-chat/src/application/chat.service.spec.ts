@@ -6,7 +6,8 @@ import {
 } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { ChatConversationType } from '@prisma/client';
-import { PrismaService } from '@be/prisma';
+import { PrismaService, TenantPrismaService } from '@be/prisma';
+import { TenantContextService } from '@be/tenant';
 import { ChatAttachmentService } from './chat-attachment.service';
 import { ChatService } from './chat.service';
 import { ChatVisibilityService } from './chat-visibility.service';
@@ -45,6 +46,9 @@ describe('ChatService', () => {
         { provide: PrismaService, useValue: prisma },
         { provide: ChatVisibilityService, useValue: visibility },
         { provide: ChatAttachmentService, useValue: attachments },
+        { provide: TenantContextService, useValue: { schoolId: 'school_default' } },
+        // ChatConversation ops + $transaction go through the tenant-scoped client.
+        { provide: TenantPrismaService, useValue: { client: prisma } },
       ],
     }).compile();
     service = moduleRef.get(ChatService);

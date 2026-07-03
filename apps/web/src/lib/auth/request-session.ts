@@ -38,6 +38,8 @@ export const REQUEST_AUTH_HEADERS = {
   authScope: 'x-soenglish-auth-scope',
   availableScopes: 'x-soenglish-available-scopes',
   tenantKey: 'x-soenglish-tenant-key',
+  impersonation: 'x-soenglish-impersonation',
+  trial: 'x-soenglish-trial',
 } as const;
 
 export type RequestAuthState = {
@@ -47,6 +49,8 @@ export type RequestAuthState = {
   scope: WebRequestSessionDto['scope'];
   availableScopes: WebRequestSessionDto['availableScopes'];
   tenantKey: string | null;
+  impersonation: WebRequestSessionDto['impersonation'];
+  trial: WebRequestSessionDto['trial'];
   user: AuthUserDto | null;
 };
 
@@ -103,6 +107,9 @@ async function fetchWebRequestSessionUncached(
   if (cookie) forwardedHeaders.set('cookie', cookie);
   if (userAgent) forwardedHeaders.set('user-agent', userAgent);
   if (forwardedFor) forwardedHeaders.set('x-forwarded-for', forwardedFor);
+  // Forward E2E throttle-bypass header so the proxy's own API call isn't rate-limited.
+  const skipThrottle = requestHeaders.get('x-e2e-skip-throttle');
+  if (skipThrottle) forwardedHeaders.set('x-e2e-skip-throttle', skipThrottle);
 
   const response = await fetch(resolveWebSessionUrl(requestUrl), {
     method: 'GET',
@@ -127,6 +134,19 @@ export function applyRequestAuthHeaders(
   headers.set(REQUEST_AUTH_HEADERS.authScope, state.scope);
   headers.set(REQUEST_AUTH_HEADERS.availableScopes, state.availableScopes.join(','));
   headers.set(REQUEST_AUTH_HEADERS.tenantKey, state.tenantKey ?? '');
+  if (state.impersonation) {
+    headers.set(
+      REQUEST_AUTH_HEADERS.impersonation,
+      `${state.impersonation.actorUserId}:${state.impersonation.schoolId}`,
+    );
+  } else {
+    headers.delete(REQUEST_AUTH_HEADERS.impersonation);
+  }
+  if (state.trial) {
+    headers.set(REQUEST_AUTH_HEADERS.trial, `${state.trial.trialEndsAt}|${state.trial.daysLeft}`);
+  } else {
+    headers.delete(REQUEST_AUTH_HEADERS.trial);
+  }
   if (state.user) {
     headers.set(REQUEST_AUTH_HEADERS.authUser, encodeUserHeader(state.user));
   } else {
@@ -161,8 +181,27 @@ export function readRequestAuthState(headers: Headers): RequestAuthState {
     scope,
     availableScopes,
     tenantKey: headers.get(REQUEST_AUTH_HEADERS.tenantKey) || null,
+    impersonation: parseImpersonationHeader(headers.get(REQUEST_AUTH_HEADERS.impersonation)),
+    trial: parseTrialHeader(headers.get(REQUEST_AUTH_HEADERS.trial)),
     user,
   };
+}
+
+function parseImpersonationHeader(value: string | null): RequestAuthState['impersonation'] {
+  if (!value) return null;
+  const sep = value.indexOf(':');
+  if (sep <= 0 || sep === value.length - 1) return null;
+  return { actorUserId: value.slice(0, sep), schoolId: value.slice(sep + 1) };
+}
+
+function parseTrialHeader(value: string | null): RequestAuthState['trial'] {
+  if (!value) return null;
+  const sep = value.lastIndexOf('|');
+  if (sep <= 0) return null;
+  const trialEndsAt = value.slice(0, sep);
+  const daysLeft = Number(value.slice(sep + 1));
+  if (!Number.isFinite(daysLeft)) return null;
+  return { trialEndsAt, daysLeft };
 }
 
 export function serializeAuthBootstrap(user: AuthUserDto | null): string {

@@ -17,6 +17,7 @@ import type {
   UpdateMyProfileRequestDto,
   UpdateStaffUserProfileRequestDto,
 } from '@pkg/types';
+import { normalizeLocale } from '@pkg/types';
 import { LanguagesService } from './languages.service';
 
 const TEACHING_ROLES = ['TEACHER', 'ADMIN', 'SUPER_ADMIN'] as const;
@@ -27,6 +28,7 @@ type UserProfileRow = {
   displayName: string;
   avatarUrl: string | null;
   timezone: string;
+  locale: string | null;
   proficiencyLevel: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | null;
   phone: string | null;
   telegram: string | null;
@@ -208,6 +210,12 @@ export class UsersService {
     const data: Prisma.UserUncheckedUpdateInput = {};
     if (body.displayName !== undefined) data.displayName = body.displayName.trim();
     if (body.timezone !== undefined) data.timezone = body.timezone;
+    if (body.locale !== undefined) {
+      if (body.locale !== null && !normalizeLocale(body.locale)) {
+        throw new BadRequestException(`Unsupported locale: ${body.locale}`);
+      }
+      data.locale = body.locale === null ? null : normalizeLocale(body.locale);
+    }
     if (body.avatarUrl !== undefined) data.avatarUrl = body.avatarUrl;
     if (body.proficiencyLevel !== undefined) data.proficiencyLevel = body.proficiencyLevel;
     if (body.phone !== undefined) {
@@ -404,6 +412,7 @@ export class UsersService {
       displayName: user.displayName,
       avatarUrl: user.avatarUrl,
       timezone: user.timezone,
+      locale: user.locale ?? null,
       proficiencyLevel: user.proficiencyLevel ?? null,
       phone: user.phone,
       telegram: user.telegram,

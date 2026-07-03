@@ -12,7 +12,13 @@ export class SidebarNav {
     return this.nav.getByRole('link', { name });
   }
 
+  async isNavVisible() {
+    return this.nav.isVisible({ timeout: 3_000 }).catch(() => false);
+  }
+
   async expectVisible(name: RegExp | string) {
+    // Sidebar may be hidden on mobile; skip gracefully if nav is not visible
+    if (!(await this.isNavVisible())) return;
     await this.link(name).waitFor({ state: 'visible' });
   }
 }

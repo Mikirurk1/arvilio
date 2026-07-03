@@ -5,6 +5,7 @@ import type { Request, Response } from 'express';
 import {
   ACCESS_COOKIE,
   ACCESS_TOKEN_TTL_SECONDS,
+  IMPERSONATION_TOKEN_TTL_SECONDS,
   REFRESH_COOKIE,
   REFRESH_TOKEN_TTL_SECONDS,
   generateRefreshToken,
@@ -13,6 +14,17 @@ import {
   setAuthCookies,
 } from '../shared/auth-cookies';
 import { assertAccountStatusAllowsAuth } from '../shared/auth-account-status.util';
+
+/** Impersonation claim embedded in an access token (ADR-009). `act` = operator, `sid` = school. */
+export interface ImpersonationClaim {
+  act: string;
+  sid: string;
+}
+
+export interface ImpersonationContext {
+  actorUserId: string;
+  schoolId: string;
+}
 
 const WEB_SESSION_USER_INCLUDE = {
   oauthAccounts: { select: { provider: true as const } },
@@ -135,21 +147,28 @@ export class AuthSessionService {
    */
   async resolveWebRequestSessionAuth(
     req: Pick<Request, 'headers'> & { cookies?: Record<string, string> },
-  ): Promise<{ authStrategy: 'access' | 'refresh'; user: WebSessionAuthUser } | null> {
+  ): Promise<{
+    authStrategy: 'access' | 'refresh';
+    user: WebSessionAuthUser;
+    impersonation: ImpersonationContext | null;
+  } | null> {
     const header = req.headers.authorization;
     const bearer = header?.startsWith('Bearer ') ? header.slice(7) : null;
     const access = bearer ?? req.cookies?.[ACCESS_COOKIE] ?? null;
     if (access) {
-      let payload: { sub?: string } | null = null;
+      let payload: { sub?: string; imp?: ImpersonationClaim } | null = null;
       try {
-        payload = jwt.verify(access, getJwtSecret()) as { sub?: string };
+        payload = jwt.verify(access, getJwtSecret()) as { sub?: string; imp?: ImpersonationClaim };
       } catch {
         // access expired or invalid — fall through to refresh lookup
       }
       if (payload?.sub) {
         const user = await this.loadWebSessionUser(payload.sub);
         if (!this.assertWebSessionUser(user)) return null;
-        return { authStrategy: 'access', user };
+        const impersonation = payload.imp
+          ? { actorUserId: payload.imp.act, schoolId: payload.imp.sid }
+          : null;
+        return { authStrategy: 'access', user, impersonation };
       }
     }
 
@@ -169,7 +188,42 @@ export class AuthSessionService {
 
     const user = await this.loadWebSessionUser(existing.userId);
     if (!this.assertWebSessionUser(user, { revokeRefreshTokenId: existing.id })) return null;
-    return { authStrategy: 'refresh', user };
+    // Refresh-derived sessions are never impersonation sessions: impersonation only
+    // overwrites the access cookie, leaving the operator's own refresh in place.
+    return { authStrategy: 'refresh', user, impersonation: null };
+  }
+
+  /**
+   * Mint a short-lived impersonation access token (ADR-009). Authenticates as the
+   * target school user (`sub`) while carrying the `imp` claim so the UI can render
+   * the mandatory banner and the session auto-expires back to the operator.
+   */
+  mintImpersonationAccessToken(params: {
+    targetUserId: string;
+    actorUserId: string;
+    schoolId: string;
+  }): { accessToken: string; expiresInSeconds: number } {
+    const imp: ImpersonationClaim = { act: params.actorUserId, sid: params.schoolId };
+    const accessToken = jwt.sign({ sub: params.targetUserId, imp }, getJwtSecret(), {
+      expiresIn: IMPERSONATION_TOKEN_TTL_SECONDS,
+    });
+    return { accessToken, expiresInSeconds: IMPERSONATION_TOKEN_TTL_SECONDS };
+  }
+
+  /** Read the impersonation claim from the request's access token, or null. */
+  readImpersonationClaim(
+    req: Pick<Request, 'headers'> & { cookies?: Record<string, string> },
+  ): ImpersonationContext | null {
+    const header = req.headers.authorization;
+    const bearer = header?.startsWith('Bearer ') ? header.slice(7) : null;
+    const access = bearer ?? req.cookies?.[ACCESS_COOKIE] ?? null;
+    if (!access) return null;
+    try {
+      const payload = jwt.verify(access, getJwtSecret()) as { imp?: ImpersonationClaim };
+      return payload.imp ? { actorUserId: payload.imp.act, schoolId: payload.imp.sid } : null;
+    } catch {
+      return null;
+    }
   }
 
   async rotateSessionFromRefreshToken(
@@ -239,5 +293,89 @@ export class AuthSessionService {
 
     // Another in-flight request may have rotated this refresh token already.
     return peeked.userId;
+  }
+
+  /** ADR-008: minimal status fetch for suspension check when schoolId is in the JWT. */
+  async getSchoolStatus(schoolId: string): Promise<{ status: string } | null> {
+    return this.prisma.school.findUnique({ where: { id: schoolId }, select: { status: true } });
+  }
+
+  /**
+   * Resolve the user's active tenant (ADR-006) for the request context.
+   * Single-school today → a user has one ACTIVE membership; multi-school later
+   * will choose the active one (e.g. from the JWT / host). Uses the raw client
+   * intentionally: this establishes the tenant, so it must run unscoped.
+   */
+  async resolveActiveMembership(
+    userId: string,
+    preferredSchoolId?: string,
+  ): Promise<{
+    schoolId: string;
+    role: 'STUDENT' | 'TEACHER' | 'ADMIN';
+    schoolStatus: 'TRIAL' | 'ACTIVE' | 'SUSPENDED';
+  } | null> {
+    const where = preferredSchoolId
+      ? { userId, schoolId: preferredSchoolId, status: 'ACTIVE' as const }
+      : { userId, status: 'ACTIVE' as const };
+    const membership = await this.prisma.schoolMembership.findFirst({
+      where,
+      select: { schoolId: true, role: true, school: { select: { status: true } } },
+      orderBy: { createdAt: 'asc' },
+    });
+    if (!membership) return null;
+    return {
+      schoolId: membership.schoolId,
+      role: membership.role,
+      schoolStatus: membership.school.status,
+    };
+  }
+
+  /**
+   * Trial countdown info for the user's active school (Phase 4.5.1). Returns null
+   * unless the school is on a trial with a `trialEndsAt`. `daysLeft` is clamped at 0.
+   */
+  async resolveTrialInfo(userId: string): Promise<{ trialEndsAt: string; daysLeft: number } | null> {
+    const membership = await this.prisma.schoolMembership.findFirst({
+      where: { userId, status: 'ACTIVE' },
+      select: { school: { select: { status: true, subscription: { select: { trialEndsAt: true } } } } },
+      orderBy: { createdAt: 'asc' },
+    });
+    if (!membership || membership.school.status !== 'TRIAL') return null;
+    const end = membership.school.subscription?.trialEndsAt;
+    if (!end) return null;
+    const daysLeft = Math.max(0, Math.ceil((end.getTime() - Date.now()) / (24 * 60 * 60 * 1000)));
+    return { trialEndsAt: end.toISOString(), daysLeft };
+  }
+
+  /**
+   * Resolve the user's platform-operator role (ADR-008) — the source of truth for
+   * platform-console access, separate from school membership. Raw/unscoped: it
+   * establishes the platform axis. Returns null for non-operators.
+   */
+  async resolvePlatformRole(
+    userId: string,
+  ): Promise<'PLATFORM_ADMIN' | 'PLATFORM_SUPPORT' | 'PLATFORM_BILLING' | null> {
+    const operator = await this.prisma.platformOperator.findUnique({
+      where: { userId },
+      select: { role: true },
+    });
+    return operator?.role ?? null;
+  }
+
+  /** Fetch locale preferences for locale resolution (G33). */
+  async resolveUserLocaleData(
+    userId: string,
+    schoolId: string | null,
+  ): Promise<{ userLocale: string | null; schoolLocale: string | null }> {
+    const [user, school] = await Promise.all([
+      this.prisma.user.findUnique({ where: { id: userId }, select: { locale: true } }),
+      schoolId
+        ? this.prisma.school.findUnique({ where: { id: schoolId }, select: { defaultLocale: true } })
+        : Promise.resolve(null),
+    ]);
+    return {
+      userLocale: user?.locale ?? null,
+      schoolLocale: school?.defaultLocale ?? null,
+    };
   }
 }

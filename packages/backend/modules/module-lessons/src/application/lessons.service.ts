@@ -6,7 +6,8 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { LessonBalanceService, PaymentSettingsService } from '@be/billing';
-import { PrismaService } from '@be/prisma';
+import { PrismaService, TenantPrismaService } from '@be/prisma';
+import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import type {
   CreateScheduledLessonRequestDto,
   ScheduledLessonBackendDto,
@@ -101,13 +102,26 @@ const TEACHING_ROLES = new Set(['TEACHER', 'ADMIN', 'SUPER_ADMIN']);
 export class LessonsService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly tenantPrisma: TenantPrismaService,
     private readonly googleCalendar: GoogleCalendarService,
     private readonly videoProviders: VideoMeetingProviderResolver,
     private readonly livekit: LiveKitService,
     private readonly lessonAttachments: LessonAttachmentService,
     private readonly lessonBalance: LessonBalanceService,
     private readonly paymentSettings: PaymentSettingsService,
+    private readonly tenant: TenantContextService,
   ) {}
+
+  /**
+   * Tenant-scoped Prisma client (ADR-005): reads/writes on tenant models
+   * (ScheduledLesson, ScheduledLessonParticipant, StudentWordCard, StudentGroup…)
+   * are auto-filtered/auto-stamped by the active school. Non-tenant models
+   * (User, LessonMaterial) pass through unchanged. Raw `$queryRaw`/`$transaction`
+   * stay on the base `prisma` (not covered by `$extends` — G5 seam).
+   */
+  private get db() {
+    return this.tenantPrisma.client;
+  }
 
   /**
    * Issue a LiveKit access token for the current user to join the lesson's
@@ -140,7 +154,7 @@ export class LessonsService {
     if (now > endMs + WINDOW_MS) {
       throw new BadRequestException('The lesson has already ended.');
     }
-    const actor = await this.prisma.user.findUnique({
+    const actor = await this.db.user.findUnique({
       where: { id: actorUserId },
       select: { displayName: true },
     });
@@ -160,7 +174,7 @@ export class LessonsService {
   }
 
   async fetchLesson(id: string) {
-    const existing = await this.prisma.scheduledLesson.findUnique({
+    const existing = await this.db.scheduledLesson.findUnique({
       where: { id },
       select: { teacherId: true, studentId: true },
     });
@@ -169,7 +183,7 @@ export class LessonsService {
       if (existing.studentId !== existing.teacherId) {
         await this.autoCompletePastPlannedLessons(existing.studentId);
       }
-      const extraParticipants = await this.prisma.scheduledLessonParticipant.findMany({
+      const extraParticipants = await this.db.scheduledLessonParticipant.findMany({
         where: { scheduledLessonId: id },
         select: { userId: true },
       });
@@ -179,7 +193,7 @@ export class LessonsService {
         }
       }
     }
-    return this.prisma.scheduledLesson.findUnique({
+    return this.db.scheduledLesson.findUnique({
       where: { id },
       include: lessonInclude,
     });
@@ -286,9 +300,15 @@ export class LessonsService {
 
   /** Mark past PLANNED lessons as COMPLETED (not CANCELLED). */
   private async autoCompletePastPlannedLessons(userId: string): Promise<void> {
+    // Raw SQL is needed for the timezone-aware "past" comparison. It bypasses the
+    // tenant $extends scoping (G5), so we constrain schoolId explicitly here; the
+    // follow-up updateMany also runs on the scoped client (this.db) for defence.
+    const schoolId = this.tenant.schoolId ?? DEFAULT_SCHOOL_ID;
+    // eslint-disable-next-line no-restricted-syntax -- raw SQL manually tenant-scoped (schoolId below)
     const toComplete = await this.prisma.$queryRaw<{ id: string }[]>`
       SELECT sl.id FROM "ScheduledLesson" sl
       WHERE sl.status = 'PLANNED'::"LessonStatus"
+        AND sl."schoolId" = ${schoolId}
         AND (
           sl."teacherId" = ${userId}
           OR sl."studentId" = ${userId}
@@ -305,7 +325,7 @@ export class LessonsService {
     if (toComplete.length === 0) return;
 
     const ids = toComplete.map((r) => r.id);
-    await this.prisma.scheduledLesson.updateMany({
+    await this.db.scheduledLesson.updateMany({
       where: { id: { in: ids } },
       data: { status: 'COMPLETED', credited: true },
     });
@@ -315,7 +335,7 @@ export class LessonsService {
 
   async listFor(userId: string): Promise<ScheduledLessonBackendDto[]> {
     await this.autoCompletePastPlannedLessons(userId);
-    const lessons = await this.prisma.scheduledLesson.findMany({
+    const lessons = await this.db.scheduledLesson.findMany({
       where: lessonMembershipWhere(userId),
       include: lessonInclude,
       orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
@@ -367,7 +387,7 @@ export class LessonsService {
         }
       : {};
 
-    const lessons = await this.prisma.scheduledLesson.findMany({
+    const lessons = await this.db.scheduledLesson.findMany({
       where: { AND: [membership, cursorWhere] },
       include: lessonInclude,
       orderBy: [{ date: 'desc' }, { startTime: 'desc' }, { id: 'desc' }],
@@ -395,7 +415,7 @@ export class LessonsService {
   private async resolveActorRole(
     actorUserId: string,
   ): Promise<'STUDENT' | 'TEACHER' | 'ADMIN' | 'SUPER_ADMIN' | null> {
-    const actor = await this.prisma.user.findUnique({
+    const actor = await this.db.user.findUnique({
       where: { id: actorUserId },
       select: { role: true },
     });
@@ -488,7 +508,7 @@ export class LessonsService {
       assertGroupLessonsEnabledForSchool(paymentRuntime.config);
     }
 
-    const actor = await this.prisma.user.findUnique({
+    const actor = await this.db.user.findUnique({
       where: { id: actorUserId },
       select: { role: true },
     });
@@ -501,7 +521,7 @@ export class LessonsService {
     let studentGroupId: string | null = null;
 
     if (body.studentGroupId) {
-      const group = await this.prisma.studentGroup.findUnique({
+      const group = await this.db.studentGroup.findUnique({
         where: { id: body.studentGroupId },
         include: { members: { orderBy: { sortOrder: 'asc' } } },
       });
@@ -529,7 +549,7 @@ export class LessonsService {
     const primaryStudentId = participantIds[0]!;
 
     const teacherId = body.teacherId ?? actorUserId;
-    const teacher = await this.prisma.user.findUnique({
+    const teacher = await this.db.user.findUnique({
       where: { id: teacherId },
       select: { id: true, role: true, timezone: true },
     });
@@ -537,7 +557,7 @@ export class LessonsService {
       throw new BadRequestException('Teacher not found');
     }
 
-    const students = await this.prisma.user.findMany({
+    const students = await this.db.user.findMany({
       where: { id: { in: participantIds }, role: 'STUDENT' },
       select: { id: true, role: true, teacherId: true, email: true, lessonFormat: true },
     });
@@ -567,8 +587,11 @@ export class LessonsService {
       await videoProvider.assertHostReady(teacherId);
     }
 
-    const lesson = await this.prisma.scheduledLesson.create({
+    const lesson = await this.db.scheduledLesson.create({
       data: {
+        // Tenant from the request context (seeded by the auth guard); falls back
+        // to the default school until every entry path establishes context.
+        schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
         title: body.title.trim(),
         description: body.description ?? null,
         notes: body.notes ?? null,
@@ -592,8 +615,11 @@ export class LessonsService {
         weeklyDays: body.weeklyDays ?? [],
         seriesId: body.seriesId ?? null,
         participants: {
+          // Nested writes are not auto-scoped by the tenant $extends (G5), so the
+          // participant rows must carry schoolId explicitly.
           create: participantIds.map((userId, index) => ({
             userId,
+            schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
             sortOrder: index,
             role:
               kind === 'GROUP' && billingSnapshot
@@ -611,11 +637,12 @@ export class LessonsService {
       await Promise.all(
         participantIds.flatMap((studentId) =>
           (body.linkedWordIds ?? []).map((wordId) =>
-            this.prisma.studentWordCard.upsert({
+            this.db.studentWordCard.upsert({
               where: { userId_wordId: { userId: studentId, wordId } },
               update: { lessonId: lesson.id },
               create: {
                 userId: studentId,
+                schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
                 wordId,
                 lessonId: lesson.id,
                 status: 'NEW',
@@ -685,7 +712,7 @@ export class LessonsService {
         lesson.teacherId,
       );
       if (existingUrl) {
-        await this.prisma.scheduledLesson.update({
+        await this.db.scheduledLesson.update({
           where: { id: lessonId },
           data: {
             videoMeetingUrl: existingUrl,
@@ -708,7 +735,7 @@ export class LessonsService {
         lesson.googleCalendarEventId,
       );
       if (existingUrl) {
-        await this.prisma.scheduledLesson.update({
+        await this.db.scheduledLesson.update({
           where: { id: lessonId },
           data: {
             googleMeetUrl: existingUrl,
@@ -724,7 +751,7 @@ export class LessonsService {
       }
     }
 
-    const teacher = await this.prisma.user.findUnique({ where: { id: lesson.teacherId } });
+    const teacher = await this.db.user.findUnique({ where: { id: lesson.teacherId } });
     if (!teacher) throw new BadRequestException('Teacher not found');
     const studentEmails = await this.resolveParticipantEmails(lesson);
 
@@ -753,7 +780,7 @@ export class LessonsService {
   }
 
   private async rollbackCreatedLesson(lessonId: string): Promise<void> {
-    await this.prisma.scheduledLesson
+    await this.db.scheduledLesson
       .delete({ where: { id: lessonId } })
       .catch(() => undefined);
   }
@@ -797,7 +824,7 @@ export class LessonsService {
       if (meetingUrl) data['googleMeetUrl'] = meetingUrl;
     }
 
-    await this.prisma.scheduledLesson.update({
+    await this.db.scheduledLesson.update({
       where: { id: lessonId },
       data,
     });
@@ -813,14 +840,14 @@ export class LessonsService {
       if (body.homework.text !== undefined) homeworkUpdates['homeworkText'] = body.homework.text;
       if (body.homework.files !== undefined) homeworkUpdates['homeworkFiles'] = body.homework.files;
       if (Object.keys(homeworkUpdates).length > 0) {
-        await this.prisma.scheduledLesson.update({ where: { id: lessonId }, data: homeworkUpdates });
+        await this.db.scheduledLesson.update({ where: { id: lessonId }, data: homeworkUpdates });
       }
     }
 
     if (body.studentResponse !== undefined) {
       const participantRow =
         actorUserId != null
-          ? await this.prisma.scheduledLessonParticipant.findUnique({
+          ? await this.db.scheduledLessonParticipant.findUnique({
               where: {
                 scheduledLessonId_userId: { scheduledLessonId: lessonId, userId: actorUserId },
               },
@@ -848,7 +875,7 @@ export class LessonsService {
             body.studentResponse.teacherHomeworkFeedback;
         }
         if (Object.keys(participantUpdates).length > 0) {
-          await this.prisma.scheduledLessonParticipant.update({
+          await this.db.scheduledLessonParticipant.update({
             where: {
               scheduledLessonId_userId: { scheduledLessonId: lessonId, userId: actorUserId! },
             },
@@ -875,15 +902,15 @@ export class LessonsService {
           updates['teacherHomeworkFeedback'] = body.studentResponse.teacherHomeworkFeedback;
         }
         if (Object.keys(updates).length > 0) {
-          await this.prisma.scheduledLesson.update({ where: { id: lessonId }, data: updates });
+          await this.db.scheduledLesson.update({ where: { id: lessonId }, data: updates });
         }
       }
     }
 
     if (body.materials !== undefined) {
-      await this.prisma.lessonMaterial.deleteMany({ where: { lessonId } });
+      await this.db.lessonMaterial.deleteMany({ where: { lessonId } });
       if (body.materials.length > 0) {
-        await this.prisma.lessonMaterial.createMany({
+        await this.db.lessonMaterial.createMany({
           data: body.materials.map((material, index) => ({
             lessonId,
             kind: materialKindFromDto(material.kind),
@@ -935,13 +962,13 @@ export class LessonsService {
     }
     if (body.credited !== undefined) updates['credited'] = body.credited;
 
-    await this.prisma.scheduledLesson.update({ where: { id: lessonId }, data: updates });
+    await this.db.scheduledLesson.update({ where: { id: lessonId }, data: updates });
 
     await this.applyLessonContentFields(lessonId, body, actorUserId);
 
     if (body.kind !== undefined || body.groupBilling !== undefined) {
       const kindUpdate = body.kind ? lessonKindFromDto(body.kind) : undefined;
-      await this.prisma.scheduledLesson.update({
+      await this.db.scheduledLesson.update({
         where: { id: lessonId },
         data: {
           ...(kindUpdate ? { kind: kindUpdate } : {}),
@@ -958,17 +985,18 @@ export class LessonsService {
     }
 
     if (body.linkedWordIds) {
-      await this.prisma.studentWordCard.updateMany({
+      await this.db.studentWordCard.updateMany({
         where: { lessonId, userId: lesson.studentId, wordId: { notIn: body.linkedWordIds } },
         data: { lessonId: null },
       });
       await Promise.all(
         body.linkedWordIds.map((wordId) =>
-          this.prisma.studentWordCard.upsert({
+          this.db.studentWordCard.upsert({
             where: { userId_wordId: { userId: lesson.studentId, wordId } },
             update: { lessonId },
             create: {
               userId: lesson.studentId,
+              schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
               wordId,
               lessonId,
               status: 'NEW',
@@ -1015,7 +1043,7 @@ export class LessonsService {
       lesson.participants && lesson.participants.length > 0
         ? lesson.participants.map((row) => row.userId)
         : [lesson.studentId];
-    const users = await this.prisma.user.findMany({
+    const users = await this.db.user.findMany({
       where: { id: { in: ids } },
       select: { email: true },
     });
@@ -1031,7 +1059,7 @@ export class LessonsService {
     if (unique.length < 2) {
       throw new BadRequestException('Group lessons require at least two students');
     }
-    const students = await this.prisma.user.findMany({
+    const students = await this.db.user.findMany({
       where: { id: { in: unique }, role: 'STUDENT' },
       select: { id: true },
     });
@@ -1041,10 +1069,12 @@ export class LessonsService {
 
     await this.prisma.$transaction(async (tx) => {
       await tx.scheduledLessonParticipant.deleteMany({ where: { scheduledLessonId: lessonId } });
+      const participantSchoolId = this.tenant.schoolId ?? DEFAULT_SCHOOL_ID;
       await tx.scheduledLessonParticipant.createMany({
         data: unique.map((userId, index) => ({
           scheduledLessonId: lessonId,
           userId,
+          schoolId: participantSchoolId,
           sortOrder: index,
           role:
             groupBilling?.splitMode === 'single_payer' && groupBilling.payerUserId === userId
@@ -1068,6 +1098,6 @@ export class LessonsService {
     if (lesson.googleCalendarEventId) {
       await this.googleCalendar.deleteEvent(lesson.teacherId, lesson.googleCalendarEventId);
     }
-    await this.prisma.scheduledLesson.delete({ where: { id: lessonId } });
+    await this.db.scheduledLesson.delete({ where: { id: lessonId } });
   }
 }

@@ -33,6 +33,8 @@ coverage
 playwright-report
 test-results
 /playwright/.cache
+tests/e2e/.auth
+tests/e2e/screenshots
 
 # Storybook
 storybook-static
@@ -127,3 +129,12 @@ secrets.json
 tmp
 temp
 .tmp
+
+# claude-flow / agentdb runtime state (never commit — WAL files exceed GitHub limits)
+.swarm/
+agentdb.rvf
+agentdb.rvf.lock
+**/agentdb.rvf
+**/agentdb.rvf.lock
+apps/web/data/memory/
+**/.claude-flow/

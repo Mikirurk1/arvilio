@@ -222,7 +222,7 @@ export function StatisticsDashboardCharts({
         {!isStudent ? (
           <StatisticsRosterTable
             roster={view.roster}
-            studentScope={view.studentScope}
+            studentScope={view.studentScope ?? ''}
             showAdminBillingRoster={showAdminBillingRoster}
             showTeacherLessonsRoster={showTeacherLessonsRoster}
             isProfile={isProfile}

@@ -4,7 +4,6 @@ import type { LibraryMaterialAssetDto, LibraryMaterialDto } from '@pkg/types';
 import {
   FileText,
   Link2,
-  Pencil,
   Trash2,
   Video,
   Volume2,
@@ -133,12 +132,11 @@ function MaterialCardActions({
       {onEdit ? (
         <Button
           type="button"
-          variant="ghost"
-          className={styles.actionIconBtn}
+          variant="primary"
+          className={styles.actionOpenBtn}
           onClick={() => onEdit(material)}
-          aria-label={`Edit ${material.title}`}
         >
-          <Pencil size={16} aria-hidden />
+          Open
         </Button>
       ) : null}
       {onDelete ? (

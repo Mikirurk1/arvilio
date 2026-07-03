@@ -1,11 +1,12 @@
 @use '../../styles/mixins' as *;
 
 .card {
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 
   &:hover {
-    border-color: var(--border-strong);
+    border-color: color-mix(in srgb, var(--material-accent, var(--border)) 30%, var(--border));
     box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
   }
 }
 
@@ -21,7 +22,8 @@
 
 .gridFooter {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
   margin-top: auto;
   padding-top: 4px;
 }
@@ -44,13 +46,14 @@
 }
 
 .coverWrap {
-  width: 40px;
-  height: 52px;
+  width: 56px;
+  height: 72px;
   border-radius: 8px;
   overflow: hidden;
   flex-shrink: 0;
   background: var(--material-accent-bg);
   border: 1px solid color-mix(in srgb, var(--material-accent) 12%, transparent);
+  box-shadow: 2px 2px 6px color-mix(in srgb, var(--material-accent) 10%, transparent);
 }
 
 .coverImage {
@@ -207,8 +210,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 56px;
+  height: 56px;
   border-radius: 10px;
   background: var(--material-accent-bg);
   color: var(--material-accent);
@@ -248,6 +251,17 @@
   align-items: center;
   gap: 2px;
   flex-shrink: 0;
+  width: 100%;
+}
+
+.actionOpenBtn {
+  flex: 1;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-semibold);
+  box-shadow: none;
 }
 
 .actionIconBtn {
@@ -255,6 +269,7 @@
   height: 32px;
   min-width: 32px;
   min-height: 32px;
+  flex-shrink: 0;
   padding: 0;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);

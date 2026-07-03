@@ -44,7 +44,7 @@
   border: 1px solid var(--border);
   font-size: var(--fs-11);
   font-family: var(--font-mono, ui-monospace, monospace);
-  color: var(--text-faint);
+  color: var(--text-tertiary); /* --text-faint fails WCAG AA contrast on white */
   line-height: 1.4;
   pointer-events: none;
   white-space: nowrap;

@@ -17,6 +17,7 @@ export {
 } from './platform-integration-secrets.util';
 export {
   getPlatformIntegrationRuntime,
+  invalidatePlatformIntegrationRuntime,
   refreshPlatformIntegrationRuntime,
   resetPlatformIntegrationRuntimeFromEnv,
   setPlatformIntegrationRuntime,

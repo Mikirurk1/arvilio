@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PracticeSessionKind, PracticeSessionSource } from '@prisma/client';
 import { PrismaService } from '@be/prisma';
+import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import type {
   PracticeSessionDto,
   PracticeWeekSummaryDto,
@@ -34,7 +35,10 @@ function weekRangeUtc(now = new Date()): { from: Date; to: Date } {
 
 @Injectable()
 export class PracticeSessionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tenant: TenantContextService,
+  ) {}
 
   async record(userId: string, body: RecordPracticeSessionRequestDto): Promise<PracticeSessionDto> {
     const user = await this.prisma.user.findUnique({
@@ -68,6 +72,7 @@ export class PracticeSessionsService {
     const row = await this.prisma.practiceSession.create({
       data: {
         userId,
+        schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
         kind,
         source: source ?? PracticeSessionSource.PRACTICE,
         startedAt,

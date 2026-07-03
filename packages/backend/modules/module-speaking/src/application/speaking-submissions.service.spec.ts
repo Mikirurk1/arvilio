@@ -27,7 +27,20 @@ describe('SpeakingSubmissionsService', () => {
     deleteFromDisk: jest.fn(),
   };
 
-  const service = new SpeakingSubmissionsService(prisma as never, access as never, audio as never);
+  const tenant = { schoolId: 'school_default' } as never;
+  // SpeakingTopic/SpeakingSubmission ops go through the tenant-scoped client.
+  const tenantPrisma = { client: prisma } as never;
+  const entitlements = { assertCanUpload: jest.fn() } as never;
+  const storage = { add: jest.fn() } as never;
+  const service = new SpeakingSubmissionsService(
+    prisma as never,
+    tenant,
+    access as never,
+    audio as never,
+    tenantPrisma,
+    entitlements,
+    storage,
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -115,5 +128,23 @@ describe('SpeakingSubmissionsService', () => {
     await expect(
       service.submit('teacher-1', { topicId: 'topic-1', assignmentId: 'assign-1' }),
     ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('attachAudio gates on quota and accounts the net byte delta', async () => {
+    access.assertCanAccessSubmission.mockResolvedValue({ id: 'sub-1', studentId: 'stu-1' });
+    prisma.speakingSubmission.findUnique.mockResolvedValue({ audioSizeBytes: 100 });
+    prisma.speakingSubmission.update.mockResolvedValue({});
+
+    await service.attachAudio('stu-1', 'sub-1', Buffer.alloc(250), 'audio/webm', 'r.webm');
+
+    expect(entitlements.assertCanUpload).toHaveBeenCalledWith('school_default', 250);
+    expect(prisma.speakingSubmission.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'sub-1' },
+        data: expect.objectContaining({ audioSizeBytes: 250 }),
+      }),
+    );
+    // 250 new − 100 previous = +150
+    expect(storage.add).toHaveBeenCalledWith('school_default', 150);
   });
 });

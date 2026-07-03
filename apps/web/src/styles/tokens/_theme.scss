@@ -10,7 +10,7 @@
   /* Ink navy — brand neutral (not pure black) */
   --text-primary: #1a1a2e;
   --text-secondary: #3d3d55;
-  --text-tertiary: #7a7a9a;
+  --text-tertiary: #656586; /* was #6e6e90 — darkened for WCAG AA 4.5:1 on tinted surfaces (#eff5fc, --surface) */
   --text-faint: #b4b4cc;
 
   --fill-strong: #1a1a2e;
@@ -18,7 +18,7 @@
   --fill-hero: #1a1a2e;
 
   /* Primary accent — progress, success, main CTA */
-  --green: #159970;
+  --green: #12825f;
   --green-light: #e6f5f0;
   --green-mid: #9fd4c4;
   --green-dark: #0d6b50;
@@ -28,11 +28,13 @@
 
   --blue: #3a75b5;
   --blue-light: #e8f1fa;
+  --blue-dark: #2e5f95; /* AA text on --blue-light */
   --aqua: #2d94a6;
   --aqua-light: #e5f4f7;
 
   --rose: #d95674;
   --rose-light: #fceef2;
+  --rose-dark: #b03a58; /* AA text on --rose-light */
 
   /* Premium / rare — desaturated vs legacy neon purple */
   --purple: #6b62c4;
@@ -127,9 +129,9 @@
   --accent-premium: var(--purple);
   --accent-premium-muted: var(--purple-light);
   --status-info-bg: var(--accent-info-muted);
-  --status-info-text: var(--accent-info);
+  --status-info-text: var(--blue-dark); /* --blue is only 4.2:1 on --blue-light */
   --status-success-bg: var(--accent-primary-muted);
-  --status-success-text: var(--accent-primary);
+  --status-success-text: var(--green-dark); /* --green is only 4.3:1 on --green-light */
   --status-warning-bg: var(--accent-warning-muted);
   --status-warning-text: var(--accent-warning-strong);
   --status-danger-bg: var(--accent-danger-muted);

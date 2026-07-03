@@ -34,17 +34,31 @@ export class NewVocabJob {
     const word = words[index]!;
     const definition = word.definitions[0]?.text ?? word.definition ?? 'Open the app to learn more.';
 
-    const students = await this.prisma.user.findMany({
-      where: { role: 'STUDENT', status: 'ACTIVE', notifyNewVocab: true },
-      select: { id: true, email: true, displayName: true, notifyNewVocab: true },
+    const rows = await this.prisma.schoolMembership.findMany({
+      where: {
+        role: 'STUDENT',
+        status: 'ACTIVE',
+        school: { status: { not: 'SUSPENDED' } },
+        user: { status: 'ACTIVE', notifyNewVocab: true },
+      },
+      select: {
+        school: { select: { name: true } },
+        user: { select: { id: true, email: true, displayName: true, notifyNewVocab: true } },
+      },
     });
+    const seen = new Map<string, { user: (typeof rows)[0]['user']; schoolName: string }>();
+    for (const r of rows) {
+      if (!seen.has(r.user.id)) seen.set(r.user.id, { user: r.user, schoolName: r.school.name });
+    }
+    const students = [...seen.values()];
 
     const vocabUrl = `${this.mail.appUrl()}/vocabulary`;
 
-    for (const student of students) {
+    for (const { user: student, schoolName } of students) {
       const dedupeKey = `vocab:${today}`;
 
       await this.dispatch.dispatch({
+        schoolName,
         userId: student.id,
         email: student.email,
         displayName: student.displayName,

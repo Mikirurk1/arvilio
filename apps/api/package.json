@@ -8,5 +8,9 @@
     "start": "node --env-file=../../.env ../../dist/apps/api/apps/api/src/main.js",
     "lint": "eslint .",
     "typecheck": "npm run build -w @be/email-templates && tsc -p tsconfig.app.json --noEmit"
+  },
+  "dependencies": {
+    "@sentry/nestjs": "^10.62.0",
+    "@sentry/node": "^10.62.0"
   }
 }

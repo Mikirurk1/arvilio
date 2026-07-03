@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@be/prisma';
+import { PrismaService, TenantPrismaService } from '@be/prisma';
+import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import type {
   CreateStudentWordCardRequestDto,
   CreateWordRequestDto,
@@ -55,9 +56,21 @@ type StudentCardRow = VocabularyStudentCardRow;
 export class VocabularyService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly tenantPrisma: TenantPrismaService,
+    private readonly tenant: TenantContextService,
     private readonly enrichment: WordEnrichmentService,
     private readonly translation: TranslationService,
   ) {}
+
+  /**
+   * Tenant-scoped Prisma client (ADR-005). StudentWordCard reads/updates/deletes
+   * are auto-filtered by the active school. Word/WordDefinition/User/ReviewQueue
+   * are global catalogs (not in TENANT_SCOPED_MODELS) so they pass through
+   * untouched. All entry points here run behind auth, so a tenant is in context.
+   */
+  private get db() {
+    return this.tenantPrisma.client;
+  }
 
   async lookupWord(text: string): Promise<WordLookupResultDto> {
     const trimmed = normalizeVocabularyText(text);
@@ -368,7 +381,7 @@ export class VocabularyService {
     where: Record<string, unknown>,
     take?: number,
   ): Promise<StudentCardRow[]> {
-    let cards = await this.prisma.studentWordCard.findMany({
+    let cards = await this.db.studentWordCard.findMany({
       where,
       include: { word: { include: wordInclude } },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
@@ -377,7 +390,7 @@ export class VocabularyService {
     const needsBackfill = cards.filter((c) => !this.hasNativeGloss(c.word));
     if (needsBackfill.length > 0) {
       await Promise.all(needsBackfill.map((c) => this.backfillTranslations(c.word)));
-      cards = await this.prisma.studentWordCard.findMany({
+      cards = await this.db.studentWordCard.findMany({
         where,
         include: { word: { include: wordInclude } },
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
@@ -442,12 +455,12 @@ export class VocabularyService {
       await this.assertStaffCanManageStudent(actorUserId, studentUserId);
     }
     const word = await this.findOrCreateWord({ text: body.text });
-    const existing = await this.prisma.studentWordCard.findUnique({
+    const existing = await this.db.studentWordCard.findUnique({
       where: { userId_wordId: { userId: studentUserId, wordId: word.id } },
     });
     if (existing) {
       if (body.lessonId && existing.lessonId !== body.lessonId) {
-        await this.prisma.studentWordCard.update({
+        await this.db.studentWordCard.update({
           where: { id: existing.id },
           data: { lessonId: body.lessonId },
         });
@@ -457,6 +470,7 @@ export class VocabularyService {
     const created = await this.prisma.studentWordCard.create({
       data: {
         userId: studentUserId,
+        schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
         wordId: word.id,
         lessonId: body.lessonId ?? null,
         status: statusFromDto(body.status ?? 'new'),
@@ -486,10 +500,10 @@ export class VocabularyService {
     if (actorUserId !== studentUserId) {
       await this.assertStaffCanManageStudent(actorUserId, studentUserId);
     }
-    const card = await this.prisma.studentWordCard.findUnique({ where: { id: cardId } });
+    const card = await this.db.studentWordCard.findUnique({ where: { id: cardId } });
     if (!card || card.userId !== studentUserId) throw new NotFoundException('Card not found');
     const next = statusFromDto(status);
-    const updated = await this.prisma.studentWordCard.update({
+    const updated = await this.db.studentWordCard.update({
       where: { id: cardId },
       data: {
         status: next,
@@ -517,7 +531,7 @@ export class VocabularyService {
     studentUserId: string,
     cardId: string,
   ): Promise<boolean> {
-    const card = await this.prisma.studentWordCard.findUnique({ where: { id: cardId } });
+    const card = await this.db.studentWordCard.findUnique({ where: { id: cardId } });
     if (!card || card.userId !== studentUserId) {
       throw new NotFoundException('Card not found');
     }
@@ -529,11 +543,11 @@ export class VocabularyService {
     if (actorUserId !== studentUserId) {
       await this.assertStaffCanManageStudent(actorUserId, studentUserId);
     }
-    await this.prisma.$transaction([
-      this.prisma.reviewQueue.deleteMany({
+    await this.db.$transaction([
+      this.db.reviewQueue.deleteMany({
         where: { userId: studentUserId, wordId: card.wordId },
       }),
-      this.prisma.studentWordCard.delete({ where: { id: cardId } }),
+      this.db.studentWordCard.delete({ where: { id: cardId } }),
     ]);
     return true;
   }
@@ -564,9 +578,9 @@ export class VocabularyService {
 
   async overviewFor(userId: string): Promise<VocabularyOverviewDto> {
     const [total, mastered, dueRows] = await Promise.all([
-      this.prisma.studentWordCard.count({ where: { userId } }),
-      this.prisma.studentWordCard.count({ where: { userId, status: 'LEARNED' } }),
-      this.prisma.studentWordCard.findMany({
+      this.db.studentWordCard.count({ where: { userId } }),
+      this.db.studentWordCard.count({ where: { userId, status: 'LEARNED' } }),
+      this.db.studentWordCard.findMany({
         where: { userId, OR: [{ status: 'NEW' }, { status: 'MISTAKES_WORK' }] },
         select: { id: true },
       }),

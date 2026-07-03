@@ -90,7 +90,7 @@
   font-size: var(--fs-11);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--text-faint);
+  color: var(--text-tertiary); /* --text-faint fails WCAG AA contrast on white */
   font-weight: var(--fw-semibold);
   padding: 0 10px;
   margin: 0 0 6px;

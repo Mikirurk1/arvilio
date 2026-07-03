@@ -113,6 +113,8 @@ export function HeaderSearch() {
           }}
           onFocus={() => setOpen(true)}
           aria-label="Search"
+          role="combobox"
+          aria-autocomplete="list"
           aria-expanded={open && query.trim().length > 0}
           aria-controls="header-search-results"
         />

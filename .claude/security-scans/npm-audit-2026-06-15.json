@@ -1,0 +1,1 @@
+{"date":"2026-06-15","tool":"npm audit","high":3,"moderate":11,"total":14,"fixed":["next@16.2.9","turbo@2.9.18","ws@8.21.0","fast-uri@4.0.0","brace-expansion@2.0.1"]}

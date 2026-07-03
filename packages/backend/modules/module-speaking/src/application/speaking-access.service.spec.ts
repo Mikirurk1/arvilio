@@ -8,7 +8,9 @@ describe('SpeakingAccessService', () => {
     speakingSubmission: { findUnique: jest.fn() },
   };
 
-  const service = new SpeakingAccessService(prisma as never);
+  // SpeakingTopic/SpeakingSubmission reads go through the tenant-scoped client.
+  const tenantPrisma = { client: prisma } as never;
+  const service = new SpeakingAccessService(prisma as never, tenantPrisma);
 
   beforeEach(() => {
     jest.clearAllMocks();

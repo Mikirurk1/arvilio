@@ -46,15 +46,16 @@ Implementation: [`module-auth/src/shared/auth-cookies.ts`](../../../../packages/
 
 ### Account provisioning
 
-Public self-registration is **disabled**. New users are created only by administrators (or CLI for super-admin).
+Self-registration **within an existing school is disabled** (members are admin-created). But there is **self-serve school creation** (Phase 4.5.1): anyone can create a *new* school and become its first admin.
 
 | Path | Resulting role |
 |------|----------------|
-| Admin `createAdminUser` / `POST /api/admin/users` | STUDENT (ADMIN) or student/teacher/admin (SUPER_ADMIN); optional profile fields; auto-generated password + welcome email |
+| **Self-serve `POST /api/auth/register-school`** (public) | new `School(TRIAL)` + admin `User(ADMIN)` + `SchoolMembership(ADMIN)` + `SchoolSubscription(TRIALING, +7d)`; auto-login. Web `/(auth)/signup`. No card. Code: `SchoolSignupService.registerSchool` |
+| Admin `createAdminUser` / `POST /api/admin/users` | STUDENT (ADMIN) or student/teacher/admin (SUPER_ADMIN); optional profile fields; auto-generated password + welcome email. **Creates a `SchoolMembership(role, ACTIVE)` in the current school (ADR-006)** and blocks a new STUDENT past the plan's seat cap (`EntitlementsService.canAddActiveStudent`, 403) |
 | Google OAuth | **Existing users only** — links Google to a pre-provisioned email; unknown emails redirect to `/login?error=no_account`, and non-`ACTIVE` accounts redirect with `account_paused` / `account_leaved` / `account_blocked` |
 | `npm run super-admin` CLI | **SUPER_ADMIN** only |
 
-Code: `AuthService.createUserAsAdmin`, `AuthService.upsertGoogleUser` in [`module-auth/src/application/auth.service.ts`](../../../../packages/backend/modules/module-auth/src/application/auth.service.ts).
+Code: `AuthService.createUserAsAdmin`, `AuthService.upsertGoogleUser`, `SchoolSignupService.registerSchool` in [`module-auth/src/application/`](../../../../packages/backend/modules/module-auth/src/application/).
 
 ### Session endpoints
 

@@ -37,6 +37,32 @@ describe('auth-cookies', () => {
     );
   });
 
+  it('omits cookie domain by default (host-only)', () => {
+    delete process.env.AUTH_COOKIE_DOMAIN;
+    const res = { cookie: jest.fn(), clearCookie: jest.fn() };
+    setAuthCookies(res as never, { accessToken: 'at', refreshToken: 'rt' });
+    expect(res.cookie).toHaveBeenCalledWith(
+      ACCESS_COOKIE,
+      'at',
+      expect.objectContaining({ domain: undefined }),
+    );
+  });
+
+  it('applies AUTH_COOKIE_DOMAIN for cross-subdomain SSO', () => {
+    process.env.AUTH_COOKIE_DOMAIN = '.arvilio.app';
+    try {
+      const res = { cookie: jest.fn(), clearCookie: jest.fn() };
+      setAuthCookies(res as never, { accessToken: 'at', refreshToken: 'rt' });
+      expect(res.cookie).toHaveBeenCalledWith(
+        ACCESS_COOKIE,
+        'at',
+        expect.objectContaining({ domain: '.arvilio.app' }),
+      );
+    } finally {
+      delete process.env.AUTH_COOKIE_DOMAIN;
+    }
+  });
+
   it('clearAuthCookies clears both cookies', () => {
     const res = { cookie: jest.fn(), clearCookie: jest.fn() };
     clearAuthCookies(res as never);
@@ -76,10 +102,10 @@ describe('auth-cookies', () => {
     expect(a).not.toBe(b);
   });
 
-  it('getJwtSecret falls back to dev default', () => {
+  it('getJwtSecret throws when JWT_SECRET is not set', () => {
     const prev = process.env.JWT_SECRET;
     delete process.env.JWT_SECRET;
-    expect(getJwtSecret()).toBe('soenglish-dev-secret');
+    expect(() => getJwtSecret()).toThrow('JWT_SECRET env var is required');
     process.env.JWT_SECRET = prev;
   });
 

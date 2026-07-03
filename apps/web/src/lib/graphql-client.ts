@@ -73,7 +73,15 @@ async function graphqlRequestInternal<
     let message = `GraphQL request failed: ${response.status}`;
     try {
       const text = await response.text();
-      if (text) message = text;
+      if (text) {
+        // Extract a human message — raw JSON bodies end up in user-facing error states.
+        try {
+          const body = JSON.parse(text) as { errors?: Array<{ message?: string }>; message?: string };
+          message = body.errors?.[0]?.message ?? body.message ?? message;
+        } catch {
+          message = text;
+        }
+      }
     } catch {
       // ignore
     }

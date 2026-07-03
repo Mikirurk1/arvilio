@@ -4,7 +4,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { UserRole } from '@prisma/client';
-import { PrismaService } from '@be/prisma';
+import { PrismaService, TenantPrismaService } from '@be/prisma';
+import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import type {
   PaymentCurrencyCode,
   RecordStaffPayoutRequestDto,
@@ -43,8 +44,15 @@ const STAFF_ROLES: UserRole[] = ['TEACHER', 'ADMIN', 'SUPER_ADMIN'];
 export class StaffPayrollService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly tenant: TenantContextService,
     private readonly paymentSettings: PaymentSettingsService,
+    private readonly tenantPrisma: TenantPrismaService,
   ) {}
+
+  /** Tenant-scoped client: StaffCompensationProfile/StaffPayout are auto-filtered by school (admin-only paths). */
+  private get db() {
+    return this.tenantPrisma.client;
+  }
 
   async getDefaults(): Promise<StaffPayoutDefaultsDto> {
     const row = await this.ensureSettingsRow();
@@ -64,7 +72,7 @@ export class StaffPayrollService {
 
   async getCompensationProfile(userId: string): Promise<StaffCompensationProfileDto> {
     await this.assertStaffUser(userId);
-    const profile = await this.prisma.staffCompensationProfile.findUnique({ where: { userId } });
+    const profile = await this.db.staffCompensationProfile.findUnique({ where: { userId } });
     return profile ? this.mapProfile(profile) : { userId };
   }
 
@@ -82,9 +90,13 @@ export class StaffPayrollService {
       payDayOfMonth: body.payDayOfMonth ?? null,
       graceDays: body.graceDays ?? null,
     };
-    const profile = await this.prisma.staffCompensationProfile.upsert({
+    const profile = await this.db.staffCompensationProfile.upsert({
       where: { userId: body.userId },
-      create: { userId: body.userId, ...data },
+      create: {
+        userId: body.userId,
+        schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
+        ...data,
+      },
       update: data,
     });
     return this.mapProfile(profile);
@@ -102,9 +114,10 @@ export class StaffPayrollService {
     if (Number.isNaN(paidAt.getTime())) {
       throw new BadRequestException('Invalid payout date');
     }
-    const row = await this.prisma.staffPayout.create({
+    const row = await this.db.staffPayout.create({
       data: {
         userId: body.userId,
+        schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
         amountMinor: body.amountMinor,
         currency: body.currency,
         paidAt,
@@ -134,7 +147,7 @@ export class StaffPayrollService {
   }): Promise<{ items: StaffPayoutDto[]; hasMore: boolean; nextCursor: string | null }> {
     const limit = Math.min(Math.max(params.limit ?? 25, 1), 100);
     const cursor = params.cursor ? decodePayoutCursor(params.cursor) : null;
-    const rows = await this.prisma.staffPayout.findMany({
+    const rows = await this.db.staffPayout.findMany({
       where: {
         ...(params.userId ? { userId: params.userId } : {}),
         ...(params.bounds
@@ -266,7 +279,7 @@ export class StaffPayrollService {
   ) {
     const from = new Date(bounds.from);
     const to = new Date(bounds.to);
-    const lessons = await this.prisma.scheduledLesson.findMany({
+    const lessons = await this.db.scheduledLesson.findMany({
       where: {
         teacherId: userId,
         status: 'COMPLETED',
@@ -282,7 +295,7 @@ export class StaffPayrollService {
       bounds.from,
       bounds.to,
     );
-    const paidAgg = await this.prisma.staffPayout.aggregate({
+    const paidAgg = await this.db.staffPayout.aggregate({
       where: {
         userId,
         paidAt: { gte: from, lte: to },
@@ -376,7 +389,7 @@ export class StaffPayrollService {
     defaults?: StaffPayoutDefaultsDto,
   ): Promise<ResolvedStaffCompensationDto> {
     const baseDefaults = defaults ?? (await this.getDefaults());
-    const profile = await this.prisma.staffCompensationProfile.findUnique({ where: { userId } });
+    const profile = await this.db.staffCompensationProfile.findUnique({ where: { userId } });
     return resolveStaffCompensation(baseDefaults, profile ? this.mapProfile(profile) : { userId });
   }
 

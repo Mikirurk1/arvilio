@@ -10,4 +10,6 @@ export type {
   WeeklyReportEmailProps,
   NewVocabularyEmailProps,
   TeacherMessageEmailProps,
+  SchoolInvitationEmailProps,
+  EmailVerificationEmailProps,
 } from './types';

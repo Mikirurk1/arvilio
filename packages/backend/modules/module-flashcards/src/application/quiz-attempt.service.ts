@@ -1,5 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@be/prisma';
+import { PrismaService, TenantPrismaService } from '@be/prisma';
+import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import type { QuizAttemptResultDto, SubmitQuizAttemptRequestDto } from '@pkg/types';
 import { gradeQuizAnswers } from '../domain/quiz-grading.util';
 import { QuizAccessService } from './quiz-access.service';
@@ -8,8 +9,15 @@ import { QuizAccessService } from './quiz-access.service';
 export class QuizAttemptService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly tenant: TenantContextService,
     private readonly access: QuizAccessService,
+    private readonly tenantPrisma: TenantPrismaService,
   ) {}
+
+  /** Tenant-scoped client: Quiz/QuizAssignment/QuizAttempt are auto-filtered by school. */
+  private get db() {
+    return this.tenantPrisma.client;
+  }
 
   async submitAttempt(
     actorId: string,
@@ -22,7 +30,7 @@ export class QuizAttemptService {
     });
     if (!actor) throw new NotFoundException('User not found');
 
-    const quiz = await this.prisma.quiz.findUnique({
+    const quiz = await this.db.quiz.findUnique({
       where: { id: body.quizId },
       include: {
         questions: { orderBy: { order: 'asc' }, select: { id: true, type: true, correctAnswer: true, wordId: true } },
@@ -56,7 +64,7 @@ export class QuizAttemptService {
     await this.access.assertCanViewStudent(actorId, studentId);
     await this.access.assertQuizAccess(studentId, body.quizId);
 
-    const assignment = await this.prisma.quizAssignment.findUnique({
+    const assignment = await this.db.quizAssignment.findUnique({
       where: { quizId_studentId: { quizId: body.quizId, studentId } },
     });
 
@@ -67,11 +75,12 @@ export class QuizAttemptService {
       if (question?.wordId) wrongWordIds.add(question.wordId);
     }
 
-    const attempt = await this.prisma.$transaction(async (tx) => {
+    const attempt = await this.db.$transaction(async (tx) => {
       const created = await tx.quizAttempt.create({
         data: {
           quizId: body.quizId,
           studentId,
+          schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
           assignmentId: assignment?.id ?? null,
           score,
           correctCount: graded.correctCount,

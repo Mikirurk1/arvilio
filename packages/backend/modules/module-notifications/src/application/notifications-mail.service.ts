@@ -14,7 +14,8 @@ export class NotificationsMailService {
     to: string,
     templateName: EmailTemplateId,
     vars: Record<string, string>,
+    senderDisplayName?: string | null,
   ): Promise<boolean> {
-    return this.mail.sendTemplated(to, templateName, vars);
+    return this.mail.sendTemplated(to, templateName, vars, senderDisplayName);
   }
 }

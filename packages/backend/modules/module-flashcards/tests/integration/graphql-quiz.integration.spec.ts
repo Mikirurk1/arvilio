@@ -20,6 +20,7 @@ describe('GraphQL quiz (integration)', () => {
         category: 'Test',
         difficulty: 'EASY',
         source: 'VOCABULARY',
+        schoolId: 'school_default',
         ownerId: teacherId,
         questions: {
           create: [
@@ -37,7 +38,7 @@ describe('GraphQL quiz (integration)', () => {
     quizId = quiz.id;
     await ctx.prisma.quizAssignment.upsert({
       where: { quizId_studentId: { quizId, studentId } },
-      create: { quizId, studentId, assignedById: teacherId },
+      create: { quizId, studentId, assignedById: teacherId, schoolId: 'school_default' },
       update: {},
     });
   });

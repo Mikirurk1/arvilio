@@ -1,4 +1,4 @@
-import type { ElementType, HTMLAttributes, ReactNode } from 'react';
+import { createElement, type ElementType, type HTMLAttributes, type ReactNode } from 'react';
 import uiStyles from './ui.module.scss';
 
 export type StatTileProps = HTMLAttributes<HTMLElement> & {
@@ -28,15 +28,19 @@ export function StatTile({
   subtextClassName,
   ...props
 }: StatTileProps) {
-  return (
-    <Tag
-      className={[uiStyles.statTile, interactive ? uiStyles.statTileInteractive : '', className].filter(Boolean).join(' ')}
-      {...props}
-    >
+  return createElement(
+    Tag,
+    {
+      className: [uiStyles.statTile, interactive ? uiStyles.statTileInteractive : '', className]
+        .filter(Boolean)
+        .join(' '),
+      ...props,
+    },
+    <>
       {icon ? <div className={[uiStyles.statIcon, iconClassName].filter(Boolean).join(' ')}>{icon}</div> : null}
       <div className={[uiStyles.statLabel, labelClassName].filter(Boolean).join(' ')}>{label}</div>
       <div className={[uiStyles.statValue, valueClassName].filter(Boolean).join(' ')}>{value}</div>
       {subtext ? <div className={[uiStyles.statSubtext, subtextClassName].filter(Boolean).join(' ')}>{subtext}</div> : null}
-    </Tag>
+    </>,
   );
 }

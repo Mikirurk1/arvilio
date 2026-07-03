@@ -1,0 +1,13 @@
+{
+  "name": "@be/platform-admin",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint src",
+    "typecheck": "tsc -p tsconfig.lib.json --noEmit"
+  }
+}

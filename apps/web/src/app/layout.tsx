@@ -3,6 +3,10 @@ import './globals.scss';
 import '@livekit/components-styles';
 import { AppProviders } from './providers';
 import { AppShellGate } from '../components/layout/AppShellGate';
+import { ImpersonationBanner } from '../components/layout/ImpersonationBanner';
+import { TrialBanner } from '../components/layout/TrialBanner';
+import { ProductTour } from '../components/tour/ProductTour';
+import { BrandingBootstrap } from '../components/layout/BrandingBootstrap';
 import {
   DEFAULT_FONT_SIZE_MODE,
   DEFAULT_RESOLVED_THEME_MODE,
@@ -55,8 +59,14 @@ export default async function RootLayout({
             __html: `window.__SOENGLISH_AUTH__=${serializeAuthBootstrap(requestAuth.user)};`,
           }}
         />
+        {requestAuth.impersonation ? (
+          <ImpersonationBanner schoolId={requestAuth.impersonation.schoolId} />
+        ) : null}
+        {requestAuth.trial ? <TrialBanner daysLeft={requestAuth.trial.daysLeft} /> : null}
         <AppProviders initialAuthUser={requestAuth.user}>
+          <BrandingBootstrap />
           <AppShellGate initialShell={requestAuth.route.shell}>{children}</AppShellGate>
+          {requestAuth.user ? <ProductTour /> : null}
         </AppProviders>
       </body>
     </html>

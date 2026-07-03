@@ -115,6 +115,7 @@ function LessonsPageInner() {
     form,
     setForm,
     openEditModal,
+    openCreateModal,
     closeModal,
     submitModal,
     saveStudentResponse,
@@ -127,6 +128,7 @@ function LessonsPageInner() {
     persistedLessonId,
     studentBackendId,
     recurrenceAllowed,
+    saving,
   } = useLessonEditor();
 
   const lessonsPage = useLessonsStore((s) => s.lessonsPage);
@@ -298,7 +300,19 @@ function LessonsPageInner() {
               </div>
             </>
           ) : (
-            <div className={styles.emptySmall}>No upcoming lessons scheduled yet.</div>
+            <div className={styles.emptyHighlight}>
+              <p className={styles.emptyHighlightTitle}>No upcoming lessons</p>
+              {canManageLessons ? (
+                <>
+                  <p className={styles.emptyHighlightHint}>Schedule the next lesson to keep the momentum going.</p>
+                  <Button type="button" variant="primary" className={styles.emptyHighlightCta} onClick={() => openCreateModal(new Date().toISOString().slice(0, 10))}>
+                    Schedule a lesson
+                  </Button>
+                </>
+              ) : (
+                <p className={styles.emptyHighlightHint}>Your teacher hasn&apos;t scheduled the next lesson yet. Check back soon.</p>
+              )}
+            </div>
           )}
         </SurfaceCard>
 
@@ -372,7 +386,10 @@ function LessonsPageInner() {
               </div>
             </>
           ) : (
-            <div className={styles.emptySmall}>No previous lessons available yet.</div>
+            <div className={styles.emptyHighlight}>
+              <p className={styles.emptyHighlightTitle}>No lessons yet</p>
+              <p className={styles.emptyHighlightHint}>Your first completed lesson will appear here.</p>
+            </div>
           )}
         </SurfaceCard>
           </div>
@@ -441,6 +458,7 @@ function LessonsPageInner() {
           lessonBackendId={lessonBackendId}
           persistedLessonId={persistedLessonId}
           studentBackendId={studentBackendId}
+          isSaving={saving}
         />
       ) : null}
     </div>

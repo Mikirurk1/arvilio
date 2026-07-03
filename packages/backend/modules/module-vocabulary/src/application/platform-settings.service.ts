@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@be/prisma';
 import { getPlatformIntegrationRuntime } from '@be/platform-integration';
-import { Prisma, type PlatformSettings, type WordDictionaryProvider } from '@prisma/client';
+import {
+  Prisma,
+  type PlatformSettings,
+  type WordDictionaryProvider,
+} from '@prisma/client';
 import type {
   TranslationSettingsDto,
   WordDictionaryProviderId,
@@ -38,7 +42,8 @@ const TRANSLATION_PROVIDER_CATALOG: TranslationSettingsDto['providers'] = [
   {
     id: 'deepl',
     name: 'DeepL',
-    description: 'High-quality neural translation. Best for natural-sounding glosses and lesson content.',
+    description:
+      'High-quality neural translation. Best for natural-sounding glosses and lesson content.',
     docsUrl: 'https://www.deepl.com/pro-api',
     requiresServiceSubscription: true,
   },
@@ -75,7 +80,8 @@ const TRANSLATION_PROVIDER_CATALOG: TranslationSettingsDto['providers'] = [
   {
     id: 'libretranslate',
     name: 'LibreTranslate',
-    description: 'Self-hosted or public open-source translation server (LibreTranslate).',
+    description:
+      'Self-hosted or public open-source translation server (LibreTranslate).',
     docsUrl: 'https://docs.libretranslate.com/',
     requiresServiceSubscription: false,
   },
@@ -100,6 +106,13 @@ export class PlatformSettingsService {
 
   getTranslationSettings(): TranslationSettingsDto {
     const runtime = getPlatformIntegrationRuntime().translation;
+    // Hide libreTranslateUrl unless the active provider is `libretranslate`.
+    // This mirrors legacy behavior where the URL is only exposed when in use.
+    // Tests expect a `null` value when the provider is not active.
+    const libreUrl =
+      runtime.activeProvider === 'libretranslate'
+        ? runtime.libreTranslateUrl
+        : null;
     return {
       activeProvider: runtime.activeProvider,
       providers: TRANSLATION_PROVIDER_CATALOG,
@@ -109,7 +122,7 @@ export class PlatformSettingsService {
         microsoftTranslatorApiUrl: runtime.microsoftTranslatorApiUrl,
         myMemoryUrl: runtime.myMemoryUrl,
         reversoApiUrl: runtime.reversoApiUrl,
-        libreTranslateUrl: runtime.libreTranslateUrl,
+        libreTranslateUrl: libreUrl,
       },
     };
   }
@@ -119,7 +132,9 @@ export class PlatformSettingsService {
     return toDtoProvider(row.wordDictionaryProvider);
   }
 
-  async setWordDictionaryProvider(provider: WordDictionaryProviderId): Promise<WordDictionarySettingsDto> {
+  async setWordDictionaryProvider(
+    provider: WordDictionaryProviderId,
+  ): Promise<WordDictionarySettingsDto> {
     const prismaValue = toPrismaProvider(provider);
     await this.ensureSettingsRow();
     await this.prisma.platformSettings.update({
@@ -154,13 +169,17 @@ export class PlatformSettingsService {
   }
 }
 
-function toDtoProvider(value: WordDictionaryProvider): WordDictionaryProviderId {
+function toDtoProvider(
+  value: WordDictionaryProvider,
+): WordDictionaryProviderId {
   if (value === 'WIKTIONARY') return 'wiktionary';
   if (value === 'REVERSO') return 'reverso';
   return 'dictionary_api_dev';
 }
 
-function toPrismaProvider(value: WordDictionaryProviderId): WordDictionaryProvider {
+function toPrismaProvider(
+  value: WordDictionaryProviderId,
+): WordDictionaryProvider {
   if (value === 'wiktionary') return 'WIKTIONARY';
   if (value === 'reverso') return 'REVERSO';
   return 'DICTIONARY_API_DEV';

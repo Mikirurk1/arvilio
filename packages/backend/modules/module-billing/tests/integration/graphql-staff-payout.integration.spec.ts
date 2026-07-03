@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { PrismaService } from '@be/prisma';
-import { AppModule } from '../../../../../apps/api/src/app/app.module';
+import { AppModule } from '../../../../../../apps/api/src/app/app.module';
 import {
   cleanupTestUsers,
   seedTestUsers,

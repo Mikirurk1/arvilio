@@ -15,7 +15,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           school.
         </p>
       </aside>
-      <div className={layoutStyles.authMain}>{children}</div>
+      <main className={layoutStyles.authMain}>{children}</main>
     </div>
   );
 }

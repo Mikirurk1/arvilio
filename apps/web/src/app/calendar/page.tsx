@@ -261,6 +261,7 @@ export default function CalendarPage() {
           lessonBackendId={actions.editingLesson ? getLessonBackendId(actions.editingLesson) ?? null : null}
           persistedLessonId={actions.editingLesson?.id ?? null}
           studentBackendId={actions.form ? actions.resolvePartyBackendId(actions.form.studentId) ?? null : null}
+          isSaving={actions.savingLesson}
         />
       ) : null}
       <CalendarDialogs

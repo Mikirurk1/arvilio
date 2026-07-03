@@ -22,8 +22,9 @@ export class LessonReminderJob {
     const windowEnd = now + 35 * 60 * 1000;
 
     const lessons = await this.prisma.scheduledLesson.findMany({
-      where: { status: 'PLANNED' },
+      where: { status: 'PLANNED', school: { status: { not: 'SUSPENDED' } } },
       include: {
+        school: { select: { name: true } },
         student: {
           select: {
             id: true,
@@ -64,6 +65,7 @@ export class LessonReminderJob {
           kind: NotificationKind.LESSON_REMINDER,
           dedupeKey,
           enabled: user.notifyLessonReminder,
+          schoolName: lesson.school.name,
           emailTemplate: 'lesson-reminder',
           emailVars: {
             displayName: user.displayName,

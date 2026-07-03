@@ -8,8 +8,9 @@ import { StreakAlertJob } from './streak-alert.job';
 describe('StreakAlertJob', () => {
   let job: StreakAlertJob;
   const prisma = {
-    user: { findMany: jest.fn() },
+    schoolMembership: { findMany: jest.fn() },
   };
+  const makeMembers = (users: object[]) => users.map((user) => ({ user, school: { name: 'Test School' } }));
   const dispatch = { dispatch: jest.fn() };
   const mail = { appUrl: jest.fn().mockReturnValue('https://app.test') };
   const streak = { snapshotForStudent: jest.fn() };
@@ -29,14 +30,9 @@ describe('StreakAlertJob', () => {
   });
 
   it('dispatches streak alert for at-risk students', async () => {
-    prisma.user.findMany.mockResolvedValue([
-      {
-        id: 's1',
-        email: 's@test',
-        displayName: 'Student',
-        notifyStreakAlert: true,
-      },
-    ]);
+    prisma.schoolMembership.findMany.mockResolvedValue(
+      makeMembers([{ id: 's1', email: 's@test', displayName: 'Student', notifyStreakAlert: true }]),
+    );
     streak.snapshotForStudent.mockResolvedValue({ streakDays: 3, atRisk: true, activeToday: false });
 
     await job.run();
@@ -50,9 +46,9 @@ describe('StreakAlertJob', () => {
   });
 
   it('skips students not at risk', async () => {
-    prisma.user.findMany.mockResolvedValue([
-      { id: 's1', email: 's@test', displayName: 'S', notifyStreakAlert: true },
-    ]);
+    prisma.schoolMembership.findMany.mockResolvedValue(
+      makeMembers([{ id: 's1', email: 's@test', displayName: 'S', notifyStreakAlert: true }]),
+    );
     streak.snapshotForStudent.mockResolvedValue({ streakDays: 5, atRisk: false, activeToday: true });
 
     await job.run();

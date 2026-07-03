@@ -1,5 +1,7 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@be/prisma';
+import { TenantPrismaService } from '@be/prisma';
+import { StorageAccountingService } from '@be/billing/entitlements';
+import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import type {
   CreateLibraryMaterialRequestDto,
   LibraryMaterialsPageDto,
@@ -44,10 +46,21 @@ export class MaterialsService {
   private readonly logger = new Logger(MaterialsService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly tenantPrisma: TenantPrismaService,
+    private readonly tenant: TenantContextService,
     private readonly access: MaterialsAccessService,
     private readonly attachments: MaterialAttachmentService,
+    private readonly storage: StorageAccountingService,
   ) {}
+
+  /**
+   * Tenant-scoped Prisma client: LibraryMaterial reads/writes are auto-filtered
+   * and auto-stamped by the active school (ADR-005). All entry points here run
+   * behind staff auth, so the request always carries a tenant context.
+   */
+  private get db() {
+    return this.tenantPrisma.client;
+  }
 
   private mapRow(row: Parameters<typeof mapLibraryMaterialRow>[0]): LibraryMaterialDto {
     return mapLibraryMaterialRow(row, {
@@ -119,7 +132,7 @@ export class MaterialsService {
       where.AND = andClauses;
     }
 
-    const rows = await this.prisma.libraryMaterial.findMany({
+    const rows = await this.db.libraryMaterial.findMany({
       where,
       include: MATERIAL_INCLUDE,
       orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
@@ -139,7 +152,7 @@ export class MaterialsService {
 
   async getById(userId: string, id: string): Promise<LibraryMaterialDto> {
     await this.access.assertStaff(userId);
-    const row = await this.prisma.libraryMaterial.findUnique({
+    const row = await this.db.libraryMaterial.findUnique({
       where: { id },
       include: MATERIAL_INCLUDE,
     });
@@ -149,7 +162,7 @@ export class MaterialsService {
 
   async create(userId: string, body: CreateLibraryMaterialRequestDto): Promise<LibraryMaterialDto> {
     await this.access.assertStaff(userId);
-    const row = await this.prisma.libraryMaterial.create({
+    const row = await this.db.libraryMaterial.create({
       data: {
         title: body.title.trim(),
         description: body.description?.trim() || null,
@@ -157,7 +170,10 @@ export class MaterialsService {
         tags: body.tags ?? [],
         level: body.level?.trim() || null,
         publisher: body.publisher?.trim() || null,
-        schoolId: body.schoolId ?? null,
+        // schoolId comes from the active tenant context — never trusted from
+        // client input (avoids cross-tenant writes). The scoped client also
+        // enforces this value at runtime.
+        schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
         createdById: userId,
         coverAttachmentId: body.coverAttachmentId ?? null,
         assets: body.assets?.length
@@ -190,7 +206,7 @@ export class MaterialsService {
       });
     }
 
-    const refreshed = await this.prisma.libraryMaterial.findUnique({
+    const refreshed = await this.db.libraryMaterial.findUnique({
       where: { id: row.id },
       include: MATERIAL_INCLUDE,
     });
@@ -203,10 +219,10 @@ export class MaterialsService {
     body: UpdateLibraryMaterialRequestDto,
   ): Promise<LibraryMaterialDto> {
     await this.access.assertStaff(userId);
-    const existing = await this.prisma.libraryMaterial.findUnique({ where: { id } });
+    const existing = await this.db.libraryMaterial.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Material not found');
 
-    await this.prisma.libraryMaterial.update({
+    await this.db.libraryMaterial.update({
       where: { id },
       data: {
         title: body.title !== undefined ? body.title.trim() : undefined,
@@ -230,17 +246,20 @@ export class MaterialsService {
 
   async delete(userId: string, id: string): Promise<boolean> {
     await this.access.assertStaff(userId);
-    const existing = await this.prisma.libraryMaterial.findUnique({
+    const existing = await this.db.libraryMaterial.findUnique({
       where: { id },
       include: { fileAttachments: true },
     });
     if (!existing) throw new NotFoundException('Material not found');
 
-    await this.prisma.libraryMaterial.delete({ where: { id } });
+    await this.db.libraryMaterial.delete({ where: { id } });
     await Promise.all(
       existing.fileAttachments.map((file) => this.attachments.removeFromDisk(file.storageKey)),
     );
     await this.attachments.removeMaterialDir(id);
+    // Release the deleted attachments' bytes from the school's storage accounting.
+    const freed = existing.fileAttachments.reduce((sum, file) => sum + file.sizeBytes, 0);
+    await this.storage.add(existing.schoolId, -freed);
     return true;
   }
 
@@ -250,7 +269,7 @@ export class MaterialsService {
     body: UpsertLibraryMaterialAssetsRequestDto,
   ): Promise<LibraryMaterialDto> {
     await this.access.assertStaff(userId);
-    const existing = await this.prisma.libraryMaterial.findUnique({ where: { id: materialId } });
+    const existing = await this.db.libraryMaterial.findUnique({ where: { id: materialId } });
     if (!existing) throw new NotFoundException('Material not found');
 
     for (const asset of body.assets) {
@@ -262,7 +281,7 @@ export class MaterialsService {
       }
     }
 
-    await this.prisma.$transaction(async (tx) => {
+    await this.db.$transaction(async (tx) => {
       await tx.libraryMaterialAsset.deleteMany({ where: { materialId } });
       if (body.assets.length > 0) {
         await tx.libraryMaterialAsset.createMany({
@@ -299,7 +318,7 @@ export class MaterialsService {
   }
 
   async kindCounts(): Promise<LibraryMaterialsPageDto['kindCounts']> {
-    const grouped = await this.prisma.libraryMaterial.groupBy({
+    const grouped = await this.db.libraryMaterial.groupBy({
       by: ['kind'],
       _count: { _all: true },
     });
@@ -331,7 +350,7 @@ export class MaterialsService {
 
   async findByIds(ids: string[]): Promise<LibraryMaterialDto[]> {
     if (ids.length === 0) return [];
-    const rows = await this.prisma.libraryMaterial.findMany({
+    const rows = await this.db.libraryMaterial.findMany({
       where: { id: { in: ids } },
       include: MATERIAL_INCLUDE,
     });

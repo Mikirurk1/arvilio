@@ -29,6 +29,7 @@ export function LessonSetupTab({
   teachers,
   weekDayOptions,
   recurrenceAllowed = true,
+  fieldErrors = {},
   onChange,
 }: SetupTabProps) {
   const showTeacherField = isAdminOrSuper(role);
@@ -74,17 +75,38 @@ export function LessonSetupTab({
 
   return (
     <div className={`${styles.modalFieldsGrid} ${styles.modalSetupGrid}`}>
-      <div className={styles.fieldGroup}>
-        <label className={styles.fieldLabel}>{text.fields.title}</label>
-        <Field className={styles.fieldInput} value={form.title} readOnly={!canEdit} onChange={(e) => onChange({ ...form, title: e.target.value })} />
+      <div className={styles.fieldGroup} {...(fieldErrors.title ? { 'data-field-error': 'title' } : {})}>
+        <label className={styles.fieldLabel} htmlFor="lesson-setup-title">{text.fields.title}</label>
+        <Field
+          id="lesson-setup-title"
+          className={styles.fieldInput}
+          value={form.title}
+          readOnly={!canEdit}
+          error={fieldErrors.title}
+          onChange={(e) => onChange({ ...form, title: e.target.value })}
+        />
       </div>
-      <div className={styles.fieldGroup}>
+      <div className={styles.fieldGroup} {...(fieldErrors.date ? { 'data-field-error': 'date' } : {})}>
         <label className={styles.fieldLabel}>{text.fields.date}</label>
-        <Field type="date" className={styles.fieldInput} value={form.date} readOnly={!canEdit} onChange={(e) => onChange({ ...form, date: e.target.value })} />
+        <Field
+          type="date"
+          className={styles.fieldInput}
+          value={form.date}
+          readOnly={!canEdit}
+          error={fieldErrors.date}
+          onChange={(e) => onChange({ ...form, date: e.target.value })}
+        />
       </div>
-      <div className={styles.fieldGroup}>
+      <div className={styles.fieldGroup} {...(fieldErrors.startTime ? { 'data-field-error': 'startTime' } : {})}>
         <label className={styles.fieldLabel}>{text.fields.startTime}</label>
-        <Field type="time" className={styles.fieldInput} value={form.startTime} readOnly={!canEdit} onChange={(e) => onChange({ ...form, startTime: e.target.value })} />
+        <Field
+          type="time"
+          className={styles.fieldInput}
+          value={form.startTime}
+          readOnly={!canEdit}
+          error={fieldErrors.startTime}
+          onChange={(e) => onChange({ ...form, startTime: e.target.value })}
+        />
         <LessonPartyScheduleTimes
           wall={{
             date: form.date,
@@ -100,8 +122,8 @@ export function LessonSetupTab({
         />
       </div>
       <div className={styles.fieldGroup}>
-        <label className={styles.fieldLabel}>{text.fields.duration}</label>
-        <Field type="number" className={styles.fieldInput} min={55} step={5} value={String(form.duration)} readOnly={!canEdit} onChange={(e) => onChange({ ...form, duration: Math.max(55, Number(e.target.value) || 55) })} />
+        <label className={styles.fieldLabel} htmlFor="lesson-setup-duration">{text.fields.duration}</label>
+        <Field id="lesson-setup-duration" type="number" className={styles.fieldInput} min={55} step={5} value={String(form.duration)} readOnly={!canEdit} onChange={(e) => onChange({ ...form, duration: Math.max(55, Number(e.target.value) || 55) })} />
       </div>
       <div className={styles.fieldGroup}>
         <label className={styles.fieldLabel}>{text.fields.recurrence}</label>
@@ -219,14 +241,22 @@ export function LessonSetupTab({
                   type="button"
                   className={`${styles.kindToggleBtn} ${form.kind === 'individual' ? styles.kindToggleBtnActive : ''}`}
                   disabled={!canEdit}
-                  onClick={() =>
+                  onClick={() => {
+                    // When switching group→individual, keep studentId only if it resolves
+                    // to a known individual student; otherwise reset so the user picks one.
+                    const primaryId =
+                      form.participantIds?.[0] ?? form.studentId;
+                    const resolvedStudent = students.find((s) => s.id === primaryId);
+                    const nextStudentId = resolvedStudent?.id ?? 0;
                     onChange({
                       ...form,
                       kind: 'individual',
                       studentGroupId: null,
-                      participantIds: [form.studentId],
-                    })
-                  }
+                      studentId: nextStudentId,
+                      studentName: resolvedStudent?.fullName ?? form.studentName,
+                      participantIds: nextStudentId ? [nextStudentId] : [],
+                    });
+                  }}
                 >
                   <User size={16} aria-hidden />
                   <span>{text.options?.individualLesson ?? 'Individual'}</span>

@@ -24,6 +24,7 @@
       "@fe/lessons": ["packages/frontend/feature-lessons/src/index.ts"],
       "@fe/progress": ["packages/frontend/feature-progress/src/index.ts"],
       "@be/graphql": ["packages/backend/shared/graphql/src/index.ts"],
+      "@be/storage": ["packages/backend/shared/storage/src/index.ts"],
       "@be/auth": ["packages/backend/modules/module-auth/src/index.ts"],
       "@be/vocabulary": ["packages/backend/modules/module-vocabulary/src/index.ts"],
       "@be/platform-integration": [
@@ -34,6 +35,7 @@
       "@be/materials": ["packages/backend/modules/module-materials/src/index.ts"],
       "@be/lessons": ["packages/backend/modules/module-lessons/src/index.ts"],
       "@be/progress": ["packages/backend/modules/module-progress/src/index.ts"],
+      "@be/platform-admin": ["packages/backend/modules/module-platform-admin/src/index.ts"],
       "@be/email-templates": ["packages/backend/email-templates/dist/index.d.ts"],
       "@be/mail": ["packages/backend/modules/module-mail/src/index.ts"],
       "@be/notifications": ["packages/backend/modules/module-notifications/src/index.ts"],
@@ -42,7 +44,9 @@
       ],
       "@be/chat": ["packages/backend/modules/module-chat/src/index.ts"],
       "@be/billing": ["packages/backend/modules/module-billing/src/index.ts"],
+      "@be/billing/entitlements": ["packages/backend/modules/module-billing/src/entitlements.ts"],
       "@be/prisma": ["packages/backend/data-access/data-access-prisma/src/index.ts"],
+      "@be/tenant": ["packages/backend/shared/tenant/src/index.ts"],
       "@pkg/types": ["packages/shared/types/src/index.ts"]
     }
   },

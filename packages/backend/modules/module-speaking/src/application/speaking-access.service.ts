@@ -3,11 +3,19 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '@be/prisma';
+import { PrismaService, TenantPrismaService } from '@be/prisma';
 
 @Injectable()
 export class SpeakingAccessService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tenantPrisma: TenantPrismaService,
+  ) {}
+
+  /** Tenant-scoped client: SpeakingTopic/SpeakingSubmission are auto-filtered by school. */
+  private get db() {
+    return this.tenantPrisma.client;
+  }
 
   async requireStaff(userId: string): Promise<void> {
     const user = await this.prisma.user.findUnique({
@@ -39,7 +47,7 @@ export class SpeakingAccessService {
   }
 
   async assertCanAccessTopic(userId: string, topicId: string): Promise<void> {
-    const topic = await this.prisma.speakingTopic.findUnique({
+    const topic = await this.db.speakingTopic.findUnique({
       where: { id: topicId },
       include: { assignments: { select: { studentId: true } } },
     });
@@ -61,7 +69,7 @@ export class SpeakingAccessService {
     audioStorageKey: string | null;
     mimeType: string | null;
   }> {
-    const submission = await this.prisma.speakingSubmission.findUnique({
+    const submission = await this.db.speakingSubmission.findUnique({
       where: { id: submissionId },
       select: {
         id: true,

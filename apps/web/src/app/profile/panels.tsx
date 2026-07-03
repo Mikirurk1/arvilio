@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation';
 import { Check } from 'lucide-react';
 import { useProfileStore } from '../../stores/profile-store';
 import { useAuth } from '../../lib/auth-context';
+import { apiClient } from '../../lib/api';
 import { ProfileAchievementsPanel } from '../../components/profile/ProfileAchievementsPanel';
 import { UnifiedProfilePanel } from '../../components/profile/UnifiedProfilePanel';
 import {
@@ -210,6 +211,9 @@ export function AccountPanel() {
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportDone, setExportDone] = useState(false);
+  const [erasing, setErasing] = useState(false);
   const canChangePassword = user?.hasPassword ?? false;
   const linkedProviders = user?.linkedProviders ?? [];
   const passwordUnavailableHint =
@@ -225,6 +229,37 @@ export function AccountPanel() {
       router.replace('/login');
     } finally {
       setLoggingOut(false);
+    }
+  };
+
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    setExportDone(false);
+    try {
+      const data = await apiClient.get<unknown>('/gdpr/export');
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `my-data-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setExportDone(true);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleEraseAccount = async () => {
+    if (!confirm('This will permanently anonymize your account and cannot be undone. Continue?')) return;
+    setErasing(true);
+    try {
+      await apiClient.delete('/gdpr/me');
+      await logout();
+      router.replace('/login');
+    } finally {
+      setErasing(false);
     }
   };
 
@@ -269,6 +304,45 @@ export function AccountPanel() {
               canChangePassword ? (
                 <Button type="button" className={styles.actionBtn} onClick={() => setPasswordModalOpen(true)}>Change</Button>
               ) : null
+            }
+          />
+          <ActionRow
+            className={styles.accountItem}
+            titleClassName={styles.accountItemTitle}
+            descriptionClassName={styles.accountItemDesc}
+            title="Export my data"
+            description={exportDone ? 'Download started — check your downloads folder.' : 'Download a copy of all your personal data (GDPR DSAR).'}
+            action={
+              <Button
+                type="button"
+                className={styles.actionBtn}
+                loading={exporting}
+                loadingLabel="Exporting…"
+                disabled={exporting}
+                onClick={() => void handleExport()}
+              >
+                Export
+              </Button>
+            }
+          />
+          <ActionRow
+            className={styles.accountItem}
+            titleClassName={styles.accountItemTitle}
+            descriptionClassName={styles.accountItemDesc}
+            title="Delete my account"
+            description="Permanently anonymize your account. Financial records are retained as required by law."
+            action={
+              <Button
+                type="button"
+                variant="danger"
+                className={styles.actionBtn}
+                loading={erasing}
+                loadingLabel="Deleting…"
+                disabled={erasing}
+                onClick={() => void handleEraseAccount()}
+              >
+                Delete
+              </Button>
             }
           />
         </div>

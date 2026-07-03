@@ -1,4 +1,4 @@
-import type { ElementType, HTMLAttributes, ReactNode } from 'react';
+import { createElement, type ElementType, type HTMLAttributes, type ReactNode } from 'react';
 import uiStyles from './ui.module.scss';
 
 export type TabPanelCardProps = HTMLAttributes<HTMLElement> & {
@@ -13,12 +13,12 @@ export function TabPanelCard({
   className,
   ...props
 }: TabPanelCardProps) {
-  return (
-    <Tag
-      className={[uiStyles.tabPanelCard, className].filter(Boolean).join(' ') || undefined}
-      {...props}
-    >
-      {children}
-    </Tag>
+  return createElement(
+    Tag,
+    {
+      className: [uiStyles.tabPanelCard, className].filter(Boolean).join(' ') || undefined,
+      ...props,
+    },
+    children,
   );
 }

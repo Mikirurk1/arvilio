@@ -1,6 +1,8 @@
-import { BadRequestException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '@be/prisma';
+import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import { MailService } from '@be/mail';
+import { EntitlementsService } from '@be/billing/entitlements';
 import type {
   CreateAdminUserRequestDto,
   ForgotPasswordRequestDto,
@@ -8,6 +10,7 @@ import type {
   ResetPasswordRequestDto,
   WebRequestSessionDto,
 } from '@pkg/types';
+import { resolveLocale } from '@pkg/types';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { AuthSessionService } from './auth-session.service';
@@ -38,19 +41,42 @@ const PASSWORD_RESET_TTL_MINUTES = 60;
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly prisma: PrismaService,
+    private readonly tenant: TenantContextService,
     private readonly sessionAuth: AuthSessionService,
     private readonly mail: MailService,
     private readonly languages: LanguagesService,
+    private readonly entitlements: EntitlementsService,
   ) {}
 
-  async issueTokens(userId: string, meta: { userAgent?: string; ip?: string }): Promise<{
+  async issueTokens(
+    userId: string,
+    meta: { userAgent?: string; ip?: string; preferredSchoolId?: string },
+  ): Promise<{
     accessToken: string;
     refreshToken: string;
     accessTokenExpiresIn: number;
   }> {
-    const accessToken = jwt.sign({ sub: userId }, getJwtSecret(), {
+    // ADR-008: embed schoolId/membershipRole/platformRole in the token so guards
+    // can skip DB lookups on every request.
+    // preferredSchoolId: set during OAuth login so the token targets the school
+    // the user navigated from (ADR-007 cross-check). Falls back to first active membership.
+    const [membership, operator] = await Promise.all([
+      meta.preferredSchoolId
+        ? this.sessionAuth.resolveActiveMembership(userId, meta.preferredSchoolId)
+        : this.sessionAuth.resolveActiveMembership(userId),
+      this.sessionAuth.resolvePlatformRole(userId),
+    ]);
+    const claims: Record<string, string | undefined> = { sub: userId };
+    if (membership) {
+      claims['schoolId'] = membership.schoolId;
+      claims['membershipRole'] = membership.role;
+    }
+    if (operator) claims['platformRole'] = operator;
+    const accessToken = jwt.sign(claims, getJwtSecret(), {
       expiresIn: ACCESS_TOKEN_TTL_SECONDS,
     });
     const refreshToken = generateRefreshToken();
@@ -90,11 +116,38 @@ export class AuthService {
     });
   }
 
+  /**
+   * Stop an impersonation session (ADR-009). Reads the `imp` claim from the
+   * current access token and records `school.impersonate.stop` attributed to the
+   * operator (not the impersonated user). The caller clears the access cookie so
+   * the operator's own refresh re-issues their session. No-op if not impersonating.
+   */
+  async stopImpersonation(
+    req: { headers: Record<string, string | string[] | undefined>; cookies?: Record<string, string> },
+  ): Promise<{ stopped: boolean }> {
+    const imp = this.sessionAuth.readImpersonationClaim(req);
+    if (!imp) return { stopped: false };
+    await this.prisma.platformAuditLog
+      .create({
+        data: {
+          actorUserId: imp.actorUserId,
+          action: 'school.impersonate.stop',
+          targetSchoolId: imp.schoolId,
+        },
+      })
+      .catch(() => undefined);
+    return { stopped: true };
+  }
+
   async resolveWebRequestSession(req: {
     headers: Record<string, string | string[] | undefined>;
     cookies?: Record<string, string>;
   }): Promise<WebRequestSessionDto> {
     const resolved = await this.sessionAuth.resolveWebRequestSessionAuth(req);
+    const acceptLanguage = Array.isArray(req.headers['accept-language'])
+      ? req.headers['accept-language'][0]
+      : (req.headers['accept-language'] ?? null);
+
     if (!resolved) {
       return {
         authenticated: false,
@@ -103,12 +156,30 @@ export class AuthService {
         scope: 'school',
         availableScopes: ['school'],
         tenantKey: null,
+        impersonation: null,
+        trial: null,
+        locale: resolveLocale({ acceptLanguage }),
       };
     }
 
+    const schoolId = this.tenant.schoolId;
     const userDto = mapUserToDto(resolved.user);
+    // Platform scope comes from the PlatformOperator axis (ADR-008), not the
+    // school-level User.role.
+    const [platformRole, trial, localeData] = await Promise.all([
+      this.sessionAuth.resolvePlatformRole(resolved.user.id),
+      this.sessionAuth.resolveTrialInfo(resolved.user.id),
+      this.sessionAuth.resolveUserLocaleData(resolved.user.id, schoolId),
+    ]);
     const availableScopes: WebRequestSessionDto['availableScopes'] =
-      userDto.role === 'super_admin' ? ['school', 'platform'] : ['school'];
+      platformRole ? ['school', 'platform'] : ['school'];
+
+    const locale = resolveLocale({
+      userPreference: localeData.userLocale,
+      schoolDefault: localeData.schoolLocale,
+      acceptLanguage,
+    });
+    this.tenant.setLocale(locale);
 
     return {
       authenticated: true,
@@ -117,6 +188,9 @@ export class AuthService {
       scope: 'school',
       availableScopes,
       tenantKey: null,
+      impersonation: resolved.impersonation,
+      trial,
+      locale,
     };
   }
 
@@ -157,6 +231,14 @@ export class AuthService {
     const existing = await this.prisma.user.findUnique({ where: { email } });
     if (existing) {
       throw new BadRequestException('Email already registered');
+    }
+
+    const schoolId = this.tenant.schoolId ?? DEFAULT_SCHOOL_ID;
+    // Plan seat limit (Phase 5): block adding a student past the active-student cap.
+    if (targetRole === 'STUDENT' && !(await this.entitlements.canAddActiveStudent(schoolId))) {
+      throw new ForbiddenException(
+        'Student seat limit reached for your plan — upgrade to add more students.',
+      );
     }
 
     const displayName = body.displayName?.trim() || email.split('@')[0] || 'User';
@@ -220,16 +302,26 @@ export class AuthService {
       include: { oauthAccounts: { select: { provider: true } } },
     });
 
+    // Tenant membership (ADR-006): link the new user to the current school so the
+    // tenant context resolves and seat accounting reflects them. Idempotent.
+    await this.prisma.schoolMembership.upsert({
+      where: { schoolId_userId: { schoolId, userId: user.id } },
+      create: { schoolId, userId: user.id, role: targetRole, status: 'ACTIVE' },
+      update: { role: targetRole, status: 'ACTIVE' },
+    });
+
     if (targetRole === 'STUDENT') {
       const learningIds =
         body.learningLanguageIds?.length
           ? body.learningLanguageIds
           : [await this.languages.defaultLearningLanguageId()];
       await this.languages.assertLanguageIds(learningIds);
+      const schoolId = this.tenant.schoolId ?? DEFAULT_SCHOOL_ID;
       await this.prisma.studentLearningLanguage.createMany({
         data: learningIds.map((languageId) => ({
           userId: user.id,
           languageId,
+          schoolId,
         })),
       });
     }
@@ -270,13 +362,34 @@ export class AuthService {
     });
 
     const resetUrl = `${process.env['WEB_ORIGIN'] ?? 'http://localhost:4200'}/reset-password?token=${encodeURIComponent(rawToken)}`;
-    await this.mail.sendPasswordReset({
-      to: email,
-      displayName: user.displayName,
-      resetUrl,
-      expiresInMinutes: PASSWORD_RESET_TTL_MINUTES,
-    });
+    // Best-effort email: the reset token is already persisted, so a transient
+    // mail/render/SMTP failure must not 500 the request (nor leak that the email
+    // exists). Log and continue — the user can retry.
+    try {
+      await this.mail.sendPasswordReset({
+        to: email,
+        displayName: user.displayName,
+        resetUrl,
+        expiresInMinutes: PASSWORD_RESET_TTL_MINUTES,
+      });
+    } catch (error) {
+      this.logger.warn(`Password-reset email failed to send: ${String(error)}`);
+    }
 
+    return { ok: true };
+  }
+
+  async verifyEmail(token: string): Promise<{ ok: true }> {
+    if (!token) throw new BadRequestException('Verification token is required');
+    const user = await this.prisma.user.findUnique({
+      where: { emailVerifyToken: token },
+      select: { id: true },
+    });
+    if (!user) throw new BadRequestException('Invalid or expired verification token');
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerifiedAt: new Date(), emailVerifyToken: null },
+    });
     return { ok: true };
   }
 

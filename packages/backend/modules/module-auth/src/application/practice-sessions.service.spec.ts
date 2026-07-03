@@ -1,6 +1,7 @@
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaService } from '@be/prisma';
+import { TenantContextService } from '@be/tenant';
 import { PracticeSessionsService } from './practice-sessions.service';
 
 describe('PracticeSessionsService', () => {
@@ -17,7 +18,11 @@ describe('PracticeSessionsService', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     const moduleRef = await Test.createTestingModule({
-      providers: [PracticeSessionsService, { provide: PrismaService, useValue: prisma }],
+      providers: [
+        PracticeSessionsService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: TenantContextService, useValue: { schoolId: 'school_default' } },
+      ],
     }).compile();
     service = moduleRef.get(PracticeSessionsService);
   });

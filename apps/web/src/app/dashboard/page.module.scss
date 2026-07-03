@@ -49,115 +49,192 @@
   margin-top: 4px;
 }
 
-/* ── Hero banner — full-bleed green gradient ─── */
+/* ── Hero banner — single panel, editorial layout ── */
 
 .heroBanner {
-  background:
-    radial-gradient(ellipse 60% 80% at 95% 10%, color-mix(in srgb, var(--green) 28%, transparent) 0%, transparent 55%),
-    linear-gradient(145deg, var(--green-dark) 0%, color-mix(in srgb, var(--green-dark) 72%, #0a1a14) 60%, #0a1a14 100%);
   border-radius: var(--radius-xl);
-  padding: 36px 40px;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 32px;
-  align-items: center;
-  position: relative;
   overflow: hidden;
+  position: relative;
+  display: flex;
+  min-height: 200px;
+  /* Deep slate-indigo: serious, academic, trustworthy */
+  background: linear-gradient(145deg, #1a1f3a 0%, #1e2550 55%, #222d60 100%);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.08) inset,
-    0 16px 48px color-mix(in srgb, var(--green-dark) 40%, rgba(10, 26, 20, 0.6));
+    0 1px 0 rgba(255,255,255,0.08) inset,
+    0 8px 32px rgba(14,18,50,0.28);
 
   @include motion-allow {
     animation: slideUp var(--dur-base) var(--ease-out) 0.04s both;
   }
 }
 
-/* Subtle dot texture overlay */
+/* Subtle diagonal lines texture — refined, not digital */
 .heroBanner::before {
   content: '';
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-  background-size: 24px 24px;
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255,255,255,0.015) 0px,
+      rgba(255,255,255,0.015) 1px,
+      transparent 1px,
+      transparent 14px
+    );
   pointer-events: none;
-  mask-image: radial-gradient(ellipse 70% 100% at 85% 50%, black 0%, transparent 65%);
+  z-index: 0;
 }
 
-/* Right decorative circle glow */
-.heroBanner::after {
-  content: '';
-  position: absolute;
-  right: 60px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 240px;
-  height: 240px;
-  border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--green) 22%, transparent) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.heroContent {
+/* Inner content — flex column, space-between */
+.heroInner {
   position: relative;
   z-index: 1;
+  flex: 1;
+  padding: 36px 48px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
 }
 
-.heroLabel {
-  margin: 0 0 10px;
-  font-size: var(--fs-eyebrow);
-  letter-spacing: var(--tracking-caps);
+/* Subtle right-side vignette lightening */
+.heroDecor {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 280px;
+  background: linear-gradient(to left, rgba(255,255,255,0.04) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Top row: eyebrow + time badge */
+.heroTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.heroEyebrow {
+  margin: 0;
+  font-size: var(--fs-11);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--on-inverse) 55%, transparent);
+  color: color-mix(in srgb, var(--on-inverse) 42%, transparent);
   font-weight: var(--fw-semibold);
 }
 
-/* Editorial display number — Lora, tabular-nums, large */
-.heroNumber {
+/* Pill badge showing time or progress */
+.heroTimeBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 14px;
+  border-radius: 999px;
   font-family: var(--font-display);
-  font-size: var(--fs-display-xl);
-  font-weight: var(--fw-bold);
-  line-height: 1;
-  letter-spacing: var(--tracking-tight);
-  color: var(--on-inverse);
+  font-size: var(--fs-15);
+  font-weight: var(--fw-semibold);
   font-variant-numeric: tabular-nums;
-  margin: 0 0 6px;
+  color: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.18);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* Center body — big title */
+.heroBody {
+  flex: 1;
 }
 
 .heroTitle {
-  margin: 0 0 4px;
+  margin: 0 0 8px;
   font-family: var(--font-display);
-  font-size: var(--fs-24);
-  font-weight: var(--fw-semibold);
-  line-height: var(--lh-tight);
+  font-size: clamp(1.9rem, 3.2vw, 2.8rem);
+  font-weight: var(--fw-bold);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
   color: var(--on-inverse);
 }
 
 .heroSub {
-  margin: 0 0 20px;
-  font-size: var(--fs-page-sub);
+  margin: 0;
+  font-size: var(--fs-15);
   line-height: var(--lh-body);
-  color: color-mix(in srgb, var(--on-inverse) 62%, transparent);
+  color: color-mix(in srgb, var(--on-inverse) 52%, transparent);
+}
+
+/* Lesson status pill — replaces plain heroSub text */
+.heroStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--on-inverse) 70%, transparent);
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+
+  &::before {
+    content: '';
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.7;
+  }
+}
+
+/* Status-specific colours */
+.heroStatusCompleted {
+  color: color-mix(in srgb, var(--green) 90%, white);
+  background: color-mix(in srgb, var(--green) 16%, transparent);
+  border-color: color-mix(in srgb, var(--green) 30%, transparent);
+}
+
+.heroStatusPlanned {
+  color: color-mix(in srgb, var(--blue) 90%, white);
+  background: color-mix(in srgb, var(--blue) 14%, transparent);
+  border-color: color-mix(in srgb, var(--blue) 28%, transparent);
+}
+
+.heroStatusCancelled {
+  color: color-mix(in srgb, var(--rose) 85%, white);
+  background: color-mix(in srgb, var(--rose) 14%, transparent);
+  border-color: color-mix(in srgb, var(--rose) 25%, transparent);
+}
+
+/* Accent stat value (e.g. pending homework) */
+.heroStatAccent {
+  color: color-mix(in srgb, var(--amber) 90%, white);
 }
 
 .heroProgress {
   display: flex;
   align-items: center;
   gap: 14px;
+  margin-top: 14px;
   flex-wrap: wrap;
 }
 
 .heroBar {
   width: min(240px, 100%);
-  height: 6px;
-  background: color-mix(in srgb, var(--on-inverse) 18%, transparent);
+  height: 5px;
+  background: color-mix(in srgb, var(--on-inverse) 14%, transparent);
   border-radius: 999px;
   overflow: hidden;
 }
 
 .heroBarFill {
   height: 100%;
-  background: color-mix(in srgb, var(--on-inverse) 90%, transparent);
+  background: rgba(255,255,255,0.75);
   border-radius: 999px;
   transition: width 600ms var(--ease-out);
 }
@@ -166,18 +243,68 @@
   font-size: var(--fs-13);
   font-weight: var(--fw-semibold);
   font-variant-numeric: tabular-nums;
-  color: color-mix(in srgb, var(--on-inverse) 72%, transparent);
+  color: color-mix(in srgb, var(--on-inverse) 60%, transparent);
+}
+
+/* Bottom row: stats on left, CTA on right */
+.heroFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.heroStats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.heroStat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.heroStatVal {
+  font-family: var(--font-display);
+  font-size: var(--fs-22);
+  font-weight: var(--fw-bold);
+  color: var(--on-inverse);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.heroStatLabel {
+  font-size: var(--fs-11);
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--on-inverse) 40%, transparent);
+}
+
+.heroStatDivider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255,255,255,0.1);
+  flex-shrink: 0;
 }
 
 .heroCta {
-  position: relative;
-  z-index: 1;
   flex-shrink: 0;
+  padding: 13px 28px;
+  font-size: var(--fs-15);
+  font-weight: var(--fw-semibold);
   white-space: nowrap;
-  /* Invert button on dark hero background */
-  --btn-bg: var(--on-inverse);
-  --btn-text: var(--green-dark);
-  --btn-bg-hover: color-mix(in srgb, var(--on-inverse) 90%, transparent);
+  /* Brand green button on dark indigo */
+  --btn-bg: var(--accent-primary);
+  --btn-text: var(--on-inverse);
+  --btn-bg-hover: var(--green-dark);
+  box-shadow: 0 2px 12px rgba(21,153,112,0.35);
 }
 
 /* ── Stat cards — "sokovyti" colored panels ──── */
@@ -525,7 +652,7 @@
 .lcDesc       { font-size: var(--fs-13); color: var(--text-tertiary); line-height: 1.4; margin-bottom: 12px; }
 .lcFooter     { display: flex; align-items: center; justify-content: space-between; }
 .lcMeta       { display: flex; gap: 12px; }
-.lcMetaItem   { font-size: var(--fs-12); color: var(--text-faint); }
+.lcMetaItem   { font-size: var(--fs-12); color: var(--text-tertiary); }
 .lcXp         { font-size: var(--fs-12); font-weight: var(--fw-semibold); color: var(--green); background: var(--green-light); padding: 2px 8px; border-radius: 6px; }
 
 /* ── Week lesson list ─────────────────────────── */
@@ -651,14 +778,14 @@
   margin-bottom: 2px;
 }
 
-.vocabPos     { font-size: var(--fs-11); color: var(--text-faint); margin-bottom: 5px; }
+.vocabPos     { font-size: var(--fs-11); color: var(--text-tertiary); margin-bottom: 5px; }
 .vocabDef     { font-size: var(--fs-12); color: var(--text-tertiary); line-height: 1.4; }
 .vocabStatus  { margin-top: 8px; display: flex; align-items: center; gap: 5px; }
 .vocabDot     { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 .new          { background: var(--blue); }
 .learning     { background: var(--amber); }
 .known        { background: var(--green); }
-.vocabStatusLbl { font-size: var(--fs-11); color: var(--text-faint); }
+.vocabStatusLbl { font-size: var(--fs-11); color: var(--text-tertiary); }
 
 /* ── Right-column sidebar panels ─────────────── */
 
@@ -967,13 +1094,12 @@
 /* ── Responsive ───────────────────────────────── */
 
 @include respond-to(md) {
-  .heroBanner {
-    grid-template-columns: 1fr;
-    padding: 24px 28px;
+  .heroInner {
+    padding: 28px 32px 24px;
   }
 
-  .heroCta {
-    justify-self: start;
+  .heroDecor {
+    display: none;
   }
 
   .statsGrid {
@@ -997,16 +1123,28 @@
     flex-wrap: wrap;
   }
 
-  .heroBanner {
-    padding: 20px 18px;
-  }
-
-  .heroNumber {
-    font-size: var(--fs-display);
+  .heroInner {
+    padding: 20px 18px 18px;
+    gap: 16px;
   }
 
   .heroTitle {
-    font-size: var(--fs-20);
+    font-size: var(--fs-22);
+  }
+
+  .heroFooter {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .heroCta {
+    align-self: stretch;
+    text-align: center;
+  }
+
+  .heroStats {
+    gap: 14px;
   }
 
   .heroBar {

@@ -63,6 +63,8 @@ Catalog of all wiki pages. Updated: 2026-05-16 (full project bootstrap).
 - [[concepts/redesign-plan]] — Preply/Edvibe-style UI refresh; `docs/redesign/plan.md` step IDs
 - [[concepts/frontend-packages]] — planned `packages/frontend` migration
 - [[concepts/billing-payments]] — lesson balance, Stripe/LiqPay/WayForPay/Lemon Squeezy/Paddle/MonoPay/PayPal, multi-method manual invoice
+- [[concepts/security]] — HTTP headers, rate limiting, MIME filter, CVE status, attack surface
+- [[concepts/multi-tenancy]] — planned SaaS transition: tenant isolation, subdomains/custom domains, platform admin, 3-layer billing (ADR-005…009)
 
 ## Sources
 

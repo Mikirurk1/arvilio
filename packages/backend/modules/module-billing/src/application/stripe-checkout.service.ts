@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '@be/prisma';
+import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import type { CreateLessonPurchaseCheckoutRequestDto, LessonPurchaseCheckoutDto } from '@pkg/types';
 import { parseLessonCreditTrack } from '@pkg/types';
 import { getStripeClient } from '../infrastructure/stripe.client';
@@ -12,6 +13,7 @@ import { assertProviderSupportsPackageCurrency } from '../shared/checkout-curren
 export class StripeCheckoutService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly tenant: TenantContextService,
     private readonly paymentSettings: PaymentSettingsService,
     private readonly lessonBalance: LessonBalanceService,
   ) {}
@@ -40,6 +42,7 @@ export class StripeCheckoutService {
     const payment = await this.prisma.payment.create({
       data: {
         userId,
+        schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID,
         method: paymentMethodFromDto('stripe'),
         status: 'PENDING',
         lessonsGranted: pkg.lessons,

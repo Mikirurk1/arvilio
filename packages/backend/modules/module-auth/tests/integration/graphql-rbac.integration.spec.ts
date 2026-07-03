@@ -53,7 +53,7 @@ describe('GraphQL RBAC (integration)', () => {
     });
     const card = await prisma.studentWordCard.upsert({
       where: { userId_wordId: { userId: student.id, wordId: word.id } },
-      create: { userId: student.id, wordId: word.id },
+      create: { userId: student.id, wordId: word.id, schoolId: 'school_default' },
       update: {},
     });
     studentCardId = card.id;

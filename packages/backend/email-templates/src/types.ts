@@ -1,11 +1,13 @@
 export type EmailTemplateId =
   | 'welcome-account'
   | 'password-reset'
+  | 'email-verification'
   | 'lesson-reminder'
   | 'streak-alert'
   | 'weekly-report'
   | 'new-vocabulary'
-  | 'teacher-message';
+  | 'teacher-message'
+  | 'school-invitation';
 
 export type WelcomeAccountEmailProps = {
   displayName: string;
@@ -58,14 +60,29 @@ export type TeacherMessageEmailProps = {
   appUrl: string;
 };
 
+export type SchoolInvitationEmailProps = {
+  schoolName: string;
+  role: string;
+  acceptUrl: string;
+  expiresInDays: string;
+};
+
+export type EmailVerificationEmailProps = {
+  displayName: string;
+  verifyUrl: string;
+  expiresInHours: string;
+};
+
 export type EmailTemplatePropsMap = {
   'welcome-account': WelcomeAccountEmailProps;
   'password-reset': PasswordResetEmailProps;
+  'email-verification': EmailVerificationEmailProps;
   'lesson-reminder': LessonReminderEmailProps;
   'streak-alert': StreakAlertEmailProps;
   'weekly-report': WeeklyReportEmailProps;
   'new-vocabulary': NewVocabularyEmailProps;
   'teacher-message': TeacherMessageEmailProps;
+  'school-invitation': SchoolInvitationEmailProps;
 };
 
 export type RenderedEmail = {

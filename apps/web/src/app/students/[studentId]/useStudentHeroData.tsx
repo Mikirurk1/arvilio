@@ -34,7 +34,7 @@ import {
   splitStudentBillingTracks,
 } from '../../../lib/billing/student-billing-tracks';
 import { getLessonFormatLabel } from '../../../lib/student-lesson-format';
-import type { AchievementStatsDto } from '@pkg/types';
+import type { AchievementStatsDto, StudentLessonFormat, UserRoleId } from '@pkg/types';
 
 type BillingTracks = ReturnType<typeof splitStudentBillingTracks> | null;
 
@@ -62,9 +62,9 @@ interface UseStudentHeroDataOptions {
   achievementsLoading: boolean;
   billingTracks: BillingTracks;
   groupLessonsEnabled: boolean;
-  activeUserRole: string;
+  activeUserRole: UserRoleId;
   studentForm: MockStudent;
-  lessonFormat: string;
+  lessonFormat: StudentLessonFormat;
 }
 
 export function useStudentHeroData({

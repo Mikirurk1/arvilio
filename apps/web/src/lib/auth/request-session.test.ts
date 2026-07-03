@@ -90,6 +90,8 @@ describe('request-session', () => {
       scope: 'school',
       availableScopes: ['school'],
       tenantKey: null,
+      impersonation: { actorUserId: 'op-1', schoolId: 'school_a' },
+      trial: { trialEndsAt: '2026-07-01T00:00:00.000Z', daysLeft: 6 },
       user,
     });
 
@@ -108,6 +110,8 @@ describe('request-session', () => {
       scope: 'school',
       availableScopes: ['school'],
       tenantKey: null,
+      impersonation: { actorUserId: 'op-1', schoolId: 'school_a' },
+      trial: { trialEndsAt: '2026-07-01T00:00:00.000Z', daysLeft: 6 },
       user,
     });
   });

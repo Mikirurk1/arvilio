@@ -24,6 +24,9 @@ describe('AuthSessionService', () => {
       updateMany: jest.fn(),
       create: jest.fn(),
     },
+    schoolMembership: {
+      findFirst: jest.fn(),
+    },
   };
 
   beforeEach(async () => {
@@ -114,7 +117,7 @@ describe('AuthSessionService', () => {
         cookies: { [ACCESS_COOKIE]: token },
       });
 
-      expect(result).toEqual({ authStrategy: 'access', user: activeUser });
+      expect(result).toEqual({ authStrategy: 'access', user: activeUser, impersonation: null });
       expect(prisma.user.findUnique).toHaveBeenCalledTimes(1);
     });
 
@@ -131,7 +134,7 @@ describe('AuthSessionService', () => {
         cookies: { [REFRESH_COOKIE]: rawRefresh },
       });
 
-      expect(result).toEqual({ authStrategy: 'refresh', user: activeUser });
+      expect(result).toEqual({ authStrategy: 'refresh', user: activeUser, impersonation: null });
       expect(prisma.user.findUnique).toHaveBeenCalledTimes(1);
     });
 
@@ -246,6 +249,104 @@ describe('AuthSessionService', () => {
           cookies: { [ACCESS_COOKIE]: token },
         }),
       ).rejects.toBeInstanceOf(ForbiddenException);
+    });
+  });
+
+  describe('resolveTrialInfo', () => {
+    it('returns days left for a TRIAL school with a trialEndsAt', async () => {
+      const end = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000);
+      prisma.schoolMembership.findFirst.mockResolvedValue({
+        school: { status: 'TRIAL', subscription: { trialEndsAt: end } },
+      });
+      const info = await service.resolveTrialInfo('user-abc');
+      expect(info?.trialEndsAt).toBe(end.toISOString());
+      expect(info?.daysLeft).toBe(6);
+    });
+
+    it('returns null for a non-trial (ACTIVE) school', async () => {
+      prisma.schoolMembership.findFirst.mockResolvedValue({
+        school: { status: 'ACTIVE', subscription: { trialEndsAt: new Date() } },
+      });
+      expect(await service.resolveTrialInfo('user-abc')).toBeNull();
+    });
+
+    it('returns null when there is no membership or no trialEndsAt', async () => {
+      prisma.schoolMembership.findFirst.mockResolvedValueOnce(null);
+      expect(await service.resolveTrialInfo('user-abc')).toBeNull();
+      prisma.schoolMembership.findFirst.mockResolvedValueOnce({
+        school: { status: 'TRIAL', subscription: null },
+      });
+      expect(await service.resolveTrialInfo('user-abc')).toBeNull();
+    });
+
+    it('clamps daysLeft at 0 for a lapsed trial', async () => {
+      prisma.schoolMembership.findFirst.mockResolvedValue({
+        school: { status: 'TRIAL', subscription: { trialEndsAt: new Date(Date.now() - 86_400_000) } },
+      });
+      expect((await service.resolveTrialInfo('user-abc'))?.daysLeft).toBe(0);
+    });
+  });
+
+  describe('impersonation (ADR-009)', () => {
+    it('mints an access token carrying sub + imp claim', () => {
+      const { accessToken, expiresInSeconds } = service.mintImpersonationAccessToken({
+        targetUserId: 'target-1',
+        actorUserId: 'operator-1',
+        schoolId: 'school_a',
+      });
+      expect(expiresInSeconds).toBe(60 * 15);
+      const payload = jwt.verify(accessToken, getJwtSecret()) as {
+        sub?: string;
+        imp?: { act: string; sid: string };
+      };
+      expect(payload.sub).toBe('target-1');
+      expect(payload.imp).toEqual({ act: 'operator-1', sid: 'school_a' });
+    });
+
+    it('surfaces impersonation context from the access cookie in the web session', async () => {
+      const { accessToken } = service.mintImpersonationAccessToken({
+        targetUserId: 'user-abc',
+        actorUserId: 'operator-1',
+        schoolId: 'school_a',
+      });
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'user-abc',
+        email: 'u@example.com',
+        displayName: 'User',
+        avatarUrl: null,
+        role: 'ADMIN',
+        status: 'ACTIVE',
+        proficiencyLevel: null,
+        timezone: 'Europe/Kyiv',
+        teacherId: null,
+        passwordHash: 'hash',
+        oauthAccounts: [],
+      });
+
+      const result = await service.resolveWebRequestSessionAuth({
+        headers: {},
+        cookies: { [ACCESS_COOKIE]: accessToken },
+      });
+
+      expect(result?.impersonation).toEqual({ actorUserId: 'operator-1', schoolId: 'school_a' });
+    });
+
+    it('readImpersonationClaim returns null for a normal token', () => {
+      const token = jwt.sign({ sub: 'user-abc' }, getJwtSecret(), {
+        expiresIn: ACCESS_TOKEN_TTL_SECONDS,
+      });
+      expect(service.readImpersonationClaim({ headers: {}, cookies: { [ACCESS_COOKIE]: token } })).toBeNull();
+    });
+
+    it('readImpersonationClaim reads the claim from an impersonation token', () => {
+      const { accessToken } = service.mintImpersonationAccessToken({
+        targetUserId: 'target-1',
+        actorUserId: 'operator-1',
+        schoolId: 'school_a',
+      });
+      expect(
+        service.readImpersonationClaim({ headers: {}, cookies: { [ACCESS_COOKIE]: accessToken } }),
+      ).toEqual({ actorUserId: 'operator-1', schoolId: 'school_a' });
     });
   });
 });

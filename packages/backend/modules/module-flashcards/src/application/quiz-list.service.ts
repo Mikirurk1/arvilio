@@ -1,5 +1,5 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@be/prisma';
+import { PrismaService, TenantPrismaService } from '@be/prisma';
 import type { QuizCardDto, StudentQuizCardDto } from '@pkg/types';
 import { encodeQuizCursor } from '../domain/quiz-generator.logic';
 import { QuizAccessService } from './quiz-access.service';
@@ -10,16 +10,22 @@ import { QuizRepository } from '../infrastructure/quiz.repository';
 export class QuizListService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly tenantPrisma: TenantPrismaService,
     private readonly access: QuizAccessService,
     private readonly repo: QuizRepository,
   ) {}
+
+  /** Tenant-scoped client: Quiz/QuizAssignment reads+deletes are auto-filtered by school. */
+  private get db() {
+    return this.tenantPrisma.client;
+  }
 
   async delete(actorId: string, quizId: string): Promise<boolean> {
     const actor = await this.prisma.user.findUnique({
       where: { id: actorId },
       select: { role: true },
     });
-    const quiz = await this.prisma.quiz.findUnique({ where: { id: quizId } });
+    const quiz = await this.db.quiz.findUnique({ where: { id: quizId } });
     if (!quiz) throw new NotFoundException('Quiz not found');
     if (actor?.role === 'STUDENT') {
       throw new ForbiddenException(
@@ -29,11 +35,11 @@ export class QuizListService {
     const isOwner = quiz.ownerId === actorId;
     const isAdmin = actor?.role === 'ADMIN' || actor?.role === 'SUPER_ADMIN';
     if (isAdmin || isOwner) {
-      await this.prisma.quiz.delete({ where: { id: quizId } });
+      await this.db.quiz.delete({ where: { id: quizId } });
       return true;
     }
     if (actor?.role === 'TEACHER') {
-      const canDeleteForStudent = await this.prisma.quizAssignment.findFirst({
+      const canDeleteForStudent = await this.db.quizAssignment.findFirst({
         where: {
           quizId,
           student: { teacherId: actorId },
@@ -41,7 +47,7 @@ export class QuizListService {
         select: { id: true },
       });
       if (canDeleteForStudent) {
-        await this.prisma.quiz.delete({ where: { id: quizId } });
+        await this.db.quiz.delete({ where: { id: quizId } });
         return true;
       }
     }
@@ -50,7 +56,7 @@ export class QuizListService {
 
   async listForStudent(viewerId: string, studentId: string): Promise<StudentQuizCardDto[]> {
     await this.access.assertCanViewStudent(viewerId, studentId);
-    const rows = await this.prisma.quizAssignment.findMany({
+    const rows = await this.db.quizAssignment.findMany({
       where: { studentId },
       include: {
         quiz: { include: { _count: { select: { questions: true } } } },
@@ -85,7 +91,7 @@ export class QuizListService {
   }
 
   async listFor(userId: string): Promise<QuizCardDto[]> {
-    const quizzes = await this.prisma.quiz.findMany({
+    const quizzes = await this.db.quiz.findMany({
       where: await this.access.listForWhere(userId),
       include: { _count: { select: { questions: true } } },
       orderBy: { createdAt: 'desc' },
@@ -110,7 +116,7 @@ export class QuizListService {
           ],
         }
       : {};
-    const quizzes = await this.prisma.quiz.findMany({
+    const quizzes = await this.db.quiz.findMany({
       where: { AND: [await this.access.listForWhere(userId), cursorWhere] },
       include: { _count: { select: { questions: true } } },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
@@ -144,7 +150,7 @@ export class QuizListService {
           ],
         }
       : {};
-    const rows = await this.prisma.quizAssignment.findMany({
+    const rows = await this.db.quizAssignment.findMany({
       where: { studentId, ...cursorWhere },
       include: { quiz: { include: { _count: { select: { questions: true } } } } },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
