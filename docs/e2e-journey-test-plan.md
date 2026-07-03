@@ -95,14 +95,13 @@
 > **Аудит:** ☐ не проводився — потрібен запущений dev server + реальний run.
 
 - [x] Сід `seed-test-users.ts` на чистій БД (4 ролі + Default School). *(прогнано 2026-07-03, ідемпотентний)*
-- [◐] Розширити сід — **зроблено 2026-07-03:** 3 уроки (planned/completed/cancelled), студент у вчителя, словник 10 слів усіх статусів, staff compensation (PER_LESSON, UAH), `tourCompletedAt` для всіх юзерів (тур більше не перекриває E2E).
-      **☐ remaining:** ≥1 матеріал із вкладенням; ≥1 quiz; ≥1 платіж; ≥1 promo-code.
+- [x] Розширити сід — **зроблено 2026-07-03:** 3 уроки (planned/completed/cancelled), студент у вчителя, словник 10 слів усіх статусів, staff compensation (PER_LESSON, UAH), `tourCompletedAt` для всіх юзерів (тур більше не перекриває E2E), quiz із 2 питаннями, платіж SUCCEEDED (4 уроки), promo `SEED20`, матеріал (BOOK, без файла — storage-upload лишається ручним).
 - [x] Фікстура per-role `storageState` — `setup/auth.setup.ts` + `fixtures/auth.ts`.
 - [x] Хелпери: `shot()`, `expectNoA11yViolations()`, `consoleGuard()` — `helpers/a11y.ts`.
 - [ ] `expectArvi(pose?)` — ще не написано.
 - [x] Проєкти: `student/teacher/admin` (Desktop Chrome) + `mobile-student` (Pixel 7); `screenshots/` у `.gitignore`.
 
-**☐ remaining:** сід: матеріал/quiz/платіж/promo; `expectArvi()` хелпер.
+**☐ remaining:** `expectArvi()` хелпер; файлове вкладення матеріалу в сіді (опційно).
 
 → Після аудиту: `docs/e2e-improvements/00-infra.md`.
 
@@ -532,7 +531,7 @@
 | 4 | TEACHER | ☑ | ☑ | ☑ | ☑ | ☑ (2026-07-02, див. e2e-improvements/04-teacher.md) |
 | 5 | ADMIN | ☑ | ☑ | ☑ | ☑ | ☑ (2026-07-02, див. e2e-improvements/05-admin.md) |
 | 6 | SUPER+System | ☑ | ☑ | ☑ | ☑ | ☑ (2026-07-02, admin-scope; super_admin нема в сіді — див. e2e-improvements/06-system.md) |
-| 7 | Platform | ☐ | ☐ | ☐ | ☐ | ☐ (блок: :4300 не запущено, super_admin нема в сіді) |
+| 7 | Platform | ☑ | ☑ | ☑ | ☑ | ☑ (2026-07-03, 0 кодових знахідок — див. e2e-improvements/07-platform.md) |
 | 8 | RBAC негативні | ☑ | ☑ | — | ☑ | ☑ (2026-07-03, 0 знахідок — див. e2e-improvements/08-rbac.md) |
 | 9 | Адаптивність | ☑ | ☑ | ☑ | ☑ | ☑ (2026-07-03, 0 знахідок у коді — див. e2e-improvements/09-responsive.md) |
 | 10 | a11y повний | ☑ | ☑ | ☑ | ☑ | ☑ (2026-07-03, focus-trap LessonModal — див. e2e-improvements/10-a11y.md) |

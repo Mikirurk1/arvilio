@@ -1,3 +1,4 @@
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Global, Module } from '@nestjs/common';
 import { FILE_STORAGE_PORT } from './file-storage.port';
@@ -28,10 +29,17 @@ function createStorageAdapter() {
   }
 
   // Default: local disk. UPLOAD_ROOT supersedes legacy per-module dirs.
-  const root =
+  let root =
     process.env['UPLOAD_ROOT'] ??
     process.env['MATERIAL_UPLOAD_DIR'] ??
     path.join(process.cwd(), 'data', 'uploads');
+  // Back-compat: files uploaded before the UPLOAD_ROOT default changed live in
+  // data/material-uploads. If the new default is absent but the legacy dir has
+  // data, keep serving from it instead of 404-ing every existing attachment.
+  if (!process.env['UPLOAD_ROOT'] && !process.env['MATERIAL_UPLOAD_DIR'] && !fs.existsSync(root)) {
+    const legacyRoot = path.join(process.cwd(), 'data', 'material-uploads');
+    if (fs.existsSync(legacyRoot)) root = legacyRoot;
+  }
   return new LocalFileStorageAdapter(root);
 }
 

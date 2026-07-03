@@ -2475,3 +2475,19 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
   - `tests/integration/seed.ts`: new idempotent `seedTestFixtures()` — lessons in all three statuses, teacher StaffCompensationProfile (PER_LESSON, UAH), 10 StudentWordCards across all VocabularyStatus values; all seeded users get `tourCompletedAt` so ProductTour never overlays E2E runs.
   - `npm run seed:test-users` runs it; verified idempotent. Staff-profile audit (5A.3) unskipped — 05-admin now 14/14.
   - Seed backlog: material with attachment, quiz, payment, promo code.
+
+## [2026-07-03] update | Storage-root fallback bugfix + seed fixtures complete
+- **Trigger:** debug (materials preview 404) + code change
+- **Pages:** none new
+- **Key changes:**
+  - **Bug:** every material preview/download 404'd locally — the default local storage root moved to `data/uploads` while existing files live in legacy `data/material-uploads` and no `UPLOAD_ROOT`/`MATERIAL_UPLOAD_DIR` is set. Fix: back-compat fallback in `packages/backend/shared/storage/src/file-storage.module.ts` (use legacy dir when the new default is absent). Verified: preview endpoint 200.
+  - Dev gotcha: `apps/api/scripts/dev.cjs` watcher covers `packages/backend/modules` + `packages/shared` but NOT `packages/backend/shared` — edits there need a touch in a watched dir to rebuild.
+  - Seed now also creates: quiz (2 questions), SUCCEEDED payment (4 lessons), promo `SEED20`, BOOK material; cleanup extended. Etap 0 seed items done except optional file attachment + `expectArvi()`.
+
+## [2026-07-03] update | Stage 7 Platform console audit — clean; audit cycle fully closed
+- **Trigger:** e2e-journey-test-plan.md audit cycle
+- **Pages:** none — no code changes; coverage doc `docs/e2e-improvements/07-platform.md`
+- **Key changes:**
+  - New spec `07-platform-audit.spec.ts` (8 passed): all 5 platform console pages (:4300) render + axe clean under super_admin; school admin and guest get "Not authorized" (PlatformOperator gate works).
+  - Test auth pattern: login via web proxy :4200 → cookie is valid for :4300 (cookie domain ignores port).
+  - e2e-journey-test-plan tracker: stages 1–11 all closed; Etap 0 remaining: expectArvi(), optional seeded file attachment.

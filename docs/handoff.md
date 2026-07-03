@@ -21,7 +21,24 @@
 - `docs/e2e-improvements/03-student.md` — improvement doc Етап 3
 - `apps/web/src/styles/tokens/_theme.scss` — контраст-токени
 
-## What has changed (latest: Etap 0 — сід розширено 2026-07-03)
+## What has changed (latest: Stage 7 Platform audit closed — ВЕСЬ аудит-цикл завершено 2026-07-03)
+
+### Stage 7 Platform console audit (2026-07-03)
+- **Новий спек `07-platform-audit.spec.ts`: 8 passed, 0 кодових знахідок** — 5 сторінок консолі (:4300) render+axe під super_admin; school admin і guest → "Not authorized".
+- Патерн авторизації в тестах: логін через web-proxy :4200 → cookie на host localhost діє і для :4300 (порт не входить у cookie-домен).
+- Спек потребує запущеного platform app (поза `npm run dev`).
+- **Трекер повний: Етапи 1–11 закриті; Етап 0 — лишились expectArvi() і опційне файлове вкладення.**
+- Деталі: `docs/e2e-improvements/07-platform.md`.
+
+## Previous (сід добито + storage-root багфікс — 2026-07-03)
+
+### Сід: quiz/платіж/promo/матеріал + storage-root fallback (2026-07-03)
+- **`seed.ts`**: додано quiz (2 питання, EASY), платіж SUCCEEDED (MANUAL_INVOICE, 4 уроки, seed-payment-1), promo `SEED20` (trial +20 днів), матеріал BOOK; cleanup доповнено (payment/material/promo). Ідемпотентно.
+- **БАГФІКС: усі прев'ю/завантаження матеріалів локально 404-или.** Дефолт storage root змінився на `data/uploads`, а існуючі файли лежать у legacy `data/material-uploads` (env `UPLOAD_ROOT`/`MATERIAL_UPLOAD_DIR` не заданий). Доданий back-compat fallback у `packages/backend/shared/storage/src/file-storage.module.ts`: якщо новий дефолт відсутній, а legacy-тека існує — служити з неї. Preview тепер 200.
+- Нюанс dev.cjs: watcher API НЕ покриває `packages/backend/shared/` — зміни там потребують touch у watched-теці або рестарту.
+- Аудити після фіксів: 04-teacher 20 passed (консольний 404 зник), 05-admin 14/14.
+
+## Previous (Etap 0 — сід розширено 2026-07-03)
 
 ### Etap 0: розширення сіду (2026-07-03)
 - **`tests/integration/seed.ts`**: додано `seedTestFixtures()` (ідемпотентний, викликається з `seedTestUsers`): 3 уроки planned/completed/cancelled (teacher→student), staff compensation для teacher (PER_LESSON 500 UAH), 10 словникових карток усіх статусів (NEW/REPEATED/MISTAKES_WORK/LEARNED); усім сід-юзерам ставиться `tourCompletedAt` — ProductTour більше не перекриває E2E.

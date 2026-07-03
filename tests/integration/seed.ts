@@ -210,6 +210,91 @@ async function seedTestFixtures(prisma: PrismaClient): Promise<void> {
     update: {},
   });
 
+  // ≥1 quiz with questions (owned by teacher)
+  const quizTitle = 'Seed quiz — basics';
+  const existingQuiz = await prisma.quiz.findFirst({
+    where: { title: quizTitle, ownerId: teacher.id },
+    select: { id: true },
+  });
+  if (!existingQuiz) {
+    await prisma.quiz.create({
+      data: {
+        schoolId: SCHOOL_DEFAULT_ID,
+        title: quizTitle,
+        category: 'grammar',
+        difficulty: 'EASY',
+        ownerId: teacher.id,
+        questions: {
+          create: [
+            {
+              order: 0,
+              type: 'MULTIPLE_CHOICE',
+              prompt: 'Choose the correct form: She ___ to school.',
+              options: ['go', 'goes', 'going'],
+              correctAnswer: 'goes',
+            },
+            {
+              order: 1,
+              type: 'FILL_IN',
+              prompt: 'I ___ (be) a student.',
+              options: [],
+              correctAnswer: 'am',
+            },
+          ],
+        },
+      },
+    });
+  }
+
+  // ≥1 succeeded payment for the student (manual invoice, 4 lessons)
+  await prisma.payment.upsert({
+    where: { externalId: 'seed-payment-1' },
+    create: {
+      userId: student.id,
+      schoolId: SCHOOL_DEFAULT_ID,
+      method: 'MANUAL_INVOICE',
+      status: 'SUCCEEDED',
+      lessonsGranted: 4,
+      amountMinor: 200000,
+      currency: 'UAH',
+      externalId: 'seed-payment-1',
+    },
+    update: {},
+  });
+
+  // ≥1 active promo code (trial extension)
+  await prisma.promoCode.upsert({
+    where: { code: 'SEED20' },
+    create: {
+      code: 'SEED20',
+      kind: 'TRIAL_EXTENSION',
+      trialDays: 20,
+      maxRedemptions: 100,
+      active: true,
+    },
+    update: { active: true },
+  });
+
+  // ≥1 library material (no file attachment — storage-backed uploads stay manual)
+  const materialTitle = 'Seed material — grammar book';
+  const existingMaterial = await prisma.libraryMaterial.findFirst({
+    where: { title: materialTitle },
+    select: { id: true },
+  });
+  if (!existingMaterial) {
+    await prisma.libraryMaterial.create({
+      data: {
+        schoolId: SCHOOL_DEFAULT_ID,
+        title: materialTitle,
+        description: 'Seeded reference material for E2E audits.',
+        kind: 'BOOK',
+        tags: ['seed', 'grammar'],
+        level: 'A1',
+        createdById: teacher.id,
+      },
+    });
+  }
+
   // 10+ vocabulary cards across all statuses
   const statuses = ['NEW', 'NEW', 'NEW', 'REPEATED', 'REPEATED', 'REPEATED', 'MISTAKES_WORK', 'MISTAKES_WORK', 'LEARNED', 'LEARNED'] as const;
   for (let i = 0; i < statuses.length; i++) {
@@ -275,6 +360,10 @@ export async function cleanupTestUsers(prisma: PrismaClient): Promise<void> {
   await prisma.quizAttempt.deleteMany({ where: { studentId: { in: ids } } });
 
   await prisma.studentWordCard.deleteMany({ where: { userId: { in: ids } } });
+  // Fixtures from seedTestFixtures
+  await prisma.payment.deleteMany({ where: { userId: { in: ids } } });
+  await prisma.libraryMaterial.deleteMany({ where: { createdById: { in: ids } } });
+  await prisma.promoCode.deleteMany({ where: { code: 'SEED20' } });
   await prisma.authRefreshToken.deleteMany({ where: { userId: { in: ids } } });
   await prisma.passwordResetToken.deleteMany({ where: { userId: { in: ids } } });
   await prisma.oAuthAccount.deleteMany({ where: { userId: { in: ids } } });
