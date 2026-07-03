@@ -98,10 +98,10 @@
 - [x] Розширити сід — **зроблено 2026-07-03:** 3 уроки (planned/completed/cancelled), студент у вчителя, словник 10 слів усіх статусів, staff compensation (PER_LESSON, UAH), `tourCompletedAt` для всіх юзерів (тур більше не перекриває E2E), quiz із 2 питаннями, платіж SUCCEEDED (4 уроки), promo `SEED20`, матеріал (BOOK, без файла — storage-upload лишається ручним).
 - [x] Фікстура per-role `storageState` — `setup/auth.setup.ts` + `fixtures/auth.ts`.
 - [x] Хелпери: `shot()`, `expectNoA11yViolations()`, `consoleGuard()` — `helpers/a11y.ts`.
-- [ ] `expectArvi(pose?)` — ще не написано.
+- [x] `expectArvi(pose?)` — `helpers/a11y.ts`, анкер `[data-mascot][data-mascot-pose]` у `Mascot.tsx`; використано у 2.11 (greet на welcome-кроці туру). *(2026-07-03)*
 - [x] Проєкти: `student/teacher/admin` (Desktop Chrome) + `mobile-student` (Pixel 7); `screenshots/` у `.gitignore`.
 
-**☐ remaining:** `expectArvi()` хелпер; файлове вкладення матеріалу в сіді (опційно).
+**☐ remaining:** файлове вкладення матеріалу в сіді (опційно).
 
 → Після аудиту: `docs/e2e-improvements/00-infra.md`.
 

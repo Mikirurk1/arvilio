@@ -22,11 +22,16 @@ export function Mascot({ pose = 'idle', size = 72 }: { pose?: MascotPose; size?:
     setCan3d(hasWebGL() && !prefersReducedMotion());
   }, []);
 
-  if (!can3d) return <MascotFallback size={size} pose={pose} />;
-
+  // data-mascot / data-mascot-pose: stable hooks for E2E (expectArvi helper)
   return (
-    <MascotErrorBoundary fallback={<MascotFallback size={size} pose={pose} />}>
-      <MascotCanvas pose={pose} src={MASCOT_SRC} size={size} />
-    </MascotErrorBoundary>
+    <span data-mascot data-mascot-pose={pose} style={{ display: 'inline-flex' }}>
+      {can3d ? (
+        <MascotErrorBoundary fallback={<MascotFallback size={size} pose={pose} />}>
+          <MascotCanvas pose={pose} src={MASCOT_SRC} size={size} />
+        </MascotErrorBoundary>
+      ) : (
+        <MascotFallback size={size} pose={pose} />
+      )}
+    </span>
   );
 }

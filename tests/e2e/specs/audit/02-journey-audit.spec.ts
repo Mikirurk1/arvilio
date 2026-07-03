@@ -3,7 +3,7 @@
  * Public project (без storageState) — реєструє нову школу на кожен прогін.
  */
 import { test, expect } from '@playwright/test';
-import { shot, expectNoA11yViolations, consoleGuard } from '../../helpers/a11y';
+import { shot, expectNoA11yViolations, consoleGuard, expectArvi } from '../../helpers/a11y';
 
 const DIR = '02-journey';
 const RUN_EMAIL = `e2e-journey-${Date.now()}@soenglish.test`;
@@ -72,6 +72,7 @@ test('2.11 golden path: signup → wizard → dashboard → tour', async ({ page
     return;
   }
   await shot(page, `${DIR}/2-9-tour-step-1`);
+  await expectArvi(page, 'greet'); // 2.12: Arvi greet на welcome-кроці туру
   await expectNoA11yViolations(page);
   await tour.getByRole('button', { name: /next/i }).click();
   await page.waitForTimeout(400);

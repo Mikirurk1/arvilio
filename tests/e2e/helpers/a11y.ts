@@ -23,6 +23,17 @@ export async function shot(page: Page, name: string) {
   });
 }
 
+/**
+ * Assert the Arvi mascot is rendered, optionally in a specific pose.
+ * Anchored on `[data-mascot]` / `[data-mascot-pose]` from components/mascot/Mascot.tsx.
+ */
+export async function expectArvi(page: Page, pose?: string) {
+  const locator = pose
+    ? page.locator(`[data-mascot][data-mascot-pose="${pose}"]`)
+    : page.locator('[data-mascot]');
+  await expect(locator.first()).toBeVisible({ timeout: 10_000 });
+}
+
 /** Assert no console errors (attach to page before navigation). */
 export function consoleGuard(page: Page): () => void {
   const errors: string[] = [];

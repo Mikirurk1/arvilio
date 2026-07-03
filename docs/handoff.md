@@ -21,7 +21,16 @@
 - `docs/e2e-improvements/03-student.md` — improvement doc Етап 3
 - `apps/web/src/styles/tokens/_theme.scss` — контраст-токени
 
-## What has changed (latest: Stage 7 Platform audit closed — ВЕСЬ аудит-цикл завершено 2026-07-03)
+## What has changed (latest: expectArvi() хелпер — Етап 0 закрито 2026-07-03)
+
+### expectArvi() + Mascot data-attrs (2026-07-03)
+- **`Mascot.tsx`**: обгортка `<span data-mascot data-mascot-pose={pose}>` навколо 3D/fallback — стабільний E2E-анкер.
+- **`helpers/a11y.ts`**: `expectArvi(page, pose?)`; використано у golden path (Arvi `greet` на welcome-кроці туру, пункт 2.12).
+- Регресія: 02-journey 4 passed, 03-student 27 passed.
+- Env-нюанс: Docker Desktop зупинився → Postgres упав → register-school 500 (ECONNREFUSED). `open -a Docker` + почекати `pg_isready`.
+- З Етапу 0 лишилось тільки опційне файлове вкладення в сіді.
+
+## Previous (Stage 7 Platform audit closed — ВЕСЬ аудит-цикл завершено 2026-07-03)
 
 ### Stage 7 Platform console audit (2026-07-03)
 - **Новий спек `07-platform-audit.spec.ts`: 8 passed, 0 кодових знахідок** — 5 сторінок консолі (:4300) render+axe під super_admin; school admin і guest → "Not authorized".

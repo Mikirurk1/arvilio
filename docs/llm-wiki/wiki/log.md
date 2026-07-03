@@ -2491,3 +2491,11 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
   - New spec `07-platform-audit.spec.ts` (8 passed): all 5 platform console pages (:4300) render + axe clean under super_admin; school admin and guest get "Not authorized" (PlatformOperator gate works).
   - Test auth pattern: login via web proxy :4200 → cookie is valid for :4300 (cookie domain ignores port).
   - e2e-journey-test-plan tracker: stages 1–11 all closed; Etap 0 remaining: expectArvi(), optional seeded file attachment.
+
+## [2026-07-03] update | expectArvi() E2E helper + Mascot data attributes
+- **Trigger:** code change (e2e plan Etap 0 final item)
+- **Pages:** none new
+- **Key changes:**
+  - `components/mascot/Mascot.tsx` wraps both 3D and SVG-fallback renders in `<span data-mascot data-mascot-pose={pose}>` — stable E2E anchor.
+  - `tests/e2e/helpers/a11y.ts`: new `expectArvi(page, pose?)`; golden path asserts Arvi `greet` on the tour welcome step.
+  - Dev gotcha: local Postgres runs in Docker Desktop (`soenglish-postgres`); if Docker stops, register/login return 500 (ECONNREFUSED).
