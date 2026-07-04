@@ -21,7 +21,15 @@
 - `docs/e2e-improvements/03-student.md` — improvement doc Етап 3
 - `apps/web/src/styles/tokens/_theme.scss` — контраст-токени
 
-## What has changed (latest: LessonModal → useFocusTrap + дебаг dev-нестабільності — 2026-07-04)
+## What has changed (latest: P0 крос-тенантний витік студентів — виправлено 2026-07-04)
+
+### P0: cross-tenant student leak (2026-07-04)
+- **Знайдено E2E-тестом 8.7:** `students`/`studentsPage`/`assignableTeachers` GraphQL для ADMIN/SUPER_ADMIN не фільтрували по школі — admin будь-якої школи бачив УСІХ студентів платформи. Реальний multi-tenant витік даних.
+- **Фікс `packages/backend/modules/module-auth/src/application/users.service.ts`:** інжектовано `TenantContextService`; `tenantStudentFilter()` → `{ schoolMemberships: { some: { schoolId, status: 'ACTIVE' } } }` у всіх трьох запитах (User — глобальна ідентичність, ізоляція через SchoolMembership).
+- Тести: users.service.spec 15 passed (+admin-ізоляція); 08-rbac E2E 27 passed (новий 8.7 реєструє свіжу школу і перевіряє відсутність даних school_default у GraphQL+UI); teacher-аудит 20 passed (звичайний перегляд студентів не зламано).
+- Беклог: host-based JWT cross-check (8.7 варіант з host-роутінгом).
+
+## Previous (LessonModal → useFocusTrap + дебаг dev-нестабільності — 2026-07-04)
 
 ### Focus-trap reuse + стабілізація dev-стека (2026-07-04)
 - **`LessonModal.tsx`**: інлайн-трап замінено на існуючий `hooks/use-focus-trap.ts` (його вже юзають MaterialFormModal, MediaViewerModal, LibraryMaterialPicker, MobileNavDrawer). Додано focus-trap тест для MaterialFormModal у `10-a11y-audit.spec.ts`. Все зелене: 17 passed.

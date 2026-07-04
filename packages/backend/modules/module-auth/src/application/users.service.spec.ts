@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaService } from '@be/prisma';
+import { TenantContextService } from '@be/tenant';
 import * as bcrypt from 'bcryptjs';
 import { UsersService } from './users.service';
 import { LanguagesService } from './languages.service';
@@ -46,14 +47,17 @@ describe('UsersService', () => {
     },
   };
   const languages = { assertLanguageIds: jest.fn() };
+  const tenant = { schoolId: 'school_default' as string | null };
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    tenant.schoolId = 'school_default';
     const moduleRef = await Test.createTestingModule({
       providers: [
         UsersService,
         { provide: PrismaService, useValue: prisma },
         { provide: LanguagesService, useValue: languages },
+        { provide: TenantContextService, useValue: tenant },
       ],
     }).compile();
     service = moduleRef.get(UsersService);
@@ -90,7 +94,30 @@ describe('UsersService', () => {
     expect(rows[0]?.teacherId).toBe('t1');
     expect(prisma.user.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { role: 'STUDENT', teacherId: 't1' },
+        where: {
+          AND: [
+            { role: 'STUDENT', teacherId: 't1' },
+            { schoolMemberships: { some: { schoolId: 'school_default', status: 'ACTIVE' } } },
+          ],
+        },
+      }),
+    );
+  });
+
+  it('listStudents scopes admins to the active school (tenant isolation)', async () => {
+    prisma.user.findUnique.mockResolvedValue({ id: 'a1', role: 'ADMIN' });
+    prisma.user.findMany.mockResolvedValue([]);
+    tenant.schoolId = 'school_b';
+
+    await service.listStudents('a1');
+    expect(prisma.user.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          AND: [
+            { role: 'STUDENT' },
+            { schoolMemberships: { some: { schoolId: 'school_b', status: 'ACTIVE' } } },
+          ],
+        },
       }),
     );
   });
@@ -183,7 +210,12 @@ describe('UsersService', () => {
       expect.objectContaining({
         where: expect.objectContaining({
           AND: expect.arrayContaining([
-            { role: 'STUDENT' },
+            {
+              AND: [
+                { role: 'STUDENT' },
+                { schoolMemberships: { some: { schoolId: 'school_default', status: 'ACTIVE' } } },
+              ],
+            },
             expect.objectContaining({ OR: expect.any(Array) }),
           ]),
         }),

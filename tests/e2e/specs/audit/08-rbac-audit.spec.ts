@@ -67,6 +67,43 @@ test.describe('8.5 guest denials', () => {
 });
 
 // ──────────────────────────────────────────────────────
+// 8.7 тенантна ізоляція: admin школи B не бачить даних school_default
+// ──────────────────────────────────────────────────────
+test.describe('8.7 tenant isolation', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
+  test('fresh-school admin sees no default-school data over HTTP', async ({ page }) => {
+    // Реєструємо ізольовану школу через публічний signup (auto-login у context)
+    const email = `e2e-isolation-${Date.now()}@soenglish.test`;
+    const reg = await page.request.post('/api/auth/register-school', {
+      data: { schoolName: 'Isolation Probe School', email, password: 'TestPass123!' },
+    });
+    expect(reg.status()).toBe(201);
+
+    // GraphQL students — школа щойно створена, чужих студентів бути не може
+    const gql = await page.request.post('/api/graphql', {
+      data: { query: '{ students { id email } }' },
+    });
+    expect(gql.status()).toBe(200);
+    const students = (await gql.json()) as { data?: { students?: Array<{ email: string }> } };
+    const emails = (students.data?.students ?? []).map((s) => s.email);
+    expect(emails, 'must not leak default-school students').not.toContain('jest-student@soenglish.test');
+
+    // /students UI — порожній стан, а не ростер default-школи
+    await page.goto('/students');
+    await expect(page.locator('main')).toBeVisible({ timeout: 10_000 });
+    await page.getByText(/loading students/i).waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => {});
+    await expect(page.getByText(/jest student/i)).toHaveCount(0);
+
+    // /materials — сідовий матеріал default-школи не видно
+    await page.goto('/materials');
+    await expect(page.locator('main')).toBeVisible({ timeout: 10_000 });
+    await page.waitForTimeout(1_000);
+    await expect(page.getByText(/Seed material — grammar book/i)).toHaveCount(0);
+  });
+});
+
+// ──────────────────────────────────────────────────────
 // 8.6 API без сесії → 401
 // ──────────────────────────────────────────────────────
 test.describe('8.6 API without session', () => {

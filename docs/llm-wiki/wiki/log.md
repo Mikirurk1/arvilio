@@ -2506,3 +2506,11 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 - **Key changes:**
   - `LessonModal.tsx` now uses the pre-existing `hooks/use-focus-trap.ts` (already used by MaterialFormModal, MediaViewerModal, LibraryMaterialPicker, MobileNavDrawer) instead of a bespoke inline trap; MaterialFormModal trap covered by a new test in `10-a11y-audit.spec.ts`.
   - **Dev-stack instability root cause:** `apps/web/.next` had grown to 10GB — Turbopack OOM'd (even at 8GB heap), crashing web and SIGKILLing the API, cascading into ERR_ABORTED/500 in E2E. Fix: delete `.next`. Hardening: `--max-old-space-size=8192` in web dev script; LoginPage retries goto on ERR_ABORTED and re-fills inputs wiped by the hydration race; auth.setup timeout 90s.
+
+## [2026-07-04] update | P0 fix: cross-tenant student leak in UsersService
+- **Trigger:** debug (E2E tenant-isolation test 8.7 caught the leak)
+- **Pages:** `concepts/multi-tenancy.md` (isolation gap note)
+- **Key changes:**
+  - `students`/`studentsPage`/`assignableTeachers` GraphQL queries for ADMIN/SUPER_ADMIN filtered by `{ role: 'STUDENT' }` with no school scope → any school admin read every student on the platform. `User` is a global identity (not row-scoped by schoolId); base PrismaService doesn't auto-scope it.
+  - Fix in `users.service.ts`: inject `TenantContextService`, add `tenantStudentFilter()` = `schoolMemberships.some({ schoolId, status: 'ACTIVE' })`, applied to all three queries.
+  - Tests: users.service.spec (+admin-isolation), 08-rbac-audit.spec 8.7 (register fresh school via API → assert no school_default data leaks over GraphQL/UI).

@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@be/prisma';
+import { TenantContextService } from '@be/tenant';
 import * as bcrypt from 'bcryptjs';
 import type {
   AssignableTeacherDto,
@@ -48,7 +49,20 @@ export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly languages: LanguagesService,
+    private readonly tenant: TenantContextService,
   ) {}
+
+  /**
+   * Restrict a student query to the active tenant. `User` is a global identity
+   * (not row-scoped by schoolId), so tenant isolation is enforced via an ACTIVE
+   * `SchoolMembership` in the current school. Without this, a school admin could
+   * read every student on the platform.
+   */
+  private tenantStudentFilter(): Prisma.UserWhereInput {
+    const schoolId = this.tenant.schoolId;
+    if (!schoolId) return {};
+    return { schoolMemberships: { some: { schoolId, status: 'ACTIVE' } } };
+  }
 
   async listStudents(actorUserId: string): Promise<StudentSummaryBackendDto[]> {
     const actor = await this.prisma.user.findUnique({
@@ -60,10 +74,14 @@ export class UsersService {
       throw new ForbiddenException('Students section is available only for staff roles');
     }
     const students = await this.prisma.user.findMany({
-      where:
-        actor.role === 'TEACHER'
-          ? { role: 'STUDENT', teacherId: actor.id }
-          : { role: 'STUDENT' },
+      where: {
+        AND: [
+          actor.role === 'TEACHER'
+            ? { role: 'STUDENT', teacherId: actor.id }
+            : { role: 'STUDENT' },
+          this.tenantStudentFilter(),
+        ],
+      },
       include: {
         teacher: { select: { id: true, displayName: true } },
         learningLanguages: { select: { languageId: true } },
@@ -114,10 +132,15 @@ export class UsersService {
     };
   }
 
-  private studentsWhere(actor: { id: string; role: string }) {
-    return actor.role === 'TEACHER'
-      ? { role: 'STUDENT' as const, teacherId: actor.id }
-      : { role: 'STUDENT' as const };
+  private studentsWhere(actor: { id: string; role: string }): Prisma.UserWhereInput {
+    return {
+      AND: [
+        actor.role === 'TEACHER'
+          ? { role: 'STUDENT' as const, teacherId: actor.id }
+          : { role: 'STUDENT' as const },
+        this.tenantStudentFilter(),
+      ],
+    };
   }
 
   async listStudentsPage(
@@ -177,7 +200,7 @@ export class UsersService {
       throw new ForbiddenException('Assignable teachers are available only for staff roles');
     }
     const teachers = await this.prisma.user.findMany({
-      where: { role: { in: [...TEACHING_ROLES] } },
+      where: { AND: [{ role: { in: [...TEACHING_ROLES] } }, this.tenantStudentFilter()] },
       select: { id: true, email: true, displayName: true, role: true, timezone: true },
       orderBy: { displayName: 'asc' },
     });

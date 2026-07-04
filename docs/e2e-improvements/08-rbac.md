@@ -18,11 +18,19 @@
 | 8.4 admin → /payment (student-only) | редірект | ☑ |
 | 8.5 guest → /dashboard, /lessons, /system, /billing | → /login | ☑ |
 | 8.6 API без сесії: /auth/me, /users/students, /billing/entitlements, /onboarding/tour | 401/403 | ☑ |
+| 8.7 тенантна ізоляція: admin школи B не бачить студентів/матеріалів school_default | GraphQL + UI | ☑ (після фікса) |
 
-Не покрито (беклог): 8.7 JWT школи ≠ host → 403 (потребує другої школи в сіді + host-роутінг).
+### P0 знахідка (2026-07-04): крос-тенантний витік студентів
+
+`students` / `studentsPage` / `assignableTeachers` GraphQL-запити для ADMIN/SUPER_ADMIN робили `{ role: 'STUDENT' }` **без фільтра по школі** — admin новоствореної школи бачив усіх студентів платформи (і `jest-student@soenglish.test` зі school_default). `User` — глобальна ідентичність (не row-scoped по schoolId), тож ізоляція має йти через `SchoolMembership`.
+
+**Фікс** (`users.service.ts`): інжектовано `TenantContextService`, доданий `tenantStudentFilter()` → `{ schoolMemberships: { some: { schoolId, status: 'ACTIVE' } } }`, застосований у всіх трьох запитах. Юніт-тест на admin-ізоляцію + E2E 8.7 (реєстрація свіжої школи через API → перевірка, що її admin не бачить даних school_default через GraphQL і UI).
+
+Не покрито (беклог): host-based JWT cross-check (JWT школи ≠ host → 403) — потребує host-роутінгу.
 
 ---
 
 ## Підсумок
-- Знахідок: 0 — route-policy.ts і API-guard'и працюють консистентно.
-- Результат: `08-rbac-audit.spec.ts` — 26 passed.
+- Route-policy редіректи й API-guard'и — 0 знахідок.
+- **P0: крос-тенантний витік студентів (admin бачив усіх студентів платформи) — виправлено 2026-07-04** (`users.service.ts`, тенант-фільтр через SchoolMembership).
+- Результат: `08-rbac-audit.spec.ts` — 27 passed (26 RBAC + 8.7 ізоляція).

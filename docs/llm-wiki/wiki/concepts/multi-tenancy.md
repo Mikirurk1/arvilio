@@ -69,6 +69,8 @@ SoEnglish is transitioning from a single-school product to a multi-tenant SaaS w
 
 Cross-tenant data leakage = data breach between schools. An **isolation e2e test** (token of school A cannot read school B) is a mandatory release gate. The only legitimate cross-tenant access is `@be/platform-admin` via the audited `asPlatform()` hatch.
 
+> **⚠️ Isolation gap fixed 2026-07-04:** `UsersService.listStudents/listStudentsPage/listAssignableTeachers` (GraphQL `students`/`studentsPage`/`assignableTeachers`) queried `{ role: 'STUDENT' }` with **no tenant filter** — any school admin saw every student on the platform. `User` is a global identity (not row-scoped by `schoolId`), so these queries must scope via `SchoolMembership`. Fix: `tenantStudentFilter()` = `{ schoolMemberships: { some: { schoolId: tenant.schoolId, status: 'ACTIVE' } } }` (uses `TenantContextService`). Lesson: **base `PrismaService` on the `User` model does not auto-scope** — resolvers that list global-identity rows must add the membership filter explicitly. Covered by `08-rbac-audit.spec.ts` 8.7 + `users.service.spec.ts` admin-isolation case.
+
 ## Business model (see `docs/business-model.md`)
 
 Three product pillars + revenue streams:
