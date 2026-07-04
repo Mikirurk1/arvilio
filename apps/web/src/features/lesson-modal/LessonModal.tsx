@@ -12,6 +12,7 @@ import {
   type UserRole,
 } from '../../mocks';
 import type { LessonPartyOption } from '../../hooks/use-lesson-party-options';
+import { useFocusTrap } from '../../hooks/use-focus-trap';
 import styles from './LessonModal.module.scss';
 import { ImagePreviewOverlay } from './ImagePreviewOverlay';
 import { LessonContentTab } from './LessonContentTab';
@@ -325,14 +326,8 @@ export function LessonModal({
     return () => setMounted(false);
   }, []);
 
-  useEffect(() => {
-    if (mounted) {
-      const firstFocusable = modalRef.current?.querySelector<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-      );
-      firstFocusable?.focus();
-    }
-  }, [mounted]);
+  // Focus-on-open + Tab trap + focus restore — shared hook (same as MaterialFormModal).
+  useFocusTrap(mounted, modalRef);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -341,26 +336,6 @@ export function LessonModal({
           setImagePreviewUrl(null);
         } else {
           onClose();
-        }
-        return;
-      }
-      // Focus trap: keep Tab / Shift+Tab cycling inside the dialog.
-      if (event.key === 'Tab' && modalRef.current) {
-        const focusable = Array.from(
-          modalRef.current.querySelectorAll<HTMLElement>(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-          ),
-        ).filter((el) => !el.hasAttribute('disabled') && el.offsetParent !== null);
-        if (focusable.length === 0) return;
-        const first = focusable[0]!;
-        const last = focusable[focusable.length - 1]!;
-        const active = document.activeElement as HTMLElement | null;
-        if (!event.shiftKey && (active === last || !modalRef.current.contains(active))) {
-          event.preventDefault();
-          first.focus();
-        } else if (event.shiftKey && (active === first || !modalRef.current.contains(active))) {
-          event.preventDefault();
-          last.focus();
         }
       }
     };

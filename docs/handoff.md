@@ -21,7 +21,15 @@
 - `docs/e2e-improvements/03-student.md` — improvement doc Етап 3
 - `apps/web/src/styles/tokens/_theme.scss` — контраст-токени
 
-## What has changed (latest: expectArvi() хелпер — Етап 0 закрито 2026-07-03)
+## What has changed (latest: LessonModal → useFocusTrap + дебаг dev-нестабільності — 2026-07-04)
+
+### Focus-trap reuse + стабілізація dev-стека (2026-07-04)
+- **`LessonModal.tsx`**: інлайн-трап замінено на існуючий `hooks/use-focus-trap.ts` (його вже юзають MaterialFormModal, MediaViewerModal, LibraryMaterialPicker, MobileNavDrawer). Додано focus-trap тест для MaterialFormModal у `10-a11y-audit.spec.ts`. Все зелене: 17 passed.
+- **КОРІНЬ dev-падінь: `.next` кеш розрісся до 10GB** → Turbopack OOM'ився (heap limit навіть на 8GB) → web креш → API SIGKILL → каскад ERR_ABORTED/500 у тестах. Лік: `rm -rf apps/web/.next`. Після чистки — 12.7s на 17 тестів, нуль крешів.
+- Супутні укріплення: web dev тепер із `--max-old-space-size=8192` (package.json); `LoginPage` — ретрай goto при ERR_ABORTED і fill-цикл проти hydration-race (контрольовані інпути стирали значення, заповнені до гідрації → "Email is required" без POST); auth.setup timeout 90s.
+- Якщо dev знову дуріє: перевір розмір `apps/web/.next` і чисть.
+
+## Previous (expectArvi() хелпер — Етап 0 закрито 2026-07-03)
 
 ### expectArvi() + Mascot data-attrs (2026-07-03)
 - **`Mascot.tsx`**: обгортка `<span data-mascot data-mascot-pose={pose}>` навколо 3D/fallback — стабільний E2E-анкер.

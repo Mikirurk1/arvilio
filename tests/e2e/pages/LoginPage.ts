@@ -4,8 +4,18 @@ export class LoginPage {
   constructor(private readonly page: Page) {}
 
   async goto() {
-    await this.page.goto('/login');
-    await this.page.waitForLoadState('domcontentloaded');
+    // waitUntil domcontentloaded + retry: the dev server occasionally aborts one of
+    // several concurrent first navigations (net::ERR_ABORTED) when parallel setup
+    // workers hit /login at the same time.
+    for (let attempt = 1; ; attempt++) {
+      try {
+        await this.page.goto('/login', { waitUntil: 'domcontentloaded' });
+        break;
+      } catch (err) {
+        if (attempt >= 3) throw err;
+        await this.page.waitForTimeout(1_000 * attempt);
+      }
+    }
     // Dismiss cookie consent banner — it appears after hydration and blocks login redirect.
     const banner = this.page.getByRole('dialog', { name: /cookie/i });
     const visible = await banner.isVisible({ timeout: 3_000 }).catch(() => false);
@@ -21,8 +31,22 @@ export class LoginPage {
     let lastStatus = 0;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      await this.page.getByLabel('Email', { exact: true }).fill(email);
-      await this.page.getByLabel('Password', { exact: true }).fill(password);
+      const emailInput = this.page.getByLabel('Email', { exact: true });
+      const passwordInput = this.page.getByLabel('Password', { exact: true });
+      // Hydration race: controlled inputs wipe values filled before React hydrates
+      // (dev-mode hydration can land seconds after DOMContentLoaded). Fill, give
+      // hydration a beat, and re-check until the values stick.
+      for (let fillTry = 0; fillTry < 10; fillTry++) {
+        if ((await emailInput.inputValue()) !== email) await emailInput.fill(email);
+        if ((await passwordInput.inputValue()) !== password) await passwordInput.fill(password);
+        await this.page.waitForTimeout(400);
+        if (
+          (await emailInput.inputValue()) === email &&
+          (await passwordInput.inputValue()) === password
+        ) {
+          break;
+        }
+      }
 
       // Dismiss banner again in case it appeared after form fill (async hydration).
       const banner = this.page.getByRole('dialog', { name: /cookie/i });
@@ -42,7 +66,7 @@ export class LoginPage {
       lastStatus = response.status();
 
       if (response.ok()) {
-        await this.page.waitForURL(/\/dashboard/, { timeout: 15_000 });
+        await this.page.waitForURL(/\/dashboard/, { timeout: 30_000 });
         return;
       }
 

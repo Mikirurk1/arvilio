@@ -2499,3 +2499,10 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
   - `components/mascot/Mascot.tsx` wraps both 3D and SVG-fallback renders in `<span data-mascot data-mascot-pose={pose}>` — stable E2E anchor.
   - `tests/e2e/helpers/a11y.ts`: new `expectArvi(page, pose?)`; golden path asserts Arvi `greet` on the tour welcome step.
   - Dev gotcha: local Postgres runs in Docker Desktop (`soenglish-postgres`); if Docker stops, register/login return 500 (ECONNREFUSED).
+
+## [2026-07-04] update | LessonModal uses shared useFocusTrap; dev OOM root-caused to 10GB .next cache
+- **Trigger:** code change + debug
+- **Pages:** none new
+- **Key changes:**
+  - `LessonModal.tsx` now uses the pre-existing `hooks/use-focus-trap.ts` (already used by MaterialFormModal, MediaViewerModal, LibraryMaterialPicker, MobileNavDrawer) instead of a bespoke inline trap; MaterialFormModal trap covered by a new test in `10-a11y-audit.spec.ts`.
+  - **Dev-stack instability root cause:** `apps/web/.next` had grown to 10GB — Turbopack OOM'd (even at 8GB heap), crashing web and SIGKILLing the API, cascading into ERR_ABORTED/500 in E2E. Fix: delete `.next`. Hardening: `--max-old-space-size=8192` in web dev script; LoginPage retries goto on ERR_ABORTED and re-fills inputs wiped by the hydration race; auth.setup timeout 90s.

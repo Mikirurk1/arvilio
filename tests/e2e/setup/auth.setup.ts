@@ -26,6 +26,10 @@ setup.beforeAll(() => {
   fs.mkdirSync(AUTH_DIR, { recursive: true });
 });
 
+// Dev-first-compile of /login and /dashboard can exceed the default 30s,
+// especially right after a server restart — give auth extra headroom.
+setup.setTimeout(90_000);
+
 for (const [role, { email, password }] of Object.entries(creds) as [keyof typeof creds, (typeof creds)[keyof typeof creds]][]) {
   setup(`authenticate as ${role}`, async ({ page }) => {
     const login = new LoginPage(page);
