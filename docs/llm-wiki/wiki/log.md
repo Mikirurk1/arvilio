@@ -2541,3 +2541,11 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
   - `/login` now validates email format client-side (regex guard in onSubmit) — was only checking emptiness.
   - `/privacy` and `/status` were gated by auth (missing from `PUBLIC_ROUTES` in route-policy.ts) → added; guests can now read them.
   - Tracker: Stages 0–11 all ☑. Remaining is the Arvi mascot feature backlog (poses/useArvi/ArviSlot/theming), not a test item.
+
+## [2026-07-06] update | Stage 3 granular interaction coverage
+- **Trigger:** e2e-journey-test-plan Stage 3 granular scenarios
+- **Pages:** none new
+- **Key changes:**
+  - `03-student-granular.spec.ts` (21 tests): dashboard quick-actions/widgets, lesson click→[id], practice hub stats, vocabulary filter, calendar period nav, chat inbox, payment balance, profile tabs.
+  - Notes for future specs: profile Appearance font-size is a SegmentedControl (role=radio); student calendar week view needs several "next" clicks to cross a month boundary before the h2 label changes.
+  - Deep flows (realtime chat, LiveKit JWT, OAuth connections, speaking mic, provider checkout, Arvi wave) remain backlog — they need infra/mocks, not interaction assertions.

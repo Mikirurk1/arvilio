@@ -21,7 +21,15 @@
 - `docs/e2e-improvements/03-student.md` — improvement doc Етап 3
 - `apps/web/src/styles/tokens/_theme.scss` — контраст-токени
 
-## What has changed (latest: Етап 1 Auth закрито повністю — 2026-07-06)
+## What has changed (latest: Етап 3 granular-сценарії закрито — 2026-07-06)
+
+### Stage 3 granular interaction coverage (2026-07-06)
+- Новий `specs/audit/03-student-granular.spec.ts` (21 passed, 2 conditional-skip): quick-actions, таби профілю, фільтри, віджети, навігація календарем, клік уроку→[id], practice-hub stats, payment balance.
+- Виявлені деталі: Appearance font-size — `SegmentedControl` (role=radio, не button); тижневий календар не змінює заголовок за 1 крок — крутимо 6 разів для крос-місяця.
+- Чекбокси Етапу 3 у плані оновлено: interaction-рівень ☑, глибокі флоу позначені `[ ]` з причиною (realtime Socket.IO, LiveKit JWT, OAuth Connections, mic/speaking, provider-checkout, Arvi wave — потребують інфри/моків/feature-роботи).
+- Заголовок Етапу 3 → ☑ (interaction-рівень).
+
+## Previous (Етап 1 Auth закрито повністю — 2026-07-06)
 
 ### Stage 1 повне покриття (2026-07-06)
 - Новий `specs/audit/01-auth-full.spec.ts` (18 passed): 1A.3/4/7/8, весь 1B signup, 1C.2, весь 1D reset-password, 1E.1/2/4.

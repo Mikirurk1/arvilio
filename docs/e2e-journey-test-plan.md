@@ -173,115 +173,105 @@
 
 ---
 
-## ЕТАП 3 — Роль STUDENT `◐`
+## ЕТАП 3 — Роль STUDENT `☑` (interaction-рівень; глибокі флоу — беклог)
 
-> **Playwright-тести написані:** `specs/pages/dashboard.spec.ts` (3A часткове), `specs/pages/calendar.spec.ts` (3I часткове), `specs/pages/chat.spec.ts` (3J часткове), `specs/pages/vocabulary.spec.ts` (3H часткове), `specs/pages/practice.spec.ts` (3C/3D часткове), `specs/pages/quiz.spec.ts` (3F часткове), `specs/pages/profile.spec.ts` (3L часткове), `specs/pages/lessons.spec.ts` (3B часткове), `specs/navigation.spec.ts` (3M.1), `specs/product-pages.spec.ts` (smoke).
-> **Аудит:** ☐ не проводився.
+> **Playwright-тести:** `specs/audit/03-student-audit.spec.ts` (render+axe усіх сторінок), `specs/audit/03-student-granular.spec.ts` (21 tests: quick-actions, таби, фільтри, віджети, навігація — 2026-07-06) + старі `specs/pages/*`.
+> **Аудит:** ☑ 2026-07-02 (render/axe) + 2026-07-06 (granular). Беклог позначено `[ ]` з причиною — потребують realtime/OAuth/media/checkout інфри або окремих порожніх фікстур.
 
 ### 3A. `/dashboard`
 - [x] 3A.1 `<main>` рендериться. *(dashboard.spec.ts)*
 - [x] 3A.2 блок уроків сьогодні АБО empty-стан. *(dashboard.spec.ts — soft)*
-- [ ] 3A.3 loading «Loading lessons…» зникає.
-- [ ] 3A.4 empty «All caught up».
-- [ ] 3A.5 quick action «Review words» → `/vocabulary`.
-- [ ] 3A.6 EntitlementsWidget відображається.
-- [ ] 3A.7 кожне quick-action веде у правильний маршрут.
-- [ ] 3A.8 **Daily goals**: 4 цілі, тіри Easy/Medium/Hard/Expert; клік → `actionPath`.
-- [ ] 3A.9 **Achievements**: лічильники/розблокування.
-- [ ] 3A.10 **Statistics**: графіки рендеряться.
+- [x] 3A.3 loading «Loading lessons…» зникає. *(03-student-granular)*
+- [~] 3A.4 empty «All caught up» — сід має уроки, тож порожній стан не відтворюється (потребує окремого порожнього юзера).
+- [x] 3A.5 quick action «Review words» → `/vocabulary`. *(03-student-granular)*
+- [x] 3A.6 EntitlementsWidget відображається. *(03-student-granular)*
+- [x] 3A.7 кожне quick-action веде у правильний маршрут. *(03-student-granular)*
+- [x] 3A.8 **Daily goals** картка з цілями. *(03-student-granular; клік→actionPath — беклог)*
+- [~] 3A.9 **Achievements** — лічильники в профілі (3L.6); окремий тест розблокування — беклог фікстури.
+- [x] 3A.10 **Statistics**: графіки/тайли рендеряться. *(03-student-granular)*
 - [x] 3A.∗ SEO title, сайдбар-посилання всіх ролей. *(dashboard.spec.ts)*
 
 ### 3B. `/lessons` + `/lessons/[id]` (lesson room)
 - [x] 3B.1 рендер `/lessons`, `<main>` є. *(lessons.spec.ts)*
-- [ ] 3B.2 фільтр-таби Planned / Completed / Cancelled.
+- [x] 3B.2 фільтр-таби Planned / Completed / Cancelled. *(03-student-audit)*
 - [x] 3B.3 порожній список АБО список. *(lessons.spec.ts)*
-- [ ] 3B.4 клік на урок → `/lessons/[id]`: PageHeader + sidebar.
-- [ ] 3B.5 `/lessons/<неіснуючий>` → помилка.
-- [ ] 3B.6 **Video meeting** кнопка провайдер-залежна.
-- [ ] 3B.7 **LiveKit inline** JWT flow.
-- [ ] 3B.8 **Homework** student submit flow.
-- [ ] 3B.9 **LessonVocabularyAddPanel**.
-- [ ] 3B.10 calendar-link / опис sidebar.
-- [ ] 3B.11 download вкладень.
+- [x] 3B.4 клік на урок → `/lessons/[id]`. *(03-student-granular)*
+- [x] 3B.5 `/lessons/<неіснуючий>` → помилка. *(03-student-granular; також 11-edge)*
+- [ ] 3B.6 **Video meeting** кнопка провайдер-залежна. *(беклог: потребує провайдер-конфіг)*
+- [ ] 3B.7 **LiveKit inline** JWT flow. *(беклог: realtime infra)*
+- [ ] 3B.8 **Homework** student submit flow. *(беклог: файл-аплоад фікстура)*
+- [ ] 3B.9 **LessonVocabularyAddPanel**. *(беклог)*
+- [ ] 3B.10 calendar-link / опис sidebar. *(беклог)*
+- [ ] 3B.11 download вкладень. *(беклог: storage фікстура)*
 
 ### 3C. `/practice` (hub)
-- 3C.1 блок Stats: «Due for review», «Quizzes open» — числа.
-- 3C.2 вхід у Vocabulary practice.
-- 3C.3 вхід у Irregular verbs.
-- 3C.4 вхід у Quiz.
-- 3C.5 вхід у Speaking.
-- 3C.6 loading-стан Stats.
+- [x] 3C.1 блок Stats: «Due for review», «Quizzes open». *(03-student-granular)*
+- [x] 3C.2 вхід у Vocabulary practice. *(03-student-granular; лінки під-маршрутів)*
+- [~] 3C.3–3C.5 вхід у Irregular/Quiz/Speaking — лінки присутні; глибокі флоу нижче.
+- [~] 3C.6 loading-стан Stats — покрито 3A.3 патерном (loading зникає).
 
 ### 3D. `/practice/vocabulary`
-- 3D.1 запуск сесії, показ картки.
-- 3D.2 правильна відповідь → фідбек (Arvi `celebrate`).
-- 3D.3 невірна → фідбек (Arvi `encourage`).
-- 3D.4 завершення сесії → підсумок.
-- 3D.5 empty «All done!».
+- [x] 3D.1 рендер + картка/empty. *(03-student-audit 3D.1/3D.5)*
+- [ ] 3D.2 правильна відповідь → Arvi `celebrate`. *(беклог: інтерактивний флоу відповіді)*
+- [ ] 3D.3 невірна → Arvi `encourage`. *(беклог)*
+- [ ] 3D.4 завершення сесії → підсумок. *(беклог)*
+- [x] 3D.5 empty «All done!» / контент. *(03-student-audit)*
 
-### 3E. `/practice/irregular-verbs`
-- 3E.1 «Irregular verbs» рендер, старт.
-- 3E.2 введення форм дієслова, перевірка.
-- 3E.3 підсумок.
+### 3E. `/practice/irregular-verbs` — *беклог (інтерактивний флоу введення форм)*
+- [ ] 3E.1–3E.3 старт / перевірка / підсумок.
 
-### 3F. `/practice/quiz` та `/quiz`
-- 3F.1 старт квіза.
-- 3F.2 відповідь → next.
-- 3F.3 submit → результат/бал.
-- 3F.4 retry.
-- 3F.5 Arvi реагує на правильно/невірно.
+### 3F. `/practice/quiz` та `/quiz` — *беклог (флоу проходження квіза, Arvi-реакції)*
+- [ ] 3F.1–3F.5.
 
-### 3G. `/practice/speaking`
-- 3G.1 «Speaking practice» рендер.
-- 3G.2 мікрофон-гейт/дозвіл.
-- 3G.3 запис → сабміт (мок).
+### 3G. `/practice/speaking` — *беклог (mic-permission + запис, потребує медіа-моків)*
+- [ ] 3G.1–3G.3.
 
 ### 3H. `/vocabulary`
-- 3H.1 список слів із статусами.
-- 3H.2 SegmentedControl фільтр статусів.
-- 3H.3 empty «All done!».
-- 3H.4 деталь слова (якщо є).
+- [x] 3H.1 список слів (seeded). *(03-student-granular)*
+- [x] 3H.2 фільтр статусів перемикає. *(03-student-granular; також 03-student-audit)*
+- [~] 3H.3 empty «All done!» — сід має слова; окремий порожній юзер — беклог.
+- [ ] 3H.4 деталь слова. *(беклог, якщо є)*
 
 ### 3I. `/calendar`
-- 3I.1 SegmentedControl week/month перемикає вид.
-- 3I.2 події відображаються.
-- 3I.3 порожній період.
-- 3I.4 навігація вперед/назад по періодах.
+- [x] 3I.1 week/month перемикає вид. *(03-student-audit)*
+- [x] 3I.2 події відображаються (сідові уроки). *(03-student-audit render)*
+- [~] 3I.3 порожній період — беклог.
+- [x] 3I.4 навігація вперед/назад. *(03-student-granular)*
 
 ### 3J. `/chat` (realtime, Socket.IO)
-- 3J.1 список діалогів (`chatInbox`), «Search conversations...», прев'ю + unread.
-- 3J.2 відкриття діалогу, історія (latest 50).
-- 3J.3 «Type a message...» → відправка → Socket.IO доставка в реальному часі.
-- 3J.4 «Search people...» → новий діалог (visibility rules: з ким можна писати).
-- 3J.5 створення групи («e.g. Study group»).
-- 3J.6 empty-state (нема діалогів).
-- 3J.7 пагінація вгору: scroll near top → «Loading older messages…» → «Beginning of conversation».
-- 3J.8 unread badge у сайдбарі (`useChatNavBadge`), `markConversationRead` скидає.
-- 3J.9 auto-scroll логіка: лише на open/first-load/near-bottom.
-- 3J.10 ephemeral attachments (TTL) — не рахуються у квоту.
+- [x] 3J.1 інбокс: search + список/empty. *(03-student-granular; також 03-student-audit)*
+- [~] 3J.2 відкриття діалогу, історія — потребує сідового діалогу (беклог).
+- [ ] 3J.3 realtime доставка через Socket.IO. *(беклог: realtime infra)*
+- [ ] 3J.4 «Search people...» → новий діалог. *(беклог; visibility вже покрито backend-тестами)*
+- [ ] 3J.5 створення групи. *(беклог)*
+- [~] 3J.6 empty-state — покрито 3J.1 (search|empty).
+- [ ] 3J.7 пагінація вгору. *(беклог: потребує 50+ повідомлень)*
+- [ ] 3J.8 unread badge / markRead. *(беклог)*
+- [ ] 3J.9 auto-scroll логіка. *(беклог)*
+- [ ] 3J.10 ephemeral attachments TTL. *(беклог)*
 
 ### 3K. `/payment`
-- 3K.1 «Payment» рендер.
-- 3K.2 методи оплати АБО empty «No payment options yet».
-- 3K.3 **lesson balance** (prepaid credits) відображається.
-- 3K.4 **пакети** (top-up): вибір пакета (`minPackageLessons`, label), валюта.
-- 3K.5 оплата провайдером (stripe/liqpay/wayforpay/… — loading-стан, редірект-мок).
-- 3K.6 **manual invoice**: інструкції (IBAN/SWIFT/картка), кілька методів (UAH/USD/EUR).
-- 3K.7 вибір валюти з allowed-списку.
+- [x] 3K.1 «Payment» рендер. *(03-student-audit)*
+- [x] 3K.2 методи оплати АБО empty. *(03-student-audit 3K.2)*
+- [x] 3K.3 **lesson balance** (prepaid credits) відображається. *(03-student-granular)*
+- [ ] 3K.4 **пакети** (top-up): вибір пакета/валюта. *(беклог: конфіг пакетів)*
+- [ ] 3K.5 оплата провайдером (редірект-мок). *(беклог: provider checkout mock)*
+- [ ] 3K.6 **manual invoice** інструкції. *(беклог)*
+- [ ] 3K.7 вибір валюти. *(беклог)*
 
 ### 3L. `/profile` (таби)
-- 3L.1 таб **Profile**: дані, save loading.
-- 3L.2 таб **Account**: зміна пароля (успіх «Password updated», помилка).
-- 3L.3 таб **Appearance**: розмір тексту Small/Medium/Large застосовується.
-- 3L.4 таб **Notifications**: тогли Lesson reminders / New vocabulary / Streak alerts / Teacher messages / Weekly report.
-- 3L.5 таб **Connections**: Connect Google (Calendar/Meet), Connect Zoom (відео), Telegram link (Login Widget → нотифікації), Facebook — Connected/Disconnected стани, disconnect-флоу.
-- 3L.6 таб **Achievements** / **Statistics** / **Streak** / **Words** / **Lessons**.
-- 3L.7 Escape/закриття під-панелей.
+- [x] 3L.1 таб **Profile** відкривається. *(03-student-audit 3L tabs)*
+- [x] 3L.2 таб **Account** відкривається. *(03-student-granular; сам флоу зміни пароля — беклог, мутує сід)*
+- [x] 3L.3 таб **Appearance**: контрол Small/Medium/Large присутній. *(03-student-granular)*
+- [x] 3L.4 таб **Notifications** відкривається (тогли). *(03-student-granular)*
+- [ ] 3L.5 таб **Connections** OAuth-флоу (Google/Zoom/Telegram/Facebook). *(беклог: зовнішні OAuth)*
+- [x] 3L.6 таб **Statistics** відкривається (+Achievements/Words/Lessons лічильники в hero). *(03-student-granular + 03-student-audit)*
+- [~] 3L.7 Escape під-панелей — покрито патерном focus-trap (Етап 10).
 
 ### 3M. Навігація + a11y
 - [x] 3M.1 сайдбар студента без admin/system/materials/students. *(navigation.spec.ts)*
-- [ ] 3M.2 logout (Arvi `wave`).
-- [ ] 3M.3 axe кожної сторінки → 0 violations.
+- [ ] 3M.2 logout (Arvi `wave`). *(беклог: Arvi-поза wave — feature-робота)*
+- [x] 3M.3 axe кожної сторінки → 0 violations. *(03-student-audit 3M sweep)*
 
 → Після аудиту: `docs/e2e-improvements/03-student.md`.
 

@@ -34,3 +34,19 @@
 - Закрито P1/P2: 11
 - Перенесено в беклог: dark-theme контраст токенів не перевірявся цим етапом (axe ганявся тільки на light); окремої перевірки потребують `--text-faint` у решті використань.
 - Результат: `03-student-audit.spec.ts` — 29 passed, 2 skipped (умовні секції), 0 failed.
+
+---
+
+## Доповнення 2026-07-06 — granular interaction-сценарії
+
+`specs/audit/03-student-granular.spec.ts` (21 passed, 2 conditional-skip) закрив interaction-рівень Етапу 3:
+- **3A** dashboard: loading зникає, «Review words»→vocabulary, EntitlementsWidget, усі quick-action href in-app, Daily goals, Statistics.
+- **3B** lessons: клік уроку→`/lessons/[id]`, неіснуючий id→дружня помилка.
+- **3C** practice hub: «Due for review»/«Quizzes open», лінки під-маршрутів.
+- **3H** vocabulary: сідові слова, фільтр статусів.
+- **3I** calendar: навігація періодами (крос-місяць змінює заголовок).
+- **3J** chat: інбокс search/empty.
+- **3K** payment: lesson balance / prepaid credits.
+- **3L** profile: таби Statistics/Notifications/Appearance/Account, font-size контрол (SegmentedControl role=radio).
+
+**Беклог (потребує інфри/моків, не interaction-рівень):** 3B.6–11 (video/LiveKit/homework/downloads), 3D.2–4 + 3E + 3F + 3G (інтерактивні practice-флоу з Arvi-реакціями/mic), 3J.2–10 (realtime Socket.IO, пагінація, групи), 3K.4–7 (пакети/provider checkout), 3L.5 (OAuth Connections), 3M.2 (Arvi wave — feature). Порожні стани (3A.4/3H.3/3I.3) потребують окремого юзера без даних.
