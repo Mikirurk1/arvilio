@@ -558,7 +558,16 @@ export class LessonsService {
     }
 
     const students = await this.db.user.findMany({
-      where: { id: { in: participantIds }, role: 'STUDENT' },
+      where: {
+        id: { in: participantIds },
+        role: 'STUDENT',
+        // Tenant guard: `User` is a global identity and `this.db` does not
+        // auto-scope it, so an admin could otherwise attach a student from
+        // another school. Require ACTIVE membership in the active school.
+        ...(this.tenant.schoolId
+          ? { schoolMemberships: { some: { schoolId: this.tenant.schoolId, status: 'ACTIVE' } } }
+          : {}),
+      },
       select: { id: true, role: true, teacherId: true, email: true, lessonFormat: true },
     });
     if (students.length !== participantIds.length) {
@@ -1060,7 +1069,14 @@ export class LessonsService {
       throw new BadRequestException('Group lessons require at least two students');
     }
     const students = await this.db.user.findMany({
-      where: { id: { in: unique }, role: 'STUDENT' },
+      where: {
+        id: { in: unique },
+        role: 'STUDENT',
+        // Tenant guard (see createLesson): block attaching a foreign-school student.
+        ...(this.tenant.schoolId
+          ? { schoolMemberships: { some: { schoolId: this.tenant.schoolId, status: 'ACTIVE' } } }
+          : {}),
+      },
       select: { id: true },
     });
     if (students.length !== unique.length) {

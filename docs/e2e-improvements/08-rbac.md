@@ -36,7 +36,7 @@
 | `staff-payroll.service.ts` (overview + trend, 2 запити) | staff-список і їхні accrued/paid з **усіх шкіл** | `/finance` |
 | `chat-visibility.service.ts` (3 запити) | контакт-пікер показував і **дозволяв писати** будь-якому юзеру платформи (admin → всі; teacher/student → всі адміни) | `/chat` |
 
-Нижчий ризик (не витік списку, але крос-тенантний вектор запису — фільтр по явних `id: { in: [...] }`, потребує знання чужих ID, а запис і так tenant-scoped): `lessons.service` (учасники уроку), `student-groups.service` (`validateMembers`). Лишено в беклозі.
+**Крос-тенантний вектор запису (виправлено 2026-07-06):** `lessons.service` (створення + `replaceParticipants`) і `student-groups.service` (`validateMembers`) шукали студентів по `id: { in: [...] }` без school-скоупу — admin школи A міг вписати студента школи B в урок/групу (teacher був захищений `teacherId`-перевіркою, admin — ні). Додано той самий membership-фільтр у lookup (3 запити). E2E 8.7 репродукує: fresh-school admin створює урок із чужим `studentId` → GraphQL-помилка, урок не створюється.
 
 E2E 8.7 розширено: перевіряє також `adminUsers` (немає крос-тенантних акаунтів, є лише сам admin нової школи).
 
@@ -46,6 +46,6 @@ E2E 8.7 розширено: перевіряє також `adminUsers` (нема
 
 ## Підсумок
 - Route-policy редіректи й API-guard'и — 0 знахідок.
-- **P0: крос-тенантні витоки через глобальний `User` без tenant-скоупу — виправлено 2026-07-04…06.** Разом **4 сервіси / 7 запитів**: `users.service` (students/page/teachers), `admin-users-graphql` (accounts), `staff-payroll` (finance ×2), `chat-visibility` (contacts ×3). Усі — фільтр через ACTIVE `SchoolMembership`.
+- **P0: крос-тенантні витоки/вектори через глобальний `User` без tenant-скоупу — виправлено 2026-07-04…06.** Разом **6 сервісів / 10 запитів**: `users.service` (students/page/teachers), `admin-users-graphql` (accounts), `staff-payroll` (finance ×2), `chat-visibility` (contacts ×3) — витоки читання; `lessons.service` (×2) + `student-groups` (×1) — вектор запису. Усі — фільтр через ACTIVE `SchoolMembership`.
 - Урок: базовий `PrismaService` на моделі `User` **не** авто-скоупить (User — глобальна ідентичність); кожен резолвер, що лістить User по ролі, зобов'язаний додати membership-фільтр.
-- Результат: `08-rbac-audit.spec.ts` — 27 passed (26 RBAC + 8.7 ізоляція students+adminUsers).
+- Результат: `08-rbac-audit.spec.ts` — 28 passed (26 RBAC + 8.7 ізоляція читання + 8.7 write-vector).

@@ -239,7 +239,15 @@ export class StudentGroupsService {
 
   private async validateMembers(memberUserIds: string[]) {
     const students = await this.prisma.user.findMany({
-      where: { id: { in: memberUserIds }, role: 'STUDENT' },
+      where: {
+        id: { in: memberUserIds },
+        role: 'STUDENT',
+        // Tenant guard: `User` is global and not auto-scoped — block adding a
+        // student from another school to this school's group.
+        ...(this.tenant.schoolId
+          ? { schoolMemberships: { some: { schoolId: this.tenant.schoolId, status: 'ACTIVE' } } }
+          : {}),
+      },
       select: { id: true, lessonFormat: true },
     });
     if (students.length !== memberUserIds.length) {

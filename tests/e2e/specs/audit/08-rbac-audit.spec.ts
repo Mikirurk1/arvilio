@@ -114,6 +114,46 @@ test.describe('8.7 tenant isolation', () => {
     // сам admin новоствореної школи — має бути єдиним акаунтом
     expect(adminEmails).toContain(email);
   });
+
+  test('fresh-school admin cannot attach a default-school student to a lesson', async ({ page, request }) => {
+    // Реєструємо ізольовану школу (page context = її admin)
+    const email = `e2e-writevec-${Date.now()}@soenglish.test`;
+    const reg = await page.request.post('/api/auth/register-school', {
+      data: { schoolName: 'Write-Vector Probe School', email, password: 'TestPass123!' },
+    });
+    expect(reg.status()).toBe(201);
+
+    // Окремим контекстом (teacher default-школи) дізнаємось id її студента
+    const teacherLogin = await request.post('/api/auth/login', {
+      data: { email: 'jest-teacher@soenglish.test', password: 'TestPass123!' },
+    });
+    expect(teacherLogin.status()).toBe(201);
+    const studentsRes = await request.post('/api/graphql', { data: { query: '{ students { id } }' } });
+    const foreignStudentId = ((await studentsRes.json()) as { data?: { students?: Array<{ id: string }> } })
+      .data?.students?.[0]?.id;
+    expect(foreignStudentId, 'default school must have a seeded student').toBeTruthy();
+
+    // Fresh-school admin пробує створити урок з чужим студентом → відмова
+    const mutation = `mutation($input: CreateScheduledLessonInput!) {
+      createScheduledLesson(input: $input) { id }
+    }`;
+    const attempt = await page.request.post('/api/graphql', {
+      data: {
+        query: mutation,
+        variables: {
+          input: {
+            title: 'Cross-tenant probe',
+            date: '2026-08-01',
+            startTime: '10:00',
+            studentId: foreignStudentId,
+          },
+        },
+      },
+    });
+    const body = (await attempt.json()) as { data?: { createScheduledLesson?: unknown }; errors?: unknown[] };
+    expect(body.data?.createScheduledLesson ?? null, 'cross-tenant lesson must not be created').toBeNull();
+    expect(body.errors, 'must return a GraphQL error').toBeTruthy();
+  });
 });
 
 // ──────────────────────────────────────────────────────

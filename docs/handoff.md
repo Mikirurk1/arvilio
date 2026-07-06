@@ -21,7 +21,14 @@
 - `docs/e2e-improvements/03-student.md` — improvement doc Етап 3
 - `apps/web/src/styles/tokens/_theme.scss` — контраст-токени
 
-## What has changed (latest: аудит решти резолверів — ще 3 крос-тенантні витоки — 2026-07-06)
+## What has changed (latest: крос-тенантний вектор ЗАПИСУ закрито — 2026-07-06)
+
+### Cross-tenant write vector (2026-07-06)
+- `lessons.service` (createLesson + replaceParticipants) і `student-groups.validateMembers` шукали студентів по `id:{in}` без school-скоупу → admin школи A міг вписати студента школи B в урок/групу (teacher захищений `teacherId`, admin — ні). Додано membership-фільтр у lookup (3 запити).
+- E2E 8.7 репро: fresh-school admin → createScheduledLesson із чужим studentId → GraphQL-помилка, урок не створено. lessons.spec 12 passed, module-lessons 46 passed.
+- **Загальний підсумок P0-серії: 6 сервісів / 10 запитів** (7 читання + 3 запис).
+
+## Previous (аудит решти резолверів — ще 3 крос-тенантні витоки — 2026-07-06)
 
 ### Повний аудит резолверів на tenant-скоуп (2026-07-06)
 - Пройдено всі сервіси, що лістять глобальний `User` через базовий `PrismaService`. Знайдено й виправлено ще **3 витоки** того ж класу, що й студентський:

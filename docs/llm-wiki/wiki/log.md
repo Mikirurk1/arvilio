@@ -2524,3 +2524,11 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
   - `ChatVisibilityService` contact lists (/chat) — exposed and authorized messaging any platform user.
   - All fixed with `schoolMemberships.some({ schoolId, status: 'ACTIVE' })` via TenantContextService. E2E 8.7 extended to assert `adminUsers` isolation; chat-visibility spec gained a tenant-scope case.
   - Lower-risk open: `User` queries by explicit `id: { in: [...] }` (lessons participants, group members) — cross-tenant write vector, backlog.
+
+## [2026-07-06] update | Cross-tenant write vector closed (lesson/group participant lookup)
+- **Trigger:** security audit (backlog write-vector from the User-scoping sweep)
+- **Pages:** `concepts/multi-tenancy.md` already carries the checklist; this closes the noted write-vector
+- **Key changes:**
+  - `lessons.service` (createLesson + replaceParticipants) and `student-groups.validateMembers` looked up students by `id:{in}` with no school scope — a school-A admin could attach a school-B student to a lesson/group (teachers were protected by the teacherId check, admins were not). Added the ACTIVE SchoolMembership filter to the 3 lookups.
+  - E2E 8.7 now also reproduces the write vector: fresh-school admin → createScheduledLesson with a foreign studentId → GraphQL error, no lesson created.
+  - P0 series total: 6 services / 10 queries (7 read leaks + 3 write vector).
