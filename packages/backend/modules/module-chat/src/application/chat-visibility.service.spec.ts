@@ -1,6 +1,7 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaService } from '@be/prisma';
+import { TenantContextService } from '@be/tenant';
 import { ChatVisibilityService } from './chat-visibility.service';
 
 describe('ChatVisibilityService', () => {
@@ -10,11 +11,17 @@ describe('ChatVisibilityService', () => {
     scheduledLesson: { findMany: jest.fn() },
     chatParticipant: { findUnique: jest.fn() },
   };
+  const tenant = { schoolId: 'school_default' as string | null };
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    tenant.schoolId = 'school_default';
     const moduleRef = await Test.createTestingModule({
-      providers: [ChatVisibilityService, { provide: PrismaService, useValue: prisma }],
+      providers: [
+        ChatVisibilityService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: TenantContextService, useValue: tenant },
+      ],
     }).compile();
     service = moduleRef.get(ChatVisibilityService);
   });
@@ -74,6 +81,24 @@ describe('ChatVisibilityService', () => {
     const contacts = await service.listContacts('admin-1');
     expect(contacts).toHaveLength(1);
     expect(contacts[0]?.id).toBe('s1');
+  });
+
+  it('admin contact list is scoped to the active school (tenant isolation)', async () => {
+    tenant.schoolId = 'school_b';
+    prisma.user.findUnique.mockResolvedValue({ id: 'admin-1', role: 'ADMIN', teacherId: null });
+    prisma.user.findMany.mockResolvedValue([]);
+
+    await service.listContacts('admin-1');
+    expect(prisma.user.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          AND: [
+            { id: { not: 'admin-1' } },
+            { schoolMemberships: { some: { schoolId: 'school_b', status: 'ACTIVE' } } },
+          ],
+        },
+      }),
+    );
   });
 
   it('teacher can message assigned student', async () => {

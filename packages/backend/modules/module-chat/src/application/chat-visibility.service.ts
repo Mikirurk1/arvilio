@@ -1,6 +1,7 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@be/prisma';
-import type { UserRole } from '@prisma/client';
+import { TenantContextService } from '@be/tenant';
+import type { Prisma, UserRole } from '@prisma/client';
 import { toChatUserDto } from '../shared/chat-user.util';
 import type { ChatUserDto } from '@pkg/types';
 
@@ -8,7 +9,21 @@ const STAFF_ROLES = new Set<UserRole>(['ADMIN', 'SUPER_ADMIN']);
 
 @Injectable()
 export class ChatVisibilityService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tenant: TenantContextService,
+  ) {}
+
+  /**
+   * Contacts must stay within the active school. `User` is a global identity
+   * (not row-scoped by schoolId), so restrict via an ACTIVE `SchoolMembership` —
+   * otherwise the contact picker would expose (and let you message) every user
+   * on the platform.
+   */
+  private tenantMemberFilter(): Prisma.UserWhereInput {
+    const schoolId = this.tenant.schoolId;
+    return schoolId ? { schoolMemberships: { some: { schoolId, status: 'ACTIVE' } } } : {};
+  }
 
   async listContacts(actorId: string): Promise<ChatUserDto[]> {
     const actor = await this.requireUser(actorId);
@@ -55,9 +70,11 @@ export class ChatVisibilityService {
   }): Promise<Set<string>> {
     const ids = new Set<string>();
 
+    const inSchool = this.tenantMemberFilter();
+
     if (STAFF_ROLES.has(actor.role)) {
       const all = await this.prisma.user.findMany({
-        where: { id: { not: actor.id } },
+        where: { AND: [{ id: { not: actor.id } }, inSchool] },
         select: { id: true },
       });
       for (const row of all) ids.add(row.id);
@@ -76,7 +93,7 @@ export class ChatVisibilityService {
           distinct: ['studentId'],
         }),
         this.prisma.user.findMany({
-          where: { role: { in: ['ADMIN', 'SUPER_ADMIN'] } },
+          where: { AND: [{ role: { in: ['ADMIN', 'SUPER_ADMIN'] } }, inSchool] },
           select: { id: true },
         }),
       ]);
@@ -95,7 +112,7 @@ export class ChatVisibilityService {
       if (actor.teacherId) ids.add(actor.teacherId);
       for (const row of lessonTeachers) ids.add(row.teacherId);
       const staff = await this.prisma.user.findMany({
-        where: { role: { in: ['ADMIN', 'SUPER_ADMIN'] } },
+        where: { AND: [{ role: { in: ['ADMIN', 'SUPER_ADMIN'] } }, inSchool] },
         select: { id: true },
       });
       for (const row of staff) ids.add(row.id);

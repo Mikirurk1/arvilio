@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import type { UserRole } from '@prisma/client';
+import type { Prisma, UserRole } from '@prisma/client';
 import { PrismaService, TenantPrismaService } from '@be/prisma';
 import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import type {
@@ -39,6 +39,16 @@ import { computeNextPayDate, computePayoutStatus } from '../shared/staff-payout-
 const SETTINGS_ID = 'default';
 /** Single-school seam: defaults live on PlatformSettings singleton; extract per-tenant SchoolPayrollSettings when SaaS ships. */
 const STAFF_ROLES: UserRole[] = ['TEACHER', 'ADMIN', 'SUPER_ADMIN'];
+
+/**
+ * Restrict a staff `User` query to the active tenant. `User` is a global identity
+ * (not row-scoped by schoolId), so isolation is via an ACTIVE `SchoolMembership`
+ * in the current school — otherwise the finance overview lists staff (and their
+ * accrued/paid figures) from every school on the platform.
+ */
+function tenantMemberFilter(schoolId: string | null): Prisma.UserWhereInput {
+  return schoolId ? { schoolMemberships: { some: { schoolId, status: 'ACTIVE' } } } : {};
+}
 
 @Injectable()
 export class StaffPayrollService {
@@ -201,7 +211,7 @@ export class StaffPayrollService {
   ): Promise<StaffFinanceOverviewDto> {
     const defaults = await this.getDefaults();
     const staffUsers = await this.prisma.user.findMany({
-      where: { role: { in: STAFF_ROLES } },
+      where: { AND: [{ role: { in: STAFF_ROLES } }, tenantMemberFilter(this.tenant.schoolId)] },
       select: { id: true, displayName: true, role: true },
       orderBy: { displayName: 'asc' },
     });
@@ -352,7 +362,7 @@ export class StaffPayrollService {
     defaults: StaffPayoutDefaultsDto,
   ): Promise<StaffEarningsTrendPointDto[]> {
     const staffUsers = await this.prisma.user.findMany({
-      where: { role: { in: STAFF_ROLES } },
+      where: { AND: [{ role: { in: STAFF_ROLES } }, tenantMemberFilter(this.tenant.schoolId)] },
       select: { id: true },
     });
     const from = startOfUtcDay(new Date(bounds.from));

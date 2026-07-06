@@ -2514,3 +2514,13 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
   - `students`/`studentsPage`/`assignableTeachers` GraphQL queries for ADMIN/SUPER_ADMIN filtered by `{ role: 'STUDENT' }` with no school scope → any school admin read every student on the platform. `User` is a global identity (not row-scoped by schoolId); base PrismaService doesn't auto-scope it.
   - Fix in `users.service.ts`: inject `TenantContextService`, add `tenantStudentFilter()` = `schoolMemberships.some({ schoolId, status: 'ACTIVE' })`, applied to all three queries.
   - Tests: users.service.spec (+admin-isolation), 08-rbac-audit.spec 8.7 (register fresh school via API → assert no school_default data leaks over GraphQL/UI).
+
+## [2026-07-06] update | Follow-up sweep: 3 more cross-tenant leaks fixed (admin/finance/chat)
+- **Trigger:** security audit (resolver sweep for the User-scoping pattern from 2026-07-04)
+- **Pages:** `concepts/multi-tenancy.md` (checklist + follow-up note)
+- **Key changes:**
+  - `AdminUsersGraphqlService.listAdminUserSummaries` (GraphQL `adminUsers`, /admin) — listed every account on the platform for a school admin.
+  - `StaffPayrollService` finance overview + trend (/finance) — staff + earnings across all schools.
+  - `ChatVisibilityService` contact lists (/chat) — exposed and authorized messaging any platform user.
+  - All fixed with `schoolMemberships.some({ schoolId, status: 'ACTIVE' })` via TenantContextService. E2E 8.7 extended to assert `adminUsers` isolation; chat-visibility spec gained a tenant-scope case.
+  - Lower-risk open: `User` queries by explicit `id: { in: [...] }` (lessons participants, group members) — cross-tenant write vector, backlog.

@@ -21,7 +21,19 @@
 - `docs/e2e-improvements/03-student.md` — improvement doc Етап 3
 - `apps/web/src/styles/tokens/_theme.scss` — контраст-токени
 
-## What has changed (latest: P0 крос-тенантний витік студентів — виправлено 2026-07-04)
+## What has changed (latest: аудит решти резолверів — ще 3 крос-тенантні витоки — 2026-07-06)
+
+### Повний аудит резолверів на tenant-скоуп (2026-07-06)
+- Пройдено всі сервіси, що лістять глобальний `User` через базовий `PrismaService`. Знайдено й виправлено ще **3 витоки** того ж класу, що й студентський:
+  - `admin-users-graphql.service.ts` (`adminUsers` → /admin): admin бачив усі акаунти платформи.
+  - `staff-payroll.service.ts` (/finance, 2 запити): staff і їхні earnings з усіх шкіл.
+  - `chat-visibility.service.ts` (/chat, 3 запити): контакт-пікер показував і дозволяв писати будь-кому на платформі.
+- Усі — фільтр через ACTIVE `SchoolMembership` активної школи (`TenantContextService`).
+- Тести: chat-visibility spec (+tenant-ізоляція), users spec — 23 passed; module-billing 108 passed; E2E 8.7 розширено на `adminUsers` — 27 passed; регресія admin/student/chat — без фейлів.
+- Беклог (нижчий ризик): `lessons.service`/`student-groups` фільтрують User по явних `id:{in}` — крос-тенантний вектор ЗАПИСУ, але потребує знання чужих ID; записи tenant-scoped.
+- Загалом за P0-серію: **4 сервіси / 7 запитів** виправлено.
+
+## Previous (P0 крос-тенантний витік студентів — виправлено 2026-07-04)
 
 ### P0: cross-tenant student leak (2026-07-04)
 - **Знайдено E2E-тестом 8.7:** `students`/`studentsPage`/`assignableTeachers` GraphQL для ADMIN/SUPER_ADMIN не фільтрували по школі — admin будь-якої школи бачив УСІХ студентів платформи. Реальний multi-tenant витік даних.

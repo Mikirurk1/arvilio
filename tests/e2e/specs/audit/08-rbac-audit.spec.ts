@@ -100,6 +100,19 @@ test.describe('8.7 tenant isolation', () => {
     await expect(page.locator('main')).toBeVisible({ timeout: 10_000 });
     await page.waitForTimeout(1_000);
     await expect(page.getByText(/Seed material — grammar book/i)).toHaveCount(0);
+
+    // GraphQL adminUsers (Accounts overview) — тільки члени своєї школи
+    const admins = await page.request.post('/api/graphql', {
+      data: { query: '{ adminUsers { id email } }' },
+    });
+    expect(admins.status()).toBe(200);
+    const adminBody = (await admins.json()) as { data?: { adminUsers?: Array<{ email: string }> } };
+    const adminEmails = (adminBody.data?.adminUsers ?? []).map((u) => u.email);
+    expect(adminEmails, 'adminUsers must not leak cross-tenant accounts').not.toContain(
+      'jest-teacher@soenglish.test',
+    );
+    // сам admin новоствореної школи — має бути єдиним акаунтом
+    expect(adminEmails).toContain(email);
   });
 });
 
