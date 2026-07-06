@@ -44,6 +44,10 @@ function LoginPageInner() {
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!email.trim()) { setFormError('Email is required'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setFormError('Enter a valid email address');
+      return;
+    }
     if (!password) { setFormError('Password is required'); return; }
     setSubmitting(true);
     setFormError(null);

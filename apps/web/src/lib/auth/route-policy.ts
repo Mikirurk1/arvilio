@@ -25,6 +25,8 @@ const PUBLIC_ROUTES = new Set([
   '/forgot-password',
   '/reset-password',
   '/mascot-preview',
+  '/privacy',
+  '/status',
 ]);
 const CMS_ROUTE_PREFIX = '/cms-admin';
 const AUTH_REDIRECT_ROUTES = new Set(['/login', '/signup']);

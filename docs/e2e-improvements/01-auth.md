@@ -3,7 +3,7 @@
 - **Дата аналізу:** 2026-06-29
 - **Ролі/сторінки в обсязі:** public · `/login` · `/signup` · `/forgot-password` · `/privacy`
 - **Скріни:** `tests/e2e/screenshots/01-auth/`
-- **Статус етапу:** ◐ P1 фікси застосовано; P2/залишки відкриті
+- **Статус етапу:** ☑ закрито (2026-07-06) — див. повне покриття у `01-auth-full.spec.ts` (18 tests)
 
 ---
 
@@ -97,3 +97,16 @@ const onSubmit = async (e: React.FormEvent) => {
 // →
 <main className={layoutStyles.authMain}>{children}</main>
 ```
+
+---
+
+## Доповнення 2026-07-06 — повний прохід Етапу 1
+
+Написано `specs/audit/01-auth-full.spec.ts` (18 tests, project=public), закрито всі відкриті пункти плану 1A–1E. Дві нові знахідки:
+
+| # | Знахідка | Пріоритет | Фікс |
+|---|---|---|---|
+| 8 | `/login` не валідував **формат** email на клієнті (лише порожнечу) — «not-an-email» слало мережевий запит | P2 | ☑ додано regex-guard у `login/page.tsx` onSubmit («Enter a valid email address», без запиту) |
+| 9 | `/privacy` і `/status` **гейтились авторизацією** — гість редіректився на `/login` (не були в `PUBLIC_ROUTES`) | P1 | ☑ додано обидва в `route-policy.ts` `PUBLIC_ROUTES` |
+
+**N/A у test-env:** 1A.6/1C.3 rate-limit (харнес шле `x-e2e-skip-throttle`), 1B.5 captcha (Turnstile без `SITE_KEY`). **Беклог:** 1D.3 happy-path reset потребує валідного токена з БД.

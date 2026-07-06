@@ -107,46 +107,46 @@
 
 ---
 
-## ЕТАП 1 — Публічні / Auth `◐`
+## ЕТАП 1 — Публічні / Auth `☑`
 
-> **Playwright-тести написані:** `specs/login.spec.ts` — покриває 1A.1, 1A.2, 1A.5, 1C.1, 1E.3.
-> **Аудит:** ☐ не проводився.
+> **Playwright-тести написані:** `specs/login.spec.ts` (1A.1/2/5, 1C.1, 1E.3) + `specs/audit/01-auth-full.spec.ts` (решта, 18 tests, 2026-07-06).
+> **Аудит:** ☑ проведено 2026-07-06.
 
 ### 1A. `/login`
 - [x] 1A.1 рендер: поля Email/Password, кнопка Sign in, лінк forgot. *(login.spec.ts)*
 - [x] 1A.2 невірний пароль → `role="alert"`, лишається на `/login`. *(login.spec.ts)*
-- [ ] 1A.3 порожні поля → валідація, без мережевого запиту.
-- [ ] 1A.4 невалідний формат email → валідація.
+- [x] 1A.3 порожні поля → валідація, без мережевого запиту. *(01-auth-full)*
+- [x] 1A.4 невалідний формат email → валідація. *(01-auth-full; додано client-check у login/page.tsx)*
 - [x] 1A.5 успіх (student) → редірект `/dashboard`. *(login.spec.ts)*
-- [ ] 1A.6 rate-limit: 5+ швидких спроб → 429-поведінка коректна.
-- [ ] 1A.7 «показати пароль» перемикач.
-- [ ] 1A.8 логін як teacher/admin/super → `/dashboard`.
+- [~] 1A.6 rate-limit — **N/A в E2E**: харнес шле `x-e2e-skip-throttle`, тож 429 не тригериться. Throttle покрито бекенд-тестами (`@Throttle` на `auth.controller.ts`).
+- [x] 1A.7 «показати пароль» перемикач. *(01-auth-full)*
+- [x] 1A.8 логін як teacher/admin/super → `/dashboard`. *(01-auth-full)*
 
 ### 1B. `/signup`
-- [ ] 1B.1 рендер усіх полів (school name, email, password, promo).
-- [ ] 1B.2 disposable email → помилка.
-- [ ] 1B.3 слабкий пароль → помилка.
-- [ ] 1B.4 дубль email → «Email already registered».
-- [ ] 1B.5 captcha-флоу (якщо ввімкнено).
-- [ ] 1B.6 успіх → auto-login → onboarding.
+- [x] 1B.1 рендер полів (school name, name, email, password) + axe. *(01-auth-full; promo-поля в UI немає — сервер-only)*
+- [x] 1B.2 disposable email → помилка. *(01-auth-full)*
+- [x] 1B.3 слабкий пароль → помилка. *(01-auth-full)*
+- [x] 1B.4 дубль email → «Email already registered». *(01-auth-full)*
+- [~] 1B.5 captcha-флоу — **N/A**: Turnstile вимкнено без `SITE_KEY` у dev/test.
+- [x] 1B.6 успіх → auto-login → onboarding. *(01-auth-full; також 02-journey)*
 
 ### 1C. `/forgot-password`
 - [x] 1C.1 сабміт валідного email → «лист надіслано». *(login.spec.ts)*
-- [ ] 1C.2 невалідний email → валідація.
-- [ ] 1C.3 rate-limit.
+- [x] 1C.2 невалідний email → валідація. *(01-auth-full)*
+- [~] 1C.3 rate-limit — **N/A в E2E** (той самий throttle-bypass).
 
 ### 1D. `/reset-password`
-- [ ] 1D.1 `?token=valid` → форма нового пароля.
-- [ ] 1D.2 `?token=invalid|expired` → дружня помилка.
-- [ ] 1D.3 успішна зміна → редірект на login.
+- [x] 1D.1 `?token=valid` → форма нового пароля. *(01-auth-full)*
+- [x] 1D.2 `?token=invalid|expired` → дружня помилка (+ missing token). *(01-auth-full)*
+- [~] 1D.3 успішна зміна → редірект — покрито формою+сабмітом; happy-path потребує валідного токена з БД (беклог фікстури).
 
 ### 1E. Статика та редіректи
-- [ ] 1E.1 `/privacy` 200 + контент.
-- [ ] 1E.2 `/status` 200.
+- [x] 1E.1 `/privacy` 200 + контент. *(01-auth-full; **фікс:** додано в PUBLIC_ROUTES)*
+- [x] 1E.2 `/status` 200. *(01-auth-full; **фікс:** додано в PUBLIC_ROUTES)*
 - [x] 1E.3 unauthenticated `/dashboard` → редірект `/login`. *(login.spec.ts)*
-- [ ] 1E.4 axe кожної сторінки → 0 violations.
+- [x] 1E.4 axe кожної сторінки → 0 violations. *(01-auth-full)*
 
-**☐ remaining:** 1A.3/4/6/7/8, 1B повністю, 1C.2/3, 1D повністю, 1E.1/2/4.
+**Знахідки (виправлено 2026-07-06):** (1) логін не валідував формат email клієнтом → додано; (2) `/privacy` і `/status` гейтились авторизацією (не в `PUBLIC_ROUTES`) → відкрито. Лишок: 1D.3 happy-path (валідний reset-токен), 1A.6/1B.5/1C.3 — N/A у test-env.
 
 → Після аудиту: `docs/e2e-improvements/01-auth.md`.
 
@@ -524,8 +524,8 @@
 
 | Етап | Назва | Тести написані | Реальний run | Скріни | Improvements-doc | Виправлено |
 |---|---|:--:|:--:|:--:|:--:|:--:|
-| 0 | Інфраструктура | ◐ | ☑ | — | ☐ | ◐ сід розширено 2026-07-03 (уроки/словник/staff/tourCompletedAt; лишились матеріал/quiz/платіж/promo, expectArvi) |
-| 1 | Публічні/Auth | ◐ | ☑ | ☑ | ☑ | ◐ P1 done |
+| 0 | Інфраструктура | ☑ | ☑ | — | ☑ | ☑ (2026-07-06: сід повний — уроки/словник/staff/quiz/платіж/promo/матеріал/tourCompletedAt; expectArvi готовий) |
+| 1 | Публічні/Auth | ☑ | ☑ | ☑ | ☑ | ☑ (2026-07-06, 01-auth-full 18 tests; email-валідація + /privacy,/status public) |
 | 2 | Сюжет signup→tour | ☑ | ☑ | ☑ | ☑ | ☑ (2026-07-02, див. e2e-improvements/02-journey.md) |
 | 3 | STUDENT | ☑ | ☑ | ☑ | ☑ | ☑ (2026-07-02, див. e2e-improvements/03-student.md) |
 | 4 | TEACHER | ☑ | ☑ | ☑ | ☑ | ☑ (2026-07-02, див. e2e-improvements/04-teacher.md) |

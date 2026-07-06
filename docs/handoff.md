@@ -21,7 +21,15 @@
 - `docs/e2e-improvements/03-student.md` — improvement doc Етап 3
 - `apps/web/src/styles/tokens/_theme.scss` — контраст-токени
 
-## What has changed (latest: крос-тенантний вектор ЗАПИСУ закрито — 2026-07-06)
+## What has changed (latest: Етап 1 Auth закрито повністю — 2026-07-06)
+
+### Stage 1 повне покриття (2026-07-06)
+- Новий `specs/audit/01-auth-full.spec.ts` (18 passed): 1A.3/4/7/8, весь 1B signup, 1C.2, весь 1D reset-password, 1E.1/2/4.
+- **2 знахідки виправлено:** (1) `/login` не валідував формат email клієнтом → додано regex-guard у `login/page.tsx`; (2) `/privacy` і `/status` гейтились авторизацією → додано в `route-policy.ts` PUBLIC_ROUTES.
+- N/A у test-env: 1A.6/1C.3 rate-limit (throttle-bypass header), 1B.5 captcha (без SITE_KEY). Беклог: 1D.3 happy-path reset (валідний токен з БД).
+- **Трекер: Етапи 0–11 усі ☑.** Лишається реальна feature-робота — Arvi-беклог (нові пози, useArvi(), ArviSlot, тематизація) — це НЕ тест-пункти, потребує імплементації маскота.
+
+## Previous (крос-тенантний вектор ЗАПИСУ закрито — 2026-07-06)
 
 ### Cross-tenant write vector (2026-07-06)
 - `lessons.service` (createLesson + replaceParticipants) і `student-groups.validateMembers` шукали студентів по `id:{in}` без school-скоупу → admin школи A міг вписати студента школи B в урок/групу (teacher захищений `teacherId`, admin — ні). Додано membership-фільтр у lookup (3 запити).
