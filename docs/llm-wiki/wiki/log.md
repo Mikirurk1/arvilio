@@ -2556,3 +2556,10 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 - **Key changes:**
   - `04-teacher-granular.spec.ts` (9 tests): materials view-toggle + search filter, students list + scope segmented, student profile tabs (all open, aria-selected), groups render, lesson-modal tab switch + Escape.
   - Selector notes: lesson-modal tabs are "Lesson planning"/"Lesson content" (not setup/content); date/time are custom pickers (no native input[type=date]); setup fields load party-options async so under parallel load assert the tab switch, not the fields. Iterate profile tabs in one test to avoid flaky cold re-navigations.
+
+## [2026-07-06] update | Stages 5+6 granular interaction coverage
+- **Trigger:** e2e-journey-test-plan Stages 5 (admin) + 6 (/system) granular
+- **Pages:** none new
+- **Key changes:**
+  - `05-06-granular.spec.ts` (10 tests): staff profile tabs, finance content, billing (Subscription/Current plan/Storage meter), admin Accounts overview, system panels (branding input, video-meetings region, dictionary).
+  - Behaviour note: /billing Starter/Pro plan pickers are gated behind `summary.plan === 'TRIAL'`; an ACTIVE school shows only the current-plan summary — tests must branch on plan state.

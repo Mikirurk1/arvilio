@@ -21,7 +21,14 @@
 - `docs/e2e-improvements/03-student.md` — improvement doc Етап 3
 - `apps/web/src/styles/tokens/_theme.scss` — контраст-токени
 
-## What has changed (latest: Етап 4 granular-сценарії закрито — 2026-07-06)
+## What has changed (latest: Етапи 5+6 granular закрито — 2026-07-06)
+
+### Stages 5+6 granular interaction coverage (2026-07-06)
+- Новий `specs/audit/05-06-granular.spec.ts` (10 passed, 1 conditional-skip): staff-профіль таби, finance контент, billing (Subscription/Current plan/Storage meter/умовні план-пікери), admin Accounts overview, system-панелі (branding input/video-meetings/dictionary).
+- Знахідка-поведінка: план-пікери Starter/Pro на /billing гейтяться `summary.plan === 'TRIAL'` — default-школа ACTIVE, тож тест адаптовано під обидва стани.
+- Чекбокси Етапів 5 і 6 оновлено: interaction ☑; беклог (Stripe checkout, promo apply, seat-enforcement, domains/SMTP verify, account creation) з причинами.
+
+## Previous (Етап 4 granular-сценарії закрито — 2026-07-06)
 
 ### Stage 4 granular interaction coverage (2026-07-06)
 - Новий `specs/audit/04-teacher-granular.spec.ts` (9 passed, 2 conditional-skip): materials view-toggle+search, students list+scope, профіль студента усі таби (aria-selected), groups render, lesson-modal tab-switch+Escape.

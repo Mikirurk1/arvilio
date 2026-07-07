@@ -332,69 +332,59 @@
 
 ---
 
-## ЕТАП 5 — Роль ADMIN `◐`
+## ЕТАП 5 — Роль ADMIN `☑` (interaction-рівень; білінг-стани — беклог)
 
-> **Playwright-тести написані:** `specs/pages/admin.spec.ts` (5D + RBAC), `specs/pages/system.spec.ts` (часткове 6 → admin-scope).
-> **Аудит:** ☐ не проводився.
+> **Playwright-тести:** `specs/audit/05-admin-audit.spec.ts` (render+axe+RBAC) + `specs/audit/05-06-granular.spec.ts` (staff-tabs/finance/billing/admin, 2026-07-06) + `specs/pages/admin.spec.ts`.
+> **Аудит:** ☑ 2026-07-02 (render/axe) + 2026-07-06 (granular).
 
 ### 5A. `/staff` + `/staff/[userId]`
-- 5A.1 список «Staff», roster.
-- 5A.2 empty «No staff members found», error «Could not load staff roster».
-- 5A.3 профіль: таби **Profile** / **Compensation** / **Earnings & payouts** / **Statistics**.
-- 5A.4 метрики: Accrued, Outstanding, Payout status, Lessons (month).
-- 5A.5 «Back to staff».
-- 5A.6 не-staff юзер → «Not a staff member».
+- [x] 5A.1 список «Staff», roster. *(05-admin-audit)*
+- [~] 5A.2 empty/error — сід має staff; окремий порожній — беклог.
+- [x] 5A.3 профіль: таби Profile/Compensation/Earnings & payouts/Statistics відкриваються. *(05-06-granular)*
+- [x] 5A.4 метрики (Accrued/Outstanding/Payout/Lessons) в hero. *(05-admin-audit render)*
+- [~] 5A.5 «Back to staff» / 5A.6 non-staff — беклог.
 
 ### 5B. `/finance`
-- 5B.1 «Staff finance» рендер.
-- 5B.2 графік «Accrued vs paid trend».
-- 5B.3 «Staff balances», «Staff breakdown (accrued)».
-- 5B.4 empty/error «Could not load finance data».
+- [x] 5B.1 «Staff finance» рендер + контент. *(05-06-granular; також 05-admin-audit+axe)*
+- [~] 5B.2–5B.4 графік/breakdown/empty — рендер покрито; деталі беклог.
 
 ### 5C. `/billing`
-- 5C.1 «Subscription» рендер, поточний план.
-- 5C.2 **storage meter** + **seats meter** (max/active/remaining) з `GET /api/billing/entitlements`.
-- 5C.3 trial-статус банер.
-- 5C.4 promo: ввід («e.g. LAUNCH20» / «e.g. PARTNER30») → apply → результат.
-- 5C.5 **Starter/Pro picker** → `POST /api/billing/subscription/checkout` → Stripe redirect (мок).
-- 5C.6 **feature-gating**: PRO-фічі приховані/заблоковані на нижчому плані (`FeatureGuard`/entitlements).
-- 5C.7 seat-enforcement: додавання студента понад ліміт → 403.
-- 5C.8 стани: TRIAL / ACTIVE / PAST_DUE (dunning grace) / SUSPENDED / grandfathered.
+- [x] 5C.1 «Subscription» + поточний план. *(05-06-granular)*
+- [x] 5C.2 **storage meter** + seats. *(05-06-granular)*
+- [x] 5C.3 план-пікери за trial-станом (ACTIVE школа → current-plan summary). *(05-06-granular)*
+- [ ] 5C.4 promo apply / 5C.5 Stripe checkout / 5C.6 feature-gating / 5C.7 seat-enforcement / 5C.8 стани. *(беклог: провайдер-моки + білінг-фікстури станів)*
 
 ### 5D. `/admin`
-- 5D.1 «Account administration» рендер.
-- 5D.2 «Accounts overview».
-- 5D.3 дії керування акаунтами.
+- [x] 5D.1 «Account administration» + 5D.2 «Accounts overview» (region + All accounts). *(05-06-granular)*
+- [ ] 5D.3 дії керування акаунтами (створення). *(беклог: мутує дані)*
 
 ### 5E. Навігація + a11y
 - [x] 5E.∗ admin sidebar бачить admin link. *(navigation.spec.ts)*
-- [ ] 5E.1 сайдбар адміна: + Staff/Finance/Billing/Admin, без System/Platform.
-- [ ] 5E.2 axe → 0 violations.
+- [x] 5E.1 сайдбар адміна: staff/finance/billing/admin (+/system за route-policy). *(05-admin-audit 5E.1)*
+- [x] 5E.2 axe → 0 violations. *(05-admin-audit sweep)*
 
 → Після аудиту: `docs/e2e-improvements/05-admin.md`.
 
 ---
 
-## ЕТАП 6 — SUPER_ADMIN + `/system` `◐`
+## ЕТАП 6 — SUPER_ADMIN + `/system` `☑` (admin-scope; глибокі флоу — беклог)
 
-> **Playwright-тести написані:** `specs/pages/system.spec.ts` — tabs, branding, billing, connections (часткове). RBAC-редірект teacher.
-> **Аудит:** ☐ не проводився. Примітка: в коді `/system` доступний ADMIN, не лише SUPER_ADMIN.
+> **Playwright-тести:** `specs/audit/06-system-audit.spec.ts` (усі 8 табів render+axe) + `specs/audit/05-06-granular.spec.ts` (branding/video/dictionary панелі) + `specs/pages/system.spec.ts`.
+> **Аудит:** ☑ 2026-07-02 (render/axe) + 2026-07-06 (granular). `/system` доступний ADMIN (route-policy).
 
-`/system` таби (9): general, branding, domains, email, payments, payouts, connections, dictionary (+ media-captions, video-meetings панелі).
+`/system` таби (8): general, branding, domains, email, payments, payouts, connections, dictionary.
 
-- 6.1 «System control room» рендер, Tabs навігація.
-- 6.2 **general** панель.
-- 6.3 **branding** (G18): колір (hex-валідація) + лого URL → live preview → save → застосовано глобально.
-- 6.4 **domains** (G16): додати домен → TXT-токен → verify → видалити.
-- 6.5 **email**: SMTP-налаштування, verify-флоу.
-- 6.6 **payments**: методи/allowlist.
-- 6.7 **payouts**: налаштування виплат.
-- 6.8 **connections**: Google OAuth (Calendar/Meet), Zoom S2S (`ZOOM_ACCOUNT_ID`), LiveKit (`wsUrl`/`apiKey`/`apiSecret`).
-- 6.9 **video meetings** (General): вибір активного провайдера (Meet/Zoom/LiveKit).
-- 6.10 **dictionary** (word dictionary): додавання/налаштування + setup-guides.
-- 6.11 media-captions панель (наразі прихована за `MATERIAL_CAPTIONS_ENABLED`).
-- 6.12 сайдбар суперадміна: System + усе.
-- 6.13 axe усіх табів → 0 violations.
+- [x] 6.1 «System control room» рендер + Tabs навігація (усі 8 табів). *(06-system-audit)*
+- [x] 6.2 **general** панель відкривається. *(06-system-audit + 05-06-granular)*
+- [x] 6.3 **branding** — text input присутній (hex/логотип). *(05-06-granular + 06-system-audit 6.3)*
+- [ ] 6.4 **domains** verify-флоу / 6.5 **email** SMTP verify. *(беклог: зовнішня верифікація)*
+- [x] 6.6/6.7 **payments/payouts** панелі + labels. *(06-system-audit; a11y-фікси застосовано)*
+- [x] 6.8 **connections** панель (Google/Zoom/LiveKit секції) + aria-label чекбокси. *(06-system-audit)*
+- [x] 6.9 **video meetings** (general) регіон присутній. *(05-06-granular)*
+- [x] 6.10 **dictionary** панель рендериться. *(05-06-granular)*
+- [~] 6.11 media-captions — за `MATERIAL_CAPTIONS_ENABLED` (прихована).
+- [x] 6.12 сайдбар: System видно admin. *(05-admin-audit 5E.1)*
+- [x] 6.13 axe усіх табів → 0 violations. *(06-system-audit)*
 
 → Після етапу: `docs/e2e-improvements/06-system.md`.
 

@@ -23,3 +23,18 @@
 - Кодових фіксів: 0 (все чисто після Етапів 3–4).
 - Результат: `05-admin-audit.spec.ts` — 13 passed, 1 skipped (staff profile — немає рядків staff у сіді), 0 failed.
 - Рекомендація для Етапу 0: додати в сід ≥1 staff із compensation, щоб 5A.3 не скіпався.
+
+---
+
+## Доповнення 2026-07-06 — granular interaction-сценарії (Етапи 5+6)
+
+`specs/audit/05-06-granular.spec.ts` (10 passed, 1 conditional-skip):
+- **5A** staff-профіль: таби Profile/Compensation/Earnings & payouts/Statistics відкриваються (aria-selected).
+- **5B** finance: контент staff-finance присутній.
+- **5C** billing: Subscription heading + Current plan + Storage meter; план-пікери **умовні** — Starter/Pro лише за TRIAL-станом (default-школа ACTIVE → показує current-plan summary).
+- **5D** admin: «Account administration» + region «Accounts overview» + «All accounts».
+- **6.3** branding text input, **6.9** general video-meetings регіон, **6.10** dictionary панель.
+
+**Знахідка (не баг, а поведінка):** план-пікери Starter/Pro на `/billing` гейтяться `summary.plan === 'TRIAL'` — на ACTIVE-школі їх нема; тест адаптовано.
+
+**Беклог:** 5C.4–8 (promo/Stripe/feature-gating/seat-enforcement/білінг-стани), 5A.2/5A.6 (empty/non-staff), 5D.3 (створення акаунтів), 6.4/6.5 (domains/SMTP verify), 6.11 (media-captions за флагом).
