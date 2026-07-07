@@ -201,7 +201,7 @@
 - [ ] 3B.7 **LiveKit inline** JWT flow. *(беклог: realtime infra)*
 - [ ] 3B.8 **Homework** student submit flow. *(беклог: файл-аплоад фікстура)*
 - [ ] 3B.9 **LessonVocabularyAddPanel**. *(беклог)*
-- [ ] 3B.10 calendar-link / опис sidebar. *(беклог)*
+- [x] 3B.10 lesson detail «Open in calendar» лінк. *(03-student-b3)*
 - [ ] 3B.11 download вкладень. *(беклог: storage фікстура)*
 
 ### 3C. `/practice` (hub)
@@ -230,7 +230,7 @@
 - [x] 3H.1 список слів (seeded). *(03-student-granular)*
 - [x] 3H.2 фільтр статусів перемикає. *(03-student-granular; також 03-student-audit)*
 - [~] 3H.3 empty «All done!» — сід має слова; окремий порожній юзер — беклог.
-- [ ] 3H.4 деталь слова. *(беклог, якщо є)*
+- [x] 3H.4 word detail modal (кнопка «All information»). *(03-student-b3)*
 
 ### 3I. `/calendar`
 - [x] 3I.1 week/month перемикає вид. *(03-student-audit)*
@@ -242,7 +242,7 @@
 - [x] 3J.1 інбокс: search + список/empty. *(03-student-granular; також 03-student-audit)*
 - [~] 3J.2 відкриття діалогу, історія — потребує сідового діалогу (беклог).
 - [ ] 3J.3 realtime доставка через Socket.IO. *(беклог: realtime infra)*
-- [ ] 3J.4 «Search people...» → новий діалог. *(беклог; visibility вже покрито backend-тестами)*
+- [x] 3J.4 «New message» → Search-people picker. *(03-student-b3)*
 - [ ] 3J.5 створення групи. *(беклог)*
 - [~] 3J.6 empty-state — покрито 3J.1 (search|empty).
 - [ ] 3J.7 пагінація вгору. *(беклог: потребує 50+ повідомлень)*
@@ -289,8 +289,8 @@
 - [x] 4A.2 «Search materials…» фільтрує (nonsense → сідовий матеріал зникає). *(04-teacher-granular)*
 - [~] 4A.3 SegmentedControl тип/категорія — view toggle покрито; тип-фільтр беклог.
 - [x] 4A.4 **Create modal** відкривається (`role=dialog`) + axe. *(04-teacher-audit)*
-- [ ] 4A.5 **TagInput** chip-и. *(беклог: інтеракція з тегами)*
-- [ ] 4A.6 **Level** select A1–C2. *(беклог)*
+- [x] 4A.5 **TagInput** chip-и (тип+Enter→chip). *(04-teacher-material-form)*
+- [x] 4A.6 **Level** select A1–C2. *(04-teacher-material-form)*
 - [ ] 4A.7–4A.13 upload/cover/compression/nav-lock/recovery/size-limit. *(беклог: файл-аплоад інфра)*
 - [x] 4A.14 сідовий матеріал видно (список не порожній). *(04-teacher-granular)*
 - [ ] 4A.15 видалення матеріалу. *(беклог: мутує сід + storage)*
@@ -377,7 +377,8 @@
 - [x] 6.1 «System control room» рендер + Tabs навігація (усі 8 табів). *(06-system-audit)*
 - [x] 6.2 **general** панель відкривається. *(06-system-audit + 05-06-granular)*
 - [x] 6.3 **branding** — text input присутній (hex/логотип). *(05-06-granular + 06-system-audit 6.3)*
-- [ ] 6.4 **domains** verify-флоу / 6.5 **email** SMTP verify. *(беклог: зовнішня верифікація)*
+- [x] 6.4 **domains** add-form / feature-gate + hostname input. *(06-system-b3)*
+- [ ] 6.5 **email** SMTP verify. *(беклог B6: зовнішня верифікація)*
 - [x] 6.6/6.7 **payments/payouts** панелі + labels. *(06-system-audit; a11y-фікси застосовано)*
 - [x] 6.8 **connections** панель (Google/Zoom/LiveKit секції) + aria-label чекбокси. *(06-system-audit)*
 - [x] 6.9 **video meetings** (general) регіон присутній. *(05-06-granular)*
