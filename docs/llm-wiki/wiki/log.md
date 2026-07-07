@@ -2549,3 +2549,10 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
   - `03-student-granular.spec.ts` (21 tests): dashboard quick-actions/widgets, lesson click→[id], practice hub stats, vocabulary filter, calendar period nav, chat inbox, payment balance, profile tabs.
   - Notes for future specs: profile Appearance font-size is a SegmentedControl (role=radio); student calendar week view needs several "next" clicks to cross a month boundary before the h2 label changes.
   - Deep flows (realtime chat, LiveKit JWT, OAuth connections, speaking mic, provider checkout, Arvi wave) remain backlog — they need infra/mocks, not interaction assertions.
+
+## [2026-07-06] update | Stage 4 granular interaction coverage
+- **Trigger:** e2e-journey-test-plan Stage 4 granular scenarios
+- **Pages:** none new
+- **Key changes:**
+  - `04-teacher-granular.spec.ts` (9 tests): materials view-toggle + search filter, students list + scope segmented, student profile tabs (all open, aria-selected), groups render, lesson-modal tab switch + Escape.
+  - Selector notes: lesson-modal tabs are "Lesson planning"/"Lesson content" (not setup/content); date/time are custom pickers (no native input[type=date]); setup fields load party-options async so under parallel load assert the tab switch, not the fields. Iterate profile tabs in one test to avoid flaky cold re-navigations.

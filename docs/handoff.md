@@ -21,7 +21,14 @@
 - `docs/e2e-improvements/03-student.md` — improvement doc Етап 3
 - `apps/web/src/styles/tokens/_theme.scss` — контраст-токени
 
-## What has changed (latest: Етап 3 granular-сценарії закрито — 2026-07-06)
+## What has changed (latest: Етап 4 granular-сценарії закрито — 2026-07-06)
+
+### Stage 4 granular interaction coverage (2026-07-06)
+- Новий `specs/audit/04-teacher-granular.spec.ts` (9 passed, 2 conditional-skip): materials view-toggle+search, students list+scope, профіль студента усі таби (aria-selected), groups render, lesson-modal tab-switch+Escape.
+- Технічні відкриття (зафіксовано): lesson-modal таби «Lesson planning»/«Lesson content»; date/time — кастомні пікери; setup-поля вантажать party-options async → під навантаженням тестуємо tab-switch, не поля; 4D переписано в один послідовний тест (уникає 5× cold-навігацій, що флейкали skip).
+- Чекбокси Етапу 4 оновлено: interaction ☑; беклог (4A.5–15 upload/tags, 4B viewer, 4F.4–9, 4G billing UI) з причинами.
+
+## Previous (Етап 3 granular-сценарії закрито — 2026-07-06)
 
 ### Stage 3 granular interaction coverage (2026-07-06)
 - Новий `specs/audit/03-student-granular.spec.ts` (21 passed, 2 conditional-skip): quick-actions, таби профілю, фільтри, віджети, навігація календарем, клік уроку→[id], practice-hub stats, payment balance.

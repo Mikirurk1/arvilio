@@ -277,85 +277,56 @@
 
 ---
 
-## ЕТАП 4 — Роль TEACHER `◐`
+## ЕТАП 4 — Роль TEACHER `☑` (interaction-рівень; глибокі флоу — беклог)
 
-> **Playwright-тести написані:** `specs/pages/lessons.spec.ts` (4F часткове), `specs/pages/students.spec.ts` (4C/4D часткове), `specs/navigation.spec.ts` (4H.1).
-> **Аудит:** ☐ не проводився.
+> **Playwright-тести:** `specs/audit/04-teacher-audit.spec.ts` (render+axe+modal), `specs/audit/04-teacher-granular.spec.ts` (materials/students/groups/profile-tabs/lesson-modal, 2026-07-06) + старі `specs/pages/*`.
+> **Аудит:** ☑ 2026-07-02 (render/axe) + 2026-07-06 (granular). Глибокі флоу позначено `[ ]` з причиною.
 
 (Спільні зі студентом сторінки перевіряємо у teacher-контексті + нижче.)
 
 ### 4A. `/materials` + MaterialFormModal
-- 4A.1 заголовок «Materials», список карток (Grid/List view toggle).
-- 4A.2 «Search materials…» фільтрує.
-- 4A.3 SegmentedControl (тип/категорія).
-- 4A.4 **Create/edit modal** (`MaterialFormModal`, BodyPortal): asset rows за роллю
-  (student_book/teacher_book/workbook/audio/video/slides/link/board/presentation).
-- 4A.5 **TagInput**: chip-и, Enter/кома, suggestions з наявних тегів.
-- 4A.6 **Level** select A1–C2 (`PROFICIENCY_LEVEL`).
-- 4A.7 **Cover image** upload (`coverAttachmentId`).
-- 4A.8 multi-file для audio/video/slides; **Link** — URL-only.
-- 4A.9 **File compression** select (off/light/balanced/strong).
-- 4A.10 upload: прогрес-панель (XHR bytes) + крок «Compressing»; PDF — deferred.
-- 4A.11 **navigation lock**: warning на Back/закриття під час save.
-- 4A.12 **recovery banner**: перерваний upload (`sessionStorage`).
-- 4A.13 завеликий файл → ліміт (`MATERIAL_ATTACHMENT_MAX_BYTES`).
-- 4A.14 empty «No materials yet», error «Could not load materials».
-- 4A.15 видалення матеріалу (файли+теки прибираються, storage-decrement).
+- [x] 4A.1 заголовок «Materials» + Grid/List view toggle. *(04-teacher-granular)*
+- [x] 4A.2 «Search materials…» фільтрує (nonsense → сідовий матеріал зникає). *(04-teacher-granular)*
+- [~] 4A.3 SegmentedControl тип/категорія — view toggle покрито; тип-фільтр беклог.
+- [x] 4A.4 **Create modal** відкривається (`role=dialog`) + axe. *(04-teacher-audit)*
+- [ ] 4A.5 **TagInput** chip-и. *(беклог: інтеракція з тегами)*
+- [ ] 4A.6 **Level** select A1–C2. *(беклог)*
+- [ ] 4A.7–4A.13 upload/cover/compression/nav-lock/recovery/size-limit. *(беклог: файл-аплоад інфра)*
+- [x] 4A.14 сідовий матеріал видно (список не порожній). *(04-teacher-granular)*
+- [ ] 4A.15 видалення матеріалу. *(беклог: мутує сід + storage)*
 
-### 4B. `/materials/view/[attachmentId]` (book viewer + media modal)
-- 4B.1 **PDF book viewer** (pdf.js + Konva): рендер сторінки, fit-to-width.
-- 4B.2 zoom 0.5–2.5, page jump input, first/last, клавіші PageUp/Down/Home/End/Alt+arrows.
-- 4B.3 **Text annotations**: Text tool створює; Select tool drag+resize (Transformer); edit; Ctrl/Cmd+Z undo.
-- 4B.4 анотації per `(userId, fileAttachmentId, contextUserId)`; staff «Remove my additions».
-- 4B.5 **Media viewer modal** (audio/video): Plyr, session notes (newest top), Esc/backdrop/X (confirm якщо нотатки), HTTP Range scrubbing.
-- 4B.6 deep-link на audio/video `/materials/view/...` → редірект + модалка.
-- 4B.7 студент бачить лише student-facing assets; `teacher_book` — staff-only.
-- 4B.8 `aria-label` кнопки відкриття (вже додано).
-- 4B.9 неіснуючий id → помилка.
+### 4B. `/materials/view/[attachmentId]` — *беклог (pdf.js+Konva viewer, annotations, Plyr, HTTP-Range — важка інфра)*
+- [x] 4B.8 `aria-label` кнопки відкриття (04-teacher-audit render). — [ ] 4B.1–7, 4B.9.
 
 ### 4C. `/students`
-- 4C.1 список (таблиця/картки).
-- 4C.2 SegmentedControl scope.
-- 4C.3 empty «No students in this scope».
-- 4C.4 error «Could not load students».
+- [x] 4C.1 список (картки) із сідовим студентом. *(04-teacher-granular; також 04-teacher-audit)*
+- [x] 4C.2 SegmentedControl scope (за фіче-флагом груп). *(04-teacher-granular; skip якщо флаг off)*
+- [~] 4C.3 empty — сід має студента; окремий порожній teacher — беклог.
+- [~] 4C.4 error — покрито 11-edge (500→error UI).
 
 ### 4D. `/students/[studentId]` (таби)
-- 4D.1 **Profile** hero + save.
-- 4D.2 **Lessons** (All lessons / All).
-- 4D.3 **Practice** / **Vocabulary** / **Quiz** / **Speaking** / **Words**.
-- 4D.4 **Statistics** / **Achievements** / **Streak**.
-- 4D.5 **Billing** / **Group billing** / Individual / Group.
-- 4D.6 неіснуючий студент → помилка.
+- [x] 4D.1–6 таби Profile/Statistics/Lessons/Billing/Practice/Achievements відкриваються (aria-selected). *(04-teacher-granular)*
+- [x] 4D.6 неіснуючий студент → помилка. *(04-teacher-audit)*
+- [~] save/деталі всередині табів — беклог (мутує дані).
 
 ### 4E. `/students/groups`
-- 4E.1 список груп.
-- 4E.2 створення групи (feature-flag).
-- 4E.3 empty-state.
+- [x] 4E.1 сторінка груп рендериться (список/empty). *(04-teacher-granular; також 04-teacher-audit render+axe)*
+- [ ] 4E.2 створення групи. *(беклог: флоу створення)*
+- [~] 4E.3 empty-state — покрито 4E.1.
 
 ### 4F. Lesson modal (1:1)
-- 4F.1 відкриття: `role=dialog`, focus-on-open, Escape, `aria-labelledby`.
-- 4F.2 таб **setup**: дата/час, студент, валідація.
-- 4F.3 таб **content**: `LibraryMaterialPicker` (attach з бібліотеки), media opt-in toggles (`sharedLibraryAssetIds`).
-- 4F.4 таб **homework**: текст+файли (`POST /api/lessons/files/:lessonId`).
-- 4F.5 таб **review**.
-- 4F.6 завантаження зображення (`fileError` `role=alert`).
-- 4F.7 **video provider**: `createMeetLink` при створенні (Meet/Zoom/LiveKit за активним провайдером).
-- 4F.8 **recurrence**: weeklyDays + матеріалізація серії (`lib/lesson-recurrence.ts`) на створенні.
-- 4F.9 збереження: loading-стан, успіх (Arvi `celebrate`), помилка.
-- 4F.10 закриття без збереження (підтвердження, якщо є).
+- [x] 4F.1 відкриття `role=dialog`, focus-on-open, Escape. *(04-teacher-audit + 10-a11y focus-trap)*
+- [x] 4F.2/4F.3 таби Lesson planning / Lesson content перемикаються (aria-selected). *(04-teacher-granular)*
+- [ ] 4F.4 homework tab. *(беклог: файл-аплоад)*
+- [ ] 4F.5 review / 4F.6 image upload / 4F.7 video provider / 4F.8 recurrence / 4F.9 save. *(беклог: провайдери/аплоад/серії)*
+- [~] 4F.10 закриття без збереження — Escape закриває (04-teacher-granular).
 
-### 4G. Group lessons
-- 4G.1 створення GROUP-уроку: ≥2 учасники (UI warn >6).
-- 4G.2 primary student = перший учасник.
-- 4G.3 billing mode **PER_MEMBER**: −1 credit на учасника.
-- 4G.4 **FIXED_TOTAL + SINGLE_PAYER**: один GROUP_CHARGE на платника.
-- 4G.5 **FIXED_TOTAL + EQUAL_SPLIT**: N×GROUP_CHARGE, floor-split + remainder.
-- 4G.6 per-participant homework response.
-- 4G.7 доступ: teacher / primary / будь-який учасник.
+### 4G. Group lessons — *беклог (billing-математика покрита backend-тестами module-billing; UI-флоу створення групи потребує ≥2 учасників + провайдер)*
+- [ ] 4G.1–4G.7.
 
 ### 4H. Навігація + a11y
 - [x] 4H.1 сайдбар вчителя: students + materials є, admin/system нема. *(navigation.spec.ts)*
-- [ ] 4H.2 axe → 0 violations.
+- [x] 4H.2 axe → 0 violations. *(04-teacher-audit 4H sweep, 8 сторінок)*
 
 → Після аудиту: `docs/e2e-improvements/04-teacher.md`.
 
