@@ -408,21 +408,21 @@
 
 ---
 
-## ЕТАП 8 — RBAC негативні `◐`
+## ЕТАП 8 — RBAC негативні `☑`
 
-> **Playwright-тести написані:** `specs/pages/admin.spec.ts` (teacher/student → /admin), `specs/pages/system.spec.ts` (teacher → /system), `specs/pages/students.spec.ts` (student → /students), `specs/login.spec.ts` (guest → /dashboard), `specs/navigation.spec.ts` (sidebar RBAC).
-> **Аудит:** ☐ не проводився.
+> **Playwright-тести:** `specs/audit/08-rbac-audit.spec.ts` (28 tests: student/teacher/admin/guest denials + API-no-session + tenant isolation) + старі `specs/pages/*`.
+> **Аудит:** ☑ 2026-07-03…06.
 
-- [x] 8.1 STUDENT → /students, /admin → редірект. *(students.spec.ts, admin.spec.ts)*
-- [x] 8.2 TEACHER → /admin, /system → редірект. *(admin.spec.ts, system.spec.ts)*
-- [ ] 8.3 ADMIN → /system, platform → редірект (уточнити: ADMIN має доступ до /system у коді).
-- [ ] 8.4 TEACHER/ADMIN → `/payment` → редірект (тільки student).
-- [x] 8.5 guest → /dashboard → редірект `/login`. *(login.spec.ts)*
-- [ ] 8.6 API без сесії → 401/403.
-- [ ] 8.7 JWT школи ≠ host → 403.
+- [x] 8.1 STUDENT → /students, /admin → редірект. *(08-rbac 8.1)*
+- [x] 8.2 TEACHER → /admin, /system → редірект. *(08-rbac 8.2)*
+- [x] 8.3 ADMIN: /system дозволено (route-policy), platform → редірект. *(08-rbac 8.3)*
+- [x] 8.4 TEACHER/ADMIN → `/payment` → редірект (тільки student). *(08-rbac 8.2/8.4)*
+- [x] 8.5 guest → /dashboard → редірект `/login`. *(08-rbac 8.5)*
+- [x] 8.6 API без сесії → 401/403. *(08-rbac 8.6)*
+- [~] 8.7 JWT школи ≠ host → 403 — **беклог**: потребує host-based роутінгу (Phase 2 multi-tenant). Крос-тенантну ізоляцію по JWT-схемі покрито через 8.7 tenant-isolation (реєстрація школи + перевірка витоку читання/запису).
 - [x] 8.8 прямий перехід по URL гейтиться. *(всі RBAC-тести)*
 
-→ Після аудиту: `docs/e2e-improvements/08-rbac.md`.
+→ Див.: `docs/e2e-improvements/08-rbac.md`.
 
 ---
 
@@ -487,7 +487,9 @@
 | 9 | Адаптивність | ☑ | ☑ | ☑ | ☑ | ☑ (2026-07-03, 0 знахідок у коді — див. e2e-improvements/09-responsive.md) |
 | 10 | a11y повний | ☑ | ☑ | ☑ | ☑ | ☑ (2026-07-03, focus-trap LessonModal — див. e2e-improvements/10-a11y.md) |
 | 11 | Edge/помилки | ◐ | ☑ | ☑ | ☑ | ☑ (2026-07-03, 404/bad-id/500 закрито; білінг-стани — беклог. Див. e2e-improvements/11-edge.md) |
-| 🧸 | Arvi-присутність | ☐ | ☐ | ☐ | (наскрізно) | ☐ |
+| 🧸 | Arvi-присутність | ☐ | ☐ | ☐ | (наскрізно) | ☐ feature-робота, не тест (див. беклог нижче) |
+
+**Interaction-рівень etапів 3–6 закрито granular-спеками** (2026-07-06): `03-student-granular` (21), `04-teacher-granular` (9), `05-06-granular` (10). Решта відкритих пунктів — у беклозі за інфраструктурою (нижче).
 
 ---
 
@@ -501,3 +503,45 @@
 3. критичні (P0/P1) правки внесені й перетестовані;
 4. статуси у трекері оновлені;
 5. підсумок у `docs/handoff.md`.
+
+---
+
+## Беклог сценаріїв за інфраструктурою (фіналізовано 2026-07-07)
+
+Усі решта `[ ]` згруповано за тим, ЩО треба збудувати, щоб їх написати. Порядок = рекомендована черга (дешевше→дорожче). Кожен кластер = окрема сесія написання сценаріїв.
+
+### B1. Route-mock провайдерів (Playwright `page.route`) — **найдешевше, наступне**
+Мокаємо відповідь бекенду/провайдера, перевіряємо UI-реакцію. Не потребує реальних сервісів.
+- **3K.5 / 5C.5** provider checkout → мок `POST /api/billing/**/checkout` → assert loading + спроба редіректу.
+- **5C.4** promo apply → мок `POST /billing/subscription/promo/redeem` (success/error) → результат-банер.
+- **3K.4/3K.7** пакети top-up + вибір валюти → мок entitlements/packages конфіг.
+- **3K.6** manual invoice інструкції → мок payment-settings з manual-методом.
+- **11.x білінг-стани** (з Етапу 11 беклогу): TRIAL/PAST_DUE/SUSPENDED → мок `GET /billing/entitlements` різними станами → банер/гейт.
+- **5C.6/5C.7** feature-gating + seat-enforcement → мок entitlements (ліміт seats) → 403-повідомлення.
+
+### B2. Мутаційні флоу з cleanup (створюємо→перевіряємо→прибираємо)
+Реальні API-виклики під тестовим юзером, з прибиранням у `afterEach` або через унікальні дані.
+- **4E.2** створення групи, **5D.3** створення акаунта, **3J.5/4G.1** створення групового чату/уроку.
+- **3L.2** зміна пароля (повернути назад у cleanup).
+- **4A.15** видалення матеріалу (створити тимчасовий → видалити).
+
+### B3. TagInput / select / inline-панелі (interaction без нової інфри)
+Відкрити наявну модалку/панель і поклацати — можна писати зараз.
+- **4A.5** TagInput chips (Enter/кома), **4A.6** Level select A1–C2.
+- **3B.9** LessonVocabularyAddPanel, **3B.10** calendar-link sidebar, **3H.4** word detail.
+- **3J.4** «Search people» → contact picker (visibility вже в backend-тестах).
+- **6.4** domains: додати домен → TXT-токен (без зовнішнього verify).
+
+### B4. Файл-аплоад інфра (Playwright `setInputFiles` + fixture-файли)
+- **3B.8** homework submit, **3B.11** download, **4A.7–4A.13** cover/multi-file/compression/nav-lock/recovery/size-limit, **4F.4/4F.6** homework tab / image upload.
+
+### B5. Інтерактивні навчальні флоу (стан сесії + Arvi-реакції)
+- **3D.2–4** vocabulary answer→feedback, **3E** irregular verbs, **3F** quiz проходження, **3F.5** Arvi реакції.
+
+### B6. Realtime / медіа / зовнішнє (найдорожче)
+- **3J.3/3J.7–10** Socket.IO доставка/пагінація/unread/auto-scroll/ephemeral, **3B.6/3B.7/4F.7** video provider + LiveKit JWT, **3G** speaking mic, **4B.*** PDF viewer + annotations + Plyr, **3L.5** OAuth Connections, **4F.8** recurrence materialization, **6.5** SMTP verify, **8.7** host-based JWT ≠ host.
+
+### B7. Feature-робота (НЕ тести — продуктова розробка)
+- **Arvi-беклог** (MascotPose/useArvi/ArviSlot/theming/reduced-motion/перф/скріни) та **3M.2** Arvi `wave` при logout — потребують імплементації маскота, не написання тестів.
+
+**Примітка:** математика білінгу (4G.3–5 PER_MEMBER/FIXED_TOTAL/split) уже покрита backend-тестами `module-billing` (108 passed) — E2E тут лише про UI-флоу створення (B2).
