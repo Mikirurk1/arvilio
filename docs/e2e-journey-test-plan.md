@@ -254,10 +254,9 @@
 - [x] 3K.1 «Payment» рендер. *(03-student-audit)*
 - [x] 3K.2 методи оплати АБО empty. *(03-student-audit 3K.2)*
 - [x] 3K.3 **lesson balance** (prepaid credits) відображається. *(03-student-granular)*
-- [ ] 3K.4 **пакети** (top-up): вибір пакета/валюта. *(беклог: конфіг пакетів)*
-- [ ] 3K.5 оплата провайдером (редірект-мок). *(беклог: provider checkout mock)*
-- [ ] 3K.6 **manual invoice** інструкції. *(беклог)*
-- [ ] 3K.7 вибір валюти. *(беклог)*
+- [ ] 3K.4 **пакети** top-up / 3K.7 вибір валюти. *(беклог B2: засідити `School.paymentConfig` з packages+allowedCurrencies — GraphQL-мок шелла крихкий, потрібні реальні дані)*
+- [ ] 3K.5 оплата провайдером (редірект). *(беклог B1: мок createCheckout мутації)*
+- [ ] 3K.6 **manual invoice** інструкції. *(беклог B2: manualInvoiceMethods у сіді)*
 
 ### 3L. `/profile` (таби)
 - [x] 3L.1 таб **Profile** відкривається. *(03-student-audit 3L tabs)*
@@ -352,7 +351,11 @@
 - [x] 5C.1 «Subscription» + поточний план. *(05-06-granular)*
 - [x] 5C.2 **storage meter** + seats. *(05-06-granular)*
 - [x] 5C.3 план-пікери за trial-станом (ACTIVE школа → current-plan summary). *(05-06-granular)*
-- [ ] 5C.4 promo apply / 5C.5 Stripe checkout / 5C.6 feature-gating / 5C.7 seat-enforcement / 5C.8 стани. *(беклог: провайдер-моки + білінг-фікстури станів)*
+- [x] 5C.4 promo apply → success banner. *(05-billing-mock, route-mock)*
+- [x] 5C.5 checkout → POST fired (mock provider url). *(05-billing-mock)*
+- [x] 5C.6 feature-gate: over-quota → storage warning. *(05-billing-mock)*
+- [~] 5C.7 seat-enforcement (403) — бекенд-поведінка (module-auth), не billing-UI; беклог B1 (мок add-student 403).
+- [x] 5C.8 стани TRIAL vs ACTIVE (promo card / current-plan). *(05-billing-mock)*
 
 ### 5D. `/admin`
 - [x] 5D.1 «Account administration» + 5D.2 «Accounts overview» (region + All accounts). *(05-06-granular)*
