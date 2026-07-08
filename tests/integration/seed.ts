@@ -324,6 +324,14 @@ async function seedTestFixtures(prisma: PrismaClient): Promise<void> {
     },
   });
 
+  // Student billing mode BOTH → /payment shows self-serve packages (showSelfServePackages).
+  // Without a StudentLessonBalance row the API falls back to hiding packages.
+  await prisma.studentLessonBalance.upsert({
+    where: { userId: student.id },
+    create: { userId: student.id, schoolId: SCHOOL_DEFAULT_ID, billingMode: 'BOTH' },
+    update: { billingMode: 'BOTH' },
+  });
+
   // ≥1 library material (no file attachment — storage-backed uploads stay manual)
   const materialTitle = 'Seed material — grammar book';
   const existingMaterial = await prisma.libraryMaterial.findFirst({

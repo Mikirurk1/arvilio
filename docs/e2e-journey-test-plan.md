@@ -255,7 +255,7 @@
 - [x] 3K.2 методи оплати АБО empty. *(03-student-audit 3K.2)*
 - [x] 3K.3 **lesson balance** (prepaid credits) відображається. *(03-student-granular)*
 - [x] 3K.4 **пакети** top-up (сідовий `School.paymentConfig`: 5/10 lessons). *(03-payment-config)*
-- [ ] 3K.5 оплата провайдером (редірект). *(беклог B1: мок createCheckout мутації — online checkout вимкнено без PSP-секретів)*
+- [ ] 3K.5 оплата провайдером (редірект). *(беклог: `availableMethods` бере online-метод лише коли він у student payment-selection; потребує засідити selection + мок createLessonPurchaseCheckout — глибше налаштування заради 1 тесту)*
 - [x] 3K.6 **manual invoice** інструкції (IBAN bank transfer). *(03-payment-config)*
 - [x] 3K.7 вибір валюти (UAH+USD у сіді). *(03-payment-config)*
 
@@ -355,7 +355,7 @@
 - [x] 5C.4 promo apply → success banner. *(05-billing-mock, route-mock)*
 - [x] 5C.5 checkout → POST fired (mock provider url). *(05-billing-mock)*
 - [x] 5C.6 feature-gate: over-quota → storage warning. *(05-billing-mock)*
-- [~] 5C.7 seat-enforcement (403) — бекенд-поведінка (module-auth), не billing-UI; беклог B1 (мок add-student 403).
+- [x] 5C.7 seat-enforcement UI: create-account 403 → error shown, no nav (mock createAdminUser). *(05-seat-enforcement)*
 - [x] 5C.8 стани TRIAL vs ACTIVE (promo card / current-plan). *(05-billing-mock)*
 
 ### 5D. `/admin`
