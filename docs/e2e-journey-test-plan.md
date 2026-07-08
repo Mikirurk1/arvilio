@@ -261,7 +261,7 @@
 
 ### 3L. `/profile` (таби)
 - [x] 3L.1 таб **Profile** відкривається. *(03-student-audit 3L tabs)*
-- [x] 3L.2 таб **Account** відкривається. *(03-student-granular; сам флоу зміни пароля — беклог, мутує сід)*
+- [◐] 3L.2 таб **Account** відкривається *(03-student-granular)*; error-path зміни пароля покрито *(03-password-change 3L.2b)*. **⚠ БАГ:** happy-path submit не працює — форму зміни пароля неможливо сабмітнути жодним вводом (fill/type/keyboard): DOM-значення правильні, але submit-валідатор бачить порожній newPassword і показує «at least 8 characters». Ламає і password-менеджери. `test.fixme` у `03-password-change.spec.ts`, потребує фіксу `ChangePasswordModal`/`Field` password.
 - [x] 3L.3 таб **Appearance**: контрол Small/Medium/Large присутній. *(03-student-granular)*
 - [x] 3L.4 таб **Notifications** відкривається (тогли). *(03-student-granular)*
 - [ ] 3L.5 таб **Connections** OAuth-флоу (Google/Zoom/Telegram/Facebook). *(беклог: зовнішні OAuth)*

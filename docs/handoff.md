@@ -21,7 +21,14 @@
 - `docs/e2e-improvements/03-student.md` — improvement doc Етап 3
 - `apps/web/src/styles/tokens/_theme.scss` — контраст-токени
 
-## What has changed (latest: payment-config сід + 3K пакети/валюти/manual закрито — 2026-07-08)
+## What has changed (latest: B2 password-change — знайдено баг форми — 2026-07-08)
+
+### 3L.2 password change + BUG (2026-07-08)
+- Новий `03-password-change.spec.ts`: 3L.2b (wrong current → error, no change) passed; happy-path 3L.2 — `test.fixme`.
+- **⚠ РЕАЛЬНИЙ БАГ знайдено:** форму зміни пароля (`ChangePasswordModal`) **неможливо сабмітнути жодним програмним чи реальним вводом** (fill / pressSequentially / keyboard.type всі відтворюють). DOM-значення current/new/confirm правильні, але submit-хендлер бачить порожній `newPassword` → «New password must be at least 8 characters», запит не летить, пароль не змінюється. Ламає і password-менеджери/autofill. Перевірено: NEW-пароль=401, ORIG=201 після спроби. Корінь — ймовірно stale-state у submit або скидання-ефект `[open]`; потребує окремого фіксу компонента.
+- **Задача для розсліду:** `apps/web/src/app/profile/ChangePasswordModal.tsx` (стан) + `Field` password-гілка.
+
+## Previous (payment-config сід + 3K пакети/валюти/manual закрито — 2026-07-08)
 
 ### Payment config seed + B1/B3 cluster (2026-07-08)
 - **`seed.ts`**: default-школі засіджено `School.paymentConfig` через реальний `finalizePaymentConfig` — 2 пакети (5 lessons UAH, 10 lessons USD), manual IBAN-метод, allowedCurrencies [UAH,USD], enabled MANUAL_INVOICE. Тепер реальна `/payment` рендерить пакети/валюти/bank transfer без крихкого GraphQL-моку.

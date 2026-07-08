@@ -2571,3 +2571,10 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
   - `tests/integration/seed.ts` now seeds the default school's `paymentConfig` via the real `finalizePaymentConfig` helper: 2 packages (5 UAH, 10 USD), a manual IBAN method, allowedCurrencies [UAH,USD], enabled MANUAL_INVOICE. The real /payment page renders packages/currencies/bank-transfer — no fragile mock.
   - `03-payment-config.spec.ts` closes 3K.4/3K.6/3K.7 with real data.
   - Testing lesson: mocking one GraphQL op on a GraphQL-shell page hangs render — prefer seeding real data or mocking REST endpoints (as done for /billing entitlements).
+
+## [2026-07-08] update | BUG: change-password form cannot be submitted (client validation)
+- **Trigger:** e2e (3L.2 password change) — real defect found
+- **Pages:** none (defect note)
+- **Key changes:**
+  - `03-password-change.spec.ts`: 3L.2b (wrong current → error) passes; happy-path 3L.2 is `test.fixme`.
+  - **Defect:** `ChangePasswordModal` cannot be submitted by any input method (fill/pressSequentially/keyboard.type). DOM values for current/new/confirm are correct, but the submit validator reports "New password must be at least 8 characters" and no request fires (verified: no POST to */password*, password unchanged). Breaks password managers/autofill too. Root cause likely stale state in the submit closure or the `[open]` reset effect clobbering state. Needs a component fix in `apps/web/src/app/profile/ChangePasswordModal.tsx`.
