@@ -11,10 +11,14 @@
             "id": "3a897825861e4065",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "type": "markdown",
+              "state": {
+                "file": "llm-wiki/raw/code-audit/2026-05-16-monorepo-inventory.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "2026-05-16-monorepo-inventory"
             }
           }
         ]
@@ -191,5 +195,10 @@
     }
   },
   "active": "3a897825861e4065",
-  "lastOpenFiles": []
+  "lastOpenFiles": [
+    "llm-wiki/raw/code-audit/2026-05-16-rbac.md",
+    "llm-wiki/raw/README.md",
+    "llm-wiki/raw/code-audit/2026-05-16-monorepo-inventory.md",
+    "llm-wiki/wiki/index.md"
+  ]
 }

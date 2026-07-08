@@ -1,5 +1,10 @@
 import * as bcrypt from 'bcryptjs';
 import type { PrismaClient, UserRole } from '@prisma/client';
+import {
+  DEFAULT_PAYMENT_CONFIG,
+  finalizePaymentConfig,
+  paymentConfigToJson,
+} from '../../packages/backend/modules/module-billing/src/shared/payment-map.util';
 
 /** Shared test password for all seeded integration / E2E users. */
 export const TEST_PASSWORD = 'TestPass123!';
@@ -273,6 +278,50 @@ async function seedTestFixtures(prisma: PrismaClient): Promise<void> {
       active: true,
     },
     update: { active: true },
+  });
+
+  // Payment config: packages (UAH+USD) + manual invoice method + enabled MANUAL_INVOICE,
+  // so /payment renders top-up packages / currencies / bank instructions (3K.4/6/7).
+  // Built via the real finalizePaymentConfig helper to guarantee a valid shape.
+  const config = finalizePaymentConfig({
+    ...DEFAULT_PAYMENT_CONFIG,
+    defaultCurrency: 'UAH',
+    allowedCurrencies: ['UAH', 'USD'],
+    defaultPricePerLessonMinor: 50000,
+    minPackageLessons: 5,
+    pricePerLessonByCurrency: [
+      { currency: 'UAH', pricePerLessonMinor: 50000 },
+      { currency: 'USD', pricePerLessonMinor: 1000 },
+    ],
+    packages: [
+      { id: 'seed-pkg-uah-5', lessons: 5, label: '5 lessons', currency: 'UAH', creditTrack: 'individual' },
+      { id: 'seed-pkg-usd-10', lessons: 10, label: '10 lessons', currency: 'USD', creditTrack: 'individual' },
+    ],
+    manualInvoiceMethods: [
+      {
+        id: 'seed-manual-uah',
+        kind: 'iban_sepa',
+        label: 'Bank transfer (UAH)',
+        description: 'Pay by IBAN transfer in UAH',
+        receiptHintUk: 'Надішліть квитанцію на пошту школи.',
+        paymentReferenceHint: 'Your email + "lessons"',
+        recipientTaxId: '1234567890',
+        paymentPurpose: 'English lessons top-up',
+        importantNotes: ['Include your email in the payment reference.'],
+        beneficiaryName: 'SoEnglish School',
+        iban: 'UA903052992990004149123456789',
+        bankName: 'Test Bank',
+        bankCountry: 'UA',
+        bic: null,
+      },
+    ],
+  });
+  await prisma.school.update({
+    where: { id: SCHOOL_DEFAULT_ID },
+    data: {
+      paymentConfig: paymentConfigToJson(config) as never,
+      enabledPaymentMethods: ['MANUAL_INVOICE'],
+    },
   });
 
   // ≥1 library material (no file attachment — storage-backed uploads stay manual)

@@ -21,7 +21,16 @@
 - `docs/e2e-improvements/03-student.md` — improvement doc Етап 3
 - `apps/web/src/styles/tokens/_theme.scss` — контраст-токени
 
-## What has changed (latest: Етапи 5+6 granular закрито — 2026-07-06)
+## What has changed (latest: payment-config сід + 3K пакети/валюти/manual закрито — 2026-07-08)
+
+### Payment config seed + B1/B3 cluster (2026-07-08)
+- **`seed.ts`**: default-школі засіджено `School.paymentConfig` через реальний `finalizePaymentConfig` — 2 пакети (5 lessons UAH, 10 lessons USD), manual IBAN-метод, allowedCurrencies [UAH,USD], enabled MANUAL_INVOICE. Тепер реальна `/payment` рендерить пакети/валюти/bank transfer без крихкого GraphQL-моку.
+- `03-payment-config.spec.ts` (3 passed): 3K.4 пакети, 3K.6 manual invoice, 3K.7 валюти. Регресія 40 passed.
+- Раніше цього дня закрито: B3 interaction (4A.5/4A.6, 3J.4/3H.4/3B.10, 6.4) + B1 billing (5C.4/5/6/8 через REST route-mock).
+- **Урок:** GraphQL-мок сторінок, чий shell теж на GraphQL, вішає рендер — надійніше засідити реальні дані (як зробив для payment) або мокати REST (як billing).
+- Лишок: 3K.5 (createCheckout мутація-мок), + беклог B2/B4/B5/B6/B7.
+
+## Previous (Етапи 5+6 granular закрито — 2026-07-06)
 
 ### Stages 5+6 granular interaction coverage (2026-07-06)
 - Новий `specs/audit/05-06-granular.spec.ts` (10 passed, 1 conditional-skip): staff-профіль таби, finance контент, billing (Subscription/Current plan/Storage meter/умовні план-пікери), admin Accounts overview, system-панелі (branding input/video-meetings/dictionary).

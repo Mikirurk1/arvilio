@@ -2563,3 +2563,11 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 - **Key changes:**
   - `05-06-granular.spec.ts` (10 tests): staff profile tabs, finance content, billing (Subscription/Current plan/Storage meter), admin Accounts overview, system panels (branding input, video-meetings region, dictionary).
   - Behaviour note: /billing Starter/Pro plan pickers are gated behind `summary.plan === 'TRIAL'`; an ACTIVE school shows only the current-plan summary — tests must branch on plan state.
+
+## [2026-07-08] update | Seed School.paymentConfig; /payment top-up flows testable
+- **Trigger:** e2e coverage (Stage 3 payment 3K.4/6/7)
+- **Pages:** none new
+- **Key changes:**
+  - `tests/integration/seed.ts` now seeds the default school's `paymentConfig` via the real `finalizePaymentConfig` helper: 2 packages (5 UAH, 10 USD), a manual IBAN method, allowedCurrencies [UAH,USD], enabled MANUAL_INVOICE. The real /payment page renders packages/currencies/bank-transfer — no fragile mock.
+  - `03-payment-config.spec.ts` closes 3K.4/3K.6/3K.7 with real data.
+  - Testing lesson: mocking one GraphQL op on a GraphQL-shell page hangs render — prefer seeding real data or mocking REST endpoints (as done for /billing entitlements).

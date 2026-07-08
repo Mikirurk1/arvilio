@@ -95,7 +95,7 @@
 > **Аудит:** ☐ не проводився — потрібен запущений dev server + реальний run.
 
 - [x] Сід `seed-test-users.ts` на чистій БД (4 ролі + Default School). *(прогнано 2026-07-03, ідемпотентний)*
-- [x] Розширити сід — **зроблено 2026-07-03:** 3 уроки (planned/completed/cancelled), студент у вчителя, словник 10 слів усіх статусів, staff compensation (PER_LESSON, UAH), `tourCompletedAt` для всіх юзерів (тур більше не перекриває E2E), quiz із 2 питаннями, платіж SUCCEEDED (4 уроки), promo `SEED20`, матеріал (BOOK, без файла — storage-upload лишається ручним).
+- [x] Розширити сід — **зроблено 2026-07-03:** 3 уроки (planned/completed/cancelled), студент у вчителя, словник 10 слів усіх статусів, staff compensation (PER_LESSON, UAH), `tourCompletedAt` для всіх юзерів (тур більше не перекриває E2E), quiz із 2 питаннями, платіж SUCCEEDED (4 уроки), promo `SEED20`, матеріал (BOOK, без файла), + `School.paymentConfig` (packages UAH/USD + manual IBAN, enabled MANUAL_INVOICE — 2026-07-08).
 - [x] Фікстура per-role `storageState` — `setup/auth.setup.ts` + `fixtures/auth.ts`.
 - [x] Хелпери: `shot()`, `expectNoA11yViolations()`, `consoleGuard()` — `helpers/a11y.ts`.
 - [x] `expectArvi(pose?)` — `helpers/a11y.ts`, анкер `[data-mascot][data-mascot-pose]` у `Mascot.tsx`; використано у 2.11 (greet на welcome-кроці туру). *(2026-07-03)*
@@ -254,9 +254,10 @@
 - [x] 3K.1 «Payment» рендер. *(03-student-audit)*
 - [x] 3K.2 методи оплати АБО empty. *(03-student-audit 3K.2)*
 - [x] 3K.3 **lesson balance** (prepaid credits) відображається. *(03-student-granular)*
-- [ ] 3K.4 **пакети** top-up / 3K.7 вибір валюти. *(беклог B2: засідити `School.paymentConfig` з packages+allowedCurrencies — GraphQL-мок шелла крихкий, потрібні реальні дані)*
-- [ ] 3K.5 оплата провайдером (редірект). *(беклог B1: мок createCheckout мутації)*
-- [ ] 3K.6 **manual invoice** інструкції. *(беклог B2: manualInvoiceMethods у сіді)*
+- [x] 3K.4 **пакети** top-up (сідовий `School.paymentConfig`: 5/10 lessons). *(03-payment-config)*
+- [ ] 3K.5 оплата провайдером (редірект). *(беклог B1: мок createCheckout мутації — online checkout вимкнено без PSP-секретів)*
+- [x] 3K.6 **manual invoice** інструкції (IBAN bank transfer). *(03-payment-config)*
+- [x] 3K.7 вибір валюти (UAH+USD у сіді). *(03-payment-config)*
 
 ### 3L. `/profile` (таби)
 - [x] 3L.1 таб **Profile** відкривається. *(03-student-audit 3L tabs)*
