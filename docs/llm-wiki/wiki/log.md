@@ -2578,3 +2578,12 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 - **Key changes:**
   - `03-password-change.spec.ts`: 3L.2b (wrong current → error) passes; happy-path 3L.2 is `test.fixme`.
   - **Defect:** `ChangePasswordModal` cannot be submitted by any input method (fill/pressSequentially/keyboard.type). DOM values for current/new/confirm are correct, but the submit validator reports "New password must be at least 8 characters" and no request fires (verified: no POST to */password*, password unchanged). Breaks password managers/autofill too. Root cause likely stale state in the submit closure or the `[open]` reset effect clobbering state. Needs a component fix in `apps/web/src/app/profile/ChangePasswordModal.tsx`.
+
+## [2026-07-09] update | P0 FIX: ValidationPipe whitelist silently broke ALL GraphQL mutations
+- **Trigger:** debug (3L.2 password change → traced to server)
+- **Pages:** `concepts/auth-rbac.md` / security-relevant
+- **Key changes:**
+  - **Root cause:** global `ValidationPipe({ whitelist: true })` (from the security hardening) strips every input-class property lacking a class-validator decorator. GraphQL `@InputType`s are classes with ZERO class-validator decorators (all 67), so whitelist silently stripped every field of every mutation input. REST was unaffected — its DTOs are TS `type`s (not classes), so the pipe skipped them and whitelist gave REST no protection at all.
+  - **Symptoms:** changeMyPassword failed "New password must be at least 8 characters" (field never arrived); updateMyProfile was a silent no-op (returned the old value). Broke all 67 GraphQL mutations + password managers.
+  - **Fix:** `apps/api/src/main.ts` — drop `whitelist`/`forbidNonWhitelisted`, keep `transform: true`; add class-validator decorators to `ChangePasswordInput` (real ≥8 validation, defense-in-depth). Verified via direct API + E2E (45 passed) + module-auth (208 tests).
+  - Lesson: with a global whitelist ValidationPipe, GraphQL @InputType classes MUST carry class-validator decorators or their fields vanish. Prefer scoping whitelist away from GraphQL when inputs rely on @Field for shape.

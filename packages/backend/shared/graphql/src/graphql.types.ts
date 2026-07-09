@@ -1,4 +1,5 @@
 import { Field, Float, ID, InputType, Int, ObjectType } from '@nestjs/graphql';
+import { IsString, MinLength } from 'class-validator';
 
 @ObjectType()
 export class DailyGoalType {
@@ -1565,10 +1566,16 @@ export class UpdateStaffUserProfileInput {
 
 @InputType()
 export class ChangePasswordInput {
+  // class-validator decorators are required: the global ValidationPipe runs with
+  // `whitelist: true`, which strips any GraphQL input property that has no
+  // validation decorator — without these the fields never reach the resolver.
   @Field()
+  @IsString()
   currentPassword!: string;
 
   @Field()
+  @IsString()
+  @MinLength(8)
   newPassword!: string;
 }
 

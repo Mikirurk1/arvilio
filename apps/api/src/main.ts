@@ -36,9 +36,14 @@ async function bootstrap() {
   const corsOrigin = process.env.WEB_ORIGIN ?? 'http://localhost:4200';
   app.enableCors({ origin: corsOrigin, credentials: true });
 
+  // NB: `whitelist: true` strips every property that lacks a class-validator
+  // decorator. Our REST DTOs are plain TS types (no class metadata → pipe skips
+  // them, so whitelist gave REST zero protection), while GraphQL `@InputType`
+  // classes ARE classes — so whitelist silently stripped ALL their fields,
+  // breaking every mutation input (password change errored, profile save no-op'd,
+  // etc.). Keep `transform` for type coercion; drop whitelist. Inputs that want
+  // strict validation should add class-validator decorators explicitly.
   app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: false,
     transform: true,
   }));
 

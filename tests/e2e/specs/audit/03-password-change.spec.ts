@@ -37,19 +37,21 @@ async function changePassword(page: import('@playwright/test').Page, from: strin
   await expect(dialog).toBeHidden({ timeout: 10_000 });
 }
 
-// KNOWN BUG (2026-07-08): the change-password modal cannot be submitted via
-// programmatic input. fill()/pressSequentially populate the DOM values correctly
-// (verified: current/new/confirm all show the right text), but the submit handler
-// still reports "New password must be at least 8 characters" and never fires the
-// request — so the modal stays open and the password never changes. This also
-// breaks password managers / autofill. Root cause looks like the ChangePasswordModal
-// reading stale state (Field onChange not wired through for password inputs).
-// Happy-path is fixed.skip until the component bug is fixed; 3L.2b (error path) below
-// still exercises the modal validation and confirms no unintended change.
-test.fixme(
-  '3L.2 change password via UI → success (BUG: submit reads stale state, modal never submits)',
-  async () => {},
-);
+test('3L.2 change password via UI → success, then revert (self-cleanup)', async ({ page }) => {
+  // change ORIG → TEMP through the Account UI
+  await changePassword(page, ORIG, TEMP);
+  const withTemp = await page.request.post('/api/auth/login', {
+    data: { email: 'jest-admin@soenglish.test', password: TEMP },
+  });
+  expect(withTemp.status(), 'new password works after UI change').toBe(201);
+
+  // revert TEMP → ORIG via the UI too so the seeded credential keeps working
+  await changePassword(page, TEMP, ORIG);
+  const withOrig = await page.request.post('/api/auth/login', {
+    data: { email: 'jest-admin@soenglish.test', password: ORIG },
+  });
+  expect(withOrig.status(), 'password reverted to seed value').toBe(201);
+});
 
 test('3L.2b wrong current password → error, no change', async ({ page }) => {
   await page.goto('/profile');
