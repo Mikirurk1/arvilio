@@ -2587,3 +2587,8 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
   - **Symptoms:** changeMyPassword failed "New password must be at least 8 characters" (field never arrived); updateMyProfile was a silent no-op (returned the old value). Broke all 67 GraphQL mutations + password managers.
   - **Fix:** `apps/api/src/main.ts` — drop `whitelist`/`forbidNonWhitelisted`, keep `transform: true`; add class-validator decorators to `ChangePasswordInput` (real ≥8 validation, defense-in-depth). Verified via direct API + E2E (45 passed) + module-auth (208 tests).
   - Lesson: with a global whitelist ValidationPipe, GraphQL @InputType classes MUST carry class-validator decorators or their fields vanish. Prefer scoping whitelist away from GraphQL when inputs rely on @Field for shape.
+## [2026-07-11] update | Cursor PreToolUse hook-handler JSON stdout
+- **Trigger:** code change
+- **Pages:** log only
+- **Notes:** `.claude/helpers/hook-handler.cjs` now handles `pre-edit`, `pre-bash` (allow path), and `post-bash`. PreToolUse hooks emit a single JSON line `{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow"}}` on stdout; dangerous `pre-bash` commands still exit 1 with stderr.
+
