@@ -7,7 +7,9 @@
  *
  * Commands:
  *   route          - Route a task to optimal agent (reads PROMPT from env/stdin)
- *   pre-bash       - Validate command safety before execution
+ *   pre-edit       - Cursor/Claude PreToolUse allow for Write/Edit tools (JSON stdout)
+ *   pre-bash       - Validate command safety before execution (JSON stdout on allow)
+ *   post-bash      - PostToolUse no-op for Bash (silent exit)
  *   post-edit      - Record edit outcome for learning
  *   session-restore - Restore previous session state
  *   session-end    - End session and persist state
@@ -67,6 +69,18 @@ function runWithTimeout(fn, label) {
       resolve(null);
     }
   });
+}
+
+// Cursor PreToolUse hooks require a single JSON line on stdout (no [OK] text).
+const PRE_TOOL_USE_ALLOW_JSON = JSON.stringify({
+  hookSpecificOutput: {
+    hookEventName: 'PreToolUse',
+    permissionDecision: 'allow',
+  },
+});
+
+function printPreToolUseAllow() {
+  process.stdout.write(PRE_TOOL_USE_ALLOW_JSON + '\n');
 }
 
 
@@ -147,6 +161,10 @@ const handlers = {
     }
   },
 
+  'pre-edit': () => {
+    printPreToolUseAllow();
+  },
+
   'pre-bash': () => {
     // Basic command safety check — prefer stdin command data from Claude Code.
     // String() wrap is belt-and-suspenders for #2017: even if a future regression
@@ -157,11 +175,15 @@ const handlers = {
     const dangerous = ['rm -rf /', 'format c:', 'del /s /q c:\\', ':(){:|:&};:'];
     for (const d of dangerous) {
       if (cmd.includes(d)) {
-        console.error(`[BLOCKED] Dangerous command detected: ${d}`);
+        process.stderr.write(`[BLOCKED] Dangerous command detected: ${d}\n`);
         process.exit(1);
       }
     }
-    console.log('[OK] Command validated');
+    printPreToolUseAllow();
+  },
+
+  'post-bash': () => {
+    // PostToolUse no-op — exit cleanly without stdout noise.
   },
 
   'post-edit': () => {
@@ -272,7 +294,7 @@ const handlers = {
     // Unknown command - pass through without error
     console.log(`[OK] Hook: ${command}`);
   } else {
-    console.log('Usage: hook-handler.cjs <route|pre-bash|post-edit|session-restore|session-end|pre-task|post-task|stats>');
+    console.log('Usage: hook-handler.cjs <route|pre-edit|pre-bash|post-bash|post-edit|session-restore|session-end|pre-task|post-task|stats>');
   }
 }
 
