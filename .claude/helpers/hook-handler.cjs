@@ -92,6 +92,25 @@ async function readStdin() {
   });
 }
 
+// Cursor + Claude Code PreToolUse hooks require valid JSON on stdout.
+function emitPreToolUse(decision, reason, additionalContext) {
+  const hookSpecificOutput = {
+    hookEventName: 'PreToolUse',
+    permissionDecision: decision,
+  };
+  if (reason) hookSpecificOutput.permissionDecisionReason = reason;
+  if (additionalContext) hookSpecificOutput.additionalContext = additionalContext;
+  console.log(JSON.stringify({ hookSpecificOutput }));
+}
+
+function emitPreToolUseAllow(additionalContext) {
+  if (additionalContext) {
+    emitPreToolUse('allow', undefined, additionalContext);
+  } else {
+    console.log('{}');
+  }
+}
+
 async function main() {
   // Global safety timeout: hooks must NEVER hang (#1530, #1531)
   const safetyTimer = setTimeout(() => {
@@ -157,11 +176,15 @@ const handlers = {
     const dangerous = ['rm -rf /', 'format c:', 'del /s /q c:\\', ':(){:|:&};:'];
     for (const d of dangerous) {
       if (cmd.includes(d)) {
-        console.error(`[BLOCKED] Dangerous command detected: ${d}`);
-        process.exit(1);
+        emitPreToolUse('deny', `Dangerous command detected: ${d}`);
+        process.exit(2);
       }
     }
-    console.log('[OK] Command validated');
+    emitPreToolUseAllow();
+  },
+
+  'pre-edit': () => {
+    emitPreToolUseAllow();
   },
 
   'post-edit': () => {
@@ -270,7 +293,11 @@ const handlers = {
     }
   } else if (command) {
     // Unknown command - pass through without error
-    console.log(`[OK] Hook: ${command}`);
+    if (/^pre-/.test(command)) {
+      emitPreToolUseAllow();
+    } else {
+      console.log(`[OK] Hook: ${command}`);
+    }
   } else {
     console.log('Usage: hook-handler.cjs <route|pre-bash|post-edit|session-restore|session-end|pre-task|post-task|stats>');
   }
