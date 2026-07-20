@@ -4,11 +4,13 @@ import { useEffect, useMemo, useState } from 'react';
 import type { QuizDetailDto } from '@pkg/types';
 import { Check, CircleX, PencilLine, Target } from 'lucide-react';
 import { Button, Field } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import { WordCardAudioButton } from '../vocabulary/WordCardAudioButton';
 import { useAuth } from '../../lib/auth-context';
 import { isFillInAnswerCorrect } from '../../lib/quiz-grading';
 import type { QuizPlayQuestion } from '../../lib/quiz-questions';
 import { usePracticeSessionTracker } from '../../lib/practice-session-tracker';
+import { useArvi } from '../../components/mascot/useArvi';
 import { useVocabularyStore } from '../../stores/vocabulary-store';
 import { useQuizzesStore } from '../../stores/quizzes-store';
 import type { QuizPlayResult, QuizReviewItem } from './quiz-play-types';
@@ -31,6 +33,7 @@ export function QuizPlaySession({
   onDone,
   onCancel,
 }: Props) {
+  const t = useCampusT();
   const fetchQuiz = useQuizzesStore((s) => s.fetchQuiz);
   const submitQuizAttempt = useQuizzesStore((s) => s.submitQuizAttempt);
   const fetchWordsByIds = useVocabularyStore((s) => s.fetchWordsByIds);
@@ -47,8 +50,14 @@ export function QuizPlaySession({
   const [session, setSession] = useState<SessionRow[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const { user } = useAuth();
+  const { celebrate, encourage, think, idle } = useArvi();
   const sessionActive = !loading && !error && quiz !== null;
   usePracticeSessionTracker(user?.id, 'quiz', sessionActive);
+
+  useEffect(() => {
+    if (loading) think(0);
+    else idle();
+  }, [loading, think, idle]);
 
   useEffect(() => {
     let cancelled = false;
@@ -58,7 +67,7 @@ export function QuizPlaySession({
       .then((detail) => {
         if (cancelled) return;
         if (detail.questions.length === 0) {
-          setError('This quiz has no questions.');
+          setError(t('quiz.error.noQuestions'));
           return;
         }
         setQuiz(detail);
@@ -86,7 +95,7 @@ export function QuizPlaySession({
         }
       })
       .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load quiz');
+        if (!cancelled) setError(err instanceof Error ? err.message : t('quiz.error.loadFailed'));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -150,6 +159,8 @@ export function QuizPlaySession({
     });
     setAnswers((prev) => [...prev, correct]);
     setShowExp(true);
+    if (correct) celebrate();
+    else encourage();
   };
 
   const submit = async (sessionRows: SessionRow[]) => {
@@ -166,7 +177,7 @@ export function QuizPlaySession({
       });
       onDone({ ...result, review });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit quiz');
+      setError(err instanceof Error ? err.message : t('quiz.error.submitFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -266,7 +277,7 @@ export function QuizPlaySession({
               className={`${styles.fillInput} ${
                 showExp ? (lastCorrect ? styles.fillCorrect : styles.fillWrong) : ''
               }`}
-              placeholder="Type your answer here..."
+              placeholder={t('quiz.play.typeAnswer')}
               value={fillAnswer}
               onChange={(e) => !showExp && setFillAnswer(e.target.value)}
               onKeyDown={(e) =>
@@ -276,7 +287,7 @@ export function QuizPlaySession({
             />
             {showExp && !lastCorrect ? (
               <div className={styles.fillCorrectAnswer}>
-                Correct: <strong>{String(q.correct)}</strong>
+                {t('quiz.play.correctLabel', { answer: String(q.correct) })}
               </div>
             ) : null}
           </div>
@@ -291,11 +302,11 @@ export function QuizPlaySession({
             <div className={styles.expIcon}>
               {lastCorrect ? (
                 <>
-                  <Check size={15} /> Correct!
+                  <Check size={15} /> {t('quiz.play.correct')}
                 </>
               ) : (
                 <>
-                  <CircleX size={15} /> Not quite
+                  <CircleX size={15} /> {t('quiz.play.notQuite')}
                 </>
               )}
             </div>
@@ -304,7 +315,7 @@ export function QuizPlaySession({
               <WordCardAudioButton
                 audioUrl={currentAudioUrl}
                 className={styles.quizAudioBtn}
-                label="Listen"
+                label={t('quiz.play.listen')}
               />
             ) : null}
           </div>
@@ -313,7 +324,7 @@ export function QuizPlaySession({
         <div className={styles.qActions}>
           {onCancel ? (
             <Button type="button" className={styles.finishBtn} onClick={onCancel} disabled={submitting}>
-              Cancel
+              {t('quiz.play.cancel')}
             </Button>
           ) : null}
           {!showExp ? (
@@ -323,15 +334,15 @@ export function QuizPlaySession({
               onClick={checkAnswer}
               disabled={q.type === 'multiple-choice' ? selected === null : !fillAnswer.trim()}
             >
-              Check Answer
+              {t('quiz.play.check')}
             </Button>
           ) : (
             <Button type="button" className={styles.nextBtn} onClick={next} disabled={submitting}>
               {current + 1 >= questions.length
                 ? practiceMode
-                  ? 'Finish practice'
-                  : 'Submit quiz'
-                : 'Next Question →'}
+                  ? t('quiz.play.finishPractice')
+                  : t('quiz.play.submit')
+                : t('quiz.play.next')}
             </Button>
           )}
         </div>

@@ -1,0 +1,73 @@
+.wrap {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+  contain: layout style;
+}
+
+.layer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fallback {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  transition: opacity var(--dur-base, 240ms) var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+}
+
+.fallbackLoading {
+  animation: arviFallbackPulse 1.6s var(--ease-in-out, ease-in-out) infinite;
+}
+
+.fallbackHidden {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  pointer-events: none;
+  animation: none;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity var(--dur-base, 240ms) var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+  pointer-events: none;
+}
+
+.canvasReady {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@keyframes arviFallbackPulse {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fallback,
+  .canvas {
+    transition: none;
+  }
+
+  .fallbackLoading {
+    animation: none;
+    opacity: 1;
+  }
+}

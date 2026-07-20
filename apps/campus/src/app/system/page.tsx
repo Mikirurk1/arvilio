@@ -1,8 +1,9 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Mail, BookOpenText, CreditCard, ShieldCheck, Cpu, Link2, Settings2, Banknote, Globe, Palette } from 'lucide-react';
+import { Mail, BookOpenText, CreditCard, ShieldCheck, Cpu, Link2, Settings2, Banknote, Globe, Palette, Scale, Sparkles } from 'lucide-react';
 import { PageHeader, Tabs, type TabsItem } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import { EmailTestPanel } from './panels';
 import { WordDictionaryPanel } from './WordDictionaryPanel';
 import { ConnectionsPanel } from './connections/ConnectionsPanel';
@@ -11,11 +12,24 @@ import { PayoutsDefaultsPanel } from './payment/PayoutsDefaultsPanel';
 import { GeneralPanel } from './GeneralPanel';
 import { DomainsPanel } from './DomainsPanel';
 import { BrandingPanel } from './BrandingPanel';
+import { SellerLegalPanel } from './SellerLegalPanel';
+import { LlmAssistantPanel } from './LlmAssistantPanel';
 import styles from './page.module.scss';
 
-type SystemTab = 'general' | 'email' | 'dictionary' | 'connections' | 'payments' | 'payouts' | 'domains' | 'branding';
+type SystemTab =
+  | 'general'
+  | 'email'
+  | 'dictionary'
+  | 'ai'
+  | 'connections'
+  | 'payments'
+  | 'payouts'
+  | 'domains'
+  | 'branding'
+  | 'seller';
 
 export default function SystemPage() {
+  const t = useCampusT();
   const [tab, setTab] = useState<SystemTab>('general');
 
   const tabs = useMemo(
@@ -25,83 +39,112 @@ export default function SystemPage() {
         label: (
           <span className={styles.tabLabel}>
             <Settings2 size={14} aria-hidden />
-            General
+            {t('system.tab.general')}
           </span>
         ),
         panel: <GeneralPanel onOpenConnections={() => setTab('connections')} />,
+        dataAttrs: { 'data-tour-anchor': 'system-tab-general' },
       },
       {
         value: 'email',
         label: (
           <span className={styles.tabLabel}>
             <Mail size={14} aria-hidden />
-            Email
+            {t('system.tab.email')}
           </span>
         ),
         panel: <EmailTestPanel />,
+        dataAttrs: { 'data-tour-anchor': 'system-tab-email' },
       },
       {
         value: 'dictionary',
         label: (
           <span className={styles.tabLabel}>
             <BookOpenText size={14} aria-hidden />
-            Word dictionary
+            {t('system.tab.dictionary')}
           </span>
         ),
         panel: <WordDictionaryPanel />,
+        dataAttrs: { 'data-tour-anchor': 'system-tab-dictionary' },
+      },
+      {
+        value: 'ai',
+        label: (
+          <span className={styles.tabLabel}>
+            <Sparkles size={14} aria-hidden />
+            {t('system.tab.ai')}
+          </span>
+        ),
+        panel: <LlmAssistantPanel />,
+        dataAttrs: { 'data-tour-anchor': 'system-tab-ai' },
       },
       {
         value: 'connections',
         label: (
           <span className={styles.tabLabel}>
             <Link2 size={14} aria-hidden />
-            Connections
+            {t('system.tab.connections')}
           </span>
         ),
         panel: <ConnectionsPanel />,
+        dataAttrs: { 'data-tour-anchor': 'system-tab-connections' },
       },
       {
         value: 'payments',
         label: (
           <span className={styles.tabLabel}>
             <CreditCard size={14} aria-hidden />
-            Payments
+            {t('system.tab.payments')}
           </span>
         ),
         panel: <PaymentsPanel />,
+        dataAttrs: { 'data-tour-anchor': 'system-tab-payments-trigger' },
       },
       {
         value: 'payouts',
         label: (
           <span className={styles.tabLabel}>
             <Banknote size={14} aria-hidden />
-            Payouts
+            {t('system.tab.payouts')}
           </span>
         ),
         panel: <PayoutsDefaultsPanel />,
+        dataAttrs: { 'data-tour-anchor': 'system-tab-payouts' },
       },
       {
         value: 'domains',
         label: (
           <span className={styles.tabLabel}>
             <Globe size={14} aria-hidden />
-            Domains
+            {t('system.tab.domains')}
           </span>
         ),
         panel: <DomainsPanel />,
+        dataAttrs: { 'data-tour-anchor': 'system-tab-domains' },
       },
       {
         value: 'branding',
         label: (
           <span className={styles.tabLabel}>
             <Palette size={14} aria-hidden />
-            Branding
+            {t('system.tab.branding')}
           </span>
         ),
         panel: <BrandingPanel />,
+        dataAttrs: { 'data-tour-anchor': 'system-tab-branding' },
+      },
+      {
+        value: 'seller',
+        label: (
+          <span className={styles.tabLabel}>
+            <Scale size={14} aria-hidden />
+            {t('system.tab.seller')}
+          </span>
+        ),
+        panel: <SellerLegalPanel />,
       },
     ],
-    [],
+    [t],
   );
 
   return (
@@ -110,34 +153,30 @@ export default function SystemPage() {
         className={styles.pageHeader}
         titleClassName={styles.pageTitle}
         subtitleClassName={styles.pageSub}
-        title="System control room"
-        subtitle="General school settings, email, dictionary, translation, OAuth connections, payment infrastructure, and staff payout defaults."
+        title={t('system.title')}
+        subtitle={t('system.subtitle')}
       />
-      <section className={styles.overviewGrid} aria-label="System overview">
+      <section className={styles.overviewGrid} aria-label={t('system.overview.aria')}>
         <article className={styles.overviewCard}>
           <span className={styles.overviewIcon} aria-hidden>
             <ShieldCheck size={16} />
           </span>
-          <p className={styles.overviewTitle}>Super-admin scope</p>
-          <p className={styles.overviewText}>
-            Changes here affect the whole school workspace. Use controlled updates and verify each section after saving.
-          </p>
+          <p className={styles.overviewTitle}>{t('system.overview.superAdmin.title')}</p>
+          <p className={styles.overviewText}>{t('system.overview.superAdmin.text')}</p>
         </article>
         <article className={styles.overviewCard}>
           <span className={styles.overviewIcon} aria-hidden>
             <Cpu size={16} />
           </span>
-          <p className={styles.overviewTitle}>Diagnostics first</p>
-          <p className={styles.overviewText}>
-            Start with Email test and Dictionary checks before editing payment providers to reduce integration drift.
-          </p>
+          <p className={styles.overviewTitle}>{t('system.overview.diagnostics.title')}</p>
+          <p className={styles.overviewText}>{t('system.overview.diagnostics.text')}</p>
         </article>
       </section>
       <Tabs
         value={tab}
         onValueChange={setTab}
         items={tabs}
-        ariaLabel="System sections"
+        ariaLabel={t('system.tabs.ariaLabel')}
         className={styles.card}
         listClassName={styles.tabsList}
         triggerClassName={styles.tabsTrigger}

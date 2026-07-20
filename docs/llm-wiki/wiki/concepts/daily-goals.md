@@ -37,7 +37,7 @@ Non-students get an empty list.
 
 ## Web
 
-- `DailyGoalsCard` in `apps/web/src/app/dashboard/sections.tsx` — read-only progress, links to practice routes
+- `DailyGoalsCard` in `apps/campus/src/app/dashboard/sections.tsx` — read-only progress, links to practice routes
 - `useDashboardStore.fetchGoals` — refetch on `PRACTICE_SESSION_LOGGED_EVENT` after practice sessions
 
 ## Code

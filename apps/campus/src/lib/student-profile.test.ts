@@ -1,5 +1,5 @@
 import type { AuthUserDto, StudentSummaryBackendDto } from '@pkg/types';
-import { getProfileByUserId, USER_ROLE } from '../mocks';
+import { USER_ROLE } from '@pkg/types';
 import {
   canManageBackendStudent,
   mapBackendStudentToProfile,
@@ -76,12 +76,8 @@ describe('student-profile', () => {
     expect(resolveStudentProfile('', [backendRow()])).toBeUndefined();
   });
 
-  it('resolveStudentProfile falls back to mock profile by numeric id', () => {
-    const mock = getProfileByUserId(1);
-    if (!mock) return;
-    const resolved = resolveStudentProfile(String(mock.userId), []);
-    expect(resolved?.profile.fullName).toBe(mock.fullName);
-    expect(resolved?.avatarUrl).toBeNull();
+  it('resolveStudentProfile returns undefined when API has no row', () => {
+    expect(resolveStudentProfile('unknown-id', [])).toBeUndefined();
   });
 
   it('canManageBackendStudent uses mock teacherId when row has no teacherId', () => {

@@ -1,24 +1,24 @@
 ---
 tags: [concept, frontend, monorepo]
-updated: 2026-05-16
+updated: 2026-07-11
 ---
 
-# Frontend packages (planned)
+# Frontend packages
 
-Workspace packages under `packages/frontend/` — intended shared boundaries per `ARCHITECTURE.md`.
+Workspace packages under `packages/frontend/` — shared boundaries per `ARCHITECTURE.md`.
 
-## Current status (2026-05)
+## Current status (2026-07)
 
 | Package | Status |
 |---------|--------|
-| `shared-ui` | Stub — only `UiCardSpec` / `createCardSpec()`, **no React components** |
+| `shared-ui` (`@fe/ui`) | **Live** — `Button`, `Field` (incl. `advancedSelect`), `AdvancedSelectControl`, date/time pickers + primitives SCSS |
 | `shared-utils` | Stub string export |
 | `feature-lessons` | Stub |
 | `feature-progress` | Stub |
 | `feature-vocabulary` | Partial — overview fetch + card spec |
 | `feature-flashcards` | Partial — Zustand session store |
 
-**`apps/web` does not import these packages today.** Real UI is app-local under `apps/web/src/components/ui/`.
+**Apps:** `@app/campus` and `@app/platform` import `@fe/ui` (Next `transpilePackages: ['@fe/ui']`). Campus keeps thin re-exports under `apps/campus/src/components/ui/{Button,Field,…}` so existing `@/components/ui` imports keep working. Platform imports `Button` / `Field` **directly** from `@fe/ui`; local `components/ui` is CP-only chrome (PageHeader, Panel, DataTable, …).
 
 ## Intended architecture (`ARCHITECTURE.md`)
 
@@ -29,11 +29,13 @@ Workspace packages under `packages/frontend/` — intended shared boundaries per
 
 ## Path aliases
 
-`apps/web/tsconfig.json` maps `@fe/*` feature packages and `@pkg/types` (see [[concepts/package-aliases]]).
+`tsconfig.base.json` + app tsconfigs map `@fe/*` (see [[concepts/package-aliases]]).
 
 ## Migration direction
 
-Extract domain UI from `apps/web/src/features/` into `packages/frontend/feature-*` when boundaries stabilize; keep design tokens in web or move to `shared-ui` later.
+- Primitives → `@fe/ui` (done for Button / Field / advanced select)
+- Domain UI from `apps/campus/src/features/` → `packages/frontend/feature-*` when boundaries stabilize
+- Design **tokens** stay per-app (`styles/tokens`); shared components consume CSS variables
 
 ## Related
 

@@ -3,7 +3,8 @@
 import { useCallback, useState } from 'react';
 import type { ScheduledLessonDto } from '@pkg/types';
 import { LESSON_STATUS } from '@pkg/types';
-import { canSchedule, isAdminOrSuper, USER_ROLE } from '../../mocks';
+import { canSchedule, isAdminOrSuper } from '../../lib/roles';
+import { USER_ROLE } from '@pkg/types';
 import { useActiveUser } from '../../lib/active-user';
 import { useLessonPartyOptions } from '../../hooks/use-lesson-party-options';
 import { useScheduledLessonPersistence } from '../../hooks/use-scheduled-lesson-persistence';

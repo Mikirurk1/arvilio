@@ -44,7 +44,7 @@ test.describe('1A. login', () => {
   for (const role of ['teacher', 'admin', 'super-admin'] as const) {
     test(`1A.8 login as ${role} → /dashboard`, async ({ page }) => {
       await page.goto('/login');
-      await page.getByRole('textbox', { name: /email/i }).fill(`jest-${role}@soenglish.test`);
+      await page.getByRole('textbox', { name: /email/i }).fill(`jest-${role}@arvilio.test`);
       await page.getByLabel('Password', { exact: true }).fill('TestPass123!');
       await page.getByRole('button', { name: /sign in/i }).click();
       await expect(page).toHaveURL(/\/dashboard/, { timeout: 20_000 });
@@ -80,7 +80,7 @@ test.describe('1B. signup', () => {
   test('1B.3 weak password → error (no account created)', async ({ page }) => {
     await page.goto('/signup');
     await page.getByLabel(/school name/i).fill('Weak Pass Probe');
-    await page.getByLabel(/^email$/i).fill(`weak-${Date.now()}@soenglish.test`);
+    await page.getByLabel(/^email$/i).fill(`weak-${Date.now()}@arvilio.test`);
     await page.getByLabel(/^password$/i).fill('123');
     const [resp] = await Promise.all([
       page.waitForResponse((r) => r.url().includes('register-school'), { timeout: 10_000 }).catch(() => null),
@@ -93,7 +93,7 @@ test.describe('1B. signup', () => {
   test('1B.4 duplicate email → error', async ({ page }) => {
     await page.goto('/signup');
     await page.getByLabel(/school name/i).fill('Dup Probe');
-    await page.getByLabel(/^email$/i).fill('jest-admin@soenglish.test'); // already exists
+    await page.getByLabel(/^email$/i).fill('jest-admin@arvilio.test'); // already exists
     await page.getByLabel(/^password$/i).fill('TestPass123!');
     await page.getByRole('button', { name: /create school/i }).click();
     await expect(page.getByText(/already registered|already exists/i)).toBeVisible({ timeout: 10_000 });
@@ -103,7 +103,7 @@ test.describe('1B. signup', () => {
   test('1B.6 success → auto-login → onboarding', async ({ page }) => {
     await page.goto('/signup');
     await page.getByLabel(/school name/i).fill('Signup Success Probe');
-    await page.getByLabel(/^email$/i).fill(`ok-${Date.now()}@soenglish.test`);
+    await page.getByLabel(/^email$/i).fill(`ok-${Date.now()}@arvilio.test`);
     await page.getByLabel(/^password$/i).fill('TestPass123!');
     await page.getByRole('button', { name: /create school/i }).click();
     await page.waitForURL(/\/onboarding/, { timeout: 20_000 });

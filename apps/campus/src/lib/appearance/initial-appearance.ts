@@ -4,7 +4,7 @@ export type ThemeMode = 'light' | 'dark' | 'auto';
 export type ResolvedThemeMode = Exclude<ThemeMode, 'auto'>;
 export type FontSizeMode = 'small' | 'medium' | 'large';
 
-export const UI_PERSIST_STORAGE_KEY = 'soenglish.ui';
+export const UI_PERSIST_STORAGE_KEY = 'arvilio.ui';
 export const DEFAULT_THEME_MODE: ThemeMode = 'auto';
 export const DEFAULT_RESOLVED_THEME_MODE: ResolvedThemeMode = 'light';
 export const DEFAULT_FONT_SIZE_MODE: FontSizeMode = 'medium';

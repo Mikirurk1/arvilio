@@ -21,6 +21,7 @@ import type {
   WordDictionarySettingsDto,
 } from '@pkg/types';
 import { ApiError } from '../../lib/api';
+import { useCampusT } from '../../lib/cms';
 import { secretsFromIntegrationSettings } from './connections/integration-secrets-state';
 import { DictionarySourceSection } from './word-dictionary/DictionarySourceSection';
 import { TranslationSourceSection } from './word-dictionary/TranslationSourceSection';
@@ -32,6 +33,7 @@ import pageStyles from './page.module.scss';
 type Feedback = { type: 'error' | 'success'; text: string } | null;
 
 export function WordDictionaryPanel() {
+  const t = useCampusT();
   const [dictSettings, setDictSettings] = useState<WordDictionarySettingsDto | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<WordDictionaryProviderId | null>(null);
   const [translationSettings, setTranslationSettings] = useState<TranslationSettingsDto | null>(null);
@@ -64,11 +66,14 @@ export function WordDictionaryPanel() {
       setTranslation(integrationData.platformIntegrationSettings.config.translation);
       setSecrets(secretsFromIntegrationSettings(integrationData.platformIntegrationSettings));
     } catch (err) {
-      setProviderFeedback({ type: 'error', text: err instanceof Error ? err.message : 'Failed to load dictionary settings' });
+      setProviderFeedback({
+        type: 'error',
+        text: err instanceof Error ? err.message : t('system.dictionary.loadError'),
+      });
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -83,9 +88,9 @@ export function WordDictionaryPanel() {
       const data = await graphqlRequest<{ updateWordDictionaryProvider: WordDictionarySettingsDto }>(UPDATE_WORD_DICTIONARY_PROVIDER, { input: { provider: selectedProvider } });
       setDictSettings(data.updateWordDictionaryProvider);
       setSelectedProvider(data.updateWordDictionaryProvider.activeProvider);
-      setProviderFeedback({ type: 'success', text: 'Dictionary provider updated. New lookups use this source.' });
+      setProviderFeedback({ type: 'success', text: t('system.dictionary.providerUpdated') });
     } catch (err) {
-      setProviderFeedback({ type: 'error', text: err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Save failed' });
+      setProviderFeedback({ type: 'error', text: err instanceof ApiError ? err.message : err instanceof Error ? err.message : t('system.dictionary.saveFailed') });
     } finally {
       setSavingProvider(false);
     }
@@ -102,9 +107,9 @@ export function WordDictionaryPanel() {
       const refreshed = await graphqlRequest<{ translationSettings: TranslationSettingsDto }>(TRANSLATION_SETTINGS);
       setTranslationSettings(normalizeTranslationSettings(refreshed.translationSettings));
       setSelectedTranslationProvider(selectedTranslationProvider);
-      setTranslationProviderFeedback({ type: 'success', text: 'Translation provider updated. New translations try this source first.' });
+      setTranslationProviderFeedback({ type: 'success', text: t('system.dictionary.translationProviderUpdated') });
     } catch (err) {
-      setTranslationProviderFeedback({ type: 'error', text: err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Save failed' });
+      setTranslationProviderFeedback({ type: 'error', text: err instanceof ApiError ? err.message : err instanceof Error ? err.message : t('system.dictionary.saveFailed') });
     } finally {
       setSavingTranslationProvider(false);
     }
@@ -125,9 +130,9 @@ export function WordDictionaryPanel() {
       setIntegrationSettings(data.updatePlatformIntegrationSettings);
       setTranslation(data.updatePlatformIntegrationSettings.config.translation);
       setSecrets(secretsFromIntegrationSettings(data.updatePlatformIntegrationSettings));
-      setLanguageFeedback({ type: 'success', text: 'Language settings saved.' });
+      setLanguageFeedback({ type: 'success', text: t('system.dictionary.languageSettingsSaved') });
     } catch (err) {
-      setLanguageFeedback({ type: 'error', text: err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Save failed' });
+      setLanguageFeedback({ type: 'error', text: err instanceof ApiError ? err.message : err instanceof Error ? err.message : t('system.dictionary.saveFailed') });
     } finally {
       setSavingLanguage(false);
     }
@@ -144,21 +149,34 @@ export function WordDictionaryPanel() {
       <header className={pageStyles.panelHeader}>
         <BookOpen size={18} aria-hidden />
         <div>
-          <div className={pageStyles.panelTitle}>Word dictionary</div>
-          <p className={styles.intro}>English definitions and gloss translations when staff or students add vocabulary. Changes apply to new lookups; existing words keep stored data until re-enriched.</p>
+          <div className={pageStyles.panelTitle}>{t('system.dictionary.title')}</div>
+          <p className={styles.intro}>{t('system.dictionary.intro')}</p>
         </div>
       </header>
 
-      {loading && !dictSettings ? <p className={styles.muted}>Loading dictionary settings…</p> : null}
+      {loading && !dictSettings ? <p className={styles.muted}>{t('system.dictionary.loading')}</p> : null}
 
       {dictSettings && translation && translationSettings && apiUrls ? (
         <>
           <div className={styles.runtimeBar} role="status">
             <Badge variant="blue" size="sm">{activeProviderName}</Badge>
             <Badge variant="green" size="sm">{activeTranslationProviderName}</Badge>
-            <span className={styles.runtimeMeta}>Context target: {translation.reversoContextTargetLang.toUpperCase()}</span>
+            <span className={styles.runtimeMeta}>
+              {t('system.dictionary.contextTarget', {
+                lang: translation.reversoContextTargetLang.toUpperCase(),
+              })}
+            </span>
             <div className={styles.runtimeActions}>
-              <Button type="button" variant="ghost" startIcon={<RefreshCw size={14} aria-hidden />} loading={loading} loadingLabel="Refreshing…" onClick={() => void load()}>Refresh</Button>
+              <Button
+                type="button"
+                variant="ghost"
+                startIcon={<RefreshCw size={14} aria-hidden />}
+                loading={loading}
+                loadingLabel={t('common.refreshing')}
+                onClick={() => void load()}
+              >
+                {t('common.refresh')}
+              </Button>
             </div>
           </div>
           <div className={styles.sections}>

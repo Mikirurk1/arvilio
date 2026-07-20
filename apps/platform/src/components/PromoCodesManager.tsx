@@ -3,10 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { PromoCodeDto } from '../lib/platform-api';
+import { Button, Field } from '@fe/ui';
+import { DataTable, Td } from './ui';
+import ui from './ui/ui.module.scss';
 
 /**
- * Promo-code management (Phase 4.5.2): list + create + enable/disable. Same-origin
- * calls to the platform REST surface; the operator's cookies authorize.
+ * Promo-code management: list + create + enable/disable. Same-origin calls to
+ * the platform REST surface; the operator's cookies authorize.
  */
 export function PromoCodesManager({ initial }: { initial: PromoCodeDto[] }) {
   const router = useRouter();
@@ -63,105 +66,73 @@ export function PromoCodesManager({ initial }: { initial: PromoCodeDto[] }) {
     }
   }
 
-  const inputStyle: React.CSSProperties = {
-    padding: '8px 10px',
-    borderRadius: 8,
-    border: '1px solid var(--border)',
-    background: 'var(--surface)',
-    color: 'var(--text)',
-  };
-  const cell: React.CSSProperties = {
-    padding: '10px 12px',
-    borderBottom: '1px solid var(--border)',
-    textAlign: 'left',
-    fontSize: 'var(--fs-14)',
-  };
-
   return (
     <div>
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 20 }}>
-        <label style={{ display: 'grid', gap: 4, fontSize: 'var(--fs-14)' }}>
-          Code
-          <input style={inputStyle} value={code} onChange={(e) => setCode(e.target.value)} placeholder="LAUNCH14" />
-        </label>
-        <label style={{ display: 'grid', gap: 4, fontSize: 'var(--fs-14)', width: 110 }}>
-          Trial days
-          <input style={inputStyle} type="number" min={1} value={trialDays} onChange={(e) => setTrialDays(e.target.value)} />
-        </label>
-        <label style={{ display: 'grid', gap: 4, fontSize: 'var(--fs-14)', width: 150 }}>
-          Max redemptions
-          <input style={inputStyle} type="number" min={1} value={maxRedemptions} onChange={(e) => setMaxRedemptions(e.target.value)} placeholder="unlimited" />
-        </label>
-        <button
-          type="button"
+      <div className={ui.formRow}>
+        <div className={`${ui.formField} ${ui.formFieldWide}`}>
+          <Field
+            label="Code"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="LAUNCH14"
+          />
+        </div>
+        <div className={ui.formField}>
+          <Field
+            label="Trial days"
+            type="number"
+            min={1}
+            value={trialDays}
+            onChange={(e) => setTrialDays(e.target.value)}
+          />
+        </div>
+        <div className={ui.formField}>
+          <Field
+            label="Max redemptions"
+            type="number"
+            min={1}
+            value={maxRedemptions}
+            onChange={(e) => setMaxRedemptions(e.target.value)}
+            placeholder="unlimited"
+          />
+        </div>
+        <Button
+          variant="primary"
           disabled={busy || !code.trim()}
+          loading={busy}
           onClick={() => void create()}
-          style={{
-            padding: '9px 16px',
-            borderRadius: 8,
-            border: '1px solid var(--border)',
-            background: 'var(--accent)',
-            color: '#06202b',
-            fontWeight: 600,
-            cursor: busy ? 'default' : 'pointer',
-            opacity: busy || !code.trim() ? 0.6 : 1,
-          }}
         >
           Create code
-        </button>
-        {error ? <span style={{ color: 'var(--red)', fontSize: 'var(--fs-14)' }}>{error}</span> : null}
+        </Button>
       </div>
+      {error ? <p className={`${ui.inlineMsg} ${ui.inlineErr}`}>{error}</p> : null}
 
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>
-            <th style={{ ...cell, color: 'var(--text-muted)' }}>Code</th>
-            <th style={{ ...cell, color: 'var(--text-muted)' }}>Trial days</th>
-            <th style={{ ...cell, color: 'var(--text-muted)' }}>Redeemed</th>
-            <th style={{ ...cell, color: 'var(--text-muted)' }}>Status</th>
-            <th style={{ ...cell, color: 'var(--text-muted)' }} />
-          </tr>
-        </thead>
-        <tbody>
-          {initial.map((p) => (
-            <tr key={p.id}>
-              <td style={cell}>{p.code}</td>
-              <td style={cell}>{p.trialDays}</td>
-              <td style={cell}>
-                {p.redeemedCount}
-                {p.maxRedemptions != null ? ` / ${p.maxRedemptions}` : ''}
-              </td>
-              <td style={{ ...cell, color: p.active ? 'var(--green)' : 'var(--text-muted)', fontWeight: 600 }}>
+      <DataTable headers={['Code', 'Trial days', 'Redeemed', 'Status', '']} empty="No promo codes yet.">
+        {initial.map((p) => (
+          <tr key={p.id}>
+            <Td>{p.code}</Td>
+            <Td>{p.trialDays}</Td>
+            <Td>
+              {p.redeemedCount}
+              {p.maxRedemptions != null ? ` / ${p.maxRedemptions}` : ''}
+            </Td>
+            <Td>
+              <span className={[ui.badge, p.active ? ui.badgeActive : ui.badgeNeutral].join(' ')}>
                 {p.active ? 'Active' : 'Disabled'}
-              </td>
-              <td style={cell}>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => void toggle(p.id, !p.active)}
-                  style={{
-                    padding: '6px 12px',
-                    borderRadius: 6,
-                    border: '1px solid var(--border)',
-                    background: 'transparent',
-                    color: 'var(--text)',
-                    cursor: busy ? 'default' : 'pointer',
-                  }}
-                >
-                  {p.active ? 'Disable' : 'Enable'}
-                </button>
-              </td>
-            </tr>
-          ))}
-          {initial.length === 0 ? (
-            <tr>
-              <td style={{ ...cell, color: 'var(--text-muted)' }} colSpan={5}>
-                No promo codes yet.
-              </td>
-            </tr>
-          ) : null}
-        </tbody>
-      </table>
+              </span>
+            </Td>
+            <Td>
+              <Button
+                variant="ghost"
+                disabled={busy}
+                onClick={() => void toggle(p.id, !p.active)}
+              >
+                {p.active ? 'Disable' : 'Enable'}
+              </Button>
+            </Td>
+          </tr>
+        ))}
+      </DataTable>
     </div>
   );
 }

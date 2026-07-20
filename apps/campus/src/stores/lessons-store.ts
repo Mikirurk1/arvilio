@@ -279,6 +279,6 @@ export const useLessonsStore = create<LessonsState>()(
         );
       },
     }),
-    { name: 'soenglish/lessons' },
+    { name: 'arvilio/lessons' },
   ),
 );

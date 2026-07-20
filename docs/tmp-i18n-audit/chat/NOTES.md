@@ -1,0 +1,1 @@
+P0.15 /chat leftovers (pre-wire):\n- Your messages / Choose a conversation…\n- Search conversations… / No messages yet / Yesterday / Sat\n- Thread: retention banner, Type a message, attach confirm, Beginning of conversation\n- Modals: New message / Create group chat chrome\nIgnore: Seed chat bodies, Jest names, roleLabel from API\n

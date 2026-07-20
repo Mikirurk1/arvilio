@@ -3,6 +3,7 @@
 import { FileText, FolderOpen, Plus, X } from 'lucide-react';
 import { useState } from 'react';
 import { Button, Field } from '../../../components/ui';
+import { useCampusT } from '../../../lib/cms';
 import type { LessonFormState, LessonMaterialItem } from '../types';
 import type { LessonModalText, MaterialKind, MaterialKindOption } from '../tabTypes';
 import { lessonMaterialKindOption } from '../lesson-material-kinds';
@@ -14,7 +15,7 @@ import { movePendingLessonFiles } from '../../../lib/lesson-pending-files';
 import { lessonFileDisplayName, lessonFilePreviewUrl } from '../../../lib/lesson-file-links';
 import { openLessonAttachment } from '../fileUtils';
 import { fileChipClasses, fileChipImagePreview } from './lesson-file-chip-utils';
-import { USER_ROLE, type UserRole } from '../../../mocks';
+import { USER_ROLE, type UserRoleId } from '@pkg/types';
 import styles from '../LessonModal.module.scss';
 
 type MaterialTypeLabels = Record<string, string>;
@@ -22,7 +23,7 @@ type MaterialTypeLabels = Record<string, string>;
 interface Props {
   form: LessonFormState;
   onChange: (next: LessonFormState) => void;
-  role: UserRole;
+  role: UserRoleId;
   materialKinds: MaterialKindOption[];
   materialTypeLabels: MaterialTypeLabels;
   materialDraft: { kind: MaterialKind; text: string; files: string[] };
@@ -52,6 +53,7 @@ export function LessonMaterialsSection({
   getFilePlaceholder, setImagePreviewUrl, onMaterialsFilesSelected,
   libraryAssetAudience, studentBackendId, pathname, text,
 }: Props) {
+  const t = useCampusT();
   const [libraryPickerOpen, setLibraryPickerOpen] = useState(false);
 
   const handleSaveDraft = () => {
@@ -75,7 +77,7 @@ export function LessonMaterialsSection({
       <div className={styles.materialsHeader}>
         <div className={styles.sectionHeaderStack}>
           <label className={styles.fieldLabel}>{text.fields.materials}</label>
-          <p className={styles.sectionHint}>Add short context first, then attach files so students know why each resource matters.</p>
+          <p className={styles.sectionHint}>{t('lessonModal.hint.materials')}</p>
         </div>
         {role !== USER_ROLE.student.id ? <div className={styles.materialsHint}>{text.materialsHint}</div> : null}
       </div>
@@ -129,7 +131,7 @@ export function LessonMaterialsSection({
                 <Plus size={14} /><span>{text.actions.addFile}</span>
               </Button>
               <Button type="button" className={styles.fileButton} disabled={!canEditMaterials} onClick={() => setLibraryPickerOpen(true)}>
-                <FolderOpen size={14} /><span>Add from library</span>
+                <FolderOpen size={14} /><span>{t('lessonModal.action.addFromLibrary')}</span>
               </Button>
               <Button type="button" className={styles.saveMaterialBtn} disabled={!canEditMaterials || !canSaveMaterial} onClick={handleSaveDraft}>
                 <span>{text.actions.saveMaterial}</span>

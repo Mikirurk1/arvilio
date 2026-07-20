@@ -89,7 +89,7 @@ describe('Auth API (integration)', () => {
   });
 
   it('POST /api/auth/register-school provisions school + admin + 7-day trial', async () => {
-    const email = `jest-signup-${Date.now()}@soenglish.test`;
+    const email = `jest-signup-${Date.now()}@arvilio.test`;
     const schoolName = `Jest Signup ${Date.now()}`;
     let schoolId: string | undefined;
     try {
@@ -135,7 +135,7 @@ describe('Auth API (integration)', () => {
   });
 
   it('POST /api/auth/register-school applies a promo code to extend the trial', async () => {
-    const email = `jest-promo-${Date.now()}@soenglish.test`;
+    const email = `jest-promo-${Date.now()}@arvilio.test`;
     const code = `JESTPROMO${Date.now()}`;
     let schoolId: string | undefined;
     const promo = await prisma.promoCode.create({

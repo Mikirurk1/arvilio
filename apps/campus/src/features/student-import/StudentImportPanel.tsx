@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { Upload, CheckCircle, AlertTriangle } from 'lucide-react';
 import { Button, SurfaceCard, EmptyStateCard } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import { apiClient, ApiError } from '../../lib/api';
 import styles from './StudentImportPanel.module.scss';
 
@@ -38,6 +39,7 @@ alice@example.com,Alice Smith
 bob@example.com,Bob Jones`;
 
 export function StudentImportPanel() {
+  const t = useCampusT();
   const fileRef = useRef<HTMLInputElement>(null);
   const [stage, setStage] = useState<Stage>('idle');
   const [preview, setPreview] = useState<ImportPreviewDto | null>(null);
@@ -63,7 +65,7 @@ export function StudentImportPanel() {
         setPreview(data);
         setStage('preview');
       } catch (err) {
-        setError(err instanceof ApiError ? err.message : 'Preview failed');
+        setError(err instanceof ApiError ? err.message : t('studentImport.previewFailed'));
         setStage('idle');
       }
       // reset input so same file can be re-selected
@@ -87,10 +89,10 @@ export function StudentImportPanel() {
       setResult(data);
       setStage('done');
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Import failed');
+      setError(err instanceof ApiError ? err.message : t('studentImport.importFailed'));
       setStage('preview');
     }
-  }, [preview]);
+  }, [preview, t]);
 
   const handleReset = useCallback(() => {
     setStage('idle');
@@ -102,20 +104,19 @@ export function StudentImportPanel() {
   }, []);
 
   return (
-    <div className={styles.root}>
+    <div className={styles.root} data-tour-anchor="admin-import">
       <SurfaceCard>
         <div className={styles.header}>
           <Upload size={18} aria-hidden />
-          <span>Import students from CSV</span>
+          <span>{t('studentImport.title')}</span>
         </div>
 
-        <p className={styles.hint}>
-          Upload a CSV with columns <code>email</code> and <code>fullName</code>.
-          Existing accounts are skipped; welcome emails are sent to new accounts.
+        <p className={styles.hint} data-tour-anchor="admin-seats-hint">
+          {t('studentImport.hint')}
         </p>
 
         <details className={styles.example}>
-          <summary>CSV format example</summary>
+          <summary>{t('studentImport.exampleTitle')}</summary>
           <pre className={styles.code}>{CSV_EXAMPLE}</pre>
         </details>
 
@@ -135,10 +136,12 @@ export function StudentImportPanel() {
               type="button"
               startIcon={<Upload size={14} />}
               loading={stage === 'previewing'}
-              loadingLabel="Parsing…"
+              loadingLabel={t('studentImport.parsing')}
               onClick={() => fileRef.current?.click()}
             >
-              {fileName ? `Re-upload (${fileName})` : 'Choose CSV file'}
+              {fileName
+                ? t('studentImport.reupload', { fileName })
+                : t('studentImport.chooseFile')}
             </Button>
             {fileName && stage !== 'previewing' && (
               <span className={styles.fileName}>{fileName}</span>
@@ -151,25 +154,27 @@ export function StudentImportPanel() {
           <div className={styles.preview}>
             <div className={styles.previewStats}>
               <span className={styles.statGood}>
-                <CheckCircle size={14} /> {preview.valid.length} valid
+                <CheckCircle size={14} /> {t('studentImport.validRows', { count: preview.valid.length })}
               </span>
               {preview.invalid.length > 0 && (
                 <span className={styles.statWarn}>
-                  <AlertTriangle size={14} /> {preview.invalid.length} invalid (will be skipped)
+                  <AlertTriangle size={14} /> {t('studentImport.invalidRows', { count: preview.invalid.length })}
                 </span>
               )}
               {preview.seatCapRemaining !== null && (
                 <span className={preview.wouldExceedCap ? styles.statWarn : styles.statGood}>
-                  {preview.seatCapRemaining} seat{preview.seatCapRemaining === 1 ? '' : 's'} remaining
+                  {t('studentImport.seatsRemaining', { count: preview.seatCapRemaining })}
                 </span>
               )}
             </div>
 
             {preview.wouldExceedCap && (
               <div className={styles.warnBox}>
-                Your plan has {preview.seatCapRemaining} seat{preview.seatCapRemaining === 1 ? '' : 's'} remaining but
-                the CSV has {preview.valid.length} rows. Only the first {preview.seatCapRemaining} will be imported.
-                Upgrade your plan to import all rows.
+                {t('studentImport.capWarning', {
+                  remaining: preview.seatCapRemaining ?? 0,
+                  rows: preview.valid.length,
+                  imported: preview.seatCapRemaining ?? preview.valid.length,
+                })}
               </div>
             )}
 
@@ -177,9 +182,9 @@ export function StudentImportPanel() {
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th>#</th>
-                    <th>Email</th>
-                    <th>Name</th>
+                    <th>{t('studentImport.preview.col.number')}</th>
+                    <th>{t('studentImport.preview.col.email')}</th>
+                    <th>{t('studentImport.preview.col.name')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -193,7 +198,7 @@ export function StudentImportPanel() {
                   {preview.valid.length > 10 && (
                     <tr>
                       <td colSpan={3} className={styles.moreRows}>
-                        …and {preview.valid.length - 10} more
+                        {t('studentImport.moreRows', { count: preview.valid.length - 10 })}
                       </td>
                     </tr>
                   )}
@@ -203,11 +208,15 @@ export function StudentImportPanel() {
 
             {preview.invalid.length > 0 && (
               <details className={styles.errDetails}>
-                <summary>{preview.invalid.length} rows with errors (will be skipped)</summary>
+                <summary>{t('studentImport.errorRowsSummary', { count: preview.invalid.length })}</summary>
                 <ul className={styles.errList}>
                   {preview.invalid.map((r) => (
                     <li key={r.line}>
-                      Line {r.line}: <strong>{r.email || '(empty)'}</strong> — {r.error}
+                      {t('studentImport.errorLine', {
+                        line: r.line,
+                        email: r.email || t('studentImport.emptyEmail'),
+                        error: r.error,
+                      })}
                     </li>
                   ))}
                 </ul>
@@ -215,20 +224,25 @@ export function StudentImportPanel() {
             )}
 
             {preview.valid.length === 0 ? (
-              <EmptyStateCard title="No valid rows" description="Fix the errors and upload again." />
+              <EmptyStateCard
+                title={t('studentImport.noValidRowsTitle')}
+                description={t('studentImport.noValidRowsDesc')}
+              />
             ) : (
               <div className={styles.actions}>
                 <Button variant="ghost" onClick={handleReset}>
-                  Cancel
+                  {t('studentImport.cancel')}
                 </Button>
                 <Button
                   type="button"
                   onClick={() => void handleConfirm()}
                 >
-                  Import {Math.min(
-                    preview.valid.length,
-                    preview.seatCapRemaining ?? preview.valid.length,
-                  )} student{preview.valid.length === 1 ? '' : 's'}
+                  {t('studentImport.importCount', {
+                    count: Math.min(
+                      preview.valid.length,
+                      preview.seatCapRemaining ?? preview.valid.length,
+                    ),
+                  })}
                 </Button>
               </div>
             )}
@@ -238,7 +252,7 @@ export function StudentImportPanel() {
         {/* ── Confirming ── */}
         {stage === 'confirming' && (
           <div className={styles.confirming}>
-            Importing… please wait.
+            {t('studentImport.importing')}
           </div>
         )}
 
@@ -247,14 +261,16 @@ export function StudentImportPanel() {
           <div className={styles.done}>
             <div className={styles.resultRow}>
               <CheckCircle size={18} className={styles.successIcon} />
-              <strong>{result.created} student{result.created === 1 ? '' : 's'} created</strong>
+              <strong>{t('studentImport.createdCount', { count: result.created })}</strong>
               {result.skipped > 0 && (
-                <span className={styles.skipped}>{result.skipped} skipped (already exist or seat cap)</span>
+                <span className={styles.skipped}>
+                  {t('studentImport.skippedCount', { count: result.skipped })}
+                </span>
               )}
             </div>
             {result.failed.length > 0 && (
               <details className={styles.errDetails}>
-                <summary>{result.failed.length} failed</summary>
+                <summary>{t('studentImport.failedCount', { count: result.failed.length })}</summary>
                 <ul className={styles.errList}>
                   {result.failed.map((f) => (
                     <li key={f.email}><strong>{f.email}</strong> — {f.error}</li>
@@ -263,7 +279,7 @@ export function StudentImportPanel() {
               </details>
             )}
             <Button variant="ghost" onClick={handleReset}>
-              Import another file
+              {t('studentImport.importAnother')}
             </Button>
           </div>
         )}

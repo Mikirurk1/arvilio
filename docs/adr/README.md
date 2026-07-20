@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-This directory contains Architecture Decision Records (ADRs) for SoEnglish.
+This directory contains Architecture Decision Records (ADRs) for Arvilio.
 
 ADRs capture significant architectural decisions: their context, the decision made, and the consequences. They are immutable records — superseded ADRs are marked as such rather than deleted.
 
@@ -21,6 +21,7 @@ ADRs capture significant architectural decisions: their context, the decision ma
 | [ADR-007](ADR-007-tenant-resolution-subdomains-custom-domains.md) | Tenant Resolution via Subdomains and Custom Domains | proposed | 2026-06-16 |
 | [ADR-008](ADR-008-platform-vs-school-operators-and-billing.md) | Platform vs School Operators, Tenant-Aware Sessions, Three-Layer Billing | proposed | 2026-06-16 |
 | [ADR-009](ADR-009-platform-admin-console.md) | Platform Admin Console | proposed | 2026-06-16 |
+| [ADR-010](ADR-010-platform-payment-rails.md) | Platform payment rails (internal vs learner) | accepted | 2026-07-10 |
 
 ## Creating a new ADR
 

@@ -1,0 +1,437 @@
+- generic [ref=f28e1]:
+  - button "Open Next.js Dev Tools" [ref=f28e7] [cursor=pointer]
+  - alert [ref=f28e11]
+  - generic [ref=f28e12]:
+    - link "Перейти до основного вмісту" [ref=f28e13] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f28e14]:
+      - link "Arvilio — go to dashboard" [ref=f28e16] [cursor=pointer]:
+        - /url: /dashboard
+        - generic [ref=f28e20]:
+          - generic [ref=f28e21]: Arvilio
+          - generic [ref=f28e22]: Campus
+      - search [ref=f28e25]:
+        - combobox "Пошук уроків, слів, учнів…" [ref=f28e29]
+        - generic: ⌘K
+      - generic [ref=f28e30]:
+        - button "Створити урок" [ref=f28e31] [cursor=pointer]
+        - 'link "Мої: 0 сьогодні · 0 лишилось" [ref=f28e32] [cursor=pointer]':
+          - /url: /lessons
+          - generic [ref=f28e36]: "Мої: 0 сьогодні"
+          - generic [ref=f28e37]: · 0 лишилось
+        - link [ref=f28e38] [cursor=pointer]:
+          - /url: /profile
+    - generic [ref=f28e39]:
+      - complementary [ref=f28e40]:
+        - navigation "Головна навігація" [ref=f28e41]:
+          - generic [ref=f28e42]:
+            - generic [ref=f28e43]: Навчання
+            - link "Дашборд" [ref=f28e45] [cursor=pointer]:
+              - /url: /dashboard
+            - link "Уроки" [ref=f28e55] [cursor=pointer]:
+              - /url: /lessons
+            - link "Практика 1" [ref=f28e62] [cursor=pointer]:
+              - /url: /practice
+              - generic [ref=f28e69]: Практика
+              - generic [ref=f28e70]: "1"
+            - link "Матеріали" [ref=f28e72] [cursor=pointer]:
+              - /url: /materials
+          - generic [ref=f28e78]:
+            - generic [ref=f28e79]: Розклад
+            - link "Календар" [ref=f28e81] [cursor=pointer]:
+              - /url: /calendar
+          - generic [ref=f28e87]:
+            - generic [ref=f28e88]: Звʼязок
+            - link "Чат" [ref=f28e90] [cursor=pointer]:
+              - /url: /chat
+            - link "Учні та групи" [ref=f28e97] [cursor=pointer]:
+              - /url: /students
+            - link "Персонал" [ref=f28e107] [cursor=pointer]:
+              - /url: /staff
+          - generic [ref=f28e123]:
+            - generic [ref=f28e124]: Акаунт
+            - link "Фінанси" [ref=f28e126] [cursor=pointer]:
+              - /url: /finance
+            - link "Підписка" [ref=f28e134] [cursor=pointer]:
+              - /url: /billing
+            - link "Профіль і налаштування" [ref=f28e142] [cursor=pointer]:
+              - /url: /profile
+          - generic [ref=f28e149]:
+            - generic [ref=f28e150]: Платформа
+            - link "Адмін" [ref=f28e152] [cursor=pointer]:
+              - /url: /admin
+            - link "Система" [ref=f28e160] [cursor=pointer]:
+              - /url: /system
+        - generic [ref=f28e167]:
+          - button "Мова інтерфейсу" [ref=f28e169] [cursor=pointer]:
+            - generic [ref=f28e170]: Українська
+          - button "Collapse sidebar" [expanded] [ref=f28e173] [cursor=pointer]
+      - main [ref=f28e177]:
+        - generic [ref=f28e180]:
+          - generic [ref=f28e181]:
+            - heading "Система" [level=1] [ref=f28e184]
+            - paragraph [ref=f28e185]: Інтеграції, оплати та словники школи.
+          - region "Огляд системи" [ref=f28e186]:
+            - article [ref=f28e187]:
+              - paragraph [ref=f28e192]: Область супер-адміна
+              - paragraph [ref=f28e193]: Зміни тут впливають на всю робочу область школи. Оновлюйте обережно й перевіряйте кожен розділ після збереження.
+            - article [ref=f28e194]:
+              - paragraph [ref=f28e199]: Спочатку діагностика
+              - paragraph [ref=f28e200]: Спочатку перевірте Email і Словник, перш ніж змінювати платіжних провайдерів — це зменшить розбіжності інтеграцій.
+          - generic [ref=f28e201]:
+            - tablist "Розділи системи" [ref=f28e202]:
+              - tab [ref=f28e203] [cursor=pointer]
+              - tab [ref=f28e208] [cursor=pointer]
+              - tab [ref=f28e213] [cursor=pointer]
+              - tab [ref=f28e217] [cursor=pointer]
+              - tab [active] [selected] [ref=f28e222] [cursor=pointer]
+              - tab [ref=f28e226] [cursor=pointer]
+              - tab [ref=f28e231] [cursor=pointer]
+              - tab [ref=f28e236] [cursor=pointer]
+              - tab [ref=f28e244] [cursor=pointer]
+            - tabpanel "Оплати" [ref=f28e371]:
+              - generic [ref=f28e372]:
+                - generic [ref=f28e376]:
+                  - generic [ref=f28e377]: Оплати
+                  - paragraph [ref=f28e378]: Налаштуйте інфраструктуру оплати, шаблони checkout і готовність провайдерів.
+                - status [ref=f28e379]:
+                  - text: Профіль продавця неповний. Заповніть юридичну назву, адресу та email підтримки в
+                  - strong [ref=f28e380]: Система → Продавець і юридичне
+                  - text: перш ніж увімкнути онлайн-картки / PSP-методи.
+                - region "Підсумок керування оплатами" [ref=f28e381]:
+                  - article [ref=f28e382]:
+                    - generic [ref=f28e387]: Режим експлуатації
+                    - paragraph [ref=f28e388]: Тримайте провайдерів вимкненими, доки не перевірите облікові дані та webhook-ендпоінти.
+                  - article [ref=f28e389]:
+                    - generic [ref=f28e394]: Узгодженість цін
+                    - paragraph [ref=f28e395]: Узгодьте тарифи за валютами з картками пакетів перед збереженням бойових налаштувань.
+                - generic [ref=f28e396]:
+                  - generic [ref=f28e397]:
+                    - generic [ref=f28e398]: Тариф уроку за замовчуванням
+                    - generic [ref=f28e399]: 500.00 UAH
+                    - generic [ref=f28e400]: Застосовується, якщо у учня немає індивідуального тарифу.
+                  - generic [ref=f28e401]:
+                    - generic [ref=f28e402]: Методи оплати
+                    - generic [ref=f28e403]: 1 / 8 увімкнено
+                    - generic [ref=f28e404]: 1 налаштовано для використання зараз.
+                  - generic [ref=f28e405]:
+                    - generic [ref=f28e406]: Пакети checkout
+                    - generic [ref=f28e407]: "2"
+                    - generic [ref=f28e408]: Пакети самообслуговування учнів від 5 уроків.
+                  - generic [ref=f28e409]:
+                    - generic [ref=f28e410]: Дозволені валюти
+                    - generic [ref=f28e411]: UAH, USD
+                    - generic [ref=f28e412]: "Валюта за замовчуванням: UAH"
+                - generic [ref=f28e413]:
+                  - generic [ref=f28e415]:
+                    - heading "Валюти та тарифи уроків" [level=3] [ref=f28e416]
+                    - paragraph [ref=f28e417]: Встановіть індивідуальні тарифи за валютами та правила оплати для нових навчальних груп.
+                  - generic [ref=f28e418]:
+                    - tablist "Тарифи уроків" [ref=f28e419]:
+                      - tab "Індивідуальні уроки" [selected] [ref=f28e420] [cursor=pointer]
+                      - tab "Групові оплати" [ref=f28e421] [cursor=pointer]
+                    - tabpanel "Індивідуальні уроки" [ref=f28e422]:
+                      - generic [ref=f28e423]:
+                        - generic [ref=f28e424]:
+                          - generic [ref=f28e425]:
+                            - generic [ref=f28e426]:
+                              - generic [ref=f28e427]: Тариф індивідуального уроку за замовчуванням
+                              - generic [ref=f28e428]: 500.00 UAH
+                              - paragraph [ref=f28e429]: Ця сума використовується всюди, доки учню не призначать індивідуальний тариф.
+                            - generic [ref=f28e430]:
+                              - generic [ref=f28e431]:
+                                - text: Валюта
+                                - strong [ref=f28e432]: UAH
+                              - generic [ref=f28e433]:
+                                - text: Мін. пакет
+                                - strong [ref=f28e434]: 5 уроків
+                              - generic [ref=f28e435]:
+                                - text: Пакети
+                                - strong [ref=f28e436]: "2"
+                          - generic [ref=f28e437]:
+                            - generic [ref=f28e438]:
+                              - generic [ref=f28e440]:
+                                - generic [ref=f28e441]: Ціни
+                                - generic [ref=f28e442]: Ціна за урок за валютами
+                              - generic [ref=f28e443]: "Введіть ціну уроку в мінорних одиницях. Приклад: `45000` = `450.00 UAH`"
+                              - generic [ref=f28e444]:
+                                - generic [ref=f28e445]:
+                                  - generic [ref=f28e446]:
+                                    - text: UAH
+                                    - generic [ref=f28e447]: За замовчуванням
+                                  - spinbutton "UAH За замовчуванням" [ref=f28e448]: "50000"
+                                  - generic [ref=f28e449]: 500.00 UAH за урок
+                                - generic [ref=f28e450]:
+                                  - generic [ref=f28e451]: USD
+                                  - spinbutton "USD" [ref=f28e452]: "1000"
+                                  - generic [ref=f28e453]: 10.00 USD за урок
+                            - generic [ref=f28e454]:
+                              - generic [ref=f28e456]:
+                                - generic [ref=f28e457]: Валюти
+                                - generic [ref=f28e458]: Дозволені валюти
+                              - generic [ref=f28e459]:
+                                - generic [ref=f28e460] [cursor=pointer]:
+                                  - checkbox "UAH" [checked] [ref=f28e461]
+                                  - text: UAH
+                                - generic [ref=f28e462] [cursor=pointer]:
+                                  - checkbox "USD" [checked] [ref=f28e463]
+                                  - text: USD
+                                - generic [ref=f28e464] [cursor=pointer]:
+                                  - checkbox "EUR" [ref=f28e465]
+                                  - text: EUR
+                                - generic [ref=f28e466] [cursor=pointer]:
+                                  - checkbox "GBP" [ref=f28e467]
+                                  - text: GBP
+                                - generic [ref=f28e468] [cursor=pointer]:
+                                  - checkbox "PLN" [ref=f28e469]
+                                  - text: PLN
+                            - generic [ref=f28e470]:
+                              - generic [ref=f28e472]:
+                                - generic [ref=f28e473]: Правила
+                                - generic [ref=f28e474]: Правила пакетів
+                              - generic [ref=f28e475]:
+                                - generic [ref=f28e476]:
+                                  - generic [ref=f28e477]: Валюта
+                                  - button "UAH" [ref=f28e479] [cursor=pointer]
+                                - generic [ref=f28e484]:
+                                  - generic [ref=f28e485]: Мін. уроків
+                                  - spinbutton "Мін. уроків" [ref=f28e486]: "5"
+                        - complementary [ref=f28e487]:
+                          - generic [ref=f28e488]: Поточний підсумок
+                          - generic [ref=f28e489]:
+                            - generic [ref=f28e490]: Що бачать учні
+                            - generic [ref=f28e491]: 500.00 UAH
+                            - paragraph [ref=f28e492]: "Суми пакетів обчислюються як `уроки × ціна уроку`."
+                          - generic [ref=f28e493]:
+                            - generic [ref=f28e494]: Валюти
+                            - generic [ref=f28e495]:
+                              - generic [ref=f28e496]: "UAH: 500.00 UAH"
+                              - generic [ref=f28e497]: "USD: 10.00 USD"
+                          - generic [ref=f28e498]:
+                            - generic [ref=f28e499]: Швидкий перегляд
+                            - generic [ref=f28e500]:
+                              - generic [ref=f28e501]:
+                                - generic [ref=f28e502]:
+                                  - text: 5 lessons
+                                  - generic [ref=f28e503]: UAH
+                                - strong [ref=f28e504]: 2500.00 UAH
+                              - generic [ref=f28e505]:
+                                - generic [ref=f28e506]:
+                                  - text: 10 lessons
+                                  - generic [ref=f28e507]: USD
+                                - strong [ref=f28e508]: 100.00 USD
+                - generic [ref=f28e509]:
+                  - generic [ref=f28e511]:
+                    - heading "Методи оплати" [level=3] [ref=f28e512]
+                    - paragraph [ref=f28e513]: Увімкніть провайдерів і налаштуйте облікові дані. Валюти checkout для кожного провайдера — нижче.
+                  - generic [ref=f28e514]:
+                    - article [ref=f28e515]:
+                      - button "Налаштувати Ручний рахунок" [ref=f28e522] [cursor=pointer]
+                      - heading "Ручний рахунок" [level=4] [ref=f28e526]
+                      - paragraph [ref=f28e527]: Банківський переказ; адміністратор зараховує уроки вручну.
+                      - generic [ref=f28e528]:
+                        - generic [ref=f28e529]: Увімкнено
+                        - generic [ref=f28e530]: Налаштовано
+                      - paragraph [ref=f28e531]: 1 manual method configured
+                      - button "Вимкнути" [ref=f28e532] [cursor=pointer]
+                    - article [ref=f28e533]:
+                      - button "Налаштувати Stripe" [ref=f28e538] [cursor=pointer]
+                      - heading "Stripe" [level=4] [ref=f28e542]
+                      - paragraph [ref=f28e543]: Card payments via Stripe Checkout.
+                      - generic [ref=f28e544]:
+                        - generic [ref=f28e545]: Вимкнено
+                        - generic [ref=f28e546]: Не налаштовано
+                        - generic [ref=f28e547]: Бойовий режим
+                      - paragraph [ref=f28e548]: "Live mode: missing Stripe secret key"
+                      - button "Увімкнути" [ref=f28e549] [cursor=pointer]
+                    - article [ref=f28e550]:
+                      - button "Налаштувати LiqPay" [ref=f28e556] [cursor=pointer]
+                      - heading "LiqPay" [level=4] [ref=f28e560]
+                      - paragraph [ref=f28e561]: Ukrainian payments via LiqPay.
+                      - generic [ref=f28e562]:
+                        - generic [ref=f28e563]: Вимкнено
+                        - generic [ref=f28e564]: Не налаштовано
+                        - generic [ref=f28e565]: Бойовий режим
+                      - paragraph [ref=f28e566]: "Live mode: missing LiqPay private key"
+                      - button "Увімкнути" [ref=f28e567] [cursor=pointer]
+                    - article [ref=f28e568]:
+                      - button "Налаштувати WayForPay" [ref=f28e573] [cursor=pointer]
+                      - heading "WayForPay" [level=4] [ref=f28e577]
+                      - paragraph [ref=f28e578]: Hosted checkout via WayForPay.
+                      - generic [ref=f28e579]:
+                        - generic [ref=f28e580]: Вимкнено
+                        - generic [ref=f28e581]: Не налаштовано
+                        - generic [ref=f28e582]: Бойовий режим
+                      - paragraph [ref=f28e583]: "Live mode: missing WayForPay secret key"
+                      - button "Увімкнути" [ref=f28e584] [cursor=pointer]
+                    - article [ref=f28e585]:
+                      - button "Налаштувати Lemon Squeezy" [ref=f28e591] [cursor=pointer]
+                      - heading "Lemon Squeezy" [level=4] [ref=f28e595]
+                      - paragraph [ref=f28e596]: Hosted checkout via Lemon Squeezy.
+                      - generic [ref=f28e597]:
+                        - generic [ref=f28e598]: Вимкнено
+                        - generic [ref=f28e599]: Не налаштовано
+                        - generic [ref=f28e600]: Бойовий режим
+                      - paragraph [ref=f28e601]: "Live mode: missing Lemon Squeezy API key"
+                      - button "Увімкнути" [ref=f28e602] [cursor=pointer]
+                    - article [ref=f28e603]:
+                      - button "Налаштувати Paddle" [ref=f28e608] [cursor=pointer]
+                      - heading "Paddle" [level=4] [ref=f28e612]
+                      - paragraph [ref=f28e613]: Merchant-of-record checkout via Paddle.
+                      - generic [ref=f28e614]:
+                        - generic [ref=f28e615]: Вимкнено
+                        - generic [ref=f28e616]: Не налаштовано
+                        - generic [ref=f28e617]: Бойовий режим
+                      - paragraph [ref=f28e618]: "Live mode: missing Paddle API key"
+                      - button "Увімкнути" [ref=f28e619] [cursor=pointer]
+                    - article [ref=f28e620]:
+                      - button "Налаштувати MonoPay" [ref=f28e626] [cursor=pointer]
+                      - heading "MonoPay" [level=4] [ref=f28e630]
+                      - paragraph [ref=f28e631]: Plata by mono hosted invoice page.
+                      - generic [ref=f28e632]:
+                        - generic [ref=f28e633]: Вимкнено
+                        - generic [ref=f28e634]: Не налаштовано
+                        - generic [ref=f28e635]: Бойовий режим
+                      - paragraph [ref=f28e636]: "Live mode: missing MonoPay token"
+                      - button "Увімкнути" [ref=f28e637] [cursor=pointer]
+                    - article [ref=f28e638]:
+                      - button "Налаштувати PayPal" [ref=f28e643] [cursor=pointer]
+                      - heading "PayPal" [level=4] [ref=f28e647]
+                      - paragraph [ref=f28e648]: PayPal Checkout via Orders API and verified webhooks.
+                      - generic [ref=f28e649]:
+                        - generic [ref=f28e650]: Вимкнено
+                        - generic [ref=f28e651]: Не налаштовано
+                        - generic [ref=f28e652]: Бойовий режим
+                      - paragraph [ref=f28e653]: "Live mode: missing PayPal client ID"
+                      - button "Увімкнути" [ref=f28e654] [cursor=pointer]
+                  - generic [ref=f28e655]:
+                    - generic [ref=f28e656]: Підтримка валют checkout
+                    - generic [ref=f28e657]:
+                      - generic [ref=f28e658]:
+                        - strong [ref=f28e659]: Stripe
+                        - generic [ref=f28e660]: UAH, USD, EUR, GBP, PLN
+                      - generic [ref=f28e661]:
+                        - strong [ref=f28e662]: PayPal
+                        - generic [ref=f28e663]: UAH, USD, EUR, GBP, PLN
+                      - generic [ref=f28e664]:
+                        - strong [ref=f28e665]: Paddle
+                        - generic [ref=f28e666]: UAH, USD, EUR, GBP, PLN
+                      - generic [ref=f28e667]:
+                        - strong [ref=f28e668]: LiqPay
+                        - generic [ref=f28e669]: UAH, USD, EUR
+                      - generic [ref=f28e670]:
+                        - strong [ref=f28e671]: WayForPay
+                        - generic [ref=f28e672]: UAH, USD, EUR
+                      - generic [ref=f28e673]:
+                        - strong [ref=f28e674]: MonoPay
+                        - generic [ref=f28e675]: UAH, USD, EUR
+                      - generic [ref=f28e676]:
+                        - strong [ref=f28e677]: Lemon Squeezy
+                        - generic [ref=f28e678]: Вкажіть валюту варіанта в налаштуваннях методу
+                  - generic [ref=f28e680]:
+                    - strong [ref=f28e681]: manual invoice
+                    - generic [ref=f28e682]: Будь-яка валюта
+                - generic [ref=f28e683]:
+                  - generic [ref=f28e684]:
+                    - generic [ref=f28e685]:
+                      - heading "Пакети уроків самообслуговування (від 5 уроків)" [level=4] [ref=f28e686]
+                      - paragraph [ref=f28e687]: Кожен шаблон має свою валюту. Учні обирають готову картку (напр. 10 уроків · 4500 UAH чи 10 уроків · 120 USD).
+                    - button "Додати пакет" [ref=f28e688] [cursor=pointer]
+                  - generic [ref=f28e691]:
+                    - generic [ref=f28e692]:
+                      - generic [ref=f28e693]:
+                        - text: Шаблони пакетів
+                        - strong [ref=f28e694]: "2"
+                      - generic [ref=f28e695]:
+                        - text: Мінімальний розмір
+                        - strong [ref=f28e696]: 5 уроків
+                      - generic [ref=f28e697]:
+                        - text: Тариф checkout за замовчуванням
+                        - strong [ref=f28e698]: 500.00 UAH
+                    - generic [ref=f28e699]:
+                      - generic [ref=f28e700]:
+                        - generic [ref=f28e702]:
+                          - generic [ref=f28e703]:
+                            - generic [ref=f28e704]: Стартовий
+                            - generic [ref=f28e705]: 5 lessons
+                            - generic [ref=f28e706]:
+                              - generic [ref=f28e707]: Шаблон №1
+                              - generic [ref=f28e708]: 5 уроків
+                              - generic [ref=f28e709]: UAH
+                          - generic [ref=f28e710]: 2500.00 UAH
+                        - generic [ref=f28e711]:
+                          - generic [ref=f28e712]: 500.00 UAH за урок
+                          - generic [ref=f28e713]: Сума checkout учня = уроки × ціна уроку (UAH)
+                        - generic [ref=f28e714]:
+                          - generic [ref=f28e715]:
+                            - generic [ref=f28e716]: Валюта
+                            - button "UAH" [ref=f28e718] [cursor=pointer]
+                          - generic [ref=f28e723]:
+                            - generic [ref=f28e724]: Назва пакета
+                            - textbox "Назва" [ref=f28e725]: 5 lessons
+                          - generic [ref=f28e726]:
+                            - generic [ref=f28e727]: Опис (необовʼязково)
+                            - textbox "напр. передплачений кредит на індивідуальні уроки — без фізичної доставки" [ref=f28e728]
+                            - generic [ref=f28e729]: Показується в публічній оферті та checkout учня. За замовчуванням — «N уроків · передплачений кредит».
+                          - generic [ref=f28e730]:
+                            - generic [ref=f28e731]: Уроків у пакеті
+                            - spinbutton "Уроки" [ref=f28e732]: "5"
+                            - generic [ref=f28e733]: Має бути не нижче мінімуму платформи.
+                          - generic [ref=f28e734]:
+                            - generic [ref=f28e735]: Кошик кредитів
+                            - button "Індивідуальні уроки" [ref=f28e737] [cursor=pointer]
+                          - generic [ref=f28e742]:
+                            - generic [ref=f28e743]: Поточна сума
+                            - strong [ref=f28e744]: 2500.00 UAH
+                            - generic [ref=f28e745]: 5 × 500.00 UAH
+                          - button "Видалити пакет" [ref=f28e746] [cursor=pointer]
+                      - generic [ref=f28e750]:
+                        - generic [ref=f28e752]:
+                          - generic [ref=f28e753]:
+                            - generic [ref=f28e754]: Преміум
+                            - generic [ref=f28e755]: 10 lessons
+                            - generic [ref=f28e756]:
+                              - generic [ref=f28e757]: Рекомендовано
+                              - generic [ref=f28e758]: Шаблон №2
+                              - generic [ref=f28e759]: 10 уроків
+                              - generic [ref=f28e760]: USD
+                          - generic [ref=f28e761]: 100.00 USD
+                        - generic [ref=f28e762]:
+                          - generic [ref=f28e763]: 10.00 USD за урок
+                          - generic [ref=f28e764]: Сума checkout учня = уроки × ціна уроку (USD)
+                        - generic [ref=f28e765]:
+                          - generic [ref=f28e766]:
+                            - generic [ref=f28e767]: Валюта
+                            - button "USD" [ref=f28e769] [cursor=pointer]
+                          - generic [ref=f28e774]:
+                            - generic [ref=f28e775]: Назва пакета
+                            - textbox "Назва" [ref=f28e776]: 10 lessons
+                          - generic [ref=f28e777]:
+                            - generic [ref=f28e778]: Опис (необовʼязково)
+                            - textbox "напр. передплачений кредит на індивідуальні уроки — без фізичної доставки" [ref=f28e779]
+                            - generic [ref=f28e780]: Показується в публічній оферті та checkout учня. За замовчуванням — «N уроків · передплачений кредит».
+                          - generic [ref=f28e781]:
+                            - generic [ref=f28e782]: Уроків у пакеті
+                            - spinbutton "Уроки" [ref=f28e783]: "10"
+                            - generic [ref=f28e784]: Має бути не нижче мінімуму платформи.
+                          - generic [ref=f28e785]:
+                            - generic [ref=f28e786]: Кошик кредитів
+                            - button "Індивідуальні уроки" [ref=f28e788] [cursor=pointer]
+                          - generic [ref=f28e793]:
+                            - generic [ref=f28e794]: Поточна сума
+                            - strong [ref=f28e795]: 100.00 USD
+                            - generic [ref=f28e796]: 10 × 10.00 USD
+                          - button "Видалити пакет" [ref=f28e797] [cursor=pointer]
+                - generic [ref=f28e801]:
+                  - generic [ref=f28e803]:
+                    - heading "Готово для учнів" [level=3] [ref=f28e804]
+                    - paragraph [ref=f28e805]: Перевірте шаблони пакетів і виправте проблеми з валютами перед збереженням.
+                  - list [ref=f28e806]:
+                    - listitem [ref=f28e807]:
+                      - generic [ref=f28e808]: 5 lessons
+                      - generic [ref=f28e809]: 5 уроків · 2500.00 UAH
+                    - listitem [ref=f28e810]:
+                      - generic [ref=f28e811]: 10 lessons
+                      - generic [ref=f28e812]: 10 уроків · 100.00 USD
+                  - paragraph [ref=f28e813]: Конфігурація готова для checkout учнів.
+                - button "Зберегти налаштування оплати" [ref=f28e815] [cursor=pointer]

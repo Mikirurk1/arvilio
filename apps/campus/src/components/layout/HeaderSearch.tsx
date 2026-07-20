@@ -6,13 +6,15 @@ import { Button, Field } from '../ui';
 import { buildHeaderSearchResults } from '../../lib/header-search';
 import { useActiveUser } from '../../lib/active-user';
 import { useLessonPartyOptions } from '../../hooks/use-lesson-party-options';
-import { isTeacherAdminOrSuper } from '../../mocks';
+import { isTeacherAdminOrSuper } from '../../lib/roles';
 import { useLessonsStore } from '../../stores/lessons-store';
 import { useStudentsStore } from '../../stores/students-store';
 import { useVocabularyStore } from '../../stores/vocabulary-store';
+import { useCampusT } from '../../lib/cms';
 import styles from './HeaderSearch.module.scss';
 
 export function HeaderSearch() {
+  const t = useCampusT();
   const router = useRouter();
   const activeUser = useActiveUser();
   const { nameByNumericId } = useLessonPartyOptions();
@@ -105,14 +107,14 @@ export function HeaderSearch() {
           id="header-search-input"
           type="search"
           className={styles.input}
-          placeholder="Search lessons, words, students…"
+          placeholder={t('header.searchPlaceholder')}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
-          aria-label="Search"
+          aria-label={t('header.searchPlaceholder')}
           role="combobox"
           aria-autocomplete="list"
           aria-expanded={open && query.trim().length > 0}

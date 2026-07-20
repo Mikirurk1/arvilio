@@ -2,8 +2,10 @@ import { useCallback, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ScheduledLessonDto } from '@pkg/types';
 import { LESSON_STATUS } from '@pkg/types';
-import { isAdminOrSuper, siteContent, USER_ROLE } from '../../mocks';
+import { isAdminOrSuper } from '../../lib/roles';
+import { USER_ROLE } from '@pkg/types';
 import { useActiveUser } from '../../lib/active-user';
+import { buildCalendarSeriesCopy, useCampusT } from '../../lib/cms';
 import { moveLessonToViewerCalendarDay, viewerSlotToLessonWall } from '../../lib/lessonTime';
 import { calculateEndTime, toLessonFormState } from '../../features/calendar/adapters/lessonCalendarAdapter';
 import { buildLessonCandidate, resolvePartyBackendId } from '../../features/lesson-modal/lessonPersistence';
@@ -60,6 +62,7 @@ export function useCalendarLessonActions({
 }: UseCalendarLessonActionsOptions) {
   const router = useRouter();
   const activeUser = useActiveUser();
+  const t = useCampusT();
   const [savingLesson, setSavingLesson] = useState(false);
   const [modalMode, setModalMode] = useState<LessonModalMode>('create');
   const [editingLesson, setEditingLesson] = useState<ScheduledLessonDto | null>(null);
@@ -67,7 +70,24 @@ export function useCalendarLessonActions({
   const lessonsRef = useRef(lessons);
   lessonsRef.current = lessons;
 
-  const seriesDialogText = siteContent.calendar.seriesConfirm;
+  const seriesDialogText = buildCalendarSeriesCopy(t);
+
+  const conflictBusyTitle = () => t('calendar.conflict.busyTitle');
+  const conflictBusyMessage = (opts?: { inSeries?: boolean; create?: boolean }) => {
+    if (opts?.inSeries) return t('calendar.conflict.seriesOverlap');
+    if (conflictStrategy === 'same-teacher-overlap') return t('calendar.conflict.teacherBusy');
+    return opts?.create ? t('calendar.conflict.slotBusyCreate') : t('calendar.conflict.slotBusy');
+  };
+  const pastScheduleWarning = () => ({
+    open: true as const,
+    title: t('calendar.conflict.pastTitle'),
+    message: t('calendar.conflict.pastBody'),
+  });
+  const pastMoveWarning = () => ({
+    open: true as const,
+    title: t('calendar.conflict.pastMoveTitle'),
+    message: t('calendar.conflict.pastMoveBody'),
+  });
 
   const updateForm = useCallback(
     (next: LessonFormState) => { syncLessonFormChange(next, editingLesson, setForm, setLessons, setEditingLesson); },
@@ -80,16 +100,14 @@ export function useCalendarLessonActions({
   const showScheduleConflict = (validation: ReturnType<typeof validateLessonScheduleUpdates>, inSeries: boolean) => {
     if (validation.ok) return;
     if (validation.past.length > 0) {
-      setWarningDialog({ open: true, title: 'Cannot schedule in the past', message: 'You cannot create or move a lesson to a past date or time.' });
+      setWarningDialog(pastScheduleWarning());
       return;
     }
     const first = validation.conflicts[0];
     if (!first) return;
     setConflictDialog({
-      open: true, title: 'Time slot is busy',
-      message: inSeries ? 'At least one lesson in this series would overlap another lesson.'
-        : conflictStrategy === 'same-teacher-overlap' ? 'This teacher already has a lesson in this time slot.'
-        : 'You cannot create or move a lesson to this time because another lesson already exists.',
+      open: true, title: conflictBusyTitle(),
+      message: conflictBusyMessage({ inSeries, create: true }),
       candidate: first.occurrence, excludeLessonId: first.occurrence.id,
     });
   };
@@ -97,10 +115,10 @@ export function useCalendarLessonActions({
   const applyLessonUpdate = (nextLesson: ScheduledLessonDto, sourceLesson?: ScheduledLessonDto) => {
     if (!sourceLesson) {
       if (hasTimeConflict(lessons, nextLesson, undefined, conflictStrategy)) {
-        setConflictDialog({ open: true, title: 'Time slot is busy', message: conflictStrategy === 'same-teacher-overlap' ? 'This teacher already has a lesson in this time slot.' : 'You cannot create or move a lesson to this time because another lesson already exists.', candidate: nextLesson });
+        setConflictDialog({ open: true, title: conflictBusyTitle(), message: conflictBusyMessage({ create: true }), candidate: nextLesson });
         return;
       }
-      if (isPastSlot(nextLesson)) { setWarningDialog({ open: true, title: 'Cannot schedule in the past', message: 'You cannot create or move a lesson to a past date or time.' }); return; }
+      if (isPastSlot(nextLesson)) { setWarningDialog(pastScheduleWarning()); return; }
       setLessons((prev) => [...prev, nextLesson]);
       return;
     }
@@ -119,17 +137,17 @@ export function useCalendarLessonActions({
       if (persisted) setLessons((prev) => prev.map((l) => l.id === lessonId ? persisted : l));
     } catch (error) {
       setLessons((prev) => prev.map((l) => l.id === lessonId ? before : l));
-      setWarningDialog({ open: true, title: 'Could not save lesson time', message: persistenceErrorMessage(error) });
+      setWarningDialog({ open: true, title: t('calendar.warning.couldNotSaveTime'), message: persistenceErrorMessage(error) });
     }
   };
 
   const commitDetachAndMove = async (before: ScheduledLessonDto, next: ScheduledLessonDto) => {
     const unlinked: ScheduledLessonDto = { ...next, ...unlinkLessonFields(before) };
     if (hasTimeConflict(lessonsRef.current, unlinked, before.id, conflictStrategy)) {
-      setConflictDialog({ open: true, title: 'Time slot is busy', message: conflictStrategy === 'same-teacher-overlap' ? 'This teacher already has a lesson in this time slot.' : 'Another lesson already exists for this time.', candidate: unlinked, excludeLessonId: before.id });
+      setConflictDialog({ open: true, title: conflictBusyTitle(), message: conflictBusyMessage(), candidate: unlinked, excludeLessonId: before.id });
       return;
     }
-    if (isPastSlot(unlinked)) { setWarningDialog({ open: true, title: 'Cannot move to past time', message: 'You cannot move a lesson to a past date or time.' }); return; }
+    if (isPastSlot(unlinked)) { setWarningDialog(pastMoveWarning()); return; }
     setLessons((prev) => prev.map((l) => l.id === before.id ? unlinked : l));
     const backendId = getLessonBackendId(before);
     if (!canManage || !backendId) return;
@@ -138,7 +156,7 @@ export function useCalendarLessonActions({
       if (persisted) setLessons((prev) => prev.map((l) => l.id === before.id ? persisted : l));
     } catch (error) {
       setLessons((prev) => prev.map((l) => l.id === before.id ? before : l));
-      setWarningDialog({ open: true, title: 'Could not save lesson', message: persistenceErrorMessage(error) });
+      setWarningDialog({ open: true, title: t('calendar.warning.couldNotSave'), message: persistenceErrorMessage(error) });
     }
   };
 
@@ -155,7 +173,7 @@ export function useCalendarLessonActions({
       await persistSeriesScheduleChanges({ updates: validation.updates, lessons: lessonsRef.current, persistScheduleUpdate, setLessons });
     } catch (error) {
       setLessons((prev) => prev.map((l) => { const orig = lessonsRef.current.find((r) => r.id === l.id); return orig ?? l; }));
-      setWarningDialog({ open: true, title: 'Could not save lesson time', message: persistenceErrorMessage(error) });
+      setWarningDialog({ open: true, title: t('calendar.warning.couldNotSaveTime'), message: persistenceErrorMessage(error) });
     }
   };
 
@@ -167,10 +185,10 @@ export function useCalendarLessonActions({
       return;
     }
     if (hasTimeConflict(lessonsRef.current, next, before.id, conflictStrategy)) {
-      setConflictDialog({ open: true, title: 'Time slot is busy', message: conflictStrategy === 'same-teacher-overlap' ? 'This teacher already has a lesson in this time slot.' : 'Another lesson already exists for this time.', candidate: next, excludeLessonId: before.id });
+      setConflictDialog({ open: true, title: conflictBusyTitle(), message: conflictBusyMessage(), candidate: next, excludeLessonId: before.id });
       return;
     }
-    if (isPastSlot(next)) { setWarningDialog({ open: true, title: 'Cannot move to past time', message: 'You cannot move a lesson to a past date or time.' }); return; }
+    if (isPastSlot(next)) { setWarningDialog(pastMoveWarning()); return; }
     void persistScheduleChange(before.id, before, next);
   };
 
@@ -196,7 +214,7 @@ export function useCalendarLessonActions({
     setModalMode('create');
     setEditingLesson(null);
     setForm({
-      title: 'New lesson', date, startTime, duration: 55,
+      title: t('calendar.defaultLessonTitle'), date, startTime, duration: 55,
       teacherId: teacher?.id ?? activeUser.id, teacherName: teacher?.fullName ?? activeUser.fullName,
       studentId: student?.id ?? activeUser.id, studentName: student?.fullName ?? activeUser.fullName,
       notes: '', lessonPlan: '', materials: [], homeworkText: '', homeworkFiles: [],
@@ -216,7 +234,7 @@ export function useCalendarLessonActions({
 
   const requestLesson = () => {
     if (!studentTeacherChatPeerId) {
-      setWarningDialog({ open: true, title: 'No teacher assigned', message: 'We could not find your teacher. Ask an administrator to assign a teacher to your account, or schedule a lesson first.' });
+      setWarningDialog({ open: true, title: t('calendar.warning.noTeacherTitle'), message: t('calendar.warning.noTeacherBody') });
       return;
     }
     router.push(`/chat?peer=${encodeURIComponent(studentTeacherChatPeerId)}`);
@@ -242,14 +260,14 @@ export function useCalendarLessonActions({
           else applyLessonUpdate(candidate, editingLesson);
         } else {
           const persisted = await createRecurringLessons({ form: activeForm, candidate, lessons, persistCreate, setLessons, conflictStrategy });
-          if (!persisted) { setWarningDialog({ open: true, title: 'Time slot is busy', message: 'No open slots for this recurrence pattern.' }); return; }
+          if (!persisted) { setWarningDialog({ open: true, title: conflictBusyTitle(), message: t('calendar.conflict.noRecurrenceSlots') }); return; }
           setEditingLesson(persisted); setModalMode('edit'); setForm(toLessonFormState(persisted));
           keepModalOpenAfterSave = true;
         }
       } catch (error) {
         const message = persistenceErrorMessage(error);
         const needsGoogle = message.includes('sign in with Google') && message.includes('Calendar');
-        setWarningDialog({ open: true, title: needsGoogle ? 'Google Calendar required' : 'Could not save lesson', message });
+        setWarningDialog({ open: true, title: needsGoogle ? t('calendar.warning.googleRequired') : t('calendar.warning.couldNotSave'), message });
         return;
       } finally { setSavingLesson(false); }
       if (!keepModalOpenAfterSave) closeModal();

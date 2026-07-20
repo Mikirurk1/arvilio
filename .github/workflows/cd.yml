@@ -38,9 +38,9 @@ jobs:
           - service: api
             dockerfile: infra/docker/api.prod.Dockerfile
             image: api
-          - service: web
-            dockerfile: infra/docker/web.prod.Dockerfile
-            image: web
+          - service: campus
+            dockerfile: infra/docker/campus.prod.Dockerfile
+            image: campus
     steps:
       - uses: actions/checkout@v5
 
@@ -90,11 +90,11 @@ jobs:
       - name: Deploy placeholder
         env:
           API_IMAGE: ${{ env.REGISTRY }}/${{ github.repository }}/api:sha-${{ github.sha }}
-          WEB_IMAGE: ${{ env.REGISTRY }}/${{ github.repository }}/web:sha-${{ github.sha }}
+          CAMPUS_IMAGE: ${{ env.REGISTRY }}/${{ github.repository }}/campus:sha-${{ github.sha }}
         run: |
           echo "Configure GitHub Environment 'staging' with deploy secrets (see docs/reference/ci-cd.md)."
           echo "API_IMAGE=$API_IMAGE"
-          echo "WEB_IMAGE=$WEB_IMAGE"
+          echo "CAMPUS_IMAGE=$CAMPUS_IMAGE"
           echo "Example: SSH to host, docker compose pull && docker compose up -d"
 
   deploy-production:
@@ -109,8 +109,8 @@ jobs:
       - name: Deploy placeholder
         env:
           API_IMAGE: ${{ env.REGISTRY }}/${{ github.repository }}/api:${{ github.ref_name }}
-          WEB_IMAGE: ${{ env.REGISTRY }}/${{ github.repository }}/web:${{ github.ref_name }}
+          CAMPUS_IMAGE: ${{ env.REGISTRY }}/${{ github.repository }}/campus:${{ github.ref_name }}
         run: |
           echo "Tag release deploy — wire production secrets in Environment 'production'."
           echo "API_IMAGE=$API_IMAGE"
-          echo "WEB_IMAGE=$WEB_IMAGE"
+          echo "CAMPUS_IMAGE=$CAMPUS_IMAGE"

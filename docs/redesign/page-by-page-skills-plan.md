@@ -1,6 +1,6 @@
-# SoEnglish — page-by-page design plan (new skills)
+# Arvilio — page-by-page design plan (new skills)
 
-Мета: пройтись по ключових маршрутах `apps/web` і для кожного мати зрозумілий execution plan: **який скіл використовуємо**, **що саме покращуємо**, **критерій готовності**.
+Мета: пройтись по ключових маршрутах `apps/campus` і для кожного мати зрозумілий execution plan: **який скіл використовуємо**, **що саме покращуємо**, **критерій готовності**.
 
 ---
 
@@ -25,7 +25,7 @@
 **Базове правило:** майже всюди перший і основний скіл — `emil-design-eng`.
 
 - `emil-design-eng` — primary driver майже для всіх page-level рішень (layout rhythm, hierarchy, premium UI ergonomics).
-- `soenglish-redesign` — контекст SoEnglish (Preply clarity + Edvibe structure), guardrails і product-fit.
+- `arvilio-redesign` — контекст Arvilio (Preply clarity + Edvibe structure), guardrails і product-fit.
 - `redesign-existing-projects` — аудит поточного UI перед змінами, пошук “slop” патернів.
 - `design-taste-frontend` (`taste-skill`) — посилення візуальної якості (ієрархія, spacing, contrast, ритм).
 - `gpt-taste` — stricter mode для складних поверхонь (dashboard, calendar, data-heavy screens).
@@ -40,7 +40,7 @@
 
 ## Global workflow (для кожної сторінки)
 
-1. **Audit pass:** `emil-design-eng` + `soenglish-redesign` + `redesign-existing-projects`.
+1. **Audit pass:** `emil-design-eng` + `arvilio-redesign` + `redesign-existing-projects`.
 2. **Design pass:** `emil-design-eng` + `design-taste-frontend` або `gpt-taste` (для важких screens).
 3. **Component pass:** `emil-design-eng` + `frontend-design`.
 4. **Final polish:** `impeccable`.
@@ -52,7 +52,7 @@
 
 Проблема: світла тема "raw" + табличність. Рішення приходить з примітивів, не з окремих сторінок. Доки база не виглядає premium — page-level правки не починаємо.
 
-### Step 0.1 — Surface & depth scale (`apps/web/src/styles/tokens/_theme.scss`)
+### Step 0.1 — Surface & depth scale (`apps/campus/src/styles/tokens/_theme.scss`)
 
 Мета — щоб картка читалась від фону **без бордера**.
 
@@ -65,7 +65,7 @@
 - Перевірити/посилити сходинку в `globals.scss` + tokens: display (page title) помітно більший за section title; section label — окремий дрібний uppercase/tracking стиль; body; caption.
 - Page titles переходять на `var(--font-display)` де ще не так.
 
-### Step 0.3 — Component recipes (`apps/web/src/components/ui/ui.module.scss`)
+### Step 0.3 — Component recipes (`apps/campus/src/components/ui/ui.module.scss`)
 
 - `surfaceCard` / `statTile` / `featureCard`: depth через `background: --card` + `--shadow-xs` + опційний hairline, **без важкого бордера**. Прибрати "border + shadow + gradient" одночасно.
 - Уніфікувати status pill/badge на `--status-*` (вже частково зроблено).
@@ -84,23 +84,23 @@
 
 > Стартуємо **тільки після Phase 0 (tokens-first)**. На кожній сторінці застосовуємо Design language v2: airy spacing, soft cards, editorial hierarchy, hairline-only borders, designed empty states.
 
-## 1) `apps/web/src/app/dashboard/page.tsx`
-- **Skills:** `emil-design-eng`, `soenglish-redesign`, `gpt-taste`, `impeccable`
+## 1) `apps/campus/src/app/dashboard/page.tsx`
+- **Skills:** `emil-design-eng`, `arvilio-redesign`, `gpt-taste`, `impeccable`
 - **Focus:**
   - чіткий “Today in learning” hierarchy
   - один primary action на viewport
   - уніфікація KPI tiles і статус-чіпів
 - **Done when:** перший екран читається за 3-5 секунд; немає дубльованих акцентів.
 
-## 2) `apps/web/src/app/lessons/page.tsx`
-- **Skills:** `emil-design-eng`, `soenglish-redesign`, `redesign-existing-projects`, `impeccable`
+## 2) `apps/campus/src/app/lessons/page.tsx`
+- **Skills:** `emil-design-eng`, `arvilio-redesign`, `redesign-existing-projects`, `impeccable`
 - **Focus:**
   - зменшити cognitive load у верхніх секціях
   - прибрати дублі метаданих між highlights/list
   - стабільна CTA-модель (explicit actions)
 - **Done when:** user швидко переходить до “All lessons” без шуму.
 
-## 3) `apps/web/src/components/lessons/LessonsListPanel.tsx`
+## 3) `apps/campus/src/components/lessons/LessonsListPanel.tsx`
 - **Skills:** `emil-design-eng`, `frontend-design`, `impeccable`
 - **Focus:**
   - сканованість рядків (title/meta/status/actions)
@@ -108,15 +108,15 @@
   - predictability filters/search/status chips
 - **Done when:** немає interaction ambiguity і nested-click конфліктів.
 
-## 4) `apps/web/src/app/calendar/page.tsx`
-- **Skills:** `emil-design-eng`, `gpt-taste`, `soenglish-redesign`, `impeccable`
+## 4) `apps/campus/src/app/calendar/page.tsx`
+- **Skills:** `emil-design-eng`, `gpt-taste`, `arvilio-redesign`, `impeccable`
 - **Focus:**
   - month/week visual parity
   - mobile day-cell readability (не тільки dots)
   - conflict/confirm modal consistency
 - **Done when:** на mobile видно мінімальний контекст дня без зайвих tap’ів.
 
-## 5) `apps/web/src/app/chat/page.tsx`
+## 5) `apps/campus/src/app/chat/page.tsx`
 - **Skills:** `emil-design-eng`, `design-taste-frontend`, `frontend-design`, `impeccable`
 - **Focus:**
   - стабільний two-pane layout без brittle offsets
@@ -124,15 +124,15 @@
   - message composer visual clarity
 - **Done when:** чат не “ламається” між tablet/mobile breakpoints.
 
-## 6) `apps/web/src/app/vocabulary/page.tsx`
-- **Skills:** `emil-design-eng`, `soenglish-redesign`, `gpt-taste`, `impeccable`
+## 6) `apps/campus/src/app/vocabulary/page.tsx`
+- **Skills:** `emil-design-eng`, `arvilio-redesign`, `gpt-taste`, `impeccable`
 - **Focus:**
   - зниження щільності керувань (progressive disclosure)
   - єдина типографіка для word cards / flashcards / play
   - статусні кольори тільки через семантичні токени
 - **Done when:** кожен режим (list/flashcard/play) має свій зрозумілий focal point.
 
-## 7) `apps/web/src/app/quiz/page.tsx`
+## 7) `apps/campus/src/app/quiz/page.tsx`
 - **Skills:** `emil-design-eng`, `design-taste-frontend`, `frontend-design`, `impeccable`
 - **Focus:**
   - consistency між quiz list / play / result
@@ -140,7 +140,7 @@
   - action buttons: predictable hierarchy
 - **Done when:** не потрібно “пояснювати” UI — flow інтуїтивний.
 
-## 8) `apps/web/src/app/students/page.tsx`
+## 8) `apps/campus/src/app/students/page.tsx`
 - **Skills:** `emil-design-eng`, `redesign-existing-projects`, `impeccable`
 - **Focus:**
   - list scanning: name, status, risk/progress
@@ -148,15 +148,15 @@
   - card density без перевантаження
 - **Done when:** teacher/admin швидко знаходить потрібного студента.
 
-## 9) `apps/web/src/app/students/[studentId]/page.tsx`
-- **Skills:** `emil-design-eng`, `gpt-taste`, `soenglish-redesign`, `impeccable`
+## 9) `apps/campus/src/app/students/[studentId]/page.tsx`
+- **Skills:** `emil-design-eng`, `gpt-taste`, `arvilio-redesign`, `impeccable`
 - **Focus:**
   - tab shell consistency із profile/dashboard language
   - уніфікація section spacing і typography weights
   - чіткий акцент на learning outcomes
 - **Done when:** tab navigation і контент-секції не конкурують між собою.
 
-## 10) `apps/web/src/app/profile/page.tsx`
+## 10) `apps/campus/src/app/profile/page.tsx`
 - **Skills:** `emil-design-eng`, `frontend-design`, `impeccable`
 - **Focus:**
   - hero + tabs hierarchy
@@ -164,7 +164,7 @@
   - modal consistency (avatar/password/appearance)
 - **Done when:** profile виглядає як “control center”, не як набір розрізнених панелей.
 
-## 11) `apps/web/src/app/payment/page.tsx`
+## 11) `apps/campus/src/app/payment/page.tsx`
 - **Skills:** `emil-design-eng`, `design-taste-frontend`, `impeccable`
 - **Focus:**
   - checkout trust signals
@@ -172,7 +172,7 @@
   - error/warning/info consistency
 - **Done when:** сторінка веде до оплати без second-guessing.
 
-## 12) `apps/web/src/app/system/page.tsx`
+## 12) `apps/campus/src/app/system/page.tsx`
 - **Skills:** `emil-design-eng`, `ui-ux-pro-max`, `ckm:design-system`, `impeccable`
 - **Focus:**
   - “control room” структура для platform/admin сценаріїв

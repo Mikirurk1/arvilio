@@ -12,6 +12,8 @@ export const STATE = {
   student: path.join(AUTH_DIR, 'student.json'),
   teacher: path.join(AUTH_DIR, 'teacher.json'),
   admin: path.join(AUTH_DIR, 'admin.json'),
+  studentEmpty: path.join(AUTH_DIR, 'student-empty.json'),
+  teacherEmpty: path.join(AUTH_DIR, 'teacher-empty.json'),
 } as const;
 
 export type Role = keyof typeof STATE;

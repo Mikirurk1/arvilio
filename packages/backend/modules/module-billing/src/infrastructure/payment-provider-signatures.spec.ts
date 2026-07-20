@@ -40,7 +40,7 @@ describe('payment provider signature helpers', () => {
     expect(verifyWayForPayCallback({ ...payload, merchantSignature }, secret)).toBe(true);
     expect(verifyWayForPayCallback({ ...payload, merchantSignature }, 'wrong')).toBe(false);
 
-    expect(normalizeWayForPayDomain('https://soenglish.com/payment')).toBe('soenglish.com');
+    expect(normalizeWayForPayDomain('https://arvilio.com/payment')).toBe('arvilio.com');
     expect(buildWayForPayAck('order-1', secret, 1711111111)).toEqual({
       orderReference: 'order-1',
       status: 'accept',

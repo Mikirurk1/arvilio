@@ -1,4 +1,7 @@
-import { USER_ROLE, isAdminOrSuper, type UserRole } from '../../mocks';
+import { USER_ROLE } from '@pkg/types';
+import { isAdminOrSuper } from '../../lib/roles';
+import type { UserRoleId } from '@pkg/types';
+import type { TranslateFn } from '../../lib/cms/nav-i18n';
 import type { FieldMode, ProfileFieldId, ProfileFormContext } from './unified-profile-types';
 
 function isStudentViewer(ctx: ProfileFormContext): boolean {
@@ -114,7 +117,15 @@ export function sectionHasVisibleFields(
   return fields.some((field) => isFieldVisible(field, ctx));
 }
 
-export function subjectRoleLabel(role: UserRole | undefined): string {
+export function subjectRoleLabel(role: UserRoleId | undefined, t?: TranslateFn): string {
+  if (t) {
+    if (!role) return t('profile.role.member');
+    if (role === USER_ROLE.student.id) return t('profile.role.student');
+    if (role === USER_ROLE.teacher.id) return t('profile.role.teacher');
+    if (role === USER_ROLE.admin.id) return t('profile.role.admin');
+    if (role === USER_ROLE.superAdmin.id) return t('profile.role.superAdmin');
+    return t('profile.role.member');
+  }
   if (!role) return 'User';
   if (role === USER_ROLE.student.id) return 'Student';
   if (role === USER_ROLE.teacher.id) return 'Teacher';

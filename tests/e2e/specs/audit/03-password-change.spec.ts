@@ -41,14 +41,14 @@ test('3L.2 change password via UI → success, then revert (self-cleanup)', asyn
   // change ORIG → TEMP through the Account UI
   await changePassword(page, ORIG, TEMP);
   const withTemp = await page.request.post('/api/auth/login', {
-    data: { email: 'jest-admin@soenglish.test', password: TEMP },
+    data: { email: 'jest-admin@arvilio.test', password: TEMP },
   });
   expect(withTemp.status(), 'new password works after UI change').toBe(201);
 
   // revert TEMP → ORIG via the UI too so the seeded credential keeps working
   await changePassword(page, TEMP, ORIG);
   const withOrig = await page.request.post('/api/auth/login', {
-    data: { email: 'jest-admin@soenglish.test', password: ORIG },
+    data: { email: 'jest-admin@arvilio.test', password: ORIG },
   });
   expect(withOrig.status(), 'password reverted to seed value').toBe(201);
 });
@@ -70,7 +70,7 @@ test('3L.2b wrong current password → error, no change', async ({ page }) => {
     .or(dialog.getByRole('alert').filter({ hasText: /.+/ }).first()))
     .toBeVisible({ timeout: 8_000 });
   const res = await page.request.post('/api/auth/login', {
-    data: { email: 'jest-admin@soenglish.test', password: ORIG },
+    data: { email: 'jest-admin@arvilio.test', password: ORIG },
   });
   expect(res.status()).toBe(201);
 });

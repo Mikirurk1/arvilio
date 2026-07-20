@@ -2,21 +2,17 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { getLocaleMeta } from '@pkg/types';
 import { apiClient } from '../../lib/api';
 import { track } from '../../lib/analytics';
 import { Button, Field, SurfaceCard } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import type { PaymentMethodStatusDto } from '@pkg/types';
 import styles from './page.module.scss';
 
 type StepKey = 'profile' | 'teaching' | 'payments' | 'invite' | 'sample-content';
 
-const STEPS: Array<{ key: StepKey; title: string }> = [
-  { key: 'profile', title: 'School profile' },
-  { key: 'teaching', title: 'Teaching setup' },
-  { key: 'payments', title: 'Payments' },
-  { key: 'invite', title: 'Invite teammates' },
-  { key: 'sample-content', title: 'Sample content' },
-];
+const STEP_KEYS: StepKey[] = ['profile', 'teaching', 'payments', 'invite', 'sample-content'];
 
 type StepData = Record<string, Record<string, unknown>>;
 
@@ -26,7 +22,20 @@ interface OnboardingState {
   steps: StepData;
 }
 
+/** Brand / PSP names — not UI chrome; keep as product identifiers. */
+const METHOD_LABELS: Record<string, string> = {
+  manual_invoice: 'Manual invoice',
+  stripe: 'Stripe',
+  liqpay: 'LiqPay',
+  wayforpay: 'WayForPay',
+  lemonsqueezy: 'Lemon Squeezy',
+  paddle: 'Paddle',
+  monopay: 'Monobank (monobank)',
+  paypal: 'PayPal',
+};
+
 export default function OnboardingPage() {
+  const t = useCampusT();
   const router = useRouter();
   const [index, setIndex] = useState(0);
   const [data, setData] = useState<StepData>({});
@@ -45,34 +54,34 @@ export default function OnboardingPage() {
           return;
         }
         setData(state.steps ?? {});
-        const at = STEPS.findIndex((s) => s.key === state.currentStep);
+        const at = STEP_KEYS.findIndex((key) => key === state.currentStep);
         // resume on the step *after* the last saved one, clamped to the last step
-        if (at >= 0) setIndex(Math.min(at + 1, STEPS.length - 1));
+        if (at >= 0) setIndex(Math.min(at + 1, STEP_KEYS.length - 1));
         setLoading(false);
       })
       .catch((e) => {
         if (!active) return;
-        setError(e instanceof Error ? e.message : 'Failed to load onboarding');
+        setError(e instanceof Error ? e.message : t('onboarding.loadError'));
         setLoading(false);
       });
     return () => {
       active = false;
     };
-  }, [router]);
+  }, [router, t]);
 
-  const step = STEPS[index];
-  const isLast = index === STEPS.length - 1;
-  const stepData = data[step.key] ?? {};
+  const stepKey = STEP_KEYS[index]!;
+  const isLast = index === STEP_KEYS.length - 1;
+  const stepData = data[stepKey] ?? {};
 
   const setField = useCallback(
     (key: string, value: unknown) => {
-      setData((prev) => ({ ...prev, [step.key]: { ...(prev[step.key] ?? {}), [key]: value } }));
+      setData((prev) => ({ ...prev, [stepKey]: { ...(prev[stepKey] ?? {}), [key]: value } }));
     },
-    [step.key],
+    [stepKey],
   );
 
   async function persistStep() {
-    await apiClient.patch('/onboarding/step', { step: step.key, data: stepData });
+    await apiClient.patch('/onboarding/step', { step: stepKey, data: stepData });
   }
 
   async function onNext(save: boolean) {
@@ -81,7 +90,7 @@ export default function OnboardingPage() {
     try {
       if (save) {
         await persistStep();
-        track({ name: 'wizard_step_completed', step: step.key, schoolId: '' });
+        track({ name: 'wizard_step_completed', step: stepKey, schoolId: '' });
       }
       if (isLast) {
         await apiClient.post('/onboarding/complete');
@@ -91,21 +100,21 @@ export default function OnboardingPage() {
       }
       setIndex((i) => i + 1);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not save');
+      setError(e instanceof Error ? e.message : t('onboarding.saveError'));
     } finally {
       setBusy(false);
     }
   }
 
-  if (loading) return <div className={styles.shell}>Loading…</div>;
+  if (loading) return <div className={styles.shell}>{t('onboarding.loading')}</div>;
 
   return (
     <div className={styles.shell}>
       <SurfaceCard className={styles.card}>
         <div className={styles.progress}>
-          Step {index + 1} of {STEPS.length}
+          {t('onboarding.progress', { current: index + 1, total: STEP_KEYS.length })}
         </div>
-        <h1 className={styles.title}>{step.title}</h1>
+        <h1 className={styles.title}>{t(`onboarding.step.${stepKey}`)}</h1>
 
         {error ? (
           <div className={styles.error} role="alert">
@@ -114,22 +123,22 @@ export default function OnboardingPage() {
         ) : null}
 
         <div className={styles.fields}>
-          <StepFields stepKey={step.key} data={stepData} setField={setField} />
+          <StepFields stepKey={stepKey} data={stepData} setField={setField} />
         </div>
 
         <div className={styles.actions}>
           {!isLast ? (
             <Button variant="ghost" disabled={busy} onClick={() => void onNext(false)}>
-              Skip
+              {t('onboarding.skip')}
             </Button>
           ) : null}
           <Button
             variant="primary"
             loading={busy}
-            loadingLabel="Saving…"
+            loadingLabel={t('onboarding.saving')}
             onClick={() => void onNext(true)}
           >
-            {isLast ? 'Finish' : 'Save & continue'}
+            {isLast ? t('onboarding.finish') : t('onboarding.next')}
           </Button>
         </div>
       </SurfaceCard>
@@ -146,6 +155,7 @@ function StepFields({
   data: Record<string, unknown>;
   setField: (key: string, value: unknown) => void;
 }) {
+  const t = useCampusT();
   const str = (k: string) => (typeof data[k] === 'string' ? (data[k] as string) : '');
 
   if (stepKey === 'profile') {
@@ -153,23 +163,23 @@ function StepFields({
       <>
         <Field
           id="ob-timezone"
-          label="Timezone"
+          label={t('onboarding.profile.timezone')}
           value={str('timezone')}
           onChange={(e) => setField('timezone', e.target.value)}
         />
         <Field
           id="ob-locale"
           as="select"
-          label="Default language"
-          value={str('locale') || 'uk'}
+          label={t('onboarding.profile.locale')}
+          value={str('locale') || 'en'}
           onChange={(e) => setField('locale', e.target.value)}
         >
-          <option value="uk">Ukrainian</option>
-          <option value="en">English</option>
+          <option value="uk">{getLocaleMeta('uk').nativeName}</option>
+          <option value="en">{getLocaleMeta('en').nativeName}</option>
         </Field>
         <Field
           id="ob-accent"
-          label="Accent color"
+          label={t('onboarding.profile.accent')}
           placeholder="#2f6f4f"
           value={str('accentColor')}
           onChange={(e) => setField('accentColor', e.target.value)}
@@ -182,21 +192,21 @@ function StepFields({
       <>
         <Field
           id="ob-langs"
-          label="Languages you teach"
-          hint="Comma-separated for now"
+          label={t('onboarding.teaching.languages')}
+          hint={t('onboarding.teaching.languagesHint')}
           value={str('languages')}
           onChange={(e) => setField('languages', e.target.value)}
         />
         <Field
           id="ob-format"
           as="select"
-          label="Default lesson format"
+          label={t('onboarding.teaching.format')}
           value={str('lessonFormat') || 'online'}
           onChange={(e) => setField('lessonFormat', e.target.value)}
         >
-          <option value="online">Online</option>
-          <option value="in-person">In person</option>
-          <option value="hybrid">Hybrid</option>
+          <option value="online">{t('onboarding.teaching.format.online')}</option>
+          <option value="in-person">{t('onboarding.teaching.format.inPerson')}</option>
+          <option value="hybrid">{t('onboarding.teaching.format.hybrid')}</option>
         </Field>
       </>
     );
@@ -214,8 +224,8 @@ function StepFields({
       <Field
         id="ob-invites"
         as="textarea"
-        label="Invite teammates"
-        hint="One email per line — invitations are sent after setup"
+        label={t('onboarding.invite.label')}
+        hint={t('onboarding.invite.hint')}
         value={str('emails')}
         onChange={(e) => setField('emails', e.target.value)}
       />
@@ -225,26 +235,15 @@ function StepFields({
     <Field
       id="ob-sample"
       as="select"
-      label="Seed demo lessons & materials?"
+      label={t('onboarding.sample.label')}
       value={str('seed') || 'yes'}
       onChange={(e) => setField('seed', e.target.value)}
     >
-      <option value="yes">Yes, add sample content</option>
-      <option value="no">No thanks</option>
+      <option value="yes">{t('onboarding.sample.yes')}</option>
+      <option value="no">{t('onboarding.sample.no')}</option>
     </Field>
   );
 }
-
-const METHOD_LABELS: Record<string, string> = {
-  manual_invoice: 'Manual invoice',
-  stripe: 'Stripe',
-  liqpay: 'LiqPay',
-  wayforpay: 'WayForPay',
-  lemonsqueezy: 'Lemon Squeezy',
-  paddle: 'Paddle',
-  monopay: 'Monobank (monobank)',
-  paypal: 'PayPal',
-};
 
 function PaymentsStepFields({
   selected,
@@ -253,6 +252,7 @@ function PaymentsStepFields({
   selected: string[];
   onChange: (methods: string[]) => void;
 }) {
+  const t = useCampusT();
   const [methods, setMethods] = useState<PaymentMethodStatusDto[]>([]);
   const [loadError, setLoadError] = useState(false);
 
@@ -272,15 +272,11 @@ function PaymentsStepFields({
   }, []);
 
   if (loadError) {
-    return (
-      <p className={styles.note}>
-        Could not load payment methods. You can enable them later in Settings → Payments.
-      </p>
-    );
+    return <p className={styles.note}>{t('onboarding.payments.loadError')}</p>;
   }
 
   if (methods.length === 0) {
-    return <p className={styles.note}>Loading payment options…</p>;
+    return <p className={styles.note}>{t('onboarding.payments.loading')}</p>;
   }
 
   const toggle = (id: string) => {
@@ -289,18 +285,18 @@ function PaymentsStepFields({
 
   return (
     <div className={styles.checkGroup}>
-      <p className={styles.note}>
-        Select which payment methods to enable. You can change this later in Settings → Payments.
-      </p>
+      <p className={styles.note}>{t('onboarding.payments.intro')}</p>
       {methods.map((m) => (
-        <label key={m.id} className={styles.checkRow}>
-          <input
-            type="checkbox"
-            checked={selected.includes(m.id)}
-            onChange={() => toggle(m.id)}
-          />
-          <span>{METHOD_LABELS[m.id] ?? m.id}</span>
-        </label>
+        <Field
+          key={m.id}
+          as="checkbox"
+          checked={selected.includes(m.id)}
+          onChange={() => toggle(m.id)}
+          label={
+            m.id === 'manual_invoice' ? t('payment.bankTransfer') : (METHOD_LABELS[m.id] ?? m.id)
+          }
+          rootClassName={styles.checkRow}
+        />
       ))}
     </div>
   );

@@ -6,7 +6,6 @@ import { PlatformIntegrationService } from '../../application/platform-integrati
 import { PlatformSettingsService } from '../../application/platform-settings.service';
 import { parseTranslationProviderId } from '../../application/translation-provider.util';
 import {
-  OkResultType,
   PlatformIntegrationSettingsType,
   SendTestEmailResultType,
   SendTestWelcomeEmailInput,
@@ -228,6 +227,21 @@ function mapIntegrationConfigInput(
       sourceLanguage: config.mediaCaptions.sourceLanguage,
       targetLanguages: config.mediaCaptions.targetLanguages,
       ...(sttProvider ? { sttProvider } : {}),
+    };
+  }
+  if (config.llm) {
+    const provider =
+      config.llm.provider === 'anthropic' ||
+      config.llm.provider === 'openai_compat'
+        ? config.llm.provider
+        : undefined;
+    patch.llm = {
+      enabled: config.llm.enabled,
+      baseUrl: config.llm.baseUrl,
+      model: config.llm.model,
+      maxTokens: config.llm.maxTokens,
+      temperature: config.llm.temperature,
+      ...(provider ? { provider } : {}),
     };
   }
 

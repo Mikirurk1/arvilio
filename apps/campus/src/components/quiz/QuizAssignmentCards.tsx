@@ -2,6 +2,7 @@
 
 import type { QuizCardDto } from '@pkg/types';
 import { CheckCircle2, FileText, Play, Trash2 } from 'lucide-react';
+import { useCampusI18n, useCampusT } from '../../lib/cms';
 import { Button } from '../ui';
 import styles from './QuizAssignmentCards.module.scss';
 
@@ -24,38 +25,53 @@ function difficultyBadgeClass(difficulty: QuizCardDto['difficulty']): string {
   return styles.badgeGreen;
 }
 
-function formatQuizSource(source: QuizCardDto['source']): string {
-  switch (source) {
-    case 'vocabulary':
-      return 'Vocabulary';
-    case 'lesson':
-      return 'Lesson';
-    case 'mixed':
-      return 'Mixed';
-    default:
-      return 'Manual';
-  }
-}
-
-function formatQuizCreated(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
 export function QuizAssignmentCards({
   quizzes,
   onPlay,
   onPractice,
   onDelete,
   deletingQuizId = null,
-  emptyMessage = 'No quizzes yet.',
+  emptyMessage,
   staffView = false,
   embedded = false,
 }: Props) {
+  const t = useCampusT();
+  const { locale } = useCampusI18n();
+
+  const formatQuizSource = (source: QuizCardDto['source']): string => {
+    switch (source) {
+      case 'vocabulary':
+        return t('quiz.source.vocabulary');
+      case 'lesson':
+        return t('quiz.source.lesson');
+      case 'mixed':
+        return t('quiz.source.mixed');
+      default:
+        return t('quiz.source.manual');
+    }
+  };
+
+  const formatDifficulty = (difficulty: QuizCardDto['difficulty']): string => {
+    if (difficulty === 'hard') return t('quiz.diff.hard');
+    if (difficulty === 'medium') return t('quiz.diff.medium');
+    return t('quiz.diff.easy');
+  };
+
+  const formatQuizCreated = (iso: string): string => {
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleDateString(locale === 'uk' ? 'uk-UA' : 'en-GB', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
   if (quizzes.length === 0) {
     return (
-      <p className={embedded ? styles.emptyEmbedded : styles.empty}>{emptyMessage}</p>
+      <p className={embedded ? styles.emptyEmbedded : styles.empty}>
+        {emptyMessage ?? t('quiz.empty.default')}
+      </p>
     );
   }
 
@@ -72,6 +88,19 @@ export function QuizAssignmentCards({
       .filter(Boolean)
       .join(' ');
 
+    const questionLabel =
+      quiz.questionCount === 1
+        ? t('quiz.card.questionOne', { count: quiz.questionCount })
+        : t('quiz.card.questions', { count: quiz.questionCount });
+
+    const playLabel = completed
+      ? staffView
+        ? t('quiz.card.open')
+        : t('quiz.card.tryAgain')
+      : staffView
+        ? t('quiz.card.preview')
+        : t('quiz.startCard');
+
     return (
       <div key={quiz.id} className={cardClass}>
         <div className={styles.head}>
@@ -84,7 +113,9 @@ export function QuizAssignmentCards({
             </div>
             <div className={styles.badges}>
               <span className={styles.badgeBlue}>{quiz.category}</span>
-              <span className={difficultyBadgeClass(quiz.difficulty)}>{quiz.difficulty}</span>
+              <span className={difficultyBadgeClass(quiz.difficulty)}>
+                {formatDifficulty(quiz.difficulty)}
+              </span>
             </div>
           </div>
           {onDelete ? (
@@ -92,7 +123,7 @@ export function QuizAssignmentCards({
               type="button"
               variant="ghost"
               className={styles.deleteIconBtn}
-              aria-label="Delete quiz"
+              aria-label={t('quiz.delete.aria')}
               disabled={deletingQuizId === quiz.id}
               onClick={() => onDelete(quiz.id)}
             >
@@ -104,7 +135,7 @@ export function QuizAssignmentCards({
         <div className={styles.meta}>
           <span>
             <FileText size={14} aria-hidden />
-            {quiz.questionCount} questions
+            {questionLabel}
           </span>
           <span className={styles.metaDot} aria-hidden>
             ·
@@ -112,27 +143,23 @@ export function QuizAssignmentCards({
           <span>{formatQuizSource(quiz.source)}</span>
         </div>
 
-        <p className={styles.createdAt}>Created {formatQuizCreated(quiz.createdAt)}</p>
+        <p className={styles.createdAt}>
+          {t('quiz.card.created', { date: formatQuizCreated(quiz.createdAt) })}
+        </p>
 
         {completed && score != null ? (
           <div className={styles.scoreBox}>
-            <span>{staffView ? 'Student score' : 'Your score'}</span>
+            <span>{staffView ? t('quiz.card.studentScore') : t('quiz.card.yourScore')}</span>
             <strong>{Math.round(score)}%</strong>
           </div>
         ) : staffView ? (
-          <p className={styles.pendingBox}>Not completed yet</p>
+          <p className={styles.pendingBox}>{t('quiz.card.notCompleted')}</p>
         ) : null}
 
         <div className={`${styles.actions} ${!hasPractice ? styles.actionsSingle : ''}`}>
           <Button type="button" className={styles.playBtn} onClick={() => onPlay(quiz.id)}>
             <Play size={14} aria-hidden />
-            {completed
-              ? staffView
-                ? 'Open'
-                : 'Try again'
-              : staffView
-                ? 'Preview'
-                : 'Start Quiz'}
+            {playLabel}
           </Button>
           {onPractice ? (
             <Button
@@ -140,7 +167,7 @@ export function QuizAssignmentCards({
               className={styles.practiceBtn}
               onClick={() => onPractice(quiz.id)}
             >
-              Practice
+              {t('quiz.card.practice')}
             </Button>
           ) : null}
         </div>

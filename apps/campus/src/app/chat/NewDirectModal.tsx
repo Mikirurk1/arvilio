@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { MessageSquarePlus } from 'lucide-react';
 import type { ChatUserDto } from '@pkg/types';
 import { Button, Field } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import styles from './page.module.scss';
 
 export function NewDirectModal({
@@ -15,6 +16,7 @@ export function NewDirectModal({
   onClose: () => void;
   onSelect: (peerUserId: string) => Promise<void>;
 }) {
+  const t = useCampusT();
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -40,22 +42,20 @@ export function NewDirectModal({
         <div className={styles.modalHeader}>
           <span className={styles.modalBadge}>
             <MessageSquarePlus size={14} aria-hidden />
-            Direct message
+            {t('chat.dm.badge')}
           </span>
           <h2 id="new-chat-title" className={styles.modalTitle}>
-            New message
+            {t('chat.dm.title')}
           </h2>
-          <p className={styles.modalHint}>
-            Start a 1:1 conversation with a student, teacher, or admin.
-          </p>
+          <p className={styles.modalHint}>{t('chat.dm.hint')}</p>
         </div>
         <Field
           type="search"
           className={styles.fieldInput}
-          placeholder="Search people..."
+          placeholder={t('chat.dm.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          aria-label="Search people"
+          aria-label={t('chat.dm.searchAria')}
         />
         <div className={styles.contactList}>
           {filtered.map((contact) => (
@@ -80,12 +80,12 @@ export function NewDirectModal({
             </Button>
           ))}
           {filtered.length === 0 ? (
-            <p className={styles.modalEmpty}>No people match your search.</p>
+            <p className={styles.modalEmpty}>{t('chat.dm.empty')}</p>
           ) : null}
         </div>
         <div className={styles.modalActions}>
           <Button type="button" variant="ghost" onClick={onClose}>
-            Cancel
+            {t('chat.dm.cancel')}
           </Button>
         </div>
       </div>

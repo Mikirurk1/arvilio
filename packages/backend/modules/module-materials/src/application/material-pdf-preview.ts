@@ -28,7 +28,7 @@ export function isPdfAttachment(mimeType: string, fileName: string): boolean {
 }
 
 async function withTempDir<T>(fn: (dir: string) => Promise<T>): Promise<T> {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'soenglish-material-preview-'));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'arvilio-material-preview-'));
   try {
     return await fn(dir);
   } finally {

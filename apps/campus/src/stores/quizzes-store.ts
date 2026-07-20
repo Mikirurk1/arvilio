@@ -352,6 +352,6 @@ export const useQuizzesStore = create<QuizzesState>()(
         return result;
       },
     }),
-    { name: 'soenglish/quizzes' },
+    { name: 'arvilio/quizzes' },
   ),
 );

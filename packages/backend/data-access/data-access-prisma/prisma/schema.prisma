@@ -1223,6 +1223,10 @@ model PlatformSettings {
   allowedPaymentMethods  PaymentMethodKind[]    @default([])
   paymentConfig          Json                   @default("{}")
   paymentSecrets         String?
+  /// Platform-owned subscription rails config (ADR-010): enablement + non-secret fields.
+  platformBillingConfig  Json                   @default("{}")
+  /// AES-GCM encrypted JSON of platform rail secrets (Stripe platform keys, UA PSPs, …).
+  platformBillingSecrets String?
   /// Platform-wide integrations (translation, SMTP, OAuth, Telegram) — non-secret fields.
   integrationConfig      Json                   @default("{}")
   /// AES-GCM encrypted JSON (smtp pass, OAuth secrets, bot token, …).
@@ -1467,14 +1471,40 @@ model School {
   onboardingState Json @default("{}")
 
   /// Default locale for all users of this school (G33). ISO 639-1: 'uk' | 'en'.
-  /// Null = inherit platform default ('uk').
+  /// Null = inherit platform default ('en').
   defaultLocale String?
+
+  /// UI locales this school offers, subset of platform SUPPORTED_LOCALES (G33).
+  /// Empty = inherit platform shipped set. defaultLocale must be within this list.
+  enabledLocales String[] @default([])
+
+  /// ISO 3166-1 alpha-2 for Layer-B (Campus→Arvilio) offer resolution (ADR-010).
+  /// Set only by Control Plane — never from client IP. Null → product default prices/rail.
+  billingCountry String?
 
   /// White-label branding (Phase 6 / G18). Null = use platform defaults.
   /// brandColor: hex string e.g. "#159970". Overrides --accent-primary CSS token.
   brandColor String?
   /// logoUrl: absolute URL to the school's logo image.
   logoUrl    String?
+
+  /// Teaching preferences from signup wizard (languages taught + delivery format).
+  /// Shape: `{ languages: string[], lessonFormat: "online"|"in-person"|"hybrid" }`.
+  teachingPrefs Json?
+
+  /// Merchant / seller profile for payment compliance (public legal pages + checkout gate).
+  /// legalName + legalAddress + supportEmail required before enabling online PSP methods.
+  legalName                 String?
+  legalAddress              String?
+  /// ISO 3166-1 alpha-2. Default UA when null.
+  legalCountry              String?
+  supportEmail              String?
+  supportPhone              String?
+  /// Merchant Category Code. Default 8299 (Schools / Educational Services).
+  mcc                       String?  @default("8299")
+  /// Optional markdown overrides for public legal pages (null = platform EN template).
+  termsOverrideMd           String?
+  paymentRefundOverrideMd   String?
 
   /// Storage entitlement accounting (Phase 3/5, G6/G42).
   storageUsedBytes    BigInt   @default(0)

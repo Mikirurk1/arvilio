@@ -1,0 +1,261 @@
+.panel {
+  position: fixed;
+  z-index: 50;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  width: min(380px, calc(100vw - 24px));
+  max-height: min(560px, calc(100vh - 48px));
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  transform-origin: bottom right;
+  animation: arviChatEnter var(--dur-modal) var(--ease-out);
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+  will-change: opacity, transform;
+}
+
+.panelClosing {
+  opacity: 0;
+  transform: translateY(14px) scale(0.96);
+  pointer-events: none;
+}
+
+@keyframes arviChatEnter {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
+    transition: none;
+  }
+
+  .panelClosing {
+    opacity: 0;
+    transform: none;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 12px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-raised);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.subtitle {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 180px;
+  background: var(--surface);
+}
+
+.welcome {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--surface-inset);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.welcomeTitle {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.welcomeBody {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.welcomeList {
+  margin: 0;
+  padding: 0 0 0 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.welcomeCannot {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-tertiary);
+}
+
+.unavailable {
+  margin: 16px 8px;
+  padding: 14px 12px;
+  border-radius: 12px;
+  border: 1px dashed var(--border);
+  background: var(--surface-inset);
+  text-align: center;
+}
+
+.unavailableTitle {
+  margin: 0 0 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.unavailableBody {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--text-tertiary);
+}
+
+.userBubble,
+.botBubble {
+  max-width: 92%;
+  padding: 8px 12px;
+  border-radius: 12px;
+}
+
+.userBubble {
+  align-self: flex-end;
+  background: var(--accent-primary-muted);
+  color: var(--text-primary);
+}
+
+.botBubble {
+  align-self: flex-start;
+  background: var(--card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.bubbleText {
+  margin: 0;
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+  line-height: 1.4;
+  color: inherit;
+}
+
+.navBtn {
+  margin-top: 6px;
+  font-size: 0.75rem;
+}
+
+.error {
+  margin: 0 12px;
+  font-size: 0.8rem;
+  color: var(--accent-danger);
+}
+
+.composer {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--card);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 0.875rem;
+  background: var(--field-bg);
+  color: var(--text-primary);
+}
+
+.input::placeholder {
+  color: var(--text-faint);
+}
+
+.input:focus {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+
+.input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .panel {
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    max-height: 70vh;
+    border-radius: 16px 16px 0 0;
+    transform-origin: bottom center;
+    animation-name: arviChatEnterSheet;
+  }
+
+  .panelClosing {
+    transform: translateY(100%);
+  }
+
+  @keyframes arviChatEnterSheet {
+    from {
+      opacity: 0.85;
+      transform: translateY(100%);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

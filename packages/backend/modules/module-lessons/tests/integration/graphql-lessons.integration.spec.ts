@@ -18,7 +18,7 @@ describe('GraphQL lessons (integration)', () => {
     ({ studentId } = await getSeededUserIds(ctx.prisma));
     const outsider = await ctx.prisma.user.create({
       data: {
-        email: 'jest-outsider-lessons@soenglish.test',
+        email: 'jest-outsider-lessons@arvilio.test',
         displayName: 'Jest Outsider Lessons',
         role: 'STUDENT',
         status: 'ACTIVE',

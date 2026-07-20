@@ -9,9 +9,8 @@ import {
   Volume2,
 } from 'lucide-react';
 import { Badge, Button, SurfaceCard } from '../../components/ui';
-import { LIBRARY_KIND_LABELS } from './material-asset-presets';
+import { useCampusT } from '../../lib/cms';
 import {
-  materialAssetCountLabel,
   materialAssetPrimaryName,
   materialAssetSecondaryHint,
 } from './material-asset-display';
@@ -20,6 +19,13 @@ import { materialAssetPreviewHref, materialCoverImageHref } from './material-cov
 import { libraryKindMeta } from './material-kind-meta';
 import { formatProficiencyLevelShort } from '../../lib/proficiency-level';
 import styles from './MaterialCard.module.scss';
+
+const KIND_I18N_KEY: Record<LibraryMaterialDto['kind'], string> = {
+  board: 'materials.kind.board',
+  presentation: 'materials.kind.presentation',
+  book: 'materials.kind.book',
+  other: 'materials.kind.other',
+};
 
 type Props = {
   material: LibraryMaterialDto;
@@ -127,6 +133,7 @@ function MaterialCardActions({
   onDelete,
   deleting,
 }: Pick<Props, 'material' | 'onEdit' | 'onDelete' | 'deleting'>) {
+  const t = useCampusT();
   return (
     <div className={styles.actions}>
       {onEdit ? (
@@ -136,7 +143,7 @@ function MaterialCardActions({
           className={styles.actionOpenBtn}
           onClick={() => onEdit(material)}
         >
-          Open
+          {t('materials.card.open')}
         </Button>
       ) : null}
       {onDelete ? (
@@ -145,10 +152,10 @@ function MaterialCardActions({
           variant="ghost"
           className={[styles.actionIconBtn, styles.actionIconBtnDanger].join(' ')}
           loading={deleting}
-          loadingLabel="Deleting…"
-          loadingAriaLabel={`Deleting ${material.title}`}
+          loadingLabel={t('materials.card.deleting')}
+          loadingAriaLabel={t('materials.card.deleteAria', { title: material.title })}
           onClick={() => onDelete(material)}
-          aria-label={`Delete ${material.title}`}
+          aria-label={t('materials.card.deleteAria', { title: material.title })}
         >
           <Trash2 size={16} aria-hidden />
         </Button>
@@ -177,6 +184,7 @@ function MaterialCardTags({ tags, layout }: { tags: string[]; layout: 'grid' | '
 
 function MaterialGridCard(props: Props) {
   const { material, onEdit, onDelete, deleting } = props;
+  const t = useCampusT();
   const { Icon, tone, badge } = kindMeta(material.kind);
   const levelLabel = formatProficiencyLevelShort(material.level);
   const previewAssets = material.assets.slice(0, GRID_ASSET_PREVIEW);
@@ -189,14 +197,16 @@ function MaterialGridCard(props: Props) {
         <div className={styles.headText}>
           <div className={styles.titleRow}>
             <h3 className={styles.title}>{material.title}</h3>
-            <Badge variant={badge}>{LIBRARY_KIND_LABELS[material.kind]}</Badge>
+            <Badge variant={badge}>{t(KIND_I18N_KEY[material.kind])}</Badge>
           </div>
           <p className={styles.meta}>
             {levelLabel ? levelLabel : null}
             {levelLabel && material.publisher ? ' · ' : null}
             {material.publisher ? material.publisher : null}
             {!levelLabel && !material.publisher && material.assets.length > 0
-              ? materialAssetCountLabel(material.assets.length)
+              ? material.assets.length === 1
+                ? t('materials.card.fileOne')
+                : t('materials.card.fileMany', { count: material.assets.length })
               : null}
           </p>
         </div>
@@ -212,7 +222,9 @@ function MaterialGridCard(props: Props) {
             <MaterialAssetChip key={asset.id} asset={asset} />
           ))}
           {hiddenAssets > 0 ? (
-            <span className={styles.assetChipMore}>+{hiddenAssets} more</span>
+            <span className={styles.assetChipMore}>
+              {t('materials.card.moreAssets', { count: hiddenAssets })}
+            </span>
           ) : null}
         </div>
       ) : null}
@@ -233,6 +245,7 @@ function MaterialGridCard(props: Props) {
 
 function MaterialListCard(props: Props) {
   const { material, onEdit, onDelete, deleting } = props;
+  const t = useCampusT();
   const { Icon, tone, badge } = kindMeta(material.kind);
   const levelLabel = formatProficiencyLevelShort(material.level);
   const previewAssets = material.assets.slice(0, LIST_ASSET_PREVIEW);
@@ -248,11 +261,15 @@ function MaterialListCard(props: Props) {
             <div className={styles.listTitleBlock}>
               <h3 className={styles.title}>{material.title}</h3>
               <p className={styles.listMeta}>
-                <Badge variant={badge}>{LIBRARY_KIND_LABELS[material.kind]}</Badge>
+                <Badge variant={badge}>{t(KIND_I18N_KEY[material.kind])}</Badge>
                 {levelLabel ? <span>{levelLabel}</span> : null}
                 {material.publisher ? <span>{material.publisher}</span> : null}
                 {material.assets.length > 0 ? (
-                  <span>{materialAssetCountLabel(material.assets.length)}</span>
+                  <span>
+                    {material.assets.length === 1
+                      ? t('materials.card.fileOne')
+                      : t('materials.card.fileMany', { count: material.assets.length })}
+                  </span>
                 ) : null}
               </p>
             </div>
@@ -274,7 +291,9 @@ function MaterialListCard(props: Props) {
                 <MaterialAssetChip key={asset.id} asset={asset} />
               ))}
               {hiddenAssets > 0 ? (
-                <span className={styles.assetChipMore}>+{hiddenAssets} more</span>
+                <span className={styles.assetChipMore}>
+              {t('materials.card.moreAssets', { count: hiddenAssets })}
+            </span>
               ) : null}
             </div>
           ) : null}

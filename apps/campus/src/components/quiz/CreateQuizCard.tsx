@@ -31,8 +31,9 @@ function DifficultyLabel() {
   return (
     <span className={styles.controlLabel}>
       <span>Difficulty</span>
-      <button
+      <Button
         ref={infoRef}
+        variant="bare"
         type="button"
         className={styles.infoBtn}
         aria-label="How difficulty affects generated questions"
@@ -42,7 +43,7 @@ function DifficultyLabel() {
         onBlur={() => setTipOpen(false)}
       >
         <CircleHelp size={14} aria-hidden />
-      </button>
+      </Button>
       <Tooltip
         open={tipOpen}
         targetEl={infoRef.current}
@@ -107,7 +108,10 @@ export function CreateQuizCard({
   };
 
   return (
-    <div className={[styles.card, className].filter(Boolean).join(' ')}>
+    <div
+      className={[styles.card, className].filter(Boolean).join(' ')}
+      data-tour-anchor="quiz-generate"
+    >
       <div className={styles.header}>
         <div className={styles.icon} aria-hidden>
           <Sparkles size={20} />
@@ -156,22 +160,18 @@ export function CreateQuizCard({
         </label>
 
         <div className={styles.options}>
-          <label className={styles.checkbox}>
-            <Field
-              as="checkbox"
-              checked={includeIrregularVerbDrills}
-              onChange={(event) => setIncludeIrregularVerbDrills(event.target.checked)}
-            />
-            <span>Include irregular verb drills (past / past participle)</span>
-          </label>
-          <label className={styles.checkbox}>
-            <Field
-              as="checkbox"
-              checked={mistakesOnly}
-              onChange={(event) => setMistakesOnly(event.target.checked)}
-            />
-            <span>Only words marked for mistakes work</span>
-          </label>
+          <Field
+            as="checkbox"
+            checked={includeIrregularVerbDrills}
+            onChange={(event) => setIncludeIrregularVerbDrills(event.target.checked)}
+            label="Include irregular verb drills (past / past participle)"
+          />
+          <Field
+            as="checkbox"
+            checked={mistakesOnly}
+            onChange={(event) => setMistakesOnly(event.target.checked)}
+            label="Only words marked for mistakes work"
+          />
         </div>
 
         <div className={styles.row}>

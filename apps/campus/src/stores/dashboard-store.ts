@@ -127,6 +127,6 @@ export const useDashboardStore = create<DashboardState>()(
       },
 
     }),
-    { name: 'soenglish/dashboard' },
+    { name: 'arvilio/dashboard' },
   ),
 );

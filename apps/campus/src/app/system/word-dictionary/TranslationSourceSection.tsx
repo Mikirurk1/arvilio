@@ -1,8 +1,10 @@
 'use client';
 
 import { ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '../../../components/ui';
 import type { TranslationProviderId, TranslationSettingsDto } from '@pkg/types';
+import { useCampusT } from '../../../lib/cms';
 import { SubscriptionBadge } from './word-dictionary-ui';
 import styles from '../WordDictionaryPanel.module.scss';
 
@@ -17,11 +19,13 @@ interface Props {
 }
 
 export function TranslationSourceSection({ translationSettings, selectedProvider, setSelectedProvider, saving, dirty, feedback, onSave }: Props) {
+  const t = useCampusT();
+
   return (
     <section className={styles.panel} aria-labelledby="translation-source-heading">
       <div className={styles.panelHead}>
-        <h2 id="translation-source-heading" className={styles.panelTitle}>Translation source</h2>
-        <p className={styles.panelBlurb}>Primary translation provider; others follow in fixed fallback order when a request fails.</p>
+        <h2 id="translation-source-heading" className={styles.panelTitle}>{t('system.dictionary.source.translation.title')}</h2>
+        <p className={styles.panelBlurb}>{t('system.dictionary.source.translation.blurb')}</p>
       </div>
       <div className={styles.panelBody}>
         <div className={styles.providerList}>
@@ -34,20 +38,20 @@ export function TranslationSourceSection({ translationSettings, selectedProvider
                 <div className={styles.providerBody}>
                   <div className={styles.providerTitleRow}>
                     <span className={styles.providerName}>{provider.name}</span>
-                    {isActive ? <span className={styles.providerBadge}>Active</span> : null}
+                    {isActive ? <span className={styles.providerBadge}>{t('system.dictionary.badge.active')}</span> : null}
                     {provider.requiresServiceSubscription ? <SubscriptionBadge /> : null}
                   </div>
                   <p className={styles.providerDesc}>{provider.description}</p>
-                  <a href={provider.docsUrl} target="_blank" rel="noopener noreferrer" className={styles.providerLink} onClick={(e) => e.stopPropagation()}>
-                    Documentation<ExternalLink size={12} aria-hidden />
-                  </a>
+                  <Link href={provider.docsUrl} target="_blank" rel="noopener noreferrer" className={styles.providerLink} onClick={(e) => e.stopPropagation()}>
+                    {t('system.dictionary.link.documentation')}<ExternalLink size={12} aria-hidden />
+                  </Link>
                 </div>
               </label>
             );
           })}
         </div>
         <footer className={styles.panelFooter}>
-          <Button type="button" variant="primary" loading={saving} loadingLabel="Saving…" disabled={!dirty} onClick={onSave}>Save translation provider</Button>
+          <Button type="button" variant="primary" loading={saving} loadingLabel={t('system.dictionary.saving')} disabled={!dirty} onClick={onSave}>{t('system.dictionary.source.translation.save')}</Button>
           {feedback ? <p className={feedback.type === 'error' ? styles.feedbackError : styles.feedbackSuccess} role="status">{feedback.text}</p> : null}
         </footer>
       </div>

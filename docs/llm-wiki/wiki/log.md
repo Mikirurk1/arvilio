@@ -4,6 +4,668 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 ---
 
+## [2026-07-21] update | Chapter auto-advance: mid-steps only + Strict Mode safe
+- **Trigger:** user bug (System click did not advance; Payments tab skipped last tip)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** Auto-advance only non-last chapter steps; last step needs Continue. Timer reschedules after cleanup (Strict Mode). Enter-satisfied still Continue-only.
+
+## [2026-07-21] update | Chapter tab spotlight uses trigger anchors
+- **Trigger:** user bug (Payments tab Try it 2/2 did not point at tab)
+- **Pages:** [[concepts/arvi]], docs/tour-v3-chapters.md
+- **Notes:** `adm-ch-payments-tab` → `system-tab-payments-trigger`; `tea-ch-video-connections` → `profile-connections-tab`. Detect still waits for panel.
+
+## [2026-07-21] update | Chapter auto-advance rising edge only
+- **Trigger:** user bug (action tour last tip flew past)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** Auto-advance only when detect becomes true mid-step; already-true on enter (selector) waits for Continue.
+
+## [2026-07-21] update | Tour scroll-into-view for spotlight
+- **Trigger:** user request (tour needs scroll to targets)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** `scrollTourTargetIntoView` on step change; remasure after settle / `scrollend`. Respects reduced motion.
+
+## [2026-07-21] update | Prefer Next Link over raw anchors
+- **Trigger:** user request (convert `<a>` → Link where safe)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** Hub CTAs, docs, materials/chat opens (`target=_blank`), skip link → Link. Kept `<a>` for Google OAuth (Nest rewrite / RSC), mailto, download.
+
+## [2026-07-21] update | Tour advances after nav click
+- **Trigger:** user request (click Practice → next tour stage)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** Level A `resolveLevelAIndexAfterNavigation`; chapter soft detect auto-advances after ~400ms.
+
+## [2026-07-21] update | Practice hub Link (no hard nav to Vocabulary)
+- **Trigger:** user bug (Vocabulary click remounted everything; other pages only swapped content)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** `PracticeActivitiesGrid` used raw `<a href>` → full reload. Switched to Next `Link` like sidebar.
+
+## [2026-07-21] update | No soft-nav; Arvi parked not unmounted
+- **Trigger:** user bug (Vocabulary remounted everything + Arvi timer)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** Disabled tour soft-nav. `GlobalArviSlot` uses CSS `parked` when tour hides corner (same as chat) so WebGL stays warm.
+
+## [2026-07-21] update | Tour cursor persist + Skip to actions
+- **Trigger:** user bug (Vocabulary restarted full tour) + request Skip to actions
+- **Pages:** [[concepts/arvi]]
+- **Notes:** Session cursor + gate blocks first-words hijack. `Skip to actions` jumps to chapter hub. Catalog `tour.skipToActions`.
+
+## [2026-07-21] update | Chapter Add words: spotlight click, no auto-nav
+- **Trigger:** user request (no auto-redirect; move tour card to click target)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** Chapters never soft-nav. Shared vocab: Practice nav → Vocabulary card → Add word. `measureTourTarget` falls back to nav when anchor hidden.
+
+## [2026-07-21] update | Chapter soft-nav opens Vocabulary
+- **Trigger:** user bug (Try it Add words did not open Vocabulary)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** Chapter steps soft-nav on `navHref` like Level A; quest pathname detect strips locale.
+
+## [2026-07-21] update | Product tour walks every Help section
+- **Trigger:** user note (tour flew past pages without section tips)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** `getFullProductTourSteps` = welcome + full Help catalog page-by-page + done for first-login/Replay. Header `?` remains page-scoped.
+
+## [YYYY-MM-DD] <operation> | Title`
+
+---
+
+## [2026-07-21] update | Full admin Replay + shared vocab lookup chapter
+- **Trigger:** user bug (Replay showed 4 steps + redirect every click)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** `super_admin` → full `admin` track in Campus. Soft-nav uses `replace`. Shared chapter `shared-ch-vocab-add` (dictionary autofill events from `VocabularyAddWordBar`).
+
+## [2026-07-20] update | First-login full tour = Replay + soft auto-nav
+- **Trigger:** user request (plan: full first-login tour)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** `beginFullProductTour()` shared by first login + Profile Replay. Level A soft-nav via `shouldSoftNavTourStep`; chapters keep pathname try-its as user clicks. TZ principle 11 updated.
+
+## [2026-07-20] update | Replay tour returns to dashboard
+- **Trigger:** user bug (Replay showed page tips on Profile)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** Profile → Account → Replay now clears chapters, opens Level A from step 0, and `router.push` `/dashboard` so dashboard anchors work. Learning-mode catalog copy clarifies Header `?` = page Help, not full Replay.
+
+## [2026-07-20] update | Campus AI assistant tab UI polish
+- **Trigger:** user note (providers + restyle System AI tab)
+- **Pages:** [[concepts/arvi-assistant]]
+- **Notes:** `LlmAssistantPanel` restyled (runtime bar, platform defaults grid, provider cards). Catalog strings for source/status/hints. Still two adapters: `openai_compat` + `anthropic`; other vendors usually map to compat.
+
+## [2026-07-20] update | Platform default LLM + Campus Pro override
+- **Trigger:** user note (Platform defaults; Campus Pro personal model)
+- **Pages:** [[concepts/arvi-assistant]]
+- **Notes:** Control Plane `GET/PUT /api/platform/llm` + Settings UI. Campus System `/api/system/llm` stores `School.integration*.llm` with `overrideEnabled`. Runtime: school → platform → env via `LlmSettingsService` / `LlmProviderResolver`.
+
+## [2026-07-20] update | Arvi multi-instance GLB clone
+- **Trigger:** debug (user: Arvi vanishes when shown in two places)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** `MascotModel` now `SkeletonUtils.clone`s the cached `useGLTF` scene per Canvas. Chat no longer toggles shared `slotVisible` (tour-owned); corner hides via chat `open` only.
+
+## [2026-07-20] update | Arvi AI Assistant MVP
+- **Trigger:** code change
+- **Pages:** [[concepts/arvi-assistant]], [[concepts/arvi]], [[wiki/index]]
+- **Notes:** New `@be/assistant` — OpenAI-compatible + Anthropic providers, PlatformSettings `llm` config/secrets, role-scoped FTS corpus, academic refusal, SSE `/api/assistant/chat`, clickable GlobalArviSlot + ArviChatPanel, System → AI assistant tab. Gate: `aiAssist` (Pro).
+
+## [2026-07-20] update | Help + firstWords in Payload tours
+- **Trigger:** user note (Help must be Payload + MP3)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** Seeded `helpStudent` (53) / `helpTeacher` (58) / `helpAdmin` (76) / `firstWords` (2) into `campus-tours`. ProductTour dual-fetches + `mergeTourCopy` for Help/first-words voice. Sync via `scripts/sync-campus-tour-seed.ts`. Attach MP3: Campus → Tour audio → step Voice.
+
+## [2026-07-20] update | Help cross-role browser smoke
+- **Trigger:** debug (user: verify other pages / all roles)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** agent-browser smoke admin/teacher/student on dashboard, practice, `/practice/vocabulary`, `/practice/quiz`, calendar, chat, lessons, role pages. All `data-tour-mode=help`, `nearNav=false`, spotlights on page. Catalog matrix + visible-anchor counts OK; no new path-alias bugs.
+
+## [2026-07-20] update | Vocab Help aliases + Play + first words
+- **Trigger:** code change (plan: vocab path modes)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** `/practice/vocabulary` aliased to vocab Help (was wrongly Practice hub → nav spotlight). Visible-anchor filter for list vs Play phases. New play/list anchors. One-shot empty-deck first-words guide (`arvi.vocabFirstWordsGuide`).
+
+## [2026-07-20] update | Practice Help for all roles
+- **Trigger:** user note (super_admin Practice = 1 tip)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** Expanded admin + teacher Help for `/practice` + vocab/quiz/speaking/irregular (staff copy). `super_admin` uses admin catalog. `filterHelpStepsForPage` longest-navHref so nested pages don’t walk the whole hub. TZ matrix 4.4 → 12/13/13.
+
+## [2026-07-20] update | Help filter + admin dash 9 tips
+- **Trigger:** user note (“still only 2 steps”)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** `1/2` = Level A admin map on dashboard (`adm-dashboard` + `adm-entitlements`). Help uses `filterHelpStepsForPage` + expanded `help-adm-dash-*` (≈9); progress “Довідка N/M”; no cross-route chrome anchors. Verified live: Help `data-tour-mode=help` → School pulse 1/9.
+
+## [2026-07-20] update | Help covers vocabulary + practice submodes
+- **Trigger:** code change (user: cover vocabulary and nested practice pages)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** Anchors + Help steps for `/vocabulary` (mode/stats/add), `/quiz` (hero, generate), speaking-record, irregular-play; student billing/chat; staff compensation/detail; dash irregular verb. TZ §4.13 + coverage matrix updated.
+
+## [2026-07-20] update | Help encyclopedia DOM anchors
+- **Trigger:** code change
+- **Pages:** [[concepts/arvi]]
+- **Notes:** Wired missing `data-tour-anchor` for Help spotlights — dashboard (stats/today/week/review/word/streak/students/month), lessons list + highlights, lesson plan/homework/join-video, calendar toolbar/grid, chat inbox/composer/create-group, students-list, materials-grid/viewer, profile tabs, billing usage/promo, finance overview/defaults, admin-import/seats-hint.
+
+## [2026-07-20] update | Help encyclopedia §4.13 + getHelpSteps
+- **Trigger:** code change (1B plan)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** TZ §4.13 full EN Help catalogs; `help-*.ts` + `getHelpSteps`; Header `?` filters by page (not Level A). Stage 8.
+
+## [2026-07-20] update | Header ? always full Level A from step 1
+- **Trigger:** user note (dashboard showed only 2 tips)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** Removed pathname start/filter; `?` walks entire Level A (admin map for super_admin) from welcome.
+
+## [2026-07-20] update | Header ? shows full Level A
+- **Trigger:** user note (too few steps)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** Help no longer filters to page-only subset; walks full Level A (admin map for super_admin). May start at current page/modal step.
+
+## [2026-07-20] update | Contextual help for super_admin uses admin map
+- **Trigger:** debug (empty tips on all school pages)
+- **Pages:** [[concepts/arvi]]
+- **Notes:** User was on `adminPlatform` Level A (only `/system`+`/billing`). Header `?` now filters school `admin` steps for `super_admin`.
+
+## [2026-07-20] update | Learning mode + Header contextual help
+- **Trigger:** code change
+- **Pages:** [[concepts/arvi]]
+- **Notes:** `arvi.learningMode` + Profile toggle; Header `?` → contextual Level A subset (`tour-context.ts`); no tour reset/complete. Help ≠ full Replay.
+
+## [2026-07-20] update | Full CAMPUS_TOUR_SEED sync
+- **Trigger:** user note (Payload showed only 3 stub steps)
+- **Pages:** [[concepts/payload-cms]], [[concepts/arvi]]
+- **Notes:** Seed was intentionally minimal; DB also stale (en-only, wrong teacher ids). Now Level A + chapters synced via `scripts/sync-campus-tour-seed.ts` → `campus-tour-seed.ts`; re-seeded. UK bodies use `uaIntent` placeholders until edited in CMS.
+
+## [2026-07-20] update | Payload tour step voice (MP3)
+- **Trigger:** user note
+- **Pages:** [[concepts/payload-cms]], [[concepts/arvi]]
+- **Notes:** Collection `campus-tour-audio`; localized `voice` on `campus-tours` steps; Campus `depth=1` + `mergeTourCopy` → `voiceSrc`. Migrate: `npm run migrate:tour-audio -w @app/cms`.
+
+## [2026-07-20] update | Wizard W7 sample demo lesson
+- **Trigger:** code change
+- **Pages:** [[concepts/onboarding]]
+- **Notes:** Sample seed creates planned lesson + demo student (`.invalid` email, no welcome mail) or reuses roster; seat-gated via EntitlementsService.
+
+## [2026-07-19] update | Wizard W6 teaching prefs System UI
+- **Trigger:** code change
+- **Pages:** [[concepts/onboarding]]
+- **Notes:** `SchoolTeachingPrefsService` + `/school/teaching-prefs`; System → General Teaching section. Demo scheduled lesson still deferred.
+
+## [2026-07-19] update | Wizard W5 teachingPrefs + sample quiz
+- **Trigger:** code change
+- **Pages:** [[concepts/onboarding]]
+- **Notes:** `School.teachingPrefs` migration; teaching step writes it; sample seed adds 1 quiz beside materials. Scheduled demo lesson still deferred (needs student).
+
+## [2026-07-19] update | School wizard W1–W3 side-effects + honesty
+- **Trigger:** code change
+- **Pages:** [[concepts/onboarding]]
+- **Notes:** Profile applies brand/locale/admin timezone; invite BadRequest if unverified; sample/payments copy truthful; payments+profile unit tests. Workplan `docs/campus-wizard-workplan.md`.
+
+## [2026-07-19] update | Tour v3.1 chapter replay from hub
+- **Trigger:** user note
+- **Pages:** [[concepts/arvi]]
+- **Notes:** Hub Replay for done/skipped chapters; `clearChapterStatus`; analytics `tour_chapter_replayed`; E2E teacher. Workplan Phase 7.7.
+
+## [2026-07-19] update | Tour v3 docs + soft-click fix
+- **Trigger:** user note + code
+- **Pages:** [[concepts/arvi]]
+- **Notes:** Expanded TZ chapter catalogs; workplan `docs/tour-v3-chapters.md`. Overlay `pointer-events: none` so soft chapters can click the app; E2E UC10 soft-complete First lesson.
+
+## [2026-07-19] update | Tour v3 docs encyclopedia + workplan
+- **Trigger:** user note
+- **Pages:** [[concepts/arvi]]
+- **Notes:** Expanded TZ §5.4/6.4/7.5 chapter catalogs; Stage 7 sub-phases; `docs/tour-v3-chapters.md` as phased checklist. Open: E2E soft-complete First lesson (7.5a).
+
+## [2026-07-19] update | Tour v3 chapters + soft scenarios
+- **Trigger:** code change
+- **Pages:** [[concepts/arvi]]
+- **Notes:** Level A map → chapter hub → soft scenario chapters per role (`*-chapters.ts`, `getTourChapters`). Soft detects only; localStorage chapter progress; `tour_chapter_*` analytics. TZ Stage 7. E2E hub flows in `specs/tour/*`.
+
+## [2026-07-19] update | Dashboard quick-action badges for vocab + quizzes
+- **Trigger:** user note
+- **Pages:** (dashboard widgets)
+- **Notes:** Student dashboard quick actions now badge Vocabulary (`vocabPending`) and Quizzes (`incompleteQuizzes`) the same way as Practice/Chat (hide when 0). Counts from `usePracticePendingCounts`.
+
+## [2026-07-19] update | Campus Content admin tabs
+- **Trigger:** user note
+- **Pages:** [[concepts/payload-cms]]
+- **Notes:** Kept collection name Content (not Hub Pages). Tabs: Page · Strings · SEO — same IA as campus-global / products. Field names unchanged; no migrate.
+
+## [2026-07-19] update | SEO Phase 6 crawl hygiene
+- **Trigger:** code change
+- **Pages:** [[concepts/payload-cms]]
+- **Notes:** Seed Hub redirects; `seo:smoke` checks all sitemap locs (+ optional Campus); `matchRedirect` unit tests; IndexNow skipped. Runbook `docs/runbooks/seo-phase6-crawl-redirects.md`. Ops: quarterly crawl. Media `imageSizes` columns added to `migrate:seo`.
+
+## [2026-07-19] update | SEO Phase 5 CWV code readiness
+- **Trigger:** code change
+- **Pages:** [[concepts/payload-cms]]
+- **Notes:** Hub `next/font` (no Google CSS), `CmsLogo` for CLS, CMS `Cache-Control` + Media `imageSizes`, Campus login `priority`. Runbook `docs/runbooks/seo-phase5-cwv.md`. Local Lighthouse CLS=0; LCP noisy in `next dev`. Ops: PSI on production.
+
+## [2026-07-19] update | SEO Phase 4 editor UX + breadcrumbs
+- **Trigger:** code change
+- **Pages:** [[concepts/payload-cms]]
+- **Notes:** Skipped `@payloadcms/plugin-seo`; added SERP `maxLength` + editor checklist on SEO fields; Hub emits BreadcrumbList JSON-LD on pricing/campus/connect/legal. Next: Phase 5 CWV or GSC ops.
+
+## [2026-07-19] update | SEO Phase 3 Campus crawl surface
+- **Trigger:** code change
+- **Pages:** [[concepts/payload-cms]], [[synthesis/tech-stack]]
+- **Notes:** Campus `robots.txt` + `sitemap.xml` (public URLs only); auth pages `generateMetadata`; `proxy.ts` bypass so crawl files are not redirected to `/login`. Roadmap Phase 3 code checked; ops GSC still open. Next: Phase 4 editor UX.
+
+## [2026-07-19] update | SEO Phase 2 Hub content seed
+- **Trigger:** code change
+- **Pages:** (roadmap doc)
+- **Notes:** Hub `seed` now writes full document SEO (canonical, jsonLd, sitemap, breadcrumbs) for pages/products; generates `arvilio-og-default.png` for brand-kit; Hub emits absolute hreflang. Next roadmap phase: Campus robots/sitemap.
+
+## [2026-07-19] update | SEO Phase 1 code readiness
+- **Trigger:** code change
+- **Pages:** `concepts/payload-cms.md` (roadmap link already)
+- **Notes:** Phase 1 runbook `docs/runbooks/seo-phase1-search-console.md`, `scripts/seo-smoke.mjs`, Hub `robots.txt` route with `robotsTxtExtra`, Campus root/auth emit GSC verification from Global SEO. Ops GSC verify still manual on HTTPS hosts.
+
+## [2026-07-19] update | SEO roadmap doc
+- **Trigger:** user note
+- **Pages:** `concepts/payload-cms.md`
+- **Notes:** Added [`docs/arvilio-seo-roadmap.md`](../../../arvilio-seo-roadmap.md) — phased plan (Phase 0 done; next GSC/validators, then Campus robots/sitemap, editor UX, CWV).
+
+## [2026-07-19] update | Campus SEO seeded (Global + Content)
+- **Trigger:** code change
+- **Pages:** `concepts/payload-cms.md` (runtime already documented)
+- **Notes:** `seed:campus-ui` now fills Campus Global SEO (uk/en) and per-Content SEO: public routes (privacy, legal, auth, status) get titles/descriptions/canonical; authenticated chrome docs get `noIndex`.
+
+## [2026-07-19] update | Full Payload SEO catalog implemented
+- **Trigger:** code change
+- **Pages:** `concepts/payload-cms.md`, `synthesis/tech-stack.md`
+- **Notes:** Extended site-settings SEO (`publicBaseUrl`, Twitter card, Facebook App ID, robots disallow, sitemap toggle, JSON-LD flags). Document SEO: twitterImage, sitemap fields, jsonLdType, breadcrumbLabel; pages FAQ items. Collection `redirects`. Hub `robots.ts` / `sitemap.ts` / middleware redirects / absolute canonical / Org+WebSite JSON-LD. Campus Global GSC/Bing + `buildCampusPublicMetadata` on privacy/legal. Migrate: `npm run migrate:seo -w @app/cms`.
+
+## [2026-07-19] update | Payload SEO model organized
+- **Trigger:** code change
+- **Pages:** `concepts/payload-cms.md`
+- **Notes:** Shared `payload/fields/seo.ts`. Hub `site-settings` SEO tab (siteName, titleTemplate, default description, Twitter, robots, GSC/Bing). Document SEO on pages/products/campus-content (`canonicalPath`, `noIndex`, `noFollow`). Campus Global SEO tab for public Campus defaults. Hub `buildHubMetadata` + locale layout title template. Migrate: `npm run migrate:seo -w @app/cms`.
+
+## [2026-07-19] update | CMS admin: Company renamed to Hub
+- **Trigger:** code change
+- **Pages:** `concepts/payload-cms.md`, `synthesis/tech-stack.md`
+- **Notes:** Admin group **Company** → **Hub** (`brand-kit`, `site-settings`, `products`, `pages`). Removed stub `hub-prep`. **Connect** still has prep Overview only.
+
+## [2026-07-19] update | CMS admin: Shared + Connect/Hub prep groups
+- **Trigger:** code change
+- **Pages:** `concepts/payload-cms.md`, `synthesis/tech-stack.md`
+- **Notes:** Moved `users` + `media` to admin group **Shared** (cross-brand). Added placeholder globals `connect-prep` / `hub-prep` so **Connect** and **Hub** groups appear in cms-admin before real content.
+
+## [2026-07-19] update | Campus Content by page + Global
+- **Trigger:** code change
+- **Pages:** `concepts/payload-cms.md`, `concepts/campus-i18n.md`, `concepts/web-app.md`, `synthesis/tech-stack.md`
+- **Notes:** Replaced 8× `campus-strings-*` + `campus-pages` with `campus-content` (per-page) + global `campus-global`. Placement via `campusContentPlacementFromKey`. Runtime merges Global + Content strings; `getCampusPage` reads `campus-content`. Migrated via `migrate:campus-content`; backfilled tour **uk** locales (admin looked empty when locale=UK). Seed updated.
+- **Follow-up:** Admin docs failed to load body because `payload_locked_documents_rels.campus_content_id` was missing after manual schema create; column + FK added.
+
+## [2026-07-19] update | Split campus-strings into 8 domain buckets
+- **Trigger:** code change
+- **Pages:** `concepts/payload-cms.md`, `concepts/campus-i18n.md`, `concepts/web-app.md`, `synthesis/tech-stack.md`
+- **Notes:** Replaced monolithic `campus-strings` with 8 collections (`campus-strings-chrome` … `campus-strings-system`) under admin group Campus. Shared map in `@pkg/types` `campus-string-buckets` (`campusStringBucketFromKey`). Migrated 2155 rows via `migrate:campus-strings-split`; seed routes by bucket. Campus `getCampusStringMap` parallel-paginates all buckets (fixes prior `limit=1000` truncation). Payload `push` opt-in via `PAYLOAD_PUSH=true` to avoid interactive Drizzle hangs.
+
+## [2026-07-19] update | Payload admin by brand + per-product brand/SEO
+- **Trigger:** code change
+- **Pages:** `concepts/payload-cms.md`
+- **Notes:** Admin groups **Company** / **Campus** (Connect reserved). `campus-nav` labeled Nav under Campus (no orphan). `products` Brand tab (`logo`, `logoOnDark`, colors, `icon`) + SEO tab (`ogImage`); `pages` SEO collapsible + `ogImage`. Hub resolves media/OG + product landing tint; seed sets campus/connect hex colors. Plan doc §5.0–5.3 updated.
+
+## [2026-07-17] update | School-scoped UI locale (default + enabled list)
+- **Trigger:** code change
+- **Pages:** `concepts/campus-i18n.md`
+- **Notes:** Added `School.enabledLocales String[]` (migration `20260717130000_add_school_enabled_locales`); new `sanitizeEnabledLocales`/`resolveSchoolDefaultLocale`/`clampLocaleToEnabled` in `@pkg/types` `locale.ts`. New `SchoolLocaleController`/`Service` (`GET`/`PATCH /school/locale`, admin gate). Session resolver clamps locale to school enabled set and returns `WebRequestSessionDto.enabledLocales`. Proxy honors backend-resolved locale on bare URL + no cookie for authed users. New `LanguagesSection` in System → General + `useSchoolLocales()` hook; `LocaleSwitcher` self-sources enabled set. Catalog `system.general.languages.*` seeded to CMS.
+- **Follow-up:** Bare-URL auto-redirect now uses `WebRequestSessionDto.preferredLocale` (explicit `User.locale` → `School.defaultLocale` only), **excluding Accept-Language**, so typing `/dashboard` no longer bounces to `/uk` from browser language alone.
+- **Follow-up 2:** Fixed `LocaleSwitcher` not changing the URL when switching **to the default locale**: it now writes the `arvilio_locale` cookie to the chosen locale before `router.replace`, so navigating to the unprefixed path isn't redirected back by the stale cookie. Verified both directions in-browser (uk↔en). Noted pre-existing GraphQL 400 on the best-effort `updateProfile({locale})` call (caught).
+
+## [2026-07-16] update | P2.5 system i18n WAVE 2.5 complete
+- **Trigger:** code change
+- **Pages:** `concepts/campus-i18n.md`
+- **Notes:** Wired remaining `/system` panels: Email, Domains, Word dictionary (+ captions), Staff payout defaults fields; `staffPayFrequencyLabel` + `formatStaffPayDayLabel` accept optional `t`; added `system.payouts.fields.*`, `system.domains.error.*`, `system.payments.pricing.*` catalog keys. Leftovers: PSP field labels in `ProviderConfigSection`, weekday names in payout weekday select, `ProviderSetupGuide` step content from setup-guide data, brand names (Stripe/Zoom).
+
+## [2026-07-16] update | P2.5 system i18n WAVE 3 (payments)
+- **Trigger:** code change
+- **Pages:** `concepts/campus-i18n.md`
+- **Notes:** System → Payments tab panels/modals wired via `system.payments.*`; group billing reuses `students.groups.billing.*` / `students.groups.editor.split*`; currency issues + API errors + formatMoney stay data; Manual invoice UI meta only via `resolvePaymentProviderUiMeta`.
+
+## [2026-07-16] update | P2.5 system i18n WAVE 1
+- **Trigger:** code change
+- **Pages:** `concepts/campus-i18n.md`
+- **Notes:** `/system` shell tabs + overview cards; General (group lessons + video meetings), Branding, Seller & legal, Domains, Payouts defaults panels → `system.*` + `common.*`; reused `staff.compensation.*` for payout mode labels. Email/dictionary/connections/payments tabs deferred to later waves.
+
+## [2026-07-16] update | P2.1 admin i18n
+- **Trigger:** code change
+- **Pages:** `concepts/campus-i18n.md`
+- **Notes:** `/admin` page chrome wired via `admin.*`; users table via `admin.table.*`; CSV import panel via `studentImport.*`. Verified `/uk/admin` after seed. Artifacts: `docs/tmp-i18n-audit/admin/`.
+
+## [2026-07-16] update | P1.3 student detail i18n
+- **Trigger:** code change
+- **Pages:** `concepts/campus-i18n.md`
+- **Notes:** `/students/[id]` shell + tabs → `students.detail.*`; `profile.school.*` for SchoolSection. Billing sub-sections deferred. Artifacts: `docs/tmp-i18n-audit/student-detail/`.
+
+## [2026-07-13] update | P1.2 students list i18n
+- **Trigger:** code change
+- **Pages:** `concepts/campus-i18n.md`
+- **Notes:** `/students` list + cards + groups panel/editor → `students.*` / `students.groups.*`. Status badges via `students.status.*`. Verified UK teacher (list + admin-only groups empty). Detail deferred to P1.3. Artifacts: `docs/tmp-i18n-audit/students/`.
+
+## [2026-07-13] update | P1.1 materials i18n
+- **Trigger:** code change
+- **Pages:** `concepts/campus-i18n.md`, `concepts/materials-library.md`
+- **Notes:** `/materials` list + card + form chrome → `materials.*`. Titles/filenames/tags stay content. Minor leftover: asset role chip fallbacks. Artifacts: `docs/tmp-i18n-audit/materials/`. Next P1.2 `/students`.
+
+## [2026-07-13] update | P0.17 profile i18n
+- **Trigger:** code change
+- **Pages:** `concepts/campus-i18n.md`
+- **Notes:** `/profile` hero/tabs/panels/modals → `profile.*` (+ bio placeholders). Verified UK teacher all tabs. P0.18/19 aliases skipped. Artifacts: `docs/tmp-i18n-audit/profile/`.
+
+## [2026-07-13] update | P0.16 payment i18n
+- **Trigger:** code change
+- **Pages:** `concepts/campus-i18n.md`, `concepts/billing-payments.md`
+- **Notes:** `/payment` balance/packages/checkout/manual transfer/ledger chrome → `payment.*`. Package titles + bank field *values* stay content; provider brand short names stay EN. `buildPaymentMethodStudentMeta(t)` replaces static meta map. Artifacts: `docs/tmp-i18n-audit/payment/`. Next P0.17 `/profile`.
+
+## [2026-07-13] update | P0.15 chat i18n
+- **Trigger:** code change
+- **Pages:** `concepts/campus-i18n.md`
+- **Notes:** `/chat` inbox/thread/composer/DM+group modals/attachment chrome → `chat.*`. Message bodies + peer names stay content. Locale-aware list/weekday times. Artifacts: `docs/tmp-i18n-audit/chat/`. Next P0.16 `/payment`.
+
+## [2026-07-13] update | P0.14 calendar i18n
+- **Trigger:** code change
+- **Pages:** `concepts/campus-i18n.md`
+- **Notes:** `/calendar` chrome + dialogs + LessonModal footer → `calendar.*` / existing `lessonModal.*` / `dashboard.lessonStatus.*`. Locale month title + weekday shorts; event duration via `lessons.durationMin`. Seed titles + names stay content. Artifacts: `docs/tmp-i18n-audit/calendar/`. Next P0.15 `/chat`.
+
+## [2026-07-13] update | P0.13 lesson detail i18n
+- **Trigger:** code change (page-audit plan)
+- **Pages:** [[concepts/campus-i18n]]
+- **Notes:** Lesson detail sidebar/workspace/video/schedule + content-tab hints/vocab/response statuses → `lessonDetail.*` / `lessonModal.*`. Seed titles + names + TZ labels stay content. Artifacts: `docs/tmp-i18n-audit/lesson-detail/`. Next P0.14 `/calendar`.
+
+## [2026-07-13] update | P0.12 lessons list i18n
+- **Trigger:** code change (page-audit plan)
+- **Pages:** [[concepts/campus-i18n]]
+- **Notes:** `/lessons` highlights/KPI/list panel → `lessons.*` (+ `dashboard.lessonStatus.*`). Locale-aware short dates. Seed lesson titles + names stay content. Artifacts: `docs/tmp-i18n-audit/lessons/`. Next P0.13 `/lessons/[lessonId]`.
+
+## [2026-07-13] update | P0.11 irregular verbs i18n
+- **Trigger:** code change (page-audit plan)
+- **Pages:** [[concepts/campus-i18n]]
+- **Notes:** Table/setup/session/result chrome → `irregular.*` (reuses `quiz.result.*` / `quiz.play.correct|notQuite`). Verb forms + Past simple/participle grammar labels stay EN content. Artifacts: `docs/tmp-i18n-audit/practice-irregular-verbs/`. Next P0.12 `/lessons`.
+
+## [2026-07-13] update | P0.10 speaking practice i18n
+- **Trigger:** code change (page-audit plan)
+- **Pages:** [[concepts/campus-i18n]]
+- **Notes:** Speaking page/create form/topic card/review/record/word picker chrome → `speaking.*`. Topic titles/prompts stay API content. Artifacts: `docs/tmp-i18n-audit/practice-speaking/`. Next P0.11 `/practice/irregular-verbs`.
+
+## [2026-07-13] update | P0.9 quiz practice i18n
+- **Trigger:** code change (page-audit plan)
+- **Pages:** [[concepts/campus-i18n]]
+- **Notes:** Quiz overview/cards/play/result → `quiz.*`. Seed titles + category tags stay API. Alias `/quiz` covered. Artifacts: `docs/tmp-i18n-audit/practice-quiz/`. Next P0.10 `/practice/speaking`.
+
+## [2026-07-13] update | P0.8 vocabulary practice i18n
+- **Trigger:** code change (page-audit plan)
+- **Pages:** [[concepts/campus-i18n]]
+- **Notes:** Vocabulary list/flashcard/play chrome → `vocabulary.*`. Seed word text/POS left as content. Alias `/vocabulary` covered. Artifacts: `docs/tmp-i18n-audit/practice-vocabulary/`. Next P0.9 `/practice/quiz`.
+
+## [2026-07-13] update | P0.7 practice hub i18n
+- **Trigger:** code change (page-audit plan)
+- **Pages:** [[concepts/campus-i18n]]
+- **Notes:** Practice hub focus tiles, Stats/Coming soon, week metric labels (id map) + time units. Artifacts: `docs/tmp-i18n-audit/practice/`. Next P0.8 `/practice/vocabulary`.
+
+## [2026-07-13] update | EntitlementsWidget i18n
+- **Trigger:** user note (admin dashboard widget EN leftovers)
+- **Pages:** [[concepts/campus-i18n]]
+- **Notes:** `entitlements.managePlan|storage|students|bytes.*` wired in Campus `EntitlementsWidget`; plan name stays API.
+
+## [2026-07-13] update | P0.6 dashboard i18n chrome
+- **Trigger:** code change (page-audit plan)
+- **Pages:** [[concepts/campus-i18n]]
+- **Notes:** Dashboard hero/tiles/widgets/goals/word/streak/verb + header search → `dashboard.*` / `nav.vocabulary|quizzes` / `header.searchPlaceholder`. Locale-aware dates/times/month titles. Nest goal bodies + seed lesson titles excluded. Artifacts: `docs/tmp-i18n-audit/dashboard/`. Next P0.7 `/practice`.
+
+## [2026-07-13] update | Auth P0.4–P0.5 signup + onboarding i18n
+- **Trigger:** code change (page-audit plan)
+- **Pages:** [[concepts/campus-i18n]]
+- **Notes:** Signup errors + locale links; onboarding step fields/progress/payments notes → `onboarding.*`. PSP brand names kept. Artifacts: `docs/tmp-i18n-audit/signup/`, `onboarding/`.
+
+## [2026-07-13] update | Auth P0.2–P0.3 forgot/reset i18n
+- **Trigger:** code change (page-audit plan)
+- **Pages:** [[concepts/campus-i18n]]
+- **Notes:** Forgot success + send error → `forgot.success*` / `forgot.error.sendFailed`. Reset missing-token, validation errors, back/updating → `reset.*`. Locale-aware auth links. Artifacts: `docs/tmp-i18n-audit/forgot-password/`, `reset-password/`.
+
+## [2026-07-12] update | Locale switcher S1–S2 + login P0.1 audit
+- **Trigger:** code change (campus-i18n-payload-page-audit-plan)
+- **Pages:** [[concepts/campus-i18n]]
+- **Notes:** `LocaleSwitcher` = trigger + listbox; `LOCALE_META` / `resolveSwitcherLocales` in `@pkg/types`. Login: screenshot audit; `login.email` UK → Ел. пошта; Field password toggle labels; locale-aware forgot link. Artifacts: `docs/tmp-i18n-audit/login/`.
+
+## [2026-07-12] update | Campus page-audit + scalable switcher plan
+- **Trigger:** user request (better locale switcher for many languages; page-by-page Playwright→Payload prompts)
+- **Pages:** [[concepts/campus-i18n]]
+- **Artifacts:** `docs/campus-i18n-payload-page-audit-plan.md`
+- **Key changes:** Switcher target = trigger + searchable menu + locale metadata; each stage = one route (screenshot → classify → extract); master agent prompt + P0–P2 page table.
+
+## [2026-07-12] update | Mocks→Payload+API plan complete (A–C)
+- **Trigger:** code change (plan `mocks_to_payload`)
+- **Pages:** [[concepts/payload-cms]], [[concepts/campus-i18n]], [[concepts/web-app]], [[concepts/auth-rbac]], [[concepts/roles-matrix]], [[concepts/achievements]]
+- **Notes:** Privacy/legal via `getCampusPage`; nav via `useCampusNavSections`; tours via `/cms-proxy/tours` + `mergeTourCopy`; P0 `t()` on dashboard/payment/lessons/profile locale; roles in `lib/roles`; zero `mocks/` imports under app/components/features/lib; `useActiveUser` empty shell (no demo seed); seed `npm run seed:campus-ui -w @app/cms`; CMS-down fallbacks OK.
+
+## [2026-07-12] update | Campus Phase B — mocks→lib/API cutover
+- **Trigger:** code change (mocks→Payload/API plan Phase B)
+- **Pages:** [[concepts/web-app]], [[concepts/roles-matrix]], [[concepts/achievements]]
+- **Notes:** Production `app/` + `components/` + `features/` import zero `mocks/` paths. New libs: `lib/achievements.ts`, `lib/stats-range.ts`, `lib/linked-accounts.ts`, `lib/user-models.ts`. Roles/catalog from `@pkg/types` + `lib/roles`. Calendar empty seed; `useAppearanceSettings` owns theme/font persistence. Superseded: active-user no longer reads `mocks/session` (empty shell).
+
+- **Trigger:** code change
+- **Pages:** [[concepts/campus-i18n]]
+- **Notes:** Wired remaining Campus pages/modals to `useCampusT` + `campus-ui-catalog`; deleted `mocks/content/site-content.ts`; practice activities structural mock + `buildLessonModalCopy` / `buildCalendarSeriesCopy`; Profile Account locale switcher (`updateProfile` + `setLocale`).
+
+## [2026-07-11] update | Clearer split-terminal labels (no turbo prefix noise)
+- **Trigger:** user thought all 5 panels were campus (`@app/campus:dev:`)
+- **Pages:** overview (unchanged semantics)
+- **Key changes:** single-app `dev:*` scripts use `npm -w` (no turbo line prefix); task tabs labeled `api :3000` / `campus :4200` / …
+
+## [2026-07-11] update | Prefer Cursor IDE terminals for npm run dev
+- **Trigger:** user — Terminal.app opened outside Cursor
+- **Pages:** `overview.md`
+- **Key changes:** `dev-split.cjs` triggers Cursor Cmd+Shift+B (default build = split tasks); `--external` / `dev:external` for Terminal.app.
+
+## [2026-07-11] update | npm run dev opens separate Terminal windows
+- **Trigger:** user — interleaved turbo logs unreadable
+- **Pages:** `overview.md`
+- **Key changes:** `npm run dev` → `scripts/dev-split.cjs` (macOS Terminal.app per app); `dev:turbo` for old one-stream; Cursor Tasks still preferred for in-IDE panels.
+
+## [2026-07-11] update | Split-terminal VS Code/Cursor tasks for all apps
+- **Trigger:** user request
+- **Pages:** `overview.md`
+- **Key changes:** `.vscode/tasks.json` — `Arvilio: dev (split terminals)` opens dedicated panels for api/campus/platform/hub/cms; `dev core` for campus+api.
+
+## [2026-07-11] update | npm run dev starts all apps
+- **Trigger:** user request
+- **Pages:** `overview.md`, `synthesis/tech-stack.md`
+- **Key changes:** Root `dev` = api+campus+platform+hub+cms; `dev:core` = campus+api for lighter loop.
+
+## [2026-07-11] update | Rename marketing app www → hub
+- **Trigger:** user decision
+- **Pages:** `concepts/payload-cms.md`, `synthesis/tech-stack.md`, `overview.md`, `synthesis/product.md`, marketing plan, ecosystem plan
+- **Key changes:** `apps/www` / `@app/www` → `apps/hub` / `@app/hub`; `dev:hub`; `HUB_ORIGIN` (WWW_ORIGIN deprecated alias).
+
+## [2026-07-11] update | Split company Payload into apps/cms
+- **Trigger:** user decision (Payload must not live inside www)
+- **Pages:** `concepts/payload-cms.md`, `synthesis/tech-stack.md`, `overview.md`, `synthesis/product.md`
+- **Key changes:** `@app/cms` :4410 owns Payload; `@app/www` :4400 is public-only and fetches `CMS_URL/payload-api`; plan/docs updated.
+
+## [2026-07-11] update | apps/www Payload marketing scaffold (Phase B+C)
+- **Trigger:** code change
+- **Pages:** `concepts/payload-cms.md`, `synthesis/tech-stack.md`
+- **Key changes:** New `@app/www` on :4400 with Payload (`brand-kit`, `products`, `pages`, `site-settings`, `media`); schema `payload_www`; `[locale]` routes uk/en; Campus CTA via `NEXT_PUBLIC_CAMPUS_URL`; seed + `dev:www`. *(Superseded same day: Payload moved to `apps/cms`.)*
+
+## [2026-07-11] update | Control Plane Campus plans UI polish
+- **Trigger:** code change
+- **Pages:** `concepts/ui-design-system.md`
+- **Key changes:** Campus plans drops nested Offers panel; default/override cards with plan price preview; theme tokens (`--border` / `--surface-raised`) instead of missing `--border-subtle`.
+
+## [2026-07-11] update | Control Plane rich Dashboard + polish
+- **Trigger:** code change
+- **Pages:** `concepts/multi-tenancy.md`, `concepts/ui-design-system.md`
+- **Key changes:** Enriched `GET /platform/dashboard` (MRR from plan prices, userStats, billingHealth, trialsEndingSoon, recentCampuses, recentAudit); dashboard UI secondary strip + ops panels; campus subscription country merged into Campus panel; `@be/billing/platform-billing` leaf to avoid auth↔billing cycle.
+
+## [2026-07-11] update | Control Plane design v2 (login, cookies, dark)
+- **Trigger:** code change
+- **Pages:** `concepts/auth-rbac.md`, `concepts/ui-design-system.md`, `concepts/multi-tenancy.md`, `concepts/security.md`
+- **Key changes:** Login copy “Sign in” + restricted-admin subtitle (no CLI footer); platform cookies `arvilio_pat`/`arvilio_prt` + middleware; dark theme tokens + boot script + shell toggle; hardcoded hex → tokens; table zebra/hover tokens.
+
+## [2026-07-11] update | Control Plane full-width redesign
+- **Trigger:** user request (platform layout)
+- **Pages:** `concepts/ui-design-system.md`, `concepts/multi-tenancy.md`
+- **Key changes:** Drop main 1100px / Panel 560px caps; Lucide nav + groups + active; PageStack/PageGrid; icons on KPI/headers; campus detail 2-col; “Campus subscription country” copy; full-width rails/plans/settings.
+
+## [2026-07-11] update | Control Plane users + infinite scroll tables
+- **Trigger:** user request (campus people + global users)
+- **Pages:** `concepts/multi-tenancy.md`
+- **Key changes:** `GET /platform/users` + `/users/stats` + `/schools/:id/members`; schools/audit lists return `PlatformPageDto` (cursor). Campus detail: owner/admins/stats + members panel. Nav **Users**. Infinite scroll on Campuses, Users, members, audit.
+
+## [2026-07-11] update | Campuses list search/filter/sort
+- **Trigger:** user request (Control Plane Campuses)
+- **Pages:** `concepts/multi-tenancy.md`
+- **Key changes:** `CampusesTable` client toolbar — search name/slug, filter status + subscription, sort (newest/name/members/status).
+
+## [2026-07-11] update | Field checkbox/radio styled controls
+- **Trigger:** user feedback (ugly native radio/checkbox on Platform)
+- **Pages:** `concepts/ui-design-system.md`
+- **Key changes:** `@fe/ui` Field `as="checkbox"` / `as="radio"` with custom choice styles; Payment rails uses them for Default/On.
+
+## [2026-07-11] update | Ban raw button/select in Campus + Platform
+- **Trigger:** user policy (only design-system controls)
+- **Pages:** `concepts/ui-design-system.md`
+- **Key changes:** Platform + Campus use `Button`/`Field` only; `Button variant="bare"` for custom hit targets; ESLint `no-restricted-syntax` bans JSX `<button>`/`<select>` in apps (primitives stay in `@fe/ui`).
+
+## [2026-07-11] update | Platform imports Button/Field from @fe/ui
+- **Trigger:** user request
+- **Pages:** `concepts/frontend-packages.md` (usage)
+- **Key changes:** Control Plane drops local Button/Field wrappers; editors/login import `@fe/ui` directly; `components/ui` keeps PageHeader/Panel/DataTable only.
+
+## [2026-07-11] update | @fe/ui folder layout (button/field/…)
+- **Trigger:** user request
+- **Pages:** `concepts/frontend-packages.md` (layout note via README; no API change)
+- **Key changes:** `packages/frontend/shared-ui/src/{button,field,advanced-select,date-picker,time-picker,picker}/`
+
+## [2026-07-11] update | Extract Button/Field/AdvancedSelect to @fe/ui
+- **Trigger:** user request (reuse outside Campus / Control Plane)
+- **Pages:** `concepts/frontend-packages.md`, `concepts/ui-design-system.md`
+- **Key changes:** `@fe/ui` owns Button, Field (incl. advancedSelect), pickers + primitives SCSS; Campus/Platform re-export; Next `transpilePackages`.
+
+## [2026-07-10] update | Campus plans empty-state + API rebuild unblock
+- **Trigger:** debug (user saw stale UI; API rebuild failed on TS/`billingCountry`)
+- **Pages:** `concepts/billing-payments.md` (unchanged behavior)
+- **Key changes:** fixed string/`PlatformRailId` typing so `dev:api` rebuilds; Campus plans hides offer form when `availableRails` empty; verified live DTO filters to enabled+configured only (`pricingMode: amount` for LiqPay).
+
+## [2026-07-10] update | Campus plans — coerce rails + per-rail price fields
+- **Trigger:** user feedback (phantom rails + Stripe price ID on UA methods)
+- **Pages:** `concepts/billing-payments.md`
+- **Key changes:** coerce unavailable `railId` to availableRails; `pricingMode` stripe vs amount; UI hides Stripe price ID for non-Stripe rails.
+
+## [2026-07-10] update | Payment rails UX — default, filters, test, campus-plan filter
+- **Trigger:** user feedback (Control Plane Billing)
+- **Pages:** `concepts/billing-payments.md` (light)
+- **Key changes:** default rail on Payment rails; search/market filters; Configured badge + Test connection; Campus plans only lists enabled+configured rails.
+
+## [2026-07-10] update | Control Plane Billing region matrix (ADR-010)
+- **Trigger:** code change (Billing nav + default/country offers)
+- **Pages:** `concepts/billing-payments.md`; ADR-010; `docs/tmp-plans/04-platform-billing-region-matrix.md`
+- **Key changes:** `/billing/rails` + `/billing/campus-plans`; `School.billingCountry` (CP-only); `products.campus_subscription`; offer resolve without IP; Settings = learner allowlist only.
+
+## [2026-07-10] update | Control Plane platform billing rails (ADR-010)
+- **Trigger:** code change (Settings UI for internal payment methods)
+- **Pages:** `concepts/billing-payments.md`; ADR-010; `docs/tmp-plans/03-platform-billing-rails.md`
+- **Key changes:** `GET/PUT /api/platform/billing-rails`; `platformBillingConfig`/`Secrets`; Settings panel “Platform subscription payments”; Stripe resolve DB→env; UA rails catalog (checkout later).
+
+## [2026-07-10] update | Control Plane payment allowlist cards
+- **Trigger:** user feedback (Layer A jargon + checkbox UI)
+- **Pages:** `concepts/billing-payments.md` (light)
+- **Key changes:** Settings copy “Learner payment methods” (no Layer A in UI); allowlist as brand cards with logos.
+
+## [2026-07-10] update | Control Plane login — middleware + API rebuild
+- **Trigger:** debug (login URL `?next=` + failed sign-in)
+- **Pages:** `concepts/auth-rbac.md`
+- **Key changes:** Platform middleware skips `/api/*` and redirects to clean `/login`; fixed `platformLogin` audit metadata typing so Nest rebuild includes `POST /api/auth/platform/login`. Auth is REST (not GraphQL).
+
+## [2026-07-10] update | Control Plane Stage 2 — console restyle
+- **Trigger:** code change (plan Stage 2)
+- **Pages:** `concepts/multi-tenancy.md`; artifact `docs/tmp-plans/02-control-plane-console-restyle.md`
+- **Key changes:** Editorial kit in `apps/platform` (`PageHeader`, `DataTable`, `StatCard`, `StatusBadge`, `Panel`); Campus wording in UI; Connect stubs kept; no Layer B / registry.
+
+## [2026-07-10] update | Control Plane Stage 1 — secure login
+- **Trigger:** code change (plan Stage 1)
+- **Pages:** `concepts/auth-rbac.md`; artifact `docs/tmp-plans/01-control-plane-secure-login.md`
+- **Key changes:** `POST /api/auth/platform/login` (PlatformOperator required, audit, throttle 5/15m); CLI `platform-operator`; `apps/platform` `/login` + middleware + Editorial Field/Button shell. No self-serve recovery.
+
+## [2026-07-10] update | Single root .env (no apps/*/.env)
+- **Trigger:** user confusion (campus symlink vs root .env)
+- **Pages:** `concepts/web-app.md`, `overview.md`; `.env.example`; `scripts/load-root-env.mjs`
+- **Key changes:** Removed `apps/campus/.env` symlink. Campus + Platform `next.config.mjs` call `loadRootEnv()`. API still uses `load-env.ts`. One file at repo root only.
+
+## [2026-07-10] update | Rename apps/web → apps/campus
+- **Trigger:** user request (product naming: Campus vs future Connect)
+- **Pages:** `overview.md`, `concepts/package-aliases.md`; artifact `docs/arvilio-ecosystem-control-plane.md`
+- **Key changes:** Package `@app/campus`; scripts `dev:campus` / `build:campus`; `dev:platform` kept (:4300). Docker/CI image `campus`. Jest project `campus`. Legacy `dev:web` removed.
+
+## [2026-07-10] update | Agent scan — ecosystem docs locked in
+- **Trigger:** user asked to scan docs (esp. `arvilio-ecosystem-control-plane.md`) and remember project rules
+- **Pages:** `synthesis/product.md` (rewrote stale “vision only” → Campus/Connect/Control Plane); `index.md`
+- **Notes:** Companion reads: business-model, multi-tenant-execution-plan, ADR-008/009, PRODUCT/DESIGN, handoff, multi-tenancy wiki. No code.
+
+## [2026-07-10] update | Product names: Campus + Connect
+- **Trigger:** user note (dislike School OS; clarify marketplace; shared User ecosystem)
+- **Pages:** artifact `docs/arvilio-ecosystem-control-plane.md` §1; `docs/business-model.md` §1; UI tag Campus
+- **Key changes:** Locked names — Arvilio / Platform / **Campus** (ops) / **Connect** (matching network = old marketplace+recruiting). One User across products. Rejected: School OS, Marketplace, Tutor Recruiting as product brands.
+
+## [2026-07-10] update | Rebrand SoEnglish → Arvilio (code + docs)
+- **Trigger:** user request (company/platform rename)
+- **Pages:** `concepts/auth-rbac.md`, `concepts/multi-tenancy.md`, `concepts/security.md`, `synthesis/tech-stack.md`; artifact `docs/arvilio-ecosystem-control-plane.md` §8
+- **Key changes:** UI brand Arvilio; cookies `arvilio_at`/`arvilio_rt`; headers `x-arvilio-*`; package name `arvilio`; domain defaults `*.arvilio.app`. Local Postgres credentials/volume remain `soenglish` (data continuity). Folder + GitHub rename left manual.
+
+## [2026-07-10] update | Arvilio ecosystem & Control Plane plan
+- **Trigger:** user note (company Arvilio, multi-product admin, monolith vs split)
+- **Pages:** `concepts/multi-tenancy.md`; artifact `docs/arvilio-ecosystem-control-plane.md`; link from `docs/business-model.md`
+- **Key changes:** Strategic plan — stay modular monolith in monorepo; evolve `apps/platform` into flexible Control Plane (product registry); School OS / Marketplace / Recruiting as modules; extract services only with hard reasons. No code.
+
+## [2026-07-10] update | ProductTour Stage 3 — SFX + mute
+- **Trigger:** code change (onboarding Stage 3 from TZ)
+- **Pages:** `concepts/arvi.md`
+- **Key changes:** `useArviSound` with `localStorage['arvi.sfxMuted']`, reduced-motion default mute; WAV stubs in `public/mascot/sfx/`; Mute control on tour card; play on step enter via pose→sfx default. Fail soft. Next Stage 4 quests.
+
+## [2026-07-10] update | ProductTour Stage 2 — page anchors + groupLessons filter
+- **Trigger:** code change (onboarding Stage 2 from TZ)
+- **Pages:** `concepts/arvi.md`
+- **Key changes:** `TourStep.anchorId` + `measureTourTarget`; DOM `data-tour-anchor` on dashboard/practice/students/payment/chat/materials/lesson-modal; SegmentedControl `dataAttrs` for Groups tab; `getTourSteps` filters `requiresFeature: groupLessons`. No auto-nav. Next Stage 3 SFX.
+
+## [2026-07-10] update | ProductTour — card beside spotlight + Replay + more steps
+- **Trigger:** user feedback (Replay placement, card arrow beside target, too few steps)
+- **Pages:** `concepts/arvi.md`
+- **Key changes:** Card positioned next to `data-tour-nav` with CSS caret (`placeTourCard`); Replay on Profile → Account via `POST /onboarding/tour/reset` + `TOUR_REPLAY_EVENT`; expanded Level A (student ~16, teacher ~13, admin ~15). Stage 2 UI partial; full page anchors still pending.
+
+## [2026-07-10] update | ProductTour Stage 1 — role tracks
+- **Trigger:** code change (onboarding Stage 1)
+- **Pages:** `concepts/arvi.md`
+- **Key changes:** Replaced single `TOUR_STEPS` with `TOUR_TRACKS` (student/teacher/admin/admin_platform); `ProductTour` uses `useActiveRoleKey` + `getTourSteps`; analytics props `track`/`role`/`stepId`; unit tests for forbidden nav targets. No SFX/anchors/quests yet (Stages 2–4).
+
+## [2026-07-10] update | Onboarding journey TZ expanded (per-page surface map)
+- **Trigger:** user feedback — prior TZ too thin; need detail per page / feature
+- **Pages:** `concepts/arvi.md`; artifact `docs/onboarding-journey-tz.md`
+- **Key changes:** Added §4 product surface encyclopedia (dashboard→system tabs, RBAC nav matrix, money layers); student/teacher/admin plots with per-step coachNotes/teaches/empty notes; conditional Groups; anchor inventory; Appendix C copy review. Still docs-only.
+
+## [2026-07-10] update | Role-based Arvi onboarding journey TZ (SPARC Spec)
+- **Trigger:** user request (docs TZ + full plots for all roles; Ruflo/SPARC Specification)
+- **Pages:** `concepts/arvi.md`; artifact `docs/onboarding-journey-tz.md`
+- **Key changes:** SPARC Specification for role tracks (student/teacher/admin), Level A spotlight + Level B quests, EN copy + UA intent, SFX+mute v1 / voice seam Stage 6, implementation stages 0–6 with gates. No code. Handoff linked.
+
+## [2026-07-10] update | Multi-tenant execution plan — CLOSED
+- **Trigger:** user confirm / docs sync
+- **Pages:** `concepts/multi-tenancy.md`, `docs/multi-tenant-execution-plan.md`
+- **Key changes:** Status header marked CLOSED; Phase 4.5.4 Arvi B7 presence noted; remaining `[~]` called out as intentional deferrals (Phase 6, legal G45, pen-test, staging FF, CWV), not open phase work.
+
+## [2026-07-10] update | Google OAuth silent logout — callback on :3000 vs app :4200
+- **Trigger:** debug (user completed Google consent, returned logged out, no error)
+- **Pages:** `concepts/auth-rbac.md`
+- **Key changes:** `PlatformSettings.integrationConfig.google.callbackUrl` was `http://localhost:3000/...` → Nest set `soenglish_at`/`rt` on API host; redirect to `:4200` dropped cookies. Fixed DB + defaults to web origin (`WEB_ORIGIN` / `OAUTH_PUBLIC_BASE_URL`). OAuthAccount for `teriv168@gmail.com` was already upserted. User must add `http://localhost:4200/api/auth/google/callback` in Google Cloud Authorized redirect URIs.
+
+## [2026-07-10] update | Google OAuth login — use plain `<a>`, not Next Link
+- **Trigger:** debug (browser: Failed to fetch RSC payload for `/api/auth/google`)
+- **Pages:** `concepts/auth-rbac.md`
+- **Key changes:** `/login` Google button was `<Link href="/api/auth/google">` — App Router prefetch/RSC fetch fails on Nest rewrite. Switched to `<a>`. Profile link already used `window.location`.
+
+## [2026-07-10] update | B7 Arvi — useArvi / ArviSlot / presence map
+- **Trigger:** code change (feature B7)
+- **Pages:** `concepts/arvi.md` (new), `concepts/multi-tenancy.md`, `concepts/testing.md`, `index.md`
+- **Key changes:** Extended `MascotPose` (+think/encourage/sleep/wave); `ArviProvider`/`useArvi`/`ArviSlot`/`GlobalArviSlot`; wired auth greet, signup celebrate, dashboard greet, vocab/quiz/irregular reactions, empty `showArvi`, 404, logout wave. Tour hides corner slot. Plan B7 ☑; open backlog = CI verify (+ optional screenshots).
+
+## [2026-07-10] update | Full Playwright CI suite — not green
+- **Trigger:** ops / CI verify (`npm run test:e2e`)
+- **Pages:** `concepts/testing.md`
+- **Key changes:** Local full run after `seed:test-users` + `PLAYWRIGHT_SKIP_WEBSERVER=1`: **1658 passed / 160 failed / 135 skipped** (~15m). Auth/public specs without cleared `storageState` fail on student/teacher/admin/mobile (dashboard instead of login). ~40 unique real failures on intended roles (chat mock, vocab/quiz play, materials, billing 11.5/11.6, axe). Plan/handoff backlog: CI verify remains open + B7 Arvi.
+
 ## [2026-06-27] update | G39 — Per-school email sender display name
 - **Trigger:** code change
 - **Pages:** `concepts/notifications.md` (if exists, else inline)
@@ -122,7 +784,7 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 - **Trigger:** code change
 - **Pages:** `concepts/billing-payments.md`
-- **What:** `apps/web/app/billing` — admin-only school subscription page (route-policy `/billing` → admin/super_admin; sidebar "Subscription" nav with Receipt icon). Shows current plan + storage/seats meters (from `GET /api/billing/entitlements`) and a Starter/Pro plan picker that calls `POST /api/billing/subscription/checkout` and redirects to Stripe; `?billing=success|cancelled` banners. `useSearchParams` wrapped in Suspense.
+- **What:** `apps/campus/app/billing` — admin-only school subscription page (route-policy `/billing` → admin/super_admin; sidebar "Subscription" nav with Receipt icon). Shows current plan + storage/seats meters (from `GET /api/billing/entitlements`) and a Starter/Pro plan picker that calls `POST /api/billing/subscription/checkout` and redirects to Stripe; `?billing=success|cancelled` banners. `useSearchParams` wrapped in Suspense.
 - **Tests:** web build OK (route `/billing`); web jest 549/549; typecheck + lint clean.
 
 ---
@@ -151,7 +813,7 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 - **Trigger:** code change
 - **Pages:** `concepts/multi-tenancy.md`
-- **What:** added public dev preview route `apps/web/app/mascot-preview` rendering `<Mascot>` in all poses + sizes, to view Arvi without going through the first-login tour. Added `/mascot-preview` to `PUBLIC_ROUTES`. Shows 2D fallback until `public/mascot/arvi.glb` exists, then the 3D model. Build green; web jest 549/549.
+- **What:** added public dev preview route `apps/campus/app/mascot-preview` rendering `<Mascot>` in all poses + sizes, to view Arvi without going through the first-login tour. Added `/mascot-preview` to `PUBLIC_ROUTES`. Shows 2D fallback until `public/mascot/arvi.glb` exists, then the 3D model. Build green; web jest 549/549.
 
 ---
 
@@ -159,7 +821,7 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 - **Trigger:** build fix
 - **Pages:** none (no durable behavior change; type/build fixes)
-- **What:** `build:web` is green again. Fixed all 17 pre-existing web type errors (build was already red pre-session; `@types/react` unchanged per lockfile diff): role-id typed `UserRoleId` (numeric 1–4) + `lessonFormat` typed `StudentLessonFormat` in the student-detail hooks; polymorphic UI primitives (`SurfaceCard`/`PanelCard`/`StatTile`/`TabPanelCard`/`PageHeader`) switched the dynamic `as`/`ElementType` tag to `createElement` (React-19 types collapsed `children` to `never`); `AnnotationLayer` missing imports (`MaterialPageAnnotation`, `normPoint`) added; `StatisticsDashboardCharts` `studentScope ?? ''`; `LessonSetupTab` uses `LessonPartyOption.fullName`.
+- **What:** `build:campus` is green again. Fixed all 17 pre-existing web type errors (build was already red pre-session; `@types/react` unchanged per lockfile diff): role-id typed `UserRoleId` (numeric 1–4) + `lessonFormat` typed `StudentLessonFormat` in the student-detail hooks; polymorphic UI primitives (`SurfaceCard`/`PanelCard`/`StatTile`/`TabPanelCard`/`PageHeader`) switched the dynamic `as`/`ElementType` tag to `createElement` (React-19 types collapsed `children` to `never`); `AnnotationLayer` missing imports (`MaterialPageAnnotation`, `normPoint`) added; `StatisticsDashboardCharts` `studentScope ?? ''`; `LessonSetupTab` uses `LessonPartyOption.fullName`.
 - **Tests:** web build OK; web jest 549/549; tsc(web)=0; lint clean.
 
 ---
@@ -170,7 +832,7 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 - **Pages:** `concepts/auth-rbac.md`
 - **What:** Next 16.2.x rejects having both `middleware.ts` and `proxy.ts`. Merged the Phase-2 tenant-hint logic (`classifyTenantHost` → `x-school-slug`/`x-school-host`) into `proxy.ts` as `withTenantHint`, deleted `middleware.ts`. `proxy` now also runs on `/api` + `/payload-api` (early-returns with hint headers only — no session/route logic), and the matcher was widened to exclude only `_next/static`/`_next/image`/favicon/static files. App routes fold the hint into the forwarded headers alongside auth headers.
 - **Tests:** web jest 549/549; proxy/tenant-host typecheck+lint clean.
-- **Note:** `build:web` still red on a pre-existing unrelated TS error (`StudentDetailsPage.tsx:160`, role number vs string) — separate task.
+- **Note:** `build:campus` still red on a pre-existing unrelated TS error (`StudentDetailsPage.tsx:160`, role number vs string) — separate task.
 
 ---
 
@@ -178,9 +840,9 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 - **Trigger:** code change
 - **Pages:** `concepts/multi-tenancy.md`
-- **What:** `apps/web/components/mascot/` — `<Mascot pose size>` lazy R3F island (`@react-three/fiber@9` + `drei` + `three`, `next/dynamic` ssr:false; never blocks first paint). Loads `public/mascot/arvi.glb` (`useGLTF`/`useAnimations`), **asset-agnostic**: plays the pose's clip (idle/greet/point/celebrate) → first/idle clip → procedural idle bob. 2D SVG fallback via error boundary when WebGL/motion unavailable or the GLB is missing; render loop pauses on hidden tab. Wired into the product tour (pose per step), replacing the emoji placeholder. **Any `.glb` can be dropped now and swapped later** (see `public/mascot/README.md`). Deps added: three, @react-three/fiber@^9, @react-three/drei@^10, @types/three.
+- **What:** `apps/campus/components/mascot/` — `<Mascot pose size>` lazy R3F island (`@react-three/fiber@9` + `drei` + `three`, `next/dynamic` ssr:false; never blocks first paint). Loads `public/mascot/arvi.glb` (`useGLTF`/`useAnimations`), **asset-agnostic**: plays the pose's clip (idle/greet/point/celebrate) → first/idle clip → procedural idle bob. 2D SVG fallback via error boundary when WebGL/motion unavailable or the GLB is missing; render loop pauses on hidden tab. Wired into the product tour (pose per step), replacing the emoji placeholder. **Any `.glb` can be dropped now and swapped later** (see `public/mascot/README.md`). Deps added: three, @react-three/fiber@^9, @react-three/drei@^10, @types/three.
 - **Tests:** web jest 549/549; typecheck (mascot files) + lint clean.
-- **Known (pre-existing, unrelated):** `build:web` blocked by Next 16.2.x "both middleware.ts and proxy.ts" — needs the Phase-2 middleware hints merged into `proxy.ts`.
+- **Known (pre-existing, unrelated):** `build:campus` blocked by Next 16.2.x "both middleware.ts and proxy.ts" — needs the Phase-2 middleware hints merged into `proxy.ts`.
 
 ---
 
@@ -188,7 +850,7 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 - **Trigger:** user note (product decision)
 - **Pages:** `concepts/multi-tenancy.md`
-- **What:** virtual-assistant mascot persona decided — **Arvi**, a concept-driven "speaker-puff" (embodies voice/sound, not an animal → ownable; suits adults + kids). Round egg-shaped chibi body, big eyes, warm smile, two soundwave/headphone-cushion ears, tiny arms/feet; brand mint-green + white face/belly. Tour poses idle/greet/point/celebrate. 3D asset to be generated in Meshy.ai (prompt + A-pose/Stylized/low-poly/Draco ≤1.5 MB settings in handoff) → `apps/web/public/mascot/arvi.glb`. Render island (@react-three/fiber, lazy, 2D fallback) to be wired when the GLB lands.
+- **What:** virtual-assistant mascot persona decided — **Arvi**, a concept-driven "speaker-puff" (embodies voice/sound, not an animal → ownable; suits adults + kids). Round egg-shaped chibi body, big eyes, warm smile, two soundwave/headphone-cushion ears, tiny arms/feet; brand mint-green + white face/belly. Tour poses idle/greet/point/celebrate. 3D asset to be generated in Meshy.ai (prompt + A-pose/Stylized/low-poly/Draco ≤1.5 MB settings in handoff) → `apps/campus/public/mascot/arvi.glb`. Render island (@react-three/fiber, lazy, 2D fallback) to be wired when the GLB lands.
 
 ---
 
@@ -216,7 +878,7 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 - **Trigger:** code change
 - **Pages:** `concepts/multi-tenancy.md`
-- **What:** `apps/web/components/tour` — `TOUR_STEPS` data-driven config + `ProductTour` overlay (dependency-free). Gated by `GET /api/onboarding/tour`; Next/Back/Skip/Finish → `POST /api/onboarding/tour/complete`. Mounted in root layout for authenticated users. 2D placeholder mascot (`data-mascot`) so the 3D asset can drop in without markup changes.
+- **What:** `apps/campus/components/tour` — `TOUR_STEPS` data-driven config + `ProductTour` overlay (dependency-free). Gated by `GET /api/onboarding/tour`; Next/Back/Skip/Finish → `POST /api/onboarding/tour/complete`. Mounted in root layout for authenticated users. 2D placeholder mascot (`data-mascot`) so the 3D asset can drop in without markup changes.
 - **Remaining (design-gated):** element-anchored highlighting, 3D mascot (persona/visual decision), replay from Help menu.
 
 ---
@@ -243,7 +905,7 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 - **Trigger:** code change
 - **Pages:** `concepts/multi-tenancy.md`
-- **What:** `apps/web/app/onboarding/page.tsx` — 5-step wizard (profile/teaching/payments/invite/sample-content) on `Field`/`Button`/`SurfaceCard`. Loads `GET /api/onboarding`, resumes at the step after `currentStep`, Save&continue → `PATCH /api/onboarding/step`, Skip, Finish → `POST /api/onboarding/complete` → `/dashboard`; redirects to `/dashboard` when already completed. Signup now lands on `/onboarding`.
+- **What:** `apps/campus/app/onboarding/page.tsx` — 5-step wizard (profile/teaching/payments/invite/sample-content) on `Field`/`Button`/`SurfaceCard`. Loads `GET /api/onboarding`, resumes at the step after `currentStep`, Save&continue → `PATCH /api/onboarding/step`, Skip, Finish → `POST /api/onboarding/complete` → `/dashboard`; redirects to `/dashboard` when already completed. Signup now lands on `/onboarding`.
 - **Remaining:** per-step side effects (payments→allowlist, send invites, seed sample content).
 
 ---
@@ -252,7 +914,7 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 - **Trigger:** code change
 - **Pages:** `concepts/multi-tenancy.md`, `concepts/auth-rbac.md`
-- **What:** `WebRequestSessionDto.trial = {trialEndsAt, daysLeft}`, resolved by `AuthSessionService.resolveTrialInfo` (null unless the active school is TRIAL with a `trialEndsAt`; `daysLeft` clamped ≥0). Threaded SSR like the impersonation banner: `proxy.ts` state → `x-soenglish-trial` header → `readRequestAuthState` → `layout.tsx`. `TrialBanner` (`apps/web`) renders the countdown (warning style at 0 / "trial ended").
+- **What:** `WebRequestSessionDto.trial = {trialEndsAt, daysLeft}`, resolved by `AuthSessionService.resolveTrialInfo` (null unless the active school is TRIAL with a `trialEndsAt`; `daysLeft` clamped ≥0). Threaded SSR like the impersonation banner: `proxy.ts` state → `x-soenglish-trial` header → `readRequestAuthState` → `layout.tsx`. `TrialBanner` (`apps/campus`) renders the countdown (warning style at 0 / "trial ended").
 - **Tests:** +9 (resolveTrialInfo unit incl. clamp/ACTIVE-null/no-trialEndsAt; request-session roundtrip; integration: web-session shows trial after signup). unit 1159/1159, integration 93/93.
 
 ---
@@ -326,11 +988,11 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 ---
 
-## [2026-06-25] update | Phase 4D — impersonation banner UI (apps/web)
+## [2026-06-25] update | Phase 4D — impersonation banner UI (apps/campus)
 
 - **Trigger:** code change
 - **Pages:** `concepts/multi-tenancy.md`
-- **What:** `ImpersonationBanner` (`apps/web/src/components/layout/`) renders in the root layout when the session carries an impersonation claim. Threaded server-side: `WebRequestSessionDto.impersonation` → `proxy.ts` `RequestAuthState` → `x-soenglish-impersonation` header (`applyRequestAuthHeaders`) → `readRequestAuthState` → `layout.tsx`. "Stop impersonating" → `apiClient.post('/auth/impersonate/stop')` + reload. Banner lives in the **school** app (impersonation = a school session), not the console.
+- **What:** `ImpersonationBanner` (`apps/campus/src/components/layout/`) renders in the root layout when the session carries an impersonation claim. Threaded server-side: `WebRequestSessionDto.impersonation` → `proxy.ts` `RequestAuthState` → `x-soenglish-impersonation` header (`applyRequestAuthHeaders`) → `readRequestAuthState` → `layout.tsx`. "Stop impersonating" → `apiClient.post('/auth/impersonate/stop')` + reload. Banner lives in the **school** app (impersonation = a school session), not the console.
 - **Tests:** request-session roundtrip updated; unit 1125/1125.
 
 ---
@@ -381,7 +1043,7 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 - **Trigger:** code change
 - **Pages:** concepts/cms (globals added alongside PageContent collection)
-- Added 5 Payload globals: `dashboard-content`, `practice-content`, `quiz-content`, `calendar-content`, `profile-content` in `apps/web/payload/globals/`
+- Added 5 Payload globals: `dashboard-content`, `practice-content`, `quiz-content`, `calendar-content`, `profile-content` in `apps/campus/payload/globals/`
 - Registered globals in `payload.config.ts`
 - Added `getDashboardContent`, `getPracticeContent`, `getQuizContent`, `getCalendarContent`, `getProfileContent` helpers in `src/lib/cms/payload.ts` and re-exported from `index.ts`
 - Rewrote `payload/seed.ts` to seed globals via `updateGlobal` using values from `site-content.ts`; legacy `page-content` collection seed preserved
@@ -499,12 +1161,12 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 ## [2026-05-26] update | Restore request-time auth on Next 16
 - **Trigger:** debug + code change
 - **Pages:** `concepts/auth-rbac`, `concepts/web-app`, `synthesis/architecture`, `log.md`
-- **Notes:** anonymous users could still load protected routes like `/dashboard` because the request-time auth gate lived in the deprecated/wrong file path for the current Next 16 `src/app` setup. Moved the guard to `apps/web/src/proxy.ts`, restarted dev, and verified `/dashboard` now redirects to `/login` while public auth routes stay accessible.
+- **Notes:** anonymous users could still load protected routes like `/dashboard` because the request-time auth gate lived in the deprecated/wrong file path for the current Next 16 `src/app` setup. Moved the guard to `apps/campus/src/proxy.ts`, restarted dev, and verified `/dashboard` now redirects to `/login` while public auth routes stay accessible.
 
 ## [2026-05-26] update | Password field visibility toggle
 - **Trigger:** code change
 - **Pages:** `concepts/auth-rbac`, `concepts/ui-design-system`, `log.md`
-- **Notes:** confirmed password reset links stay valid for 60 minutes and each new forgot-password request replaces older reset tokens for that user. Added a shared password visibility eye-toggle to `apps/web/src/components/ui/Field.tsx`, so login, reset-password, profile, and other password-backed forms can reveal or hide the current value without duplicating per-page logic.
+- **Notes:** confirmed password reset links stay valid for 60 minutes and each new forgot-password request replaces older reset tokens for that user. Added a shared password visibility eye-toggle to `apps/campus/src/components/ui/Field.tsx`, so login, reset-password, profile, and other password-backed forms can reveal or hide the current value without duplicating per-page logic.
 
 ## [2026-05-26] update | Richer manual invoice templates
 - **Trigger:** code change
@@ -629,7 +1291,7 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 ## [2026-05-26] update | Request-time middleware auth architecture
 - **Trigger:** code change
 - **Pages:** `concepts/auth-rbac`, `synthesis/architecture`, `log.md`
-- **Notes:** added `apps/web/middleware.ts` to own public/protected auth routing before render, introduced backend `GET /api/auth/web-session` as a non-mutating session snapshot for middleware/server layouts, moved shell selection into request-time layout state, demoted `AuthGate`/client bootstrap from redirect ownership to UI-only session cache, and added future-ready `scope` / `tenantKey` seams for later platform-vs-school routing.
+- **Notes:** added `apps/campus/middleware.ts` to own public/protected auth routing before render, introduced backend `GET /api/auth/web-session` as a non-mutating session snapshot for middleware/server layouts, moved shell selection into request-time layout state, demoted `AuthGate`/client bootstrap from redirect ownership to UI-only session cache, and added future-ready `scope` / `tenantKey` seams for later platform-vs-school routing.
 
 ## [2026-05-26] update | Cursor rule for future multi-tenant architecture
 - **Trigger:** user request
@@ -879,7 +1541,7 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 ## [2026-05-24] update | Web IDE @pkg/types resolution
 - **Trigger:** Problems panel (`moduleResolution`, Map iterator, TIME_ZONE unknown)
 - **Pages:** `log.md`
-- **Notes:** Removed root `tsconfig.json` + `typescript.tsconfig` in VS Code (forced `node` resolution). `@pkg/types` package exports `types` field; `apps/web` `target` ES2022 + `downlevelIteration`; `scheduledLessonsBackendAdapter` uses `Array.from` + typed `TIME_ZONE` keys.
+- **Notes:** Removed root `tsconfig.json` + `typescript.tsconfig` in VS Code (forced `node` resolution). `@pkg/types` package exports `types` field; `apps/campus` `target` ES2022 + `downlevelIteration`; `scheduledLessonsBackendAdapter` uses `Array.from` + typed `TIME_ZONE` keys.
 
 ## [2026-05-24] update | Docker dev stack restore
 - **Trigger:** user request (deleted containers)
@@ -909,12 +1571,12 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 ## [2026-05-24] update | Web unit test fixtures + tsconfig.spec
 - **Trigger:** code change
 - **Pages:** `log.md`
-- **Notes:** `apps/web/src/testing/fixtures.ts` typed mocks; `tsconfig.spec.json` includes jest-dom types + `index.d.ts` SCSS modules; `LessonPartyOption` imported from `use-lesson-party-options` (not `@pkg/types`).
+- **Notes:** `apps/campus/src/testing/fixtures.ts` typed mocks; `tsconfig.spec.json` includes jest-dom types + `index.d.ts` SCSS modules; `LessonPartyOption` imported from `use-lesson-party-options` (not `@pkg/types`).
 
 ## [2026-05-24] update | Problems panel / typecheck + lint green
 - **Trigger:** code change (fix IDE Problems)
 - **Pages:** `overview.md`, `log.md`
-- **Notes:** Calendar null-narrowing in portaled dialogs; `LessonModal` teachers typed as `LessonPartyOption[]`; web production TS fixes; unused imports; ESLint globals for `.cjs` / `next.config.mjs`; `@app/web` tsconfig excludes unit test files from `tsc`.
+- **Notes:** Calendar null-narrowing in portaled dialogs; `LessonModal` teachers typed as `LessonPartyOption[]`; web production TS fixes; unused imports; ESLint globals for `.cjs` / `next.config.mjs`; `@app/campus` tsconfig excludes unit test files from `tsc`.
 
 ## [2026-05-24] update | VS Code / Cursor workspace diagnostics
 - **Trigger:** user request
@@ -934,7 +1596,7 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 ## [2026-05-20] update | Turbo dev TUI + app-only filter
 - **Trigger:** user request (restore 2-pane terminal UI on `npm run dev`)
 - **Pages:** `overview.md`, `log.md`
-- **Notes:** `turbo.json` `"ui": "tui"`; root `dev` script filters `@app/web` + `@app/api` (drops 9 workspace packages without `dev` script from scope).
+- **Notes:** `turbo.json` `"ui": "tui"`; root `dev` script filters `@app/campus` + `@app/api` (drops 9 workspace packages without `dev` script from scope).
 
 ## [2026-05-20] update | lesson-recurrence, users, attachments, mail index, be-prisma
 - **Trigger:** user request (coverage gaps)
@@ -1166,7 +1828,7 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 - **Pages:** `concepts/ui-design-system.md`, `log.md`, `.cursor/rules/web-component-reuse.mdc`
 - **Notes:** `Field as="select"` uses former `AdaptiveSelect` logic in `Field.tsx`.
 
-## [2026-05-18] update | apps/web raw HTML → UI primitives audit
+## [2026-05-18] update | apps/campus raw HTML → UI primitives audit
 
 - **Trigger:** user request
 - **Pages:** `concepts/ui-design-system.md`, `log.md`, `.cursor/rules/web-component-reuse.mdc`
@@ -1176,7 +1838,7 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 - **Trigger:** user request
 - **Pages:** `concepts/ui-design-system.md`, `log.md`
-- **Notes:** `.cursor/rules/web-component-reuse.mdc` — Link, Image, Field, Button instead of raw HTML in `apps/web`.
+- **Notes:** `.cursor/rules/web-component-reuse.mdc` — Link, Image, Field, Button instead of raw HTML in `apps/campus`.
 
 ## [2026-05-18] fix | generateQuiz REST + GraphQL includeIrregularVerbDrills
 
@@ -1872,7 +2534,7 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 - **Pages:** (поза wiki: `docs/redesign/redesign-v2.md`; код: `styles/tokens/_motion.scss`)
 - **Summary:**
   - У план додано секцію «Планка крафту»: таблиця AI-шаблон vs досвідчена команда (рефлекси vs рішення під контент, generic-мікрокопія vs контекстна, стани як повноцінні екрани, драматургія гучності); фінальний фільтр кроку — «чи могла б це показати на портфоліо senior product-команда».
-  - **V0-01 done:** створено `apps/web/src/styles/tokens/_motion.scss` — easing-токени (--ease-out 0.23,1,0.32,1; --ease-in-out; --ease-drawer) і duration-токени (--dur-press 140 / --dur-fast 180 / --dur-base 240 / --dur-modal 320), глобальний prefers-reduced-motion baseline (рух → миттєво, винятки оголошують компоненти). Підключено в `global.scss` після layout-токенів.
+  - **V0-01 done:** створено `apps/campus/src/styles/tokens/_motion.scss` — easing-токени (--ease-out 0.23,1,0.32,1; --ease-in-out; --ease-drawer) і duration-токени (--dur-press 140 / --dur-fast 180 / --dur-base 240 / --dur-modal 320), глобальний prefers-reduced-motion baseline (рух → миттєво, винятки оголошують компоненти). Підключено в `global.scss` після layout-токенів.
   - `_animations.scss`: keyframes (slideUp/fadeIn/scaleIn, 20+ використань) збережені — слабке місце не самі keyframes, а вбудований `ease` на місцях використання; додано шапку з правилом брати easing/duration з motion-токенів. Заміна на місцях — у кроках фаз V1–V7.
   - Перевірка: `npx sass` компілює `global.scss` без помилок, токени присутні у виводі.
 
@@ -1888,9 +2550,9 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 ## [2026-06-11] update | V0-03 — GSAP + useGsap hook
 - **Trigger:** code change
-- **Pages:** (код: `apps/web/src/lib/motion/*`, `apps/web/package.json`)
+- **Pages:** (код: `apps/campus/src/lib/motion/*`, `apps/campus/package.json`)
 - **Summary:**
-  - Встановлено `gsap@^3.15.0` в `apps/web` (npm workspace).
+  - Встановлено `gsap@^3.15.0` в `apps/campus` (npm workspace).
   - `lib/motion/` вже існував (prefers-reduced-motion утиліти + policy); додано `use-gsap.ts` — хук `useGsap(scopeRef, setup, deps)`: `gsap.context` зі scope-елементом, авто-`revert()` на unmount, у setup передається поточний reduced-motion (при true — пропускати рух, ставити кінцевий стан).
   - `policy.ts` переписано під redesign-v2 §2.2–2.3: durations синхронні з CSS-токенами (press 140 / ui 180 / base 240 / modal 320 / hero 600), пріоритет CSS → GSAP → Three, `MOTION_RESTRICTED_ROUTES` (lessons/chat/quiz/payment) збережено.
   - Перевірка: jest lib/motion 4/4 passed; tsc — 0 помилок у lib/motion (наявні помилки у students/[studentId] і StatisticsDashboardCharts — pre-existing з попередніх рефакторингів, поза скоупом кроку).
@@ -2228,7 +2890,7 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 ## [2026-06-23] update | Phase 2 — web tenant routing + backend hint consumption
 - **Trigger:** code change
 - **Pages:** `concepts/multi-tenancy`
-- **What:** apps/web/src/lib/tenant-host.ts (pure classifyTenantHost: apex/www/reserved/localhost/IP→platform, single-label *.ROOT_DOMAIN→subdomain slug, else→custom) + apps/web/src/middleware.ts forwarding x-school-slug/x-school-host hints to the API (non-disruptive, no redirects). Backend TenantResolutionMiddleware now resolves x-school-slug→School.slug (cached, excludes SUSPENDED) then x-school-host/Host→verified SchoolDomain. +9 web unit tests. unit 1096/1096, integration 82/82, typecheck clean (my files; web app has pre-existing unrelated TS errors).
+- **What:** apps/campus/src/lib/tenant-host.ts (pure classifyTenantHost: apex/www/reserved/localhost/IP→platform, single-label *.ROOT_DOMAIN→subdomain slug, else→custom) + apps/campus/src/middleware.ts forwarding x-school-slug/x-school-host hints to the API (non-disruptive, no redirects). Backend TenantResolutionMiddleware now resolves x-school-slug→School.slug (cached, excludes SUSPENDED) then x-school-host/Host→verified SchoolDomain. +9 web unit tests. unit 1096/1096, integration 82/82, typecheck clean (my files; web app has pre-existing unrelated TS errors).
 - **Deferred (infra/Phase4-gated):** apex landing + unknown→404 UI, full suspended-school blocking screen (Phase 4 un-suspend flow), edge KV cache w/ schoolId key (G12, Cloudflare KV), custom-domain CRUD+DNS+SSRF-safe resolver (G16), Cloudflare for SaaS runbook, JWT.schoolId↔host cross-check (gated on JWT reshape), i18n foundation (G33, large frontend task).
 
 ## [2026-06-23] update | Phase 2 — i18n foundation core (G33)
@@ -2505,7 +3167,7 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 - **Pages:** none new
 - **Key changes:**
   - `LessonModal.tsx` now uses the pre-existing `hooks/use-focus-trap.ts` (already used by MaterialFormModal, MediaViewerModal, LibraryMaterialPicker, MobileNavDrawer) instead of a bespoke inline trap; MaterialFormModal trap covered by a new test in `10-a11y-audit.spec.ts`.
-  - **Dev-stack instability root cause:** `apps/web/.next` had grown to 10GB — Turbopack OOM'd (even at 8GB heap), crashing web and SIGKILLing the API, cascading into ERR_ABORTED/500 in E2E. Fix: delete `.next`. Hardening: `--max-old-space-size=8192` in web dev script; LoginPage retries goto on ERR_ABORTED and re-fills inputs wiped by the hydration race; auth.setup timeout 90s.
+  - **Dev-stack instability root cause:** `apps/campus/.next` had grown to 10GB — Turbopack OOM'd (even at 8GB heap), crashing web and SIGKILLing the API, cascading into ERR_ABORTED/500 in E2E. Fix: delete `.next`. Hardening: `--max-old-space-size=8192` in web dev script; LoginPage retries goto on ERR_ABORTED and re-fills inputs wiped by the hydration race; auth.setup timeout 90s.
 
 ## [2026-07-04] update | P0 fix: cross-tenant student leak in UsersService
 - **Trigger:** debug (E2E tenant-isolation test 8.7 caught the leak)
@@ -2577,7 +3239,7 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 - **Pages:** none (defect note)
 - **Key changes:**
   - `03-password-change.spec.ts`: 3L.2b (wrong current → error) passes; happy-path 3L.2 is `test.fixme`.
-  - **Defect:** `ChangePasswordModal` cannot be submitted by any input method (fill/pressSequentially/keyboard.type). DOM values for current/new/confirm are correct, but the submit validator reports "New password must be at least 8 characters" and no request fires (verified: no POST to */password*, password unchanged). Breaks password managers/autofill too. Root cause likely stale state in the submit closure or the `[open]` reset effect clobbering state. Needs a component fix in `apps/web/src/app/profile/ChangePasswordModal.tsx`.
+  - **Defect:** `ChangePasswordModal` cannot be submitted by any input method (fill/pressSequentially/keyboard.type). DOM values for current/new/confirm are correct, but the submit validator reports "New password must be at least 8 characters" and no request fires (verified: no POST to */password*, password unchanged). Breaks password managers/autofill too. Root cause likely stale state in the submit closure or the `[open]` reset effect clobbering state. Needs a component fix in `apps/campus/src/app/profile/ChangePasswordModal.tsx`.
 
 ## [2026-07-09] update | P0 FIX: ValidationPipe whitelist silently broke ALL GraphQL mutations
 - **Trigger:** debug (3L.2 password change → traced to server)
@@ -2588,7 +3250,325 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
   - **Fix:** `apps/api/src/main.ts` — drop `whitelist`/`forbidNonWhitelisted`, keep `transform: true`; add class-validator decorators to `ChangePasswordInput` (real ≥8 validation, defense-in-depth). Verified via direct API + E2E (45 passed) + module-auth (208 tests).
   - Lesson: with a global whitelist ValidationPipe, GraphQL @InputType classes MUST carry class-validator decorators or their fields vanish. Prefer scoping whitelist away from GraphQL when inputs rely on @Field for shape.
 
+## [2026-07-09] update | B4/B5/B6 E2E specs + hook-handler JSON fix
+- **Trigger:** code change (E2E backlog B4/B5/B6)
+- **Pages:** none (test infra only)
+- **Key changes:**
+  - `.claude/helpers/hook-handler.cjs`: `pre-bash`/`pre-edit`/`post-bash` emit JSON on stdout (`permission`/`continue`) so Cursor PreToolUse hooks accept edits.
+  - `tests/integration/seed.ts`: `quizAssignment` for jest-student on "Seed quiz — basics".
+  - New fixtures: `tests/e2e/fixtures/files.ts`, `sample.{txt,png,pdf}`, `helpers/tour.ts`.
+  - 16 audit specs: vocabulary/irregular/quiz play, uploads, mocks (payment/chat/video/speaking/oauth/smtp), lesson modal deep, group lessons.
+  - Arvi pose tests (3D.2/3, 3F.5, 3M.2) marked N/A B7 — text feedback only until mascot feature ships.
+
+## [2026-07-09] update | Multi-tenant plan closed + tour spotlight + hook JSON
+- **Trigger:** code change + execution-plan closeout
+- **Pages:** `concepts/multi-tenancy.md`, `docs/multi-tenant-execution-plan.md`
+- **Key changes:**
+  - `.claude/helpers/hook-handler.cjs`: `pre-bash` → `{"permission":"allow"|"deny"}`, `pre-edit` → `{"continue":true,"file":"..."}`, `post-bash` → `{"continue":true}` on stdout only (stderr for human logs).
+  - `tenant-scope.ts`: documented parent-scoped child models (no `schoolId` on QuizQuestion/ChatMessage/etc.).
+  - Product tour: `navHref` in `tourSteps.ts`, `data-tour-nav` on `SidebarNav`, `ProductTour` spotlight cutout.
+  - Execution plan: Phases 0–5/4.5/7 marked shipped; Phase 6 marketplace deferred; Gate 1 full; G40/G44 partial; G45/tax deferred.
+
 ## [2026-07-11] update | Cursor PreToolUse hook JSON output
 - **Trigger:** code change
 - **Pages:** (log only)
 - **Notes:** `.claude/helpers/hook-handler.cjs` — `pre-bash` and `pre-edit` now emit valid JSON (`{}` or `hookSpecificOutput`) for Cursor PreToolUse hooks; deny path uses `permissionDecision: deny` + exit 2. Branch `fix/cursor-pretooluse-json` @ `f6f8545`.
+
+
+## [2026-07-09] update | E2E Stage 11 billing states + tour spotlight assert
+- **Trigger:** code change (E2E B1 backlog)
+- **Pages:** none (E2E + minor tour attr)
+- **Key changes:**
+  - `tests/e2e/specs/audit/11-billing-states.spec.ts`: trial upgrade path, suspended 403 UI, custom-domain feature block, storage quota on material create.
+  - `ProductTour`: `data-tour-spotlight` for E2E; `02-journey-audit` asserts spotlight on dashboard step.
+  - `e2e-journey-test-plan.md`: stages 2/7/9/10 headers synced; stage 11 billing items checked.
+
+## [2026-07-09] update | E2E 4A.8–13 material form edges
+- **Trigger:** code change (E2E B4 backlog)
+- **Pages:** none (Playwright only)
+- **Key changes:** `tests/e2e/specs/audit/04-material-form-edges.spec.ts` covers cover preview/remove, book multi-asset, compression select, slow-upload save progress, sessionStorage recovery banner, invalid cover + max-size hint. Plan + handoff synced.
+
+## [2026-07-10] update | E2E plan sync — open backlog table + stage 0/11 headers
+- **Trigger:** docs (plan closeout hygiene)
+- **Pages:** none
+- **Key changes:** `e2e-journey-test-plan.md` — Етап 0/11 ☑ headers, таблиця «Відкритий беклог», B1–B6 архів ☑. CI verify pending (local :4200 hung during run).
+
+- **Trigger:** code change (E2E final B6 items)
+- **Pages:** none (Playwright only)
+- **Key changes:** `04-material-viewer-smoke` +4B.5 pen→PUT save, +4B.6 Plyr modal, +4B.7 Range 206 mock. B6 ☑; 8.7 host-JWT N/A (tenant isolation in 08-rbac).
+
+- **Trigger:** code change (E2E B6 backlog)
+- **Pages:** none (Playwright only)
+- **Key changes:** `03-livekit-token.spec.ts` (mock JWT → PreJoin); `11-network-edge.spec.ts` (slow libraryMaterials gql, socket.io blocked chat inbox); `04-material-viewer-smoke` extended (zoom/pen/download). Plan stage 11 ☑; B6 backlog narrowed to 4B.5–7 + 8.7 host-JWT.
+
+## [2026-07-09] update | E2E 4A.3 kind filter + 4B viewer smoke
+- **Trigger:** code change (E2E backlog)
+- **Pages:** none (Playwright only)
+- **Key changes:** `04-teacher-granular` +4A.3 kind stat-card filter; new `04-material-viewer-smoke.spec.ts` (router error/unsupported/media redirect + book shell with mocked PDF). B4 closed; B6 backlog synced (3J.7–10, 3B.11 already in specs).
+
+## [2026-07-10] update | E2E journey plan deep closeout (except Arvi)
+- **Trigger:** code change (E2E backlog closeout)
+- **Pages:** `concepts/testing.md`
+- **Key changes:** Seed + auth fixtures for empty student/teacher + reset probe; DIRECT chat + homework review fixtures; new audit specs (01-auth-reset-happy, 03-empty-states, 03-chat-seed, 03-practice-deep, 04-empty-teacher, 04-lesson-save-review, 04-group-billing-ui, 04-student-tab-save, 05-admin-deep). Plan: all non-Arvi `[~]` → `[x]` / N/A; open backlog = B7 Arvi + CI verify only.
+
+## [2026-07-10] update | E2E soft-skip hardening (3J/4F/3G/4G)
+- **Trigger:** code change (E2E verify on live :4200)
+- **Pages:** none (Playwright only; plan already closed except B7)
+- **Key changes:** 3J.2 via chatInbox GraphQL + peer deep-link; 4F.5/9 via scheduledLessons id → lesson hub mark-checked + Save; 3G create self-topic then record (student-only); 4G AdvancedSelect listbox buttons. Suite: 53 passed / 0 failed (role-gated skips expected).
+
+## [2026-07-10] update | Billing Manage subscription vs grandfathered PRO
+- **Trigger:** debug (Manage subscription → “No active subscription found”)
+- **Pages:** `concepts/billing-payments.md`
+- **Key changes:** Legacy ACTIVE schools resolve entitlements to PRO without Stripe. UI used `plan ∈ {STARTER,PRO}` for portal. Added `billingManaged` to entitlements summary; `/billing` shows Manage only when Stripe customer exists, else Subscribe + legacy notice.
+
+## [2026-07-10] update | Throttler — GraphQL Too Many Requests on tab nav
+- **Trigger:** debug (Finance tab switches → `ThrottlerException`)
+- **Pages:** `concepts/security.md`
+- **Key changes:** Nest applied forRoot `auth` (10/15min) to *all* routes including GraphQL. Removed auth/tenant from forRoot; only `global` (300/min). Auth endpoints use `@Throttle({ global: … })`. Tracker now reads `soenglish_at` cookie (web sessions had no Bearer → all traffic shared one IP bucket).
+
+## [2026-07-10] update | Storage meter reconcile (0 B drift)
+- **Trigger:** debug (admin Storage showed 0 while ~480 MB materials existed)
+- **Pages:** `concepts/billing-payments.md`
+- **Key changes:** `School.storageUsedBytes` is an incremental counter — seed/legacy files never incremented it. Added `StorageAccountingService.reconcile` + `POST /api/billing/entitlements/reconcile-storage` (admin). Backfilled `school_default` → 503151555 bytes.
+
+## [2026-07-10] update | Auth layout — remove trust panel / Arvi
+- **Trigger:** code change (UX fix)
+- **Pages:** `concepts/arvi.md`, `concepts/ui-design-system.md`
+- **Key changes:** Deleted `AuthLayoutShell` (JS `wide` media-query + Arvi caused blink; 3D rarely loaded). Auth is server layout + centered card only; signup no longer calls celebrate/encourage.
+
+## [2026-07-10] update | Arvi onboarding Stage 6 — voice-over seam
+- **Trigger:** code change
+- **Pages:** `concepts/arvi.md`
+- **Key changes:** `TourStep.voiceSrc`; `useArviVoice` (lazy play/pause/stop, shared SFX mute); `ProductTour` wires voice on step enter; `public/mascot/voice/README.md`. No TTS assets in v1.
+
+## [2026-07-10] update | Arvi onboarding Stage 5 — tour E2E + replay
+- **Trigger:** code change
+- **Pages:** `concepts/arvi.md`, `concepts/testing.md`
+- **Key changes:** `tests/e2e/specs/tour/tour-{student,teacher,admin}.spec.ts`; `helpers/tour.ts` expanded (`resetTour`, `replayTourFromProfile`, `onlyProject`); `expectArvi` on welcome; UC7 payment / UC8 billing copy assertions; Profile → Account replay.
+
+## [2026-07-11] update | Enforce no raw button/select in apps/campus
+- **Trigger:** code change
+- **Pages:** `concepts/ui-primitives.md` (no change needed — rule already documented in `.cursor/rules/web-component-reuse.mdc`)
+- **Key changes:** Replaced all 38 raw `<button>` and 1 `<select>` in `apps/campus/src/**/*.tsx` with `<Button variant="bare">` / `<Field as="select">` from `@/components/ui`. Files touched: LessonVideoRoom, LessonPreJoin, ProductTour, AvatarCropModal, SpeakingWordChip, SpeakingRecordSession, SpeakingTopicWordPicker, CreateSpeakingTopicCard, AudioPlayer, MaterialOverviewSection, MaterialFormModal, MaterialAssetsSection, MaterialAssetLink, LibraryMaterialPicker, MediaViewerModal, MediaViewerShell, SessionNotesPanel, AnnotationToolbar, MediaCaptionsPanel, GroupEditorCard, CreateQuizCard, TagInput, VideoMeetingsPanel, connection-ui, status/page, materials/page, payment-config-primitives. Added `Button` import to files that lacked it (AudioPlayer, MaterialAssetLink, MaterialOverviewSection, MediaViewerModal, TagInput, connection-ui, status/page, payment-config-primitives, SpeakingWordChip).
+
+## [2026-07-10] update | Arvi onboarding Stage 4 — Level B quests
+- **Trigger:** code change
+- **Pages:** `concepts/arvi.md`
+- **Key changes:** `TourStep.level` + `requiresAction`; `student-quests` / `teacher-quests` / `admin-quests`; `getTourQuestSteps`; `tour-quest-detect` + `signalTourQuest`; `ProductTour` phase B after Level A Continue; analytics `tour_quest_viewed|completed|skipped`.
+
+## [2026-07-11] update | Campus payment merchant compliance
+- **Trigger:** code change
+- **Pages:** `concepts/billing-payments.md`, `concepts/web-app.md`
+- **Key changes:** Hybrid seller profile on `School` + `GET|PATCH /api/school/seller-profile`; package `description`; public `/offer` + `/legal/*` (EN templates); `GET /api/school/public-offer`; enabled-method trust logos; hard gate on enabling online PSPs without seller legal name/address/support email. UA locale deferred.
+
+## [2026-07-11] update | Marketing site + Payload extraction plan
+- **Trigger:** user note (arvilio.app → Campus / Connect; extract Payload)
+- **Pages:** `concepts/payload-cms.md` (new), `overview.md`, `synthesis/product.md`, `synthesis/tech-stack.md`, `concepts/web-app.md`, `index.md`
+- **Artifacts:** `docs/arvilio-marketing-site-payload-plan.md`; links in `arvilio-ecosystem-control-plane.md`, `business-model.md`; superseded notes on 2026-06-09 Payload superpowers spec/plan
+- **Key changes:** Payload target home = `apps/www` (marketing); product data stays Prisma/API; Campus embed is v1 only.
+
+## [2026-07-11] update | Marketing site Payload plan v2 rewrite
+- **Trigger:** user request (multi-product, i18n, brand-kit / logos / configs)
+- **Pages:** `concepts/payload-cms.md`, `synthesis/product.md`, `synthesis/tech-stack.md`, `concepts/web-app.md`
+- **Artifacts:** `docs/arvilio-marketing-site-payload-plan.md` (full v2); ecosystem plan locked-decision + Phase 2 wording
+- **Key changes:** Documented IA (`/uk|/en`), globals `brand-kit` + `site-settings`, collection `products` registry, fallback chain, phases A–F; `pl` deferred with Platform locales.
+
+## [2026-07-11] update | Extensible UI locales + learning-language axis
+- **Trigger:** user note (many UI languages; teach more than English)
+- **Pages:** `concepts/payload-cms.md`, `entities/language.md`, `synthesis/product.md`, `synthesis/tech-stack.md`, `concepts/web-app.md`, `overview.md`
+- **Artifacts:** `docs/arvilio-marketing-site-payload-plan.md` §6 / §6.1; ecosystem open items
+- **Code:** `@pkg/types` `locale.ts` — extension docs, `SHIPPED_LOCALES`, `resolveLocaleFallback`, `isSupportedLocale` alias
+- **Key changes:** UI locale allowlist extensible (v1 ship uk/en); learning languages = Prisma `Language` catalog (not English-only, not Payload).
+
+## [2026-07-11] update | Campus CMS i18n + remove Campus Payload
+- **Trigger:** code change
+- **Pages:** `concepts/payload-cms.md`, `concepts/campus-i18n.md` (new), `concepts/web-app.md`, `synthesis/tech-stack.md`, `index.md`
+- **Artifacts:** `docs/arvilio-marketing-site-payload-plan.md` Phase D checked
+- **Key changes:** Campus UI chrome SoT = `apps/cms` (`campus-strings`/`pages`/`nav`/`tours`); Campus HTTP client + fallbacks; Payload embed removed from `apps/campus`.
+
+## [2026-07-11] update | Campus i18n leftovers Playwright inventory
+- **Trigger:** user request (crawl pages for remaining static EN)
+- **Pages:** `concepts/campus-i18n.md`
+- **Artifacts:** `docs/tmp-i18n-playwright-crawl.json`, `docs/tmp-i18n-leftovers-inventory.md`, `scripts/crawl-campus-i18n.mjs`
+- **Key changes:** Role crawl (public/student/teacher/admin) under uk locale; ~605 unique EN leftovers prioritized P0–P2; wired global chrome keys (cookie/header/404/legal nav/status/forgot).
+
+## [2026-07-11] update | Campus URL locale + EN default + sidebar switcher
+- **Trigger:** user request (default EN, `/uk` URL, sidebar switcher, verify login)
+- **Pages:** `concepts/campus-i18n.md`
+- **Code:** `DEFAULT_LOCALE=en`; `stripLocalePrefix`/`withLocalePrefix`; Campus `proxy.ts` rewrite; `LocaleSwitcher` in sidebar/auth/mobile
+- **Key changes:** Bare paths redirect to `/en/…` (cookie override); `/uk/login` shows Ukrainian; switcher swaps URL prefix.
+
+## [2026-07-12] update | Default locale unprefixed (no /en)
+- **Trigger:** user request
+- **Pages:** `concepts/campus-i18n.md`
+- **Key changes:** `withLocalePrefix(en)` returns bare path; `/en/…` redirects to unprefixed; only `/uk/…` (etc.) in URL.
+
+## [2026-07-16] update | Campus P1.5–P1.10 public legal i18n
+- **Trigger:** code change
+- **Pages:** `concepts/campus-i18n.md`
+- **Artifacts:** `docs/campus-i18n-payload-page-audit-plan.md`, `docs/tmp-i18n-audit/legal/NOTES.md`
+- **Code:** `LegalPageShell` → `legal.loading`; `/offer` → `offer.*`; `/legal/contacts` → `legal.contacts.*`; privacy/status/terms/payment-refund verified (CMS bodies unchanged)
+- **Key changes:** Wave P1 public legal chrome complete; seller Prisma values stay API data; package labels from public-offer API stay content.
+
+## [2026-07-16] update | Campus P2.2 staff i18n
+- **Trigger:** code change
+- **Pages:** `concepts/campus-i18n.md`
+- **Artifacts:** `docs/campus-i18n-payload-page-audit-plan.md`, `docs/tmp-i18n-audit/staff/NOTES.md`
+- **Code:** `/staff` page shell → `staff.*`; `StaffSummaryCard` + `StaffPayoutStatusBadge` + `staff-payout-ui` wired for role/mode/payout labels; shared `StatsRangeFilter` now uses `stats.range.*`
+- **Key changes:** `/uk/staff` roster chrome is Ukrainian; staff names, money amounts, currency codes, and dates remain runtime data.
+
+## [2026-07-16] update | Campus P2.3 finance i18n
+- **Trigger:** code change
+- **Pages:** `concepts/campus-i18n.md`
+- **Artifacts:** `docs/campus-i18n-payload-page-audit-plan.md`, `docs/tmp-i18n-audit/finance/NOTES.md`
+- **Code:** `/finance` → `finance.*`; shared `RecordStaffPayoutModal`, `RecordStaffPayoutForm`, `StaffPayoutHistoryPanel` → `staffPayout.*`
+- **Key changes:** `/uk/finance` overview chrome Ukrainian; API period labels and payout notes stay runtime data.
+
+## [2026-07-16] update | Campus P2.4 billing i18n
+- **Trigger:** code change
+- **Pages:** `concepts/campus-i18n.md`
+- **Artifacts:** `docs/campus-i18n-payload-page-audit-plan.md`, `docs/tmp-i18n-audit/billing/NOTES.md`
+- **Code:** `/billing` → `billing.*`; reused `entitlements.storage`, `entitlements.students`, `entitlements.bytes.*` for usage meters
+- **Key changes:** `/uk/billing` subscription chrome Ukrainian; API plan codes (`PRO`, `TRIAL`) and tier brand names stay data.
+
+## [2026-07-16] update | Campus P2.5 system WAVE 2 i18n
+- **Trigger:** code change
+- **Pages:** `concepts/campus-i18n.md`
+- **Code:** `/system` Email, Connections, Dictionary tabs → `system.email.*`, `system.connections.*`, `system.dictionary.*`, `system.dictionary.captions.*`; reused `common.save`, `common.saving`, `common.saveFailed`, `common.loading`, `common.refresh`, `common.refreshing`
+- **Key changes:** `connection-provider-meta.ts` field labels → `labelKey`; tooltips + setup-guide steps unchanged (EN docs); provider catalog names/descriptions remain API data.
+
+## [2026-07-20] update | Payment details click-to-copy
+- **Trigger:** user request
+- **Pages:** `concepts/billing-payments.md`
+- **Key changes:** Student `/payment` manual invoice fields (card number, IBAN, purpose, reference, etc.) copy on click via `CopyablePaymentValue`; brief “Copied” feedback.
+
+## [2026-07-20] update | Restore payment package list layout
+- **Trigger:** user report (packageGrid worse after prior fix)
+- **Pages:** `concepts/billing-payments.md`
+- **Key changes:** Reverted multi-column `packageGridInner` + `checkoutLayoutManualOnly`. `PackageCard` is a plain `<button>` with `packageCard` styles only (no shared `Button` chrome). Stacked list + side summary as before.
+
+## [2026-07-20] update | Fix payment packageGrid (bare Button + layout)
+- **Trigger:** user report (packageGrid design broken)
+- **Pages:** `concepts/billing-payments.md`
+- **Key changes:** `PackageCard` used `Button variant="ghost"` → design-system flex chrome overrode card `display:grid`. Switched to `bare`. `packageGridInner` multi-column again; `checkoutLayoutManualOnly` full-width when no online methods.
+
+## [2026-07-20] update | Student payment: hide online when only manual
+- **Trigger:** user request
+- **Pages:** `concepts/billing-payments.md`
+- **Key changes:** `/payment` no longer shows `payment.onlineDisabled` (“Online checkout is not enabled…”) when the student only has `manual_invoice`. Subtitle / package CTA / aside trust line adapt to available methods; “Or bank transfer” only if online exists. Manual method card restyled (green-tint border, no amber/blue callouts).
+
+## [2026-07-20] update | Help ? no-op after soft login — ProductTour mount
+- **Trigger:** debug (`jest-student@arvilio.test` dashboard `?` click did nothing)
+- **Pages:** `concepts/arvi.md`, `concepts/web-app.md`
+- **Root cause:** `ProductTour` was `{requestAuth.user ? <ProductTour />}` in root layout (SSR cookies). Soft login mounts `AppShell` via `AppShellGate` + client auth, so Header Help showed but no tour listener. **Fix:** render `<ProductTour />` inside `AppShell`.
+
+## [2026-07-20] update | Auto-prune oversized Next `.next` caches
+- **Trigger:** user request (automate OOM fix)
+- **Pages:** `concepts/web-app.md`
+- **Code:** `scripts/clean-next-cache.cjs`; `npm run clean:next|check|force`; Campus `predev` runs `--app campus` (threshold 2 GB / `CLEAN_NEXT_MAX_GB`)
+
+## [2026-07-20] update | Docker rename soenglish → arvilio containers/volumes
+- **Trigger:** user request
+- **Pages:** `concepts/web-app.md`; `infra/docker/README.md`
+- **Key changes:** `container_name` postgres/libretranslate → `arvilio-*`; volume → `arvilio-postgres-data`; removed legacy `soenglish-*` containers + `soenglish_soenglish-postgres-data` after copy (81 users verified). Local Postgres **credentials** still `soenglish`/`soenglish` for `DATABASE_URL` continuity. Scripts: `docker-restore-all.sh` checks `arvilio-postgres` / `arvilio-api`.
+
+## [2026-07-20] update | LiveKit local keys aligned (secret ≥32, no Cloud mismatch)
+- **Trigger:** debug (LiveKit 401 `invalid API key: API…` + `secret is too short` for `devkey`)
+- **Pages:** `concepts/video-meeting-providers.md`
+- **Key changes:** `.env` had LiveKit Cloud (`APIp9r6…` / `wss://…livekit.cloud`) while Docker SFU used `devkey:devsecret`. Fixed `infra/docker/livekit.yaml` secret ≥32 chars; `.env` + `.env.example` + `PlatformSettings` → `ws://localhost:7880` / `devkey` / matching local secret. Restarted `arvilio-livekit` — no short-secret error on start.
+
+## [2026-07-20] update | Local stack OOM — SIGKILL + .next bloat
+- **Trigger:** debug
+- **Pages:** `concepts/web-app.md`
+- **Key changes:** “This site can’t be reached” on all apps traced to macOS OOM (`API exited … signal=SIGKILL`). `apps/campus/.next` was **11 GB** (deleted → ~200 MB). Campus heap lowered `8192` → `4096`. Docker holds Postgres — quitting Docker drops `:5432` and Nest fails with Prisma `ECONNREFUSED`. Day‑to‑day: Docker + postgres only, then API+Campus (not full five-app compound if RAM is tight).
+
+## [2026-07-16] update | Campus P2.5 system i18n complete
+- **Trigger:** code change
+- **Pages:** `concepts/campus-i18n.md`
+- **Artifacts:** `docs/campus-i18n-payload-page-audit-plan.md`, `docs/tmp-i18n-audit/system/NOTES.md`
+- **Code:** `/system` all tabs → `system.*` (+ `common.*` reuse); `EmailPanel`, `DomainsPanel`, dictionary subtree, payments subtree, `StaffPayoutDefaultsPanel`
+- **Key changes:** `/uk/system` verified (General, Email, Dictionary, Payments); seed `npm run seed:campus-ui -w @app/cms`; PSP brands + API errors stay data.
+
+## [2026-07-16] update | Campus P2.6 mascot-preview i18n
+- **Trigger:** code change
+- **Pages:** `concepts/campus-i18n.md`
+- **Artifacts:** `docs/campus-i18n-payload-page-audit-plan.md`, `docs/tmp-i18n-audit/mascot-preview/NOTES.md`
+- **Code:** `/mascot-preview` → `mascot.preview.intro`, `posesHeading`, `sizesHeading` (title already wired)
+- **Key changes:** Wave P2 complete; pose enum names and `Npx` size labels stay technical data.
+
+## [2026-07-20] update | Shared Field checkbox styles used everywhere
+- **Trigger:** code change
+- **Pages:** `concepts/ui-design-system.md`
+- **Key changes:** Polished `@fe/ui` checkbox/radio faces (`variant="card"`, inline hint); migrated Campus/Platform raw checkboxes (AI, email, dictionary, billing, onboarding, materials, connections, Platform LLM) to `Field as="checkbox"`.
+
+## [2026-07-20] fix | Field checkbox no longer leaks rootClassName to DOM
+- **Trigger:** debug (React console warning on Payments pricing checkboxes)
+- **Pages:** `concepts/ui-design-system.md`
+- **Key changes:** `Field as="checkbox|radio"` strips `rootClassName` / `labelClassName` / other SharedProps before spreading onto `<input>`.
+
+## [2026-07-20] fix | Platform LLM editor shows stored API keys
+- **Trigger:** debug (Arvi AI default model API key field empty)
+- **Pages:** `concepts/arvi-assistant.md`
+- **Key changes:** Platform LLM UI hydrates from `secrets` (not write-only blank); `buildIntegrationSettingsDto` always returns both `llmApiKey` / `anthropicApiKey` for admin forms (was gated on active provider).
+
+## [2026-07-20] fix | Arvi chat fail-closed when LLM not configured
+- **Trigger:** user request
+- **Pages:** `concepts/arvi-assistant.md`
+- **Key changes:** `GET /api/assistant/status`; chat preflight 503 if disabled/no key/no model; Campus panel disables composer + shows unavailable copy.
+
+## [2026-07-20] fix | Surface LLM provider errors in Arvi chat
+- **Trigger:** debug (404 Function not found from openai-compat after user configured model)
+- **Pages:** `concepts/arvi-assistant.md`
+- **Key changes:** Chat shows provider status/detail instead of generic unavailable; omit `stream_options` for non-OpenAI hosts.
+
+## [2026-07-20] feature | LLM Test connection in Platform + Campus settings
+- **Trigger:** user request
+- **Pages:** `concepts/arvi-assistant.md`
+- **Key changes:** `POST /api/platform/llm/test` + `POST /api/system/llm/test` (tiny non-streaming probe); Test buttons next to Save in Platform LLM editor and Campus AI assistant panel.
+
+## [2026-07-20] security | Sanitize LLM errors — never leak API keys to chat users
+- **Trigger:** user report (provider error echoed key to all chat users)
+- **Pages:** `concepts/arvi-assistant.md`
+- **Key changes:** Chat uses generic `publicChatLlmError`; admin Test uses `publicAdminLlmError` + `redactSecrets`; raw provider bodies only in server logs.
+
+## [2026-07-20] update | Arvi chat dark theme + welcome greeting
+- **Trigger:** user report (unreadable light bg/text in dark theme; want default greeting on open)
+- **Pages:** `concepts/arvi-assistant.md`
+- **Key changes:** Chat panel remapped to Campus theme tokens; empty state shows welcome + capabilities (`assistant.welcome.*`).
+
+## [2026-07-20] update | Arvi chat open/close motion
+- **Trigger:** user request (animate chat appear/disappear)
+- **Pages:** `concepts/arvi-assistant.md`
+- **Key changes:** Enter keyframes + exit closing class; unmount on transitionend; Escape uses same path; reduced-motion skips animation.
+
+## [2026-07-20] update | Arvi mascot loading crossfade
+- **Trigger:** user report (2D fallback flickers while 3D loads)
+- **Pages:** `concepts/arvi.md`
+- **Key changes:** SVG under canvas + pulse until `onReady`; opacity crossfade; GlobalArviSlot `.parked` while chat open (no remount).
+
+## [2026-07-20] fix | Arvi 3D stuck on SVG after crossfade change
+- **Trigger:** user report (only icon, no 3D)
+- **Pages:** `concepts/arvi.md`
+- **Root cause:** Strict Mode effect cleanup cancelled `onReady` rAF while a ref gate blocked the re-run.
+- **Fix:** cancel-safe double-rAF `onReady` without sticky notified flag.
+
+## [2026-07-20] update | Arvi chat history TTL
+- **Trigger:** user request (clear chat over time / avoid cluttering memory)
+- **Pages:** `concepts/arvi-assistant.md`
+- **Key changes:** `sessionStorage` payload `{ updatedAt, messages }`; TTL 30 min; max 20 msgs; legacy arrays dropped.
+
+## [2026-07-20] feature | Arvi role-scoped capabilities & restrictions
+- **Trigger:** user request (different limits / what Arvi may reveal per role)
+- **Pages:** `concepts/arvi-assistant.md`
+- **Key changes:** `role-policy.ts` — NAV allowlist, prompt policy, refusal copy; server filters NAVIGATE; Campus welcome/subtitle per student|teacher|admin.
+
+## [2026-07-20] fix | Arvi staff translations + materials facts
+- **Trigger:** admin user — no translations; light materials questions refused
+- **Pages:** `concepts/arvi-assistant.md`
+- **Root causes:** (1) corpus ACL used `.every` so multi-audience chunks were wrong; (2) academic patterns matched bare answer/solve/переклади; (3) prompt forbade almost all non-nav help.
+- **Fix:** `includes(role)` ACL; narrow cheat patterns; allow UI translations + materials facts for teacher/admin; richer materials corpus.
+
+## [2026-07-20] feature | Platform SMTP settings + provider presets
+- **Trigger:** plan — Mailtrap limits; expose SMTP in Control Plane
+- **Pages:** `concepts/transactional-email.md`, `index.md`
+- **Key changes:** `GET/PUT/verify/test /api/platform/smtp`; PlatformSmtpEditor; shared `SMTP_PROVIDER_PRESETS`; Campus Email copy + presets; `.env.example` Resend/Brevo hints.

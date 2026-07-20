@@ -1,16 +1,19 @@
 import type { MyProfileDto } from '@pkg/types';
-import { PROFICIENCY_LEVEL, TIME_ZONE, formatTimeZoneOptionLabel } from '@pkg/types';
 import {
+  PROFICIENCY_LEVEL,
+  TIME_ZONE,
+  formatTimeZoneOptionLabel,
   getTimeZoneById,
   getUserAccountStatusById,
-  type MockStudent,
-} from '../../mocks';
+} from '@pkg/types';
+import type { MockStudent } from '../../lib/user-models';
 import type { ProfileFormState } from '../../lib/profile-form';
 import {
   proficiencyIdFromCode,
   timeZoneIdFromIana,
 } from '../../lib/profile-form';
 import { formatTelFromStorage } from '../../lib/tel-mask';
+import type { TranslateFn } from '../../lib/cms/nav-i18n';
 import type {
   ProfileFormContext,
   ProfileSummaryData,
@@ -144,14 +147,15 @@ export function unifiedToStudent(
 export function buildProfileSummary(
   values: UnifiedProfileFormValues,
   ctx: ProfileFormContext,
+  t?: TranslateFn,
 ): ProfileSummaryData {
   const role =
     values.roleLabel ??
     (ctx.subjectKind === 'self'
-      ? subjectRoleLabel(ctx.subjectRole ?? ctx.viewerRole)
+      ? subjectRoleLabel(ctx.subjectRole ?? ctx.viewerRole, t)
       : ctx.subjectKind === 'staff'
-        ? values.roleLabel ?? 'Staff'
-        : 'Student');
+        ? values.roleLabel ?? (t ? t('profile.role.staff') : 'Staff')
+        : t ? t('profile.role.student') : 'Student');
 
   const subtitle =
     ctx.subjectKind === 'staff'
@@ -161,13 +165,14 @@ export function buildProfileSummary(
         : `${values.email} · ${role}`;
 
   const items: ProfileSummaryData['items'] = [];
+  const label = (key: string, fallback: string) => (t ? t(key) : fallback);
 
   if (ctx.subjectKind === 'staff' && values.staffStatus) {
-    items.push({ label: 'Status', value: staffStatusLabel(values.staffStatus) });
+    items.push({ label: label('profile.summary.status', 'Status'), value: staffStatusLabel(values.staffStatus) });
   }
 
   if (ctx.subjectKind === 'student' && isFieldVisible('proficiency', ctx)) {
-    items.push({ label: 'Level', value: proficiencySummaryLabel(values.proficiencyLevelId) });
+    items.push({ label: label('profile.summary.level', 'Level'), value: proficiencySummaryLabel(values.proficiencyLevelId) });
   }
 
   if (
@@ -176,34 +181,39 @@ export function buildProfileSummary(
     isFieldVisible('studentStatus', ctx)
   ) {
     items.push({
-      label: 'Status',
+      label: label('profile.summary.status', 'Status'),
       value: getUserAccountStatusById(values.studentStatusId)?.name ?? '—',
     });
   }
 
-  items.push({ label: 'Timezone', value: timezoneSummaryLabel(values.timezoneId) });
+  items.push({ label: label('profile.summary.timezone', 'Timezone'), value: timezoneSummaryLabel(values.timezoneId) });
 
   if (isFieldVisible('phone', ctx)) {
-    items.push({ label: 'Phone', value: values.phone.trim() || '—' });
+    items.push({ label: label('profile.summary.phone', 'Phone'), value: values.phone.trim() || '—' });
   }
 
   if (isFieldVisible('telegram', ctx)) {
-    items.push({ label: 'Telegram', value: values.telegram.trim() || '—' });
+    items.push({ label: label('profile.summary.telegram', 'Telegram'), value: values.telegram.trim() || '—' });
   }
 
   return {
-    title: values.displayName.trim() || 'Profile',
+    title: values.displayName.trim() || (t ? t('profile.tab.profile') : 'Profile'),
     subtitle,
     items,
   };
 }
 
-export function profileIntro(ctx: ProfileFormContext): string {
+export function profileIntro(ctx: ProfileFormContext, t?: TranslateFn): string {
+  if (t) {
+    if (ctx.subjectKind === 'staff') return t('profile.intro.staff');
+    if (ctx.subjectKind === 'student') return t('profile.intro.student');
+    return t('profile.intro.self');
+  }
   if (ctx.subjectKind === 'staff') {
     return 'Update contact details and account status for this staff member. Email is managed separately and cannot be changed here.';
   }
   if (ctx.subjectKind === 'student') {
     return 'Manage core student profile settings, contacts, native language, timezone, and user color.';
   }
-  return 'Your name, contact details, timezone, and learning preferences shown across SoEnglish.';
+  return 'Your name, contact details, timezone, and learning preferences shown across Arvilio.';
 }

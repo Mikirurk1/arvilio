@@ -96,85 +96,97 @@ export function BillingRulesSection({
                 {enabledMethods.map((method) => {
                   const isAllowed = selectedPaymentMethodIds.includes(method);
                   return (
-                    <label key={method} className={`${styles.paymentMethodStudentCard} ${isAllowed ? styles.paymentMethodStudentCardActive : ''}`}>
-                      <input type="checkbox" checked={isAllowed} onChange={(e) => togglePaymentMethod(method, e.target.checked)} />
-                      <div className={styles.paymentMethodStudentMeta}>
-                        <div className={styles.paymentMethodStudentTitle}>{PAYMENT_METHOD_LABELS[method]}</div>
-                        <div className={styles.paymentMethodStudentSummary}>
-                          {method === 'manual_invoice'
+                    <div
+                      key={method}
+                      className={`${styles.paymentMethodStudentCard} ${isAllowed ? styles.paymentMethodStudentCardActive : ''}`}
+                    >
+                      <Field
+                        as="checkbox"
+                        checked={isAllowed}
+                        onChange={(e) => togglePaymentMethod(method, e.target.checked)}
+                        label={PAYMENT_METHOD_LABELS[method]}
+                        hint={
+                          method === 'manual_invoice'
                             ? 'Offline bank transfer instructions configured in System → Payments.'
-                            : 'Available for this student at checkout when enabled.'}
-                        </div>
-                        {method === 'manual_invoice' && isAllowed ? (
-                          <div className={styles.paymentMethodStudentExtra}>
-                            <div className={styles.paymentMethodStudentBadges}>
-                              <Badge variant="neutral" size="sm">
-                                {platformManualInvoiceMethods.length === 0
-                                  ? 'No templates configured'
-                                  : selectedManualMethodCount === platformManualInvoiceMethods.length
-                                    ? `All ${platformManualInvoiceMethods.length} templates available`
-                                    : `${selectedManualMethodCount} of ${platformManualInvoiceMethods.length} templates selected`}
-                              </Badge>
-                              {shouldShowRecommendedManualTemplate && manualInvoiceDefaultLabel ? (
-                                <Badge variant="blue" size="sm">Default: {manualInvoiceDefaultLabel}</Badge>
-                              ) : null}
+                            : 'Available for this student at checkout when enabled.'
+                        }
+                      />
+                      {method === 'manual_invoice' && isAllowed ? (
+                        <div className={styles.paymentMethodStudentExtra}>
+                          <div className={styles.paymentMethodStudentBadges}>
+                            <Badge variant="neutral" size="sm">
+                              {platformManualInvoiceMethods.length === 0
+                                ? 'No templates configured'
+                                : selectedManualMethodCount === platformManualInvoiceMethods.length
+                                  ? `All ${platformManualInvoiceMethods.length} templates available`
+                                  : `${selectedManualMethodCount} of ${platformManualInvoiceMethods.length} templates selected`}
+                            </Badge>
+                            {shouldShowRecommendedManualTemplate && manualInvoiceDefaultLabel ? (
+                              <Badge variant="blue" size="sm">Default: {manualInvoiceDefaultLabel}</Badge>
+                            ) : null}
+                          </div>
+                          <div className={styles.paymentMethodStudentHint}>
+                            Choose one or several concrete invoice templates right here.
+                          </div>
+                          {platformManualInvoiceMethods.length === 0 ? (
+                            <div className={styles.manualInvoiceInlineEmpty}>
+                              No manual invoice templates are created yet in System → Payments.
                             </div>
-                            <div className={styles.paymentMethodStudentHint}>
-                              Choose one or several concrete invoice templates right here.
-                            </div>
-                            {platformManualInvoiceMethods.length === 0 ? (
-                              <div className={styles.manualInvoiceInlineEmpty}>
-                                No manual invoice templates are created yet in System → Payments.
-                              </div>
-                            ) : (
-                              <div className={styles.manualInvoiceInlinePanel}>
-                                <p className={styles.billingHelperText}>
-                                  Choose one or several templates for this student. Only fully filled templates are shown to the student on the payment page.
-                                </p>
-                                <div className={styles.manualInvoiceInlineGrid}>
-                                  {platformManualInvoiceMethods.map((manualMethod) => {
-                                    const manualIsAllowed = selectedManualMethodIds.includes(manualMethod.id);
-                                    const isRecommended = manualInvoiceSelection.defaultMethodId === manualMethod.id;
-                                    const isReady = isManualMethodReadyForStudent(manualMethod);
-                                    return (
-                                      <div key={manualMethod.id} className={`${styles.manualInvoiceInlineCard} ${manualIsAllowed ? styles.manualInvoiceInlineCardActive : ''}`}>
-                                        <label className={styles.manualInvoiceInlineMain}>
-                                          <input type="checkbox" checked={manualIsAllowed} onChange={(e) => toggleManualMethod(manualMethod.id, e.target.checked)} />
-                                          <div className={styles.manualInvoiceInlineMeta}>
-                                            <div className={styles.manualInvoiceInlineTitleRow}>
-                                              <div className={styles.manualInvoiceInlineTitle}>{manualMethod.label}</div>
-                                              <div className={styles.manualInvoiceInlineBadges}>
+                          ) : (
+                            <div className={styles.manualInvoiceInlinePanel}>
+                              <p className={styles.billingHelperText}>
+                                Choose one or several templates for this student. Only fully filled templates are shown to the student on the payment page.
+                              </p>
+                              <div className={styles.manualInvoiceInlineGrid}>
+                                {platformManualInvoiceMethods.map((manualMethod) => {
+                                  const manualIsAllowed = selectedManualMethodIds.includes(manualMethod.id);
+                                  const isRecommended = manualInvoiceSelection.defaultMethodId === manualMethod.id;
+                                  const isReady = isManualMethodReadyForStudent(manualMethod);
+                                  return (
+                                    <div
+                                      key={manualMethod.id}
+                                      className={`${styles.manualInvoiceInlineCard} ${manualIsAllowed ? styles.manualInvoiceInlineCardActive : ''}`}
+                                    >
+                                      <Field
+                                        as="checkbox"
+                                        checked={manualIsAllowed}
+                                        onChange={(e) => toggleManualMethod(manualMethod.id, e.target.checked)}
+                                        label={
+                                          <span className={styles.manualInvoiceInlineMeta}>
+                                            <span className={styles.manualInvoiceInlineTitleRow}>
+                                              <span className={styles.manualInvoiceInlineTitle}>{manualMethod.label}</span>
+                                              <span className={styles.manualInvoiceInlineBadges}>
                                                 <Badge variant="neutral" size="sm">{MANUAL_METHOD_KIND_LABELS[manualMethod.kind]}</Badge>
                                                 {!isReady ? <Badge variant="neutral" size="sm">Incomplete</Badge> : null}
                                                 {isRecommended ? <Badge variant="blue" size="sm">Recommended</Badge> : null}
-                                              </div>
-                                            </div>
-                                            <div className={styles.manualInvoiceInlineSummary}>{getManualMethodSummary(manualMethod)}</div>
-                                          </div>
-                                        </label>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                                {shouldShowRecommendedManualTemplate ? (
-                                  <div className={styles.manualInvoiceInlineFooter}>
-                                    <div className={styles.fieldGroup}>
-                                      <label className={styles.label}>Recommended template</label>
-                                      <Field as="select" className={styles.input} value={manualInvoiceSelection.defaultMethodId ?? ''} onChange={(e) => setRecommendedManualMethod(e.target.value || null)}>
-                                        <option value="">No recommended template</option>
-                                        {manualMethodsForSelection.map((manualMethod) => (
-                                          <option key={manualMethod.id} value={manualMethod.id}>{manualMethod.label}</option>
-                                        ))}
-                                      </Field>
+                                              </span>
+                                            </span>
+                                            <span className={styles.manualInvoiceInlineSummary}>{getManualMethodSummary(manualMethod)}</span>
+                                          </span>
+                                        }
+                                      />
                                     </div>
-                                  </div>
-                                ) : null}
+                                  );
+                                })}
                               </div>
-                            )}
-                          </div>
-                        ) : null}
-                      </div>
-                    </label>
+                              {shouldShowRecommendedManualTemplate ? (
+                                <div className={styles.manualInvoiceInlineFooter}>
+                                  <div className={styles.fieldGroup}>
+                                    <label className={styles.label}>Recommended template</label>
+                                    <Field as="select" className={styles.input} value={manualInvoiceSelection.defaultMethodId ?? ''} onChange={(e) => setRecommendedManualMethod(e.target.value || null)}>
+                                      <option value="">No recommended template</option>
+                                      {manualMethodsForSelection.map((manualMethod) => (
+                                        <option key={manualMethod.id} value={manualMethod.id}>{manualMethod.label}</option>
+                                      ))}
+                                    </Field>
+                                  </div>
+                                </div>
+                              ) : null}
+                            </div>
+                          )}
+                        </div>
+                      ) : null}
+                    </div>
                   );
                 })}
               </div>

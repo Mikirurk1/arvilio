@@ -2,6 +2,7 @@
 
 import { Play } from 'lucide-react';
 import { SegmentedControl } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import styles from './page.module.scss';
 
 export function VocabularyModeToggle({
@@ -11,18 +12,20 @@ export function VocabularyModeToggle({
   mode: 'list' | 'flashcard' | 'play';
   onChange: (mode: 'list' | 'flashcard' | 'play') => void;
 }) {
+  const t = useCampusT();
   return (
     <SegmentedControl
       value={mode}
       onValueChange={onChange}
-      ariaLabel='Vocabulary mode'
+      ariaLabel={t('vocabulary.mode.aria')}
       className={styles.modeToggle}
       optionClassName={styles.modeBtn}
       activeOptionClassName={styles.modeActive}
+      dataAttrs={{ 'data-tour-anchor': 'vocab-mode-toggle' }}
       options={[
         {
           value: 'list',
-          label: 'List',
+          label: t('vocabulary.mode.list'),
           icon: (
             <svg width='16' height='16' viewBox='0 0 16 16' fill='none'>
               <path
@@ -36,7 +39,7 @@ export function VocabularyModeToggle({
         },
         {
           value: 'flashcard',
-          label: 'Flashcards',
+          label: t('vocabulary.mode.flashcards'),
           icon: (
             <svg width='16' height='16' viewBox='0 0 16 16' fill='none'>
               <rect
@@ -58,7 +61,7 @@ export function VocabularyModeToggle({
         },
         {
           value: 'play',
-          label: 'Play',
+          label: t('vocabulary.mode.play'),
           icon: <Play size={16} />,
         },
       ]}

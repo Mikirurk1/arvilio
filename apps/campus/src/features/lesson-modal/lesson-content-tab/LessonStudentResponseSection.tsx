@@ -2,10 +2,11 @@
 
 import { X } from 'lucide-react';
 import { Button, Field } from '../../../components/ui';
+import { useCampusT } from '../../../lib/cms';
 import { LESSON_STATUS } from '@pkg/types';
 import type { LessonFormState } from '../types';
 import type { LessonModalText } from '../tabTypes';
-import { USER_ROLE, type UserRole } from '../../../mocks';
+import { USER_ROLE, type UserRoleId } from '@pkg/types';
 import { lessonFileDisplayName, lessonFilePreviewUrl } from '../../../lib/lesson-file-links';
 import { openLessonAttachment } from '../fileUtils';
 import { fileChipClasses, fileChipImagePreview } from './lesson-file-chip-utils';
@@ -14,7 +15,7 @@ import styles from '../LessonModal.module.scss';
 interface Props {
   form: LessonFormState;
   onChange: (next: LessonFormState) => void;
-  role: UserRole;
+  role: UserRoleId;
   studentResponsePreviews: Array<string | null>;
   setStudentResponsePreviews: React.Dispatch<React.SetStateAction<Array<string | null>>>;
   canEditStudentResponse: boolean;
@@ -39,18 +40,19 @@ export function LessonStudentResponseSection({
   getFilePlaceholder, setImagePreviewUrl, onStudentResponseFilesSelected, onSaveStudentResponse,
   text,
 }: Props) {
+  const t = useCampusT();
   return (
     <div className={`${styles.fieldGroup} ${styles.fieldGroupFull} ${styles.modalSectionCard} ${styles.studentResponseCard}`}>
       <label className={styles.fieldLabel}>{text.fields.studentResponse}</label>
-      <p className={styles.sectionHint}>Track submission state and feedback in one place so review flow stays predictable.</p>
+      <p className={styles.sectionHint}>{t('lessonModal.hint.studentResponse')}</p>
       {studentStatusPlaceholder ? (
-        <Field readOnly className={styles.fieldInput} value="" formatValue={() => form.statusId === LESSON_STATUS.cancelled.id ? '—' : 'Opens after the lesson is completed'} />
+        <Field readOnly className={styles.fieldInput} value="" formatValue={() => form.statusId === LESSON_STATUS.cancelled.id ? '—' : t('lessonModal.msg.opensAfterCompleted')} />
       ) : (
         <Field as="select" className={styles.fieldInput} value={form.studentResponseStatus} readOnly={!canEditStudentResponse} onChange={(e) => onChange({ ...form, studentResponseStatus: e.target.value as typeof form.studentResponseStatus })}>
-          <option value="not_submitted">Not submitted</option>
-          <option value="submitted">Submitted</option>
-          <option value="needs_rework">Reopen (needs rework)</option>
-          <option value="accepted">Accepted</option>
+          <option value="not_submitted">{t('lessonModal.opt.notSubmitted')}</option>
+          <option value="submitted">{t('lessonModal.opt.submitted')}</option>
+          <option value="needs_rework">{t('lessonModal.opt.needsRework')}</option>
+          <option value="accepted">{t('lessonModal.opt.accepted')}</option>
         </Field>
       )}
       <Field as="textarea" className={styles.fieldInput} rows={4} value={form.studentResponseText} readOnly={!canEditStudentResponse} onChange={(e) => onChange({ ...form, studentResponseText: e.target.value })} />
@@ -98,7 +100,7 @@ export function LessonStudentResponseSection({
         </div>
       ) : null}
       {role === USER_ROLE.student.id && canStudentSubmitResponse && !hideStudentSaveButton ? (
-        <Button type="button" className={styles.saveMaterialBtn} disabled={!canSaveStudentResponse} onClick={onSaveStudentResponse}>Save</Button>
+        <Button type="button" className={styles.saveMaterialBtn} disabled={!canSaveStudentResponse} onClick={onSaveStudentResponse}>{t('lessonModal.action.save')}</Button>
       ) : null}
     </div>
   );

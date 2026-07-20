@@ -1,8 +1,10 @@
 'use client';
 
 import { ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '../../../components/ui';
 import type { WordDictionaryProviderId, WordDictionarySettingsDto } from '@pkg/types';
+import { useCampusT } from '../../../lib/cms';
 import { ProviderSetupGuide } from '../payment/ProviderSetupGuide';
 import { DICTIONARY_SETUP_GUIDES, SUPPLEMENTAL_DATAMUSE_GUIDE } from '../word-dictionary-setup-guides';
 import styles from '../WordDictionaryPanel.module.scss';
@@ -18,11 +20,13 @@ interface Props {
 }
 
 export function DictionarySourceSection({ dictSettings, selectedProvider, setSelectedProvider, saving, dirty, feedback, onSave }: Props) {
+  const t = useCampusT();
+
   return (
     <section className={styles.panel} aria-labelledby="dict-source-heading">
       <div className={styles.panelHead}>
-        <h2 id="dict-source-heading" className={styles.panelTitle}>Dictionary source</h2>
-        <p className={styles.panelBlurb}>Structured English entry for phonetics, part of speech, and definitions.</p>
+        <h2 id="dict-source-heading" className={styles.panelTitle}>{t('system.dictionary.source.dictionary.title')}</h2>
+        <p className={styles.panelBlurb}>{t('system.dictionary.source.dictionary.blurb')}</p>
       </div>
       <div className={styles.panelBody}>
         <div className={styles.providerList}>
@@ -35,12 +39,12 @@ export function DictionarySourceSection({ dictSettings, selectedProvider, setSel
                 <div className={styles.providerBody}>
                   <div className={styles.providerTitleRow}>
                     <span className={styles.providerName}>{provider.name}</span>
-                    {isActive ? <span className={styles.providerBadge}>Active</span> : null}
+                    {isActive ? <span className={styles.providerBadge}>{t('system.dictionary.badge.active')}</span> : null}
                   </div>
                   <p className={styles.providerDesc}>{provider.description}</p>
-                  <a href={provider.docsUrl} target="_blank" rel="noopener noreferrer" className={styles.providerLink} onClick={(e) => e.stopPropagation()}>
-                    Documentation<ExternalLink size={12} aria-hidden />
-                  </a>
+                  <Link href={provider.docsUrl} target="_blank" rel="noopener noreferrer" className={styles.providerLink} onClick={(e) => e.stopPropagation()}>
+                    {t('system.dictionary.link.documentation')}<ExternalLink size={12} aria-hidden />
+                  </Link>
                 </div>
               </label>
             );
@@ -49,7 +53,7 @@ export function DictionarySourceSection({ dictSettings, selectedProvider, setSel
         {selectedProvider ? <ProviderSetupGuide guide={DICTIONARY_SETUP_GUIDES[selectedProvider]} /> : null}
         <ProviderSetupGuide guide={SUPPLEMENTAL_DATAMUSE_GUIDE} />
         <footer className={styles.panelFooter}>
-          <Button type="button" variant="primary" loading={saving} loadingLabel="Saving…" disabled={!dirty} onClick={onSave}>Save provider</Button>
+          <Button type="button" variant="primary" loading={saving} loadingLabel={t('system.dictionary.saving')} disabled={!dirty} onClick={onSave}>{t('system.dictionary.source.dictionary.save')}</Button>
           {feedback ? <p className={feedback.type === 'error' ? styles.feedbackError : styles.feedbackSuccess} role="status">{feedback.text}</p> : null}
         </footer>
       </div>

@@ -2,17 +2,24 @@
 
 import type { IntegrationSecretFieldStatusDto } from '@pkg/types';
 import { Field } from '../../../components/ui';
+import { useCampusT } from '../../../lib/cms';
 import styles from './ConnectionsPanel.module.scss';
 
-export function secretStatusHint(status: IntegrationSecretFieldStatusDto | undefined): string {
-  if (!status?.configured) return 'Not set';
-  if (status.source === 'stored') return 'Saved in platform settings';
-  if (status.source === 'env') return 'From server .env (fallback)';
+export function secretStatusHint(
+  status: IntegrationSecretFieldStatusDto | undefined,
+  t: (key: string) => string,
+): string {
+  if (!status?.configured) return t('system.connections.secret.notSet');
+  if (status.source === 'stored') return t('system.connections.secret.savedInPlatform');
+  if (status.source === 'env') return t('system.connections.secret.fromEnv');
   return '—';
 }
 
-export function secretFieldPlaceholder(_status: IntegrationSecretFieldStatusDto | undefined): string {
-  return 'Enter value to change';
+export function secretFieldPlaceholder(
+  _status: IntegrationSecretFieldStatusDto | undefined,
+  t: (key: string) => string,
+): string {
+  return t('system.connections.secret.placeholder');
 }
 
 export function SecretStatusLine({
@@ -20,6 +27,7 @@ export function SecretStatusLine({
 }: {
   status: IntegrationSecretFieldStatusDto | undefined;
 }) {
+  const t = useCampusT();
   const configured = Boolean(status?.configured);
   return (
     <div
@@ -28,7 +36,7 @@ export function SecretStatusLine({
       }`}
       role="status"
     >
-      {secretStatusHint(status)}
+      {secretStatusHint(status, t)}
     </div>
   );
 }
@@ -50,6 +58,7 @@ export function IntegrationSecretField({
   onChange,
   placeholder,
 }: SecretFieldProps) {
+  const t = useCampusT();
   return (
     <div className={styles.fieldGroup}>
       <Field
@@ -59,7 +68,7 @@ export function IntegrationSecretField({
         className={styles.input}
         autoComplete="off"
         value={value}
-        placeholder={placeholder ?? secretFieldPlaceholder(status)}
+        placeholder={placeholder ?? secretFieldPlaceholder(status, t)}
         onChange={(e) => onChange(e.target.value)}
       />
       <SecretStatusLine status={status} />

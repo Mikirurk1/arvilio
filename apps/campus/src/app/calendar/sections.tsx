@@ -5,12 +5,19 @@ import { useRouter } from 'next/navigation';
 import { LESSON_STATUS } from '@pkg/types';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button, CalendarEventCard, Field, SegmentedControl, SurfaceCard } from '../../components/ui';
-import { USER_ROLE, type UserRole } from '../../mocks';
+import { USER_ROLE, type UserRoleId } from '@pkg/types';
 import { lessonEndTimeInZone, lessonStartTimeInZone } from '../../lib/lessonTime';
 import { useSchoolGroupLessons } from '../../hooks/use-school-group-lessons';
 import { formatLessonStudentLabel } from '../../lib/lesson-display';
 import { useViewerTimezone } from '../../hooks/use-viewer-timezone';
+import { useCampusI18n, useCampusT } from '../../lib/cms';
 import styles from './page.module.scss';
+
+function statusLabelKey(statusId: number): string {
+  if (statusId === LESSON_STATUS.completed.id) return 'dashboard.lessonStatus.completed';
+  if (statusId === LESSON_STATUS.cancelled.id) return 'dashboard.lessonStatus.cancelled';
+  return 'dashboard.lessonStatus.planned';
+}
 
 export function CalendarHeaderControls({
   view,
@@ -32,35 +39,36 @@ export function CalendarHeaderControls({
   teacherFilter: string;
   setTeacherFilter: (teacherId: string) => void;
   teacherOptions: Array<{ id: number; name: string }>;
-  role: UserRole;
+  role: UserRoleId;
   onRequestLesson: () => void;
 }) {
+  const t = useCampusT();
   const isStudent = role === USER_ROLE.student.id;
   return (
-    <div className={styles.headerRight}>
+    <div className={styles.headerRight} data-tour-anchor="calendar-toolbar">
       <SegmentedControl
         value={view}
         onValueChange={setView}
-        ariaLabel="Calendar view"
+        ariaLabel={t('calendar.view.aria')}
         className={styles.viewToggle}
         optionClassName={styles.viewBtn}
         activeOptionClassName={styles.viewActive}
         options={[
-          { value: 'month', label: 'Month' },
-          { value: 'week', label: 'Week' },
+          { value: 'month', label: t('calendar.view.month') },
+          { value: 'week', label: t('calendar.view.week') },
         ]}
       />
       {showAudienceToggle ? (
         <SegmentedControl
           value={audience}
           onValueChange={(value) => setAudience(value as 'all' | 'my-students')}
-          ariaLabel="Calendar audience"
+          ariaLabel={t('calendar.audience.aria')}
           className={styles.roleToggle}
           optionClassName={styles.roleBtn}
           activeOptionClassName={styles.roleActive}
           options={[
-            { value: 'all', label: 'All' },
-            { value: 'my-students', label: 'My students' },
+            { value: 'all', label: t('calendar.audience.all') },
+            { value: 'my-students', label: t('calendar.audience.myStudents') },
           ]}
         />
       ) : null}
@@ -70,9 +78,9 @@ export function CalendarHeaderControls({
             className={styles.teacherFilter}
             value={teacherFilter}
             onChange={(e) => setTeacherFilter(e.target.value)}
-            aria-label="Filter by teacher"
+            aria-label={t('calendar.teacherFilter.aria')}
           >
-            <option value="all-teachers">All teachers</option>
+            <option value="all-teachers">{t('calendar.teacherFilter.all')}</option>
             {teacherOptions.map((teacher) => (
               <option key={teacher.id} value={teacher.id}>
                 {teacher.name}
@@ -82,8 +90,13 @@ export function CalendarHeaderControls({
         </div>
       ) : null}
       {isStudent ? (
-        <Button type="button" className={styles.createLessonBtn} onClick={onRequestLesson}>
-          Request lesson
+        <Button
+          type="button"
+          className={styles.createLessonBtn}
+          onClick={onRequestLesson}
+          data-tour-anchor="calendar-request-lesson"
+        >
+          {t('calendar.requestLesson')}
         </Button>
       ) : null}
     </div>
@@ -97,25 +110,30 @@ export function SelectedDateSidebar({
 }: {
   selectedDate: string | null;
   selectedLessons: ScheduledLessonDto[];
-  role?: UserRole;
+  role?: UserRoleId;
   getLessonColor: (lesson: ScheduledLessonDto) => 'Blue' | 'Green' | 'Amber' | 'Purple';
 }) {
+  const t = useCampusT();
+  const { locale } = useCampusI18n();
   const router = useRouter();
   const { iana: viewerIana } = useViewerTimezone();
   const { enabled: groupLessonsEnabled } = useSchoolGroupLessons();
+  const dateLocale = locale === 'uk' ? 'uk-UA' : 'en-GB';
   return (
     <div className={styles.calSidebar}>
       <SurfaceCard className={styles.sidePanel}>
         <div className={styles.sidePanelTitle}>
           {selectedDate
-            ? new Date(`${selectedDate}T12:00:00`).toLocaleDateString('en-GB', {
+            ? new Date(`${selectedDate}T12:00:00`).toLocaleDateString(dateLocale, {
                 weekday: 'long',
                 day: 'numeric',
                 month: 'long',
               })
-            : 'Select a date'}
+            : t('calendar.selectDate')}
         </div>
-        {selectedLessons.length === 0 && selectedDate ? <div className={styles.noEvents}>No lessons scheduled</div> : null}
+        {selectedLessons.length === 0 && selectedDate ? (
+          <div className={styles.noEvents}>{t('calendar.noLessons')}</div>
+        ) : null}
         {selectedLessons.map((lesson) => (
           <CalendarEventCard
             key={lesson.id}
@@ -130,7 +148,7 @@ export function SelectedDateSidebar({
             actionButtonClassName={styles.rescheduleBtn}
             typeLabel={
               groupLessonsEnabled && lesson.kind === 'group'
-                ? `${formatLessonStudentLabel(lesson)} · Group`
+                ? `${formatLessonStudentLabel(lesson)} · ${t('lessons.kind.group')}`
                 : lesson.studentName
             }
             typeVariant={
@@ -140,12 +158,13 @@ export function SelectedDateSidebar({
                   ? 'amber'
                   : 'blue'
             }
-            statusLabel={lesson.statusId === LESSON_STATUS.completed.id ? 'completed' : 'planned'}
+            statusLabel={t(statusLabelKey(lesson.statusId))}
             statusVariant={lesson.statusId === LESSON_STATUS.completed.id ? 'green' : 'amber'}
             title={lesson.title}
             time={`${lessonStartTimeInZone(lesson, viewerIana)}–${lessonEndTimeInZone(lesson, viewerIana)}`}
+            durationLabel={t('lessons.durationMin', { duration: lesson.duration })}
             teacherName={lesson.teacherName}
-            actionLabel="Open lesson"
+            actionLabel={t('calendar.openLesson')}
             onAction={() => router.push(`/lessons/${lesson.id}`)}
           />
         ))}
@@ -163,11 +182,12 @@ export function CalendarMonthNavigator({
   onPrev: () => void;
   onNext: () => void;
 }) {
+  const t = useCampusT();
   return (
     <div className={styles.calNav}>
-      <Button type="button" className={styles.navBtn} aria-label="Previous period" onClick={onPrev}><ChevronLeft size={16} strokeWidth={2} /></Button>
+      <Button type="button" className={styles.navBtn} aria-label={t('calendar.nav.prevAria')} onClick={onPrev}><ChevronLeft size={16} strokeWidth={2} /></Button>
       <h2 className={styles.calMonthTitle}>{monthLabel}</h2>
-      <Button type="button" className={styles.navBtn} aria-label="Next period" onClick={onNext}><ChevronRight size={16} strokeWidth={2} /></Button>
+      <Button type="button" className={styles.navBtn} aria-label={t('calendar.nav.nextAria')} onClick={onNext}><ChevronRight size={16} strokeWidth={2} /></Button>
     </div>
   );
 }

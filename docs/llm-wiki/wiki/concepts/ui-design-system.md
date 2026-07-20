@@ -1,19 +1,48 @@
 ---
 tags: [concept, frontend, ui]
-updated: 2026-06-02
+updated: 2026-07-20
 ---
 
 # UI design system
 
-SoEnglish UI primitives live in **`apps/web/src/components/ui/`** — not in `@fe/ui`.
+Shared primitives live in **`@fe/ui`** (`packages/frontend/shared-ui`). Campus still has app-local composites under `apps/campus/src/components/ui/` (cards, tabs, entitlements, …) that re-export or wrap the shared kit.
+
+| Primitive | Package |
+|-----------|---------|
+| `Button` | `@fe/ui` — variants: `default` \| `primary` \| `ghost` \| `dashed` \| `danger` \| **`bare`** (no chrome; custom className) |
+| `Field` (input / textarea / select / `advancedSelect` / **`checkbox`** / **`radio`** / date / time / password / …) | `@fe/ui` |
+
+Styled choice controls: `<Field as="checkbox" label="…" />` and `<Field as="radio" name="…" label="…" />` — custom face (not native OS chrome). Prefer these **everywhere** in Campus/Platform; do not use bare `<input type="checkbox">`.
+
+- `label` may be a string or React node; `hint` renders inline under the label (next to the control).
+- `variant="card"` — bordered preference toggle (System → AI, Platform LLM enable, etc.).
+- Styles: `packages/frontend/shared-ui/src/styles/primitives.module.scss` (`.choiceControl*`, `.choiceCard`).
+| `AdvancedSelectControl` | `@fe/ui` |
+
+### No raw `<button>` / `<select>` in apps
+
+`apps/campus` and `apps/platform` must use `@fe/ui` (Campus may import via `@/components/ui`). ESLint `no-restricted-syntax` bans JSX `<button>` and `<select>` in those apps. Native elements remain only inside `@fe/ui` primitives. For card/icon hit targets use `<Button variant="bare" className={…}>`.
+
+Campus: `import { Button, Field } from '@/components/ui'` (re-export) or `from '@fe/ui'`.  
+Control Plane: `import { Button, Field } from '@fe/ui'`.
+
+### Control Plane shell (ops register)
+
+`apps/platform` uses Editorial Paper at ops density (cooler surface, Source Sans 3, Lora titles). Shell is **full-bleed**: main has no `max-width`; `Panel` is full width by default (`variant="narrow"` for short forms). Nav groups (Fleet / Billing / Ops / System) with Lucide icons + `aria-current` active state. Local chrome: `PageHeader` (optional icon), `PageStack`, `PageGrid`, `StatCard` (+ icon), `InfiniteDataTable`. Tokens: `--content-pad-*`, `--section-gap` in `apps/platform/src/styles/tokens/_theme.scss`.
+
+**Theme:** light / dark / system via `data-theme` on `<html>`. Boot script `serializeInitialAppearanceScript()` (`apps/platform/src/lib/appearance.ts`, localStorage `arvilio-platform-ui`) + sidebar Light/Dark/System toggle in `ConsoleShell`. Dark mixin uses cooler ink surfaces (not Campus warm paper). Login page respects the same `data-theme`.
+
+**Dashboard:** KPI `StatCard` strip + compact secondary metric chips (operators, orphans, blocked, trials ending, rails configured) + optional “Trials ending soon” + two-column Recent campuses / Recent audit panels. Data from enriched `GET /platform/dashboard`.
+
+**Campus plans:** default offer card + country override cards with live currency preview for Starter/Pro; no nested “Offers” panel.
 
 ## Styling stack
 
 | Layer | Location |
 |-------|----------|
-| Tokens | `apps/web/src/styles/tokens/` — `_theme.scss`, typography, layout |
-| Global | `styles/global.scss` imported from `app/globals.scss` |
-| Components | `components/ui/ui.module.scss` (~540 lines, shared) |
+| Tokens | Per app: `apps/campus/src/styles/tokens/`, `apps/platform/src/styles/tokens/` |
+| Shared primitive SCSS | `packages/frontend/shared-ui/src/styles/primitives.module.scss` (+ `picker.module.scss`) |
+| Campus composites | `apps/campus/src/components/ui/ui.module.scss` |
 | Co-located | `*.module.scss` per page/feature |
 
 - **CSS custom properties** for theming (`data-theme` on `<html>` via `ui-store`)
@@ -27,7 +56,7 @@ SoEnglish UI primitives live in **`apps/web/src/components/ui/`** — not in `@f
 
 ## Shared theme (`data-theme`)
 
-**Source:** `apps/web/src/styles/tokens/_theme.scss` — mixins `light-theme` / `dark-theme` on `:root`, `[data-theme='light']`, `[data-theme='dark']`.
+**Source:** `apps/campus/src/styles/tokens/_theme.scss` — mixins `light-theme` / `dark-theme` on `:root`, `[data-theme='light']`, `[data-theme='dark']`.
 
 **Runtime sync:** `lib/appearance/apply-appearance.ts` (`applyAppearanceToElement`, `resolveThemeMode`) used by:
 
@@ -55,9 +84,9 @@ Future **per-school** theming: override this variable set (not per-page hex). Pl
 
 - Added stronger semantic status accents in `tokens/_theme.scss`: `--accent-warning-strong`, `--accent-danger-strong`.
 - Added shared status role tokens for chips/pills: `--status-info-*`, `--status-success-*`, `--status-warning-*`, `--status-danger-*`.
-- Introduced shared modal SCSS recipe in `apps/web/src/styles/_modal-recipe.scss` and reused it in:
-  - `apps/web/src/features/materials/media-viewer/media-viewer.module.scss`
-  - `apps/web/src/app/calendar/page.module.scss`
+- Introduced shared modal SCSS recipe in `apps/campus/src/styles/_modal-recipe.scss` and reused it in:
+  - `apps/campus/src/features/materials/media-viewer/media-viewer.module.scss`
+  - `apps/campus/src/app/calendar/page.module.scss`
 - Added a style guardrail script (`scripts/style-guardrails.cjs`) and npm command `npm run lint:styles` to catch:
   - `transition: all`
   - non-tokenized `font-weight: 650`
@@ -186,7 +215,7 @@ Full-height panel (`--nav-drawer-width`, `100dvh`), token backdrop (`--backdrop-
 
 ## Auth screens (F2)
 
-**Layout:** `(auth)/layout.tsx` + `auth-layout.module.scss` — mobile: centered card on warm gradient; `md+`: optional left **trust panel** (copy only) + form column.
+**Layout:** `(auth)/layout.tsx` + `auth-layout.module.scss` — single centered column on soft gradient; no trust panel / Arvi (removed: hydrate blink + unused 3D load).
 
 **Shared card:** `auth.module.scss` — `.card`, Lora `.title`, `.intro`, `Button` + `Field` (`.fieldControl`), `.error` / `.success` / `.info`, `.footerLink`.
 
@@ -475,9 +504,9 @@ From `components/ui/index.ts`:
 
 ## Agent / contributor conventions
 
-In `apps/web`, prefer project primitives over raw HTML: **`Link`** (`next/link`) not in-app `<a>`, **`Image`** (`next/image`) not `<img>`, **`Field`** not bare `<input>`/`<textarea>`/`<select>`, **`Button`** not `<button>`. Toggle groups → **`SegmentedControl`**. Navigation/data → `next/navigation` (`useRouter`, `useSearchParams`). Rule file: `.cursor/rules/web-component-reuse.mdc`.
+In `apps/campus`, prefer project primitives over raw HTML: **`Link`** (`next/link`) not in-app `<a>`, **`Image`** (`next/image`) not `<img>`, **`Field`** not bare `<input>`/`<textarea>`/`<select>`, **`Button`** not `<button>`. Toggle groups → **`SegmentedControl`**. Navigation/data → `next/navigation` (`useRouter`, `useSearchParams`). Rule file: `.cursor/rules/web-component-reuse.mdc`.
 
-**Left as raw HTML (intentional):** external `<a target="_blank">`, hidden file inputs, color-picker hue `<input type="range">`, crop resize handle, `Button`/`Field` internals (select dropdown triggers).
+**Left as raw HTML (intentional):** external `<a target="_blank">`, hidden file inputs, color-picker hue `<input type="range">`, crop resize handle, `Button`/`Field` internals (select / checkbox / radio faces). Never use bare `<input type="checkbox">` in apps — use `Field as="checkbox"`.
 
 ## Patterns
 
@@ -493,7 +522,7 @@ In `apps/web`, prefer project primitives over raw HTML: **`Link`** (`next/link`)
 
 ## Responsive layout
 
-Product NFR: adaptive UI (NFR-05 in coursework). Implementation in `apps/web`:
+Product NFR: adaptive UI (NFR-05 in coursework). Implementation in `apps/campus`:
 
 | Tier | Width | Shell | Pages |
 |------|-------|-------|-------|

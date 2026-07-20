@@ -9,6 +9,7 @@ import type {
   TranslationProviderId,
   TranslationSettingsDto,
 } from '@pkg/types';
+import { useCampusT } from '../../../lib/cms';
 import { IntegrationSecretField } from '../connections/integration-ui';
 import { ProviderSetupGuide } from '../payment/ProviderSetupGuide';
 import { TRANSLATION_SETUP_GUIDES } from '../word-dictionary-setup-guides';
@@ -34,12 +35,16 @@ export function TranslationProviderConfig({
   integrationSettings, secrets, setSecrets,
   selectedProviderInfo, saving, feedback, onSave,
 }: Props) {
+  const t = useCampusT();
+
   return (
     <section className={styles.panel} aria-labelledby="translation-config-heading">
       <div className={styles.panelHead}>
-        <h2 id="translation-config-heading" className={styles.panelTitle}>Provider configuration</h2>
+        <h2 id="translation-config-heading" className={styles.panelTitle}>{t('system.dictionary.config.title')}</h2>
         <p className={styles.panelBlurb}>
-          Settings for {selectedProviderInfo?.name ?? 'selected provider'}.
+          {t('system.dictionary.config.blurb', {
+            providerName: selectedProviderInfo?.name ?? t('system.dictionary.config.selectedProvider'),
+          })}
           {selectedProviderInfo?.requiresServiceSubscription ? <> <SubscriptionBadge /></> : null}
         </p>
       </div>
@@ -50,58 +55,63 @@ export function TranslationProviderConfig({
 
         {configProvider === 'deepl' ? (
           <div className={styles.fieldGrid}>
-            <TranslationEndpointField label="API URL" url={apiUrls.deeplApiUrl} />
+            <TranslationEndpointField label={t('system.dictionary.field.apiUrl')} url={apiUrls.deeplApiUrl} />
             {!integrationSettings?.secretStatuses.deeplAuthKey.configured ? <PaidProviderKeyWarning providerName="DeepL" /> : null}
             <div className={styles.fieldGroupWide}>
-              <IntegrationSecretField id="translation-deepl-key" label="DeepL Auth Key" status={integrationSettings?.secretStatuses.deeplAuthKey} value={secrets.deeplAuthKey ?? ''} onChange={(v) => setSecrets((s) => ({ ...s, deeplAuthKey: v }))} />
+              <IntegrationSecretField id="translation-deepl-key" label={t('system.dictionary.field.deeplAuthKey')} status={integrationSettings?.secretStatuses.deeplAuthKey} value={secrets.deeplAuthKey ?? ''} onChange={(v) => setSecrets((s) => ({ ...s, deeplAuthKey: v }))} />
             </div>
           </div>
         ) : null}
 
         {configProvider === 'google' ? (
           <div className={styles.fieldGrid}>
-            <TranslationEndpointField label="API URL" url={apiUrls.googleTranslateApiUrl} />
+            <TranslationEndpointField label={t('system.dictionary.field.apiUrl')} url={apiUrls.googleTranslateApiUrl} />
             {!integrationSettings?.secretStatuses.googleTranslateApiKey.configured ? <PaidProviderKeyWarning providerName="Google Cloud Translation" /> : null}
             <div className={styles.fieldGroupWide}>
-              <IntegrationSecretField id="translation-google-key" label="Google Cloud API key" status={integrationSettings?.secretStatuses.googleTranslateApiKey} value={secrets.googleTranslateApiKey ?? ''} onChange={(v) => setSecrets((s) => ({ ...s, googleTranslateApiKey: v }))} />
+              <IntegrationSecretField id="translation-google-key" label={t('system.dictionary.field.googleApiKey')} status={integrationSettings?.secretStatuses.googleTranslateApiKey} value={secrets.googleTranslateApiKey ?? ''} onChange={(v) => setSecrets((s) => ({ ...s, googleTranslateApiKey: v }))} />
             </div>
           </div>
         ) : null}
 
         {configProvider === 'microsoft' ? (
           <div className={styles.fieldGrid}>
-            <TranslationEndpointField label="API URL" url={apiUrls.microsoftTranslatorApiUrl} />
-            <p className={styles.muted}>Set <code>AZURE_TRANSLATOR_REGION</code> in deployment env (e.g. <code>eastus</code>) together with the subscription key below.</p>
+            <TranslationEndpointField label={t('system.dictionary.field.apiUrl')} url={apiUrls.microsoftTranslatorApiUrl} />
+            <p className={styles.muted}>{t('system.dictionary.microsoft.envHint')}</p>
             {!integrationSettings?.secretStatuses.azureTranslatorKey.configured ? <PaidProviderKeyWarning providerName="Microsoft Translator" /> : null}
             <div className={styles.fieldGroupWide}>
-              <IntegrationSecretField id="translation-azure-key" label="Azure subscription key" status={integrationSettings?.secretStatuses.azureTranslatorKey} value={secrets.azureTranslatorKey ?? ''} onChange={(v) => setSecrets((s) => ({ ...s, azureTranslatorKey: v }))} />
+              <IntegrationSecretField id="translation-azure-key" label={t('system.dictionary.field.azureKey')} status={integrationSettings?.secretStatuses.azureTranslatorKey} value={secrets.azureTranslatorKey ?? ''} onChange={(v) => setSecrets((s) => ({ ...s, azureTranslatorKey: v }))} />
             </div>
           </div>
         ) : null}
 
         {configProvider === 'reverso' ? (
           <div className={styles.fieldGrid}>
-            <TranslationEndpointField label="API URL" url={apiUrls.reversoApiUrl} />
+            <TranslationEndpointField label={t('system.dictionary.field.apiUrl')} url={apiUrls.reversoApiUrl} />
             <div className={styles.fieldGroup}>
-              <label className={styles.label} htmlFor="translation-reverso-target">Context target (ISO)</label>
+              <label className={styles.label} htmlFor="translation-reverso-target">{t('system.dictionary.field.reversoTarget')}</label>
               <Field id="translation-reverso-target" className={styles.input} placeholder="uk" value={translation.reversoContextTargetLang} onChange={(e) => setTranslation({ ...translation, reversoContextTargetLang: e.target.value.trim() || 'uk' })} />
             </div>
             <div className={styles.fieldGroupWide}>
-              <IntegrationSecretField id="translation-reverso-key" label="API key (optional)" status={integrationSettings?.secretStatuses.reversoApiKey} value={secrets.reversoApiKey ?? ''} onChange={(v) => setSecrets((s) => ({ ...s, reversoApiKey: v }))} />
+              <IntegrationSecretField id="translation-reverso-key" label={t('system.dictionary.field.reversoKey')} status={integrationSettings?.secretStatuses.reversoApiKey} value={secrets.reversoApiKey ?? ''} onChange={(v) => setSecrets((s) => ({ ...s, reversoApiKey: v }))} />
             </div>
-            <label className={styles.checkboxRow}>
-              <input type="checkbox" checked={translation.reversoContextResults} onChange={(e) => setTranslation({ ...translation, reversoContextResults: e.target.checked })} />
-              <span>Include contextual example sentences</span>
-            </label>
+            <Field
+              as="checkbox"
+              checked={translation.reversoContextResults}
+              onChange={(e) =>
+                setTranslation({ ...translation, reversoContextResults: e.target.checked })
+              }
+              label={t('system.dictionary.field.reversoContext')}
+              rootClassName={styles.checkboxRow}
+            />
           </div>
         ) : null}
 
         {configProvider === 'mymemory' ? (
           <div className={styles.fieldGrid}>
-            <TranslationEndpointField label="MyMemory URL" url={apiUrls.myMemoryUrl} />
+            <TranslationEndpointField label={t('system.dictionary.field.myMemoryUrl')} url={apiUrls.myMemoryUrl} />
             <div className={styles.fieldGroup}>
-              <label className={styles.label} htmlFor="translation-email">MyMemory email</label>
-              <Field id="translation-email" type="email" className={styles.input} placeholder="Raises free quota" value={translation.apiEmail ?? ''} onChange={(e) => setTranslation({ ...translation, apiEmail: e.target.value || null })} />
+              <label className={styles.label} htmlFor="translation-email">{t('system.dictionary.field.myMemoryEmail')}</label>
+              <Field id="translation-email" type="email" className={styles.input} placeholder={t('system.dictionary.field.myMemoryEmailPlaceholder')} value={translation.apiEmail ?? ''} onChange={(e) => setTranslation({ ...translation, apiEmail: e.target.value || null })} />
             </div>
           </div>
         ) : null}
@@ -109,22 +119,22 @@ export function TranslationProviderConfig({
         {configProvider === 'libretranslate' ? (
           <div className={styles.fieldGrid}>
             {apiUrls.libreTranslateUrl ? (
-              <TranslationEndpointField label="LibreTranslate URL" url={apiUrls.libreTranslateUrl} />
+              <TranslationEndpointField label={t('system.dictionary.field.libreTranslateUrl')} url={apiUrls.libreTranslateUrl} />
             ) : (
-              <p className={styles.muted}>LibreTranslate URL is not configured on the server. Add <code>LIBRETRANSLATE_URL</code> to deployment env to enable this step in the fallback chain.</p>
+              <p className={styles.muted}>{t('system.dictionary.libretranslate.notConfigured')}</p>
             )}
             <div className={styles.fieldGroupWide}>
-              <IntegrationSecretField id="translation-libre-key" label="LibreTranslate API key" status={integrationSettings?.secretStatuses.libreTranslateApiKey} value={secrets.libreTranslateApiKey ?? ''} onChange={(v) => setSecrets((s) => ({ ...s, libreTranslateApiKey: v }))} />
+              <IntegrationSecretField id="translation-libre-key" label={t('system.dictionary.field.libreTranslateKey')} status={integrationSettings?.secretStatuses.libreTranslateApiKey} value={secrets.libreTranslateApiKey ?? ''} onChange={(v) => setSecrets((s) => ({ ...s, libreTranslateApiKey: v }))} />
             </div>
           </div>
         ) : null}
 
         {configProvider === 'gtx' ? (
-          <p className={styles.reversoCallout}>Google Translate (GTX) has no configuration fields. It runs automatically as a fallback step when earlier providers in the chain fail.</p>
+          <p className={styles.reversoCallout}>{t('system.dictionary.gtx.noConfig')}</p>
         ) : null}
 
         <footer className={styles.panelFooter}>
-          <Button type="button" variant="primary" loading={saving} loadingLabel="Saving…" disabled={configProvider === 'gtx' || configProvider === undefined} onClick={onSave}>Save language settings</Button>
+          <Button type="button" variant="primary" loading={saving} loadingLabel={t('system.dictionary.saving')} disabled={configProvider === 'gtx' || configProvider === undefined} onClick={onSave}>{t('system.dictionary.saveLanguageSettings')}</Button>
           {feedback ? <p className={feedback.type === 'error' ? styles.feedbackError : styles.feedbackSuccess} role="status">{feedback.text}</p> : null}
         </footer>
       </div>

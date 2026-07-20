@@ -4,12 +4,13 @@ import {
   PROFICIENCY_LEVEL,
   TIME_ZONE_ID_LIST,
   USER_ACCOUNT_STATUS_ID_LIST,
-  formatTimeZoneOptionLabel as formatMockTimeZoneLabel,
+  formatTimeZoneOptionLabel,
   getTimeZoneById,
   getUserAccountStatusById,
   type ProficiencyLevelId,
   type UserAccountStatusId,
-} from '../../mocks';
+} from '@pkg/types';
+import { useCampusT } from '../../lib/cms';
 import { isFieldVisible } from './profile-field-policy';
 import { fieldDisabled } from './profile-section-utils';
 import type { ProfileFormContext, UnifiedProfileFormValues } from './unified-profile-types';
@@ -33,6 +34,8 @@ interface SectionProps {
 }
 
 export function IdentitySection({ values, resolvedContext, fieldsDisabled, idPrefix, patch }: SectionProps) {
+  const t = useCampusT();
+
   return (
     <section className={styles.profileSection}>
       <header className={styles.profileSectionHeader}>
@@ -40,9 +43,9 @@ export function IdentitySection({ values, resolvedContext, fieldsDisabled, idPre
           <UserRound size={16} />
         </span>
         <div>
-          <h4 className={styles.profileSectionTitle}>Identity</h4>
+          <h4 className={styles.profileSectionTitle}>{t('profile.section.identity')}</h4>
           <p className={styles.profileSectionText}>
-            Name and login email shown across the platform.
+            {t('profile.section.identityHint')}
           </p>
         </div>
       </header>
@@ -50,7 +53,7 @@ export function IdentitySection({ values, resolvedContext, fieldsDisabled, idPre
         {isFieldVisible('displayName', resolvedContext) ? (
           <div className={styles.fieldGroup}>
             <label className={styles.label} htmlFor={`${idPrefix}-name`}>
-              Full name
+              {t('profile.field.fullName')}
             </label>
             <Field
               id={`${idPrefix}-name`}
@@ -65,7 +68,7 @@ export function IdentitySection({ values, resolvedContext, fieldsDisabled, idPre
         {isFieldVisible('email', resolvedContext) ? (
           <div className={styles.fieldGroup}>
             <label className={styles.label} htmlFor={`${idPrefix}-email`}>
-              Email
+              {t('profile.field.email')}
             </label>
             <Field
               id={`${idPrefix}-email`}
@@ -82,6 +85,8 @@ export function IdentitySection({ values, resolvedContext, fieldsDisabled, idPre
 }
 
 export function ContactSection({ values, resolvedContext, fieldsDisabled, idPrefix, patch }: SectionProps) {
+  const t = useCampusT();
+
   return (
     <section className={styles.profileSection}>
       <header className={styles.profileSectionHeader}>
@@ -89,9 +94,9 @@ export function ContactSection({ values, resolvedContext, fieldsDisabled, idPref
           <Phone size={16} />
         </span>
         <div>
-          <h4 className={styles.profileSectionTitle}>Contact & timezone</h4>
+          <h4 className={styles.profileSectionTitle}>{t('profile.section.contact')}</h4>
           <p className={styles.profileSectionText}>
-            How admins, teachers, and students reach this person.
+            {t('profile.section.contactHint')}
           </p>
         </div>
       </header>
@@ -99,7 +104,7 @@ export function ContactSection({ values, resolvedContext, fieldsDisabled, idPref
         {isFieldVisible('phone', resolvedContext) ? (
           <div className={styles.fieldGroup}>
             <label className={styles.label} htmlFor={`${idPrefix}-phone`}>
-              Phone
+              {t('profile.field.phone')}
             </label>
             <Field
               id={`${idPrefix}-phone`}
@@ -116,7 +121,7 @@ export function ContactSection({ values, resolvedContext, fieldsDisabled, idPref
         {isFieldVisible('telegram', resolvedContext) ? (
           <div className={styles.fieldGroup}>
             <label className={styles.label} htmlFor={`${idPrefix}-telegram`}>
-              Telegram
+              {t('profile.field.telegram')}
             </label>
             <Field
               id={`${idPrefix}-telegram`}
@@ -132,7 +137,7 @@ export function ContactSection({ values, resolvedContext, fieldsDisabled, idPref
         {isFieldVisible('timezone', resolvedContext) ? (
           <div className={styles.fieldGroup}>
             <label className={styles.label} htmlFor={`${idPrefix}-timezone`}>
-              Timezone
+              {t('profile.field.timezone')}
             </label>
             <Field
               as="select"
@@ -150,7 +155,7 @@ export function ContactSection({ values, resolvedContext, fieldsDisabled, idPref
                 const tz = getTimeZoneById(id);
                 return tz ? (
                   <option key={id} value={id}>
-                    {formatMockTimeZoneLabel(tz)}
+                    {formatTimeZoneOptionLabel(tz)}
                   </option>
                 ) : null;
               })}
@@ -167,6 +172,8 @@ interface LearningSectionProps extends SectionProps {
 }
 
 export function LearningSection({ values, resolvedContext, fieldsDisabled, idPrefix, patch, languages }: LearningSectionProps) {
+  const t = useCampusT();
+
   return (
     <section className={styles.profileSection}>
       <header className={styles.profileSectionHeader}>
@@ -174,9 +181,9 @@ export function LearningSection({ values, resolvedContext, fieldsDisabled, idPre
           <GraduationCap size={16} />
         </span>
         <div>
-          <h4 className={styles.profileSectionTitle}>Learning</h4>
+          <h4 className={styles.profileSectionTitle}>{t('profile.section.learning')}</h4>
           <p className={styles.profileSectionText}>
-            Native language and current proficiency level.
+            {t('profile.section.learningHint')}
           </p>
         </div>
       </header>
@@ -184,7 +191,7 @@ export function LearningSection({ values, resolvedContext, fieldsDisabled, idPre
         {isFieldVisible('nativeLanguage', resolvedContext) ? (
           <div className={styles.fieldGroup}>
             <label className={styles.label} htmlFor={`${idPrefix}-native-language`}>
-              Native language
+              {t('profile.field.nativeLanguage')}
             </label>
             <Field
               as="select"
@@ -207,7 +214,7 @@ export function LearningSection({ values, resolvedContext, fieldsDisabled, idPre
         {isFieldVisible('proficiency', resolvedContext) ? (
           <div className={styles.fieldGroup}>
             <label className={styles.label} htmlFor={`${idPrefix}-proficiency`}>
-              {resolvedContext.subjectKind === 'student' ? 'Level' : 'Proficiency'}
+              {resolvedContext.subjectKind === 'student' ? t('profile.field.level') : t('profile.field.proficiency')}
             </label>
             <Field
               as="select"
@@ -241,6 +248,8 @@ export function LearningSection({ values, resolvedContext, fieldsDisabled, idPre
 }
 
 export function AccountSection({ values, resolvedContext, fieldsDisabled, idPrefix, patch }: SectionProps) {
+  const t = useCampusT();
+
   return (
     <section className={styles.profileSection}>
       <header className={styles.profileSectionHeader}>
@@ -248,9 +257,9 @@ export function AccountSection({ values, resolvedContext, fieldsDisabled, idPref
           <FileText size={16} />
         </span>
         <div>
-          <h4 className={styles.profileSectionTitle}>Account & bio</h4>
+          <h4 className={styles.profileSectionTitle}>{t('profile.section.accountBio')}</h4>
           <p className={styles.profileSectionText}>
-            Access state and optional notes for internal reference.
+            {t('profile.section.accountBioHint')}
           </p>
         </div>
       </header>
@@ -258,7 +267,7 @@ export function AccountSection({ values, resolvedContext, fieldsDisabled, idPref
         {isFieldVisible('studentStatus', resolvedContext) ? (
           <div className={styles.fieldGroup}>
             <label className={styles.label} htmlFor={`${idPrefix}-student-status`}>
-              Status
+              {t('profile.field.status')}
             </label>
             <Field
               as="select"
@@ -284,7 +293,7 @@ export function AccountSection({ values, resolvedContext, fieldsDisabled, idPref
         {isFieldVisible('staffStatus', resolvedContext) ? (
           <div className={styles.fieldGroup}>
             <label className={styles.label} htmlFor={`${idPrefix}-staff-status`}>
-              Account status
+              {t('profile.field.status')}
             </label>
             <Field
               as="select"
@@ -310,7 +319,7 @@ export function AccountSection({ values, resolvedContext, fieldsDisabled, idPref
         {isFieldVisible('bio', resolvedContext) ? (
           <div className={`${styles.fieldGroup} ${styles.fieldGroupWide}`}>
             <label className={styles.label} htmlFor={`${idPrefix}-bio`}>
-              Bio
+              {t('profile.field.bio')}
             </label>
             <Field
               as="textarea"
@@ -321,8 +330,8 @@ export function AccountSection({ values, resolvedContext, fieldsDisabled, idPref
               disabled={fieldDisabled('bio', resolvedContext, fieldsDisabled)}
               placeholder={
                 resolvedContext.subjectKind === 'staff'
-                  ? 'Short internal note about this staff member…'
-                  : 'Tell us a bit about yourself…'
+                  ? t('profile.field.bioPlaceholderStaff')
+                  : t('profile.field.bioPlaceholder')
               }
               onChange={(event) => patch({ bio: event.target.value })}
             />

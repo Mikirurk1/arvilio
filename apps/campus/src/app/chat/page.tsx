@@ -12,9 +12,11 @@ import { ChatInbox } from './ChatInbox';
 import { ChatThread } from './ChatThread';
 import { CreateGroupModal } from './CreateGroupModal';
 import { NewDirectModal } from './NewDirectModal';
+import { useCampusT } from '../../lib/cms';
 import styles from './page.module.scss';
 
 export default function ChatPage() {
+  const t = useCampusT();
   const searchParams = useSearchParams();
   const peerFromUrl = searchParams.get('peer');
   const openedPeerRef = useRef<string | null>(null);
@@ -91,7 +93,8 @@ export default function ChatPage() {
         type="button"
         variant="ghost"
         className={styles.iconBtn}
-        aria-label="New message"
+        aria-label={t('chat.newMessageAria')}
+        data-tour-anchor="chat-new-message"
         onClick={() => setShowNewDirect(true)}
       >
         <MessageSquarePlus size={16} />
@@ -101,7 +104,8 @@ export default function ChatPage() {
           type="button"
           variant="ghost"
           className={styles.iconBtn}
-          aria-label="Create group"
+          aria-label={t('chat.createGroupAria')}
+          data-tour-anchor="chat-create-group"
           onClick={() => setShowCreateGroup(true)}
         >
           <Users size={16} />

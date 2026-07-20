@@ -75,6 +75,6 @@ export const useAdminStore = create<AdminState>()(
         }
       },
     }),
-    { name: 'soenglish/admin' },
+    { name: 'arvilio/admin' },
   ),
 );

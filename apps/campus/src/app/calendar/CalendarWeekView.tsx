@@ -13,7 +13,6 @@ import {
 import {
   buildWeekEventLayout,
   DAY_COLUMN_HEIGHT,
-  DAYS,
   HOUR_MARKS,
   MINUTES_PER_DAY,
   PX_PER_MINUTE,
@@ -23,7 +22,18 @@ import {
   type ResizeState,
   type StudentColor,
 } from './calendarUtils';
+import { useCampusT } from '../../lib/cms';
 import styles from './page.module.scss';
+
+const WEEKDAY_KEYS = [
+  'lessonModal.day.mon',
+  'lessonModal.day.tue',
+  'lessonModal.day.wed',
+  'lessonModal.day.thu',
+  'lessonModal.day.fri',
+  'lessonModal.day.sat',
+  'lessonModal.day.sun',
+] as const;
 
 interface CalendarWeekViewProps {
   weekDays: Date[];
@@ -63,6 +73,7 @@ export function CalendarWeekView({
   getLessonColor, colorFromStudentId, lessonColorStyles,
   openCreateModal, openEditModal, moveLesson, viewerIana,
 }: CalendarWeekViewProps) {
+  const t = useCampusT();
   return (
     <div className={styles.weekView}>
       <div className={styles.weekHeader}>
@@ -72,20 +83,21 @@ export function CalendarWeekView({
           const isToday = dateStr === today;
           const isSelected = selectedDate === dateStr;
           const isPastDay = dateStr < today;
+          const weekdayKey = WEEKDAY_KEYS[date.getDay() === 0 ? 6 : date.getDay() - 1];
           return (
             <div
               key={dateStr}
               className={`${styles.weekDayHeader} ${isToday ? styles.weekDayToday : ''} ${isSelected ? styles.weekDaySelected : ''} ${isPastDay ? styles.weekDayPast : ''}`}
               onClick={() => setSelectedDate(dateStr)}
             >
-              <div className={styles.weekDayName}>{DAYS[date.getDay() === 0 ? 6 : date.getDay() - 1]}</div>
+              <div className={styles.weekDayName}>{t(weekdayKey)}</div>
               <div className={styles.weekDayNum}>{date.getDate()}</div>
             </div>
           );
         })}
       </div>
       {/* tabIndex: scrollable region must be keyboard-focusable (axe scrollable-region-focusable) */}
-      <div className={styles.weekBody} tabIndex={0} role="region" aria-label="Week schedule">
+      <div className={styles.weekBody} tabIndex={0} role="region" aria-label={t('calendar.weekScheduleAria')}>
         <div className={styles.weekRow} style={{ minHeight: DAY_COLUMN_HEIGHT }}>
           {weekIncludesToday && weekNowTopPx >= 0 && weekNowTopPx <= DAY_COLUMN_HEIGHT ? (
             <div className={styles.weekNowLine} style={{ top: weekNowTopPx }} aria-hidden>

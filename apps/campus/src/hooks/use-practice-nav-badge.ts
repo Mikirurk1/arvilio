@@ -1,5 +1,6 @@
 'use client';
 
+import { stripLocalePrefix } from '@pkg/types';
 import { useEffect, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '../lib/auth-context';
@@ -35,7 +36,7 @@ function refreshQuizPendingData(
 export function usePracticePendingCounts(): PracticePendingCounts {
   const { user } = useAuth();
   const roleKey = useActiveRoleKey();
-  const pathname = usePathname();
+  const pathname = stripLocalePrefix(usePathname() || '/').pathname;
   const isStudent = roleKey === 'student';
   const studentQuizzes = useQuizzesStore((s) => s.studentQuizzes);
   const fetchList = useQuizzesStore((s) => s.fetchList);

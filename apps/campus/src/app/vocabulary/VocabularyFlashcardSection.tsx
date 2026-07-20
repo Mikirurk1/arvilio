@@ -1,14 +1,12 @@
 'use client';
 
 import { useMemo } from 'react';
-import {
-  vocabularyStatusLabel,
-  type VocabularyWordStatusName,
-} from '@pkg/types';
+import { type VocabularyWordStatusName } from '@pkg/types';
 import { Check, ChevronRight, Info, PartyPopper } from 'lucide-react';
 import { Badge, Button, EmptyStateCard, ProgressHeader } from '../../components/ui';
 import { VerbFormsLine } from '../../components/vocabulary/VerbFormsLine';
 import { WordCardAudioButton } from '../../features/vocabulary/WordCardAudioButton';
+import { useCampusT } from '../../lib/cms';
 import { glossFromDefinition, pickNativeDefinitions } from '../../lib/word-definitions';
 import {
   resolveVocabularyGlossesForPosFilter,
@@ -54,6 +52,7 @@ export function VocabularyFlashcardSection({
   isLoading?: boolean;
   emptyAfterFilters?: boolean;
 }) {
+  const t = useCampusT();
   const display = currentItem?.display;
   const status = currentItem?.status;
   const gloss = useMemo(() => {
@@ -95,19 +94,19 @@ export function VocabularyFlashcardSection({
     className: string;
   }> = isStudent
     ? [
-        { status: 'new', label: 'Still learning', className: styles.fcBtnRed },
-        { status: 'repeated', label: 'Got it', className: styles.fcBtnGreen },
+        { status: 'new', label: t('vocabulary.fc.stillLearning'), className: styles.fcBtnRed },
+        { status: 'repeated', label: t('vocabulary.fc.gotIt'), className: styles.fcBtnGreen },
       ]
     : [
-        { status: 'new', label: 'Still learning', className: styles.fcBtnRed },
-        { status: 'repeated', label: 'Repeated', className: styles.fcBtnAmber },
+        { status: 'new', label: t('vocabulary.fc.stillLearning'), className: styles.fcBtnRed },
+        { status: 'repeated', label: t('vocabulary.status.repeated'), className: styles.fcBtnAmber },
         {
           status: 'mistakes_work',
-          label: vocabularyStatusLabel('mistakes_work'),
+          label: t('vocabulary.status.mistakes_work'),
           className: styles.fcBtnRed,
         },
         ...(canSetLearned
-          ? [{ status: 'learned' as const, label: 'Learned', className: styles.fcBtnGreen }]
+          ? [{ status: 'learned' as const, label: t('vocabulary.status.learned'), className: styles.fcBtnGreen }]
           : []),
       ];
 
@@ -123,14 +122,14 @@ export function VocabularyFlashcardSection({
       {isLoading ? (
         <EmptyStateCard
           className={styles.empty}
-          title='Loading…'
-          description='Fetching your words.'
+          title={t('common.loading')}
+          description={t('vocabulary.empty.fetching')}
         />
       ) : emptyAfterFilters ? (
         <EmptyStateCard
           className={styles.empty}
-          title='No words match filters'
-          description='Try a different lesson, part of speech, or clear search.'
+          title={t('vocabulary.empty.noMatch')}
+          description={t('vocabulary.empty.flashNoMatchHint')}
         />
       ) : display ? (
         <>
@@ -153,7 +152,7 @@ export function VocabularyFlashcardSection({
                             : 'green'
                     }
                   >
-                    {vocabularyStatusLabel(status)}
+                    {t(`vocabulary.status.${status}`)}
                   </Badge>
                 ) : (
                   <span />
@@ -166,8 +165,8 @@ export function VocabularyFlashcardSection({
                     variant='ghost'
                     className={styles.fcDetailsBtn}
                     onClick={() => onOpenWordDetails(display.wordId)}
-                    aria-label='All information'
-                    title='All information'
+                    aria-label={t('vocabulary.detailsAria')}
+                    title={t('vocabulary.detailsAria')}
                   >
                     <Info size={16} aria-hidden />
                   </Button>
@@ -176,6 +175,7 @@ export function VocabularyFlashcardSection({
             )}
             <div
               className={styles.flashcard}
+              data-tour-anchor="vocab-flashcard"
               onClick={() => setFlipped(!flipped)}
             >
               {!flipped ? (
@@ -208,7 +208,7 @@ export function VocabularyFlashcardSection({
                             key={pos}
                             className={`${styles.fcPosBadge} ${isActive ? styles.fcPosBadgeActive : ''}`}
                           >
-                            {formatPosFilterLabel(pos)}
+                            {formatPosFilterLabel(pos, t('vocabulary.filter.all'))}
                           </span>
                         );
                       })}
@@ -240,7 +240,7 @@ export function VocabularyFlashcardSection({
                         <div key={row.key} className={styles.fcGlossRow}>
                           {row.partOfSpeech ? (
                             <span className={styles.fcGlossPos}>
-                              {formatPosFilterLabel(row.partOfSpeech)}
+                              {formatPosFilterLabel(row.partOfSpeech, t('vocabulary.filter.all'))}
                             </span>
                           ) : null}
                           <span className={styles.fcGlossText}>{row.gloss}</span>
@@ -258,7 +258,7 @@ export function VocabularyFlashcardSection({
                   ) : null}
                   {display.synonyms.length > 0 ? (
                     <div className={styles.fcSynonyms}>
-                      <span className={styles.fcSynonymsLabel}>Synonyms</span>
+                      <span className={styles.fcSynonymsLabel}>{t('vocabulary.fc.synonyms')}</span>
                       {display.synonyms.slice(0, 6).join(', ')}
                     </div>
                   ) : null}
@@ -291,7 +291,7 @@ export function VocabularyFlashcardSection({
               }}
               disabled={cardIndex === 0}
             >
-              ← Prev
+              {t('vocabulary.fc.prev')}
             </Button>
             <Button
               type='button'
@@ -302,7 +302,7 @@ export function VocabularyFlashcardSection({
               }}
               disabled={cardIndex === total - 1}
             >
-              Next <ChevronRight size={14} />
+              {t('vocabulary.fc.next')} <ChevronRight size={14} />
             </Button>
           </div>
         </>
@@ -314,10 +314,10 @@ export function VocabularyFlashcardSection({
               <PartyPopper size={22} />
             </div>
           }
-          title={<div className={styles.fcCompleteTitle}>All done!</div>}
+          title={<div className={styles.fcCompleteTitle}>{t('vocabulary.fc.allDone')}</div>}
           description={
             <div className={styles.fcCompleteSub}>
-              You went through all {total} words. Great work!
+              {t('vocabulary.fc.allDoneSub', { count: total })}
             </div>
           }
           action={
@@ -327,7 +327,7 @@ export function VocabularyFlashcardSection({
                 className={styles.fcRestartBtn}
                 onClick={onRestart}
               >
-                Start over
+                {t('vocabulary.fc.restart')}
               </Button>
             ) : undefined
           }

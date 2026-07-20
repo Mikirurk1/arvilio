@@ -49,7 +49,7 @@ describe('MailService', () => {
 
   it('getStatus reports mailFrom default', () => {
     const service = new MailService();
-    expect(service.getStatus().mailFrom).toContain('SoEnglish');
+    expect(service.getStatus().mailFrom).toContain('Arvilio');
   });
 
   it('verifyConnection throws when SMTP not configured', async () => {

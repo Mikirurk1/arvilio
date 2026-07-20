@@ -66,7 +66,7 @@ Also depends per word: `example` (cloze), native `translation`, `includeIrregula
 
 **MCQ quality:** distractors are deduped by **answer text** (not only word id); `buildMcqOptions` requires four unique options. Definitions/translations prefer POS-scoped glosses from `word.definitions`. If the first pass cannot build enough questions, a relaxed distractor pass runs; generation fails with `BadRequestException` when below ~80% of requested count (min 3).
 
-**Grading:** fill-in answers use `normalizeQuizFillAnswer` (trim, collapse spaces, lowercase, strip trailing punctuation) in `quiz-grading.util.ts`; web preview mirrors this via `apps/web/src/lib/quiz-grading.ts`.
+**Grading:** fill-in answers use `normalizeQuizFillAnswer` (trim, collapse spaces, lowercase, strip trailing punctuation) in `quiz-grading.util.ts`; web preview mirrors this via `apps/campus/src/lib/quiz-grading.ts`.
 
 **Learning loop:** on a non-practice submit, wrong answers with `wordId` promote the student's card to `MISTAKES_WORK` (never downgrades `LEARNED`).
 

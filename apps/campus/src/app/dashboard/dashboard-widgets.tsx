@@ -13,6 +13,7 @@ import {
 import type { ScheduledLessonBackendDto, StudentSummaryBackendDto } from '@pkg/types';
 import { Button, SectionHeader, SurfaceCard } from '../../components/ui';
 import { isTeacherAdminOrSuperKey, useActiveRoleKey } from '../../lib/active-user';
+import { useCampusI18n, useCampusT } from '../../lib/cms';
 import {
   formatShortWeekdayDate,
   lessonCountByDate,
@@ -27,10 +28,15 @@ import {
 } from '../../lib/lessonTime';
 import { useViewerTimezone } from '../../hooks/use-viewer-timezone';
 import { useChatNavBadge } from '../../hooks/use-chat-nav-badge';
-import { usePracticeNavBadge } from '../../hooks/use-practice-nav-badge';
+import { usePracticePendingCounts } from '../../hooks/use-practice-nav-badge';
 import { useOpenCreateLesson } from '../../features/lesson-modal';
 import { useStudentsStore } from '../../stores/students-store';
 import styles from './page.module.scss';
+
+function lessonStatusKey(status: string): string {
+  const known = ['planned', 'completed', 'cancelled', 'in_progress'];
+  return known.includes(status) ? `dashboard.lessonStatus.${status}` : status;
+}
 
 type QuickAction = {
   href?: string;
@@ -41,32 +47,35 @@ type QuickAction = {
 };
 
 export function DashboardQuickActions() {
+  const t = useCampusT();
   const openCreateLesson = useOpenCreateLesson();
   const role = useActiveRoleKey();
   const chatUnread = useChatNavBadge();
-  const practicePendingTotal = usePracticeNavBadge();
+  const { total: practicePendingTotal, vocabPending, incompleteQuizzes } =
+    usePracticePendingCounts();
   const isStaff = isTeacherAdminOrSuperKey(role);
 
   const actions: QuickAction[] = [
     {
       href: '/calendar',
-      label: 'Calendar',
+      label: t('nav.calendar'),
       icon: <Calendar size={18} aria-hidden />,
     },
     {
       href: '/practice',
-      label: 'Practice',
+      label: t('nav.practice'),
       icon: <BookOpen size={18} aria-hidden />,
       badge: practicePendingTotal > 0 ? practicePendingTotal : undefined,
     },
     {
       href: '/vocabulary',
-      label: 'Vocabulary',
+      label: t('nav.vocabulary'),
       icon: <ClipboardCheck size={18} aria-hidden />,
+      badge: vocabPending > 0 ? vocabPending : undefined,
     },
     {
       href: '/chat',
-      label: 'Chat',
+      label: t('nav.chat'),
       icon: <MessageSquare size={18} aria-hidden />,
       badge: chatUnread > 0 ? chatUnread : undefined,
     },
@@ -74,26 +83,27 @@ export function DashboardQuickActions() {
       ? [
           {
             href: '/students',
-            label: 'Students',
+            label: t('nav.students'),
             icon: <Users size={18} aria-hidden />,
           },
           {
             onClick: openCreateLesson,
-            label: 'New lesson',
+            label: t('dashboard.quick.newLesson'),
             icon: <CalendarPlus size={18} aria-hidden />,
           },
         ]
       : [
           {
             href: '/quiz',
-            label: 'Quizzes',
+            label: t('nav.quizzes'),
             icon: <ClipboardCheck size={18} aria-hidden />,
+            badge: incompleteQuizzes > 0 ? incompleteQuizzes : undefined,
           },
         ]),
   ];
 
   return (
-    <div className={styles.quickActions}>
+    <div className={styles.quickActions} data-tour-anchor="dash-quick-actions">
       {actions.map((action) => {
         const key = action.href ?? action.label;
         if (action.onClick) {
@@ -135,8 +145,9 @@ export function DashboardQuickActions() {
 function studentDisplayName(
   students: StudentSummaryBackendDto[] | undefined,
   studentId: string,
+  fallback: string,
 ): string {
-  return students?.find((row) => row.id === studentId)?.displayName ?? 'Student';
+  return students?.find((row) => row.id === studentId)?.displayName ?? fallback;
 }
 
 export function TeacherHomeworkPanel({
@@ -146,20 +157,27 @@ export function TeacherHomeworkPanel({
   lessons: ScheduledLessonBackendDto[];
   students: StudentSummaryBackendDto[] | undefined;
 }) {
+  const t = useCampusT();
+  const { locale } = useCampusI18n();
   const pending = useMemo(() => pickPendingHomeworkLessons(lessons), [lessons]);
+  const dateOpts = {
+    locale: locale === 'uk' ? 'uk' : 'en',
+    todayLabel: t('dashboard.date.today'),
+    tomorrowLabel: t('dashboard.date.tomorrow'),
+  };
 
   return (
-    <SurfaceCard className={styles.panel}>
+    <SurfaceCard className={styles.panel} data-tour-anchor="dash-homework-review">
       <SectionHeader
         className={styles.panelHead}
         titleClassName={styles.sectionTitle}
-        title="Homework to review"
+        title={t('dashboard.homework.title')}
         actionHref="/lessons"
-        actionLabel="All lessons →"
+        actionLabel={t('dashboard.allLessonsArrow')}
         actionClassName={styles.seeAll}
       />
       {pending.length === 0 ? (
-        <p className={styles.panelHint}>No submitted homework waiting for review.</p>
+        <p className={styles.panelHint}>{t('dashboard.homework.empty')}</p>
       ) : (
         <ul className={styles.compactList}>
           {pending.map((lesson) => (
@@ -167,7 +185,8 @@ export function TeacherHomeworkPanel({
               <Link href={`/lessons/${lesson.id}`} className={styles.compactRow}>
                 <span className={styles.compactTitle}>{lesson.title}</span>
                 <span className={styles.compactMeta}>
-                  {studentDisplayName(students, lesson.studentId)} · {formatShortWeekdayDate(lesson.date)}
+                  {studentDisplayName(students, lesson.studentId, t('dashboard.students.fallback'))} ·{' '}
+                  {formatShortWeekdayDate(lesson.date, new Date(), dateOpts)}
                 </span>
               </Link>
             </li>
@@ -179,6 +198,7 @@ export function TeacherHomeworkPanel({
 }
 
 export function TeacherStudentsPanel() {
+  const t = useCampusT();
   const list = useStudentsStore((s) => s.list);
   const fetchStudents = useStudentsStore((s) => s.fetchStudents);
 
@@ -190,29 +210,34 @@ export function TeacherStudentsPanel() {
   const loading = list.status === 'loading' || list.status === 'idle';
 
   return (
-    <SurfaceCard className={styles.panel}>
+    <SurfaceCard className={styles.panel} data-tour-anchor="dash-my-students">
       <SectionHeader
         className={styles.panelHead}
         titleClassName={styles.sectionTitle}
-        title="My students"
+        title={t('dashboard.students.title')}
         actionHref="/students"
-        actionLabel="All →"
+        actionLabel={t('dashboard.allArrow')}
         actionClassName={styles.seeAll}
       />
       {loading ? (
-        <p className={styles.panelHint}>Loading…</p>
+        <p className={styles.panelHint}>{t('common.loading')}</p>
       ) : rows.length === 0 ? (
-        <p className={styles.panelHint}>No students assigned yet.</p>
+        <p className={styles.panelHint}>{t('dashboard.students.empty')}</p>
       ) : (
         <>
-          <p className={styles.panelHint}>{list.data?.length ?? 0} students total</p>
+          <p className={styles.panelHint}>
+            {t('dashboard.students.total', { count: list.data?.length ?? 0 })}
+          </p>
           <ul className={styles.compactList}>
             {rows.map((student) => (
               <li key={student.id}>
                 <Link href={`/students/${student.id}`} className={styles.compactRow}>
                   <span className={styles.compactTitle}>{student.displayName}</span>
                   <span className={styles.compactMeta}>
-                    {student.proficiencyLevel ?? '—'} · {student.status}
+                    {student.proficiencyLevel ?? '—'} ·{' '}
+                    {t(`students.status.${student.status}`) === `students.status.${student.status}`
+                      ? student.status
+                      : t(`students.status.${student.status}`)}
                   </span>
                 </Link>
               </li>
@@ -225,6 +250,8 @@ export function TeacherStudentsPanel() {
 }
 
 export function TeacherScheduleGlancePanel({ lessons }: { lessons: ScheduledLessonBackendDto[] }) {
+  const t = useCampusT();
+  const { locale } = useCampusI18n();
   const now = new Date();
   const year = now.getFullYear();
   const monthIndex = now.getMonth();
@@ -232,15 +259,28 @@ export function TeacherScheduleGlancePanel({ lessons }: { lessons: ScheduledLess
     () => lessonCountByDate(lessons, year, monthIndex),
     [lessons, year, monthIndex],
   );
-  const meta = monthCalendarMeta(null, now);
+  const meta = monthCalendarMeta(null, now, locale === 'uk' ? 'uk' : 'en');
   const total = Object.values(lessonCounts).reduce((sum, n) => sum + n, 0);
+  const weekdays = [
+    t('dashboard.cal.mon'),
+    t('dashboard.cal.tue'),
+    t('dashboard.cal.wed'),
+    t('dashboard.cal.thu'),
+    t('dashboard.cal.fri'),
+    t('dashboard.cal.sat'),
+    t('dashboard.cal.sun'),
+  ];
 
   return (
-    <SurfaceCard className={styles.panel}>
-      <div className={styles.sectionTitle}>Lessons this month</div>
-      <p className={styles.calSub}>{total} lesson{total === 1 ? '' : 's'} on your calendar</p>
+    <SurfaceCard className={styles.panel} data-tour-anchor="dash-lessons-month">
+      <div className={styles.sectionTitle}>{t('dashboard.month.title')}</div>
+      <p className={styles.calSub}>
+        {total === 1
+          ? t('dashboard.month.count', { count: total })
+          : t('dashboard.month.countPlural', { count: total })}
+      </p>
       <div className={styles.calGrid}>
-        {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
+        {weekdays.map((day, i) => (
           <div key={i} className={styles.calDayName}>
             {day}
           </div>
@@ -254,7 +294,13 @@ export function TeacherScheduleGlancePanel({ lessons }: { lessons: ScheduledLess
             <div
               key={day}
               className={`${styles.calDay} ${count > 0 ? styles.calLessonDay : ''} ${day === meta.today ? styles.calToday : ''}`}
-              title={count > 0 ? `${count} lesson${count === 1 ? '' : 's'}` : undefined}
+              title={
+                count > 0
+                  ? count === 1
+                    ? t('dashboard.lessonCount', { count })
+                    : t('dashboard.lessonCountPlural', { count })
+                  : undefined
+              }
             >
               {day}
             </div>
@@ -262,7 +308,7 @@ export function TeacherScheduleGlancePanel({ lessons }: { lessons: ScheduledLess
         })}
       </div>
       <Link href="/calendar" className={styles.calLink}>
-        Open calendar →
+        {t('dashboard.month.openCalendar')}
       </Link>
     </SurfaceCard>
   );
@@ -277,17 +323,25 @@ export function WeekLessonsList({
   students?: StudentSummaryBackendDto[];
   showStudentNames: boolean;
 }) {
+  const t = useCampusT();
+  const { locale } = useCampusI18n();
   const { iana: viewerIana } = useViewerTimezone();
   if (lessons.length === 0) return null;
+  const dateOpts = {
+    locale: locale === 'uk' ? 'uk' : 'en',
+    todayLabel: t('dashboard.date.today'),
+    tomorrowLabel: t('dashboard.date.tomorrow'),
+  };
 
   return (
-    <>
+    <section data-tour-anchor="dash-week-lessons">
+      <div data-tour-anchor="dash-upcoming">
       <SectionHeader
         className={styles.sectionHead}
         titleClassName={styles.sectionTitle}
-        title="Coming up this week"
+        title={t('dashboard.week.title')}
         actionHref="/calendar"
-        actionLabel="Calendar →"
+        actionLabel={t('dashboard.calendarArrow')}
         actionClassName={styles.seeAll}
       />
       <ul className={styles.weekList}>
@@ -297,22 +351,28 @@ export function WeekLessonsList({
           return (
           <li key={lesson.id}>
             <Link href={`/lessons/${lesson.id}`} className={styles.weekRow}>
-              <span className={styles.weekDate}>{formatShortWeekdayDate(viewerDate)}</span>
+              <span className={styles.weekDate}>
+                {formatShortWeekdayDate(viewerDate, new Date(), dateOpts)}
+              </span>
               <span className={styles.weekMain}>
                 <span className={styles.weekTitle}>{lesson.title}</span>
                 <span className={styles.weekMeta}>
-                  {lessonStartTimeInZone(dto, viewerIana)}–{lessonEndTimeInZone(dto, viewerIana)} · {lesson.duration} min
+                  {lessonStartTimeInZone(dto, viewerIana)}–{lessonEndTimeInZone(dto, viewerIana)} ·{' '}
+                  {t('dashboard.min', { n: lesson.duration })}
                   {showStudentNames
-                    ? ` · ${studentDisplayName(students, lesson.studentId)}`
+                    ? ` · ${studentDisplayName(students, lesson.studentId, t('dashboard.students.fallback'))}`
                     : ''}
                 </span>
               </span>
-              <span className={styles.weekStatus}>{lesson.status}</span>
+              <span className={styles.weekStatus}>
+                {t(lessonStatusKey(lesson.status))}
+              </span>
             </Link>
           </li>
           );
         })}
       </ul>
-    </>
+      </div>
+    </section>
   );
 }

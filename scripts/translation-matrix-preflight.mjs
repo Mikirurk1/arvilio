@@ -37,7 +37,7 @@ loadEnvFile();
 
 const API_BASE = (process.env.API_URL ?? 'http://localhost:3000/api').replace(/\/$/, '');
 const EMAIL =
-  process.env.PLAYWRIGHT_SUPER_ADMIN_EMAIL ?? 'jest-super-admin@soenglish.test';
+  process.env.PLAYWRIGHT_SUPER_ADMIN_EMAIL ?? 'jest-super-admin@arvilio.test';
 const PASS = process.env.PLAYWRIGHT_TEST_PASSWORD ?? 'TestPass123!';
 
 const GQL = `

@@ -5,7 +5,7 @@ import { buildPrisma, loadDotenv } from './prisma-cli';
 /**
  * Multi-tenancy backfill (ADR-005/006), idempotent.
  *
- * 1. Create the `school_default` tenant — the current SoEnglish school becomes
+ * 1. Create the `school_default` tenant — the current Arvilio school becomes
  *    tenant #1.
  * 2. Create one `SchoolMembership` per existing user (role mapped from the
  *    legacy `User.role`).
@@ -27,7 +27,7 @@ function toMembershipRole(role: LegacyRole): 'STUDENT' | 'TEACHER' | 'ADMIN' {
 export async function backfillTenancy(prisma: PrismaClient): Promise<void> {
   await prisma.school.upsert({
     where: { id: DEFAULT_SCHOOL_ID },
-    create: { id: DEFAULT_SCHOOL_ID, slug: 'default', name: 'SoEnglish', status: 'ACTIVE' },
+    create: { id: DEFAULT_SCHOOL_ID, slug: 'default', name: 'Arvilio', status: 'ACTIVE' },
     update: {},
   });
 

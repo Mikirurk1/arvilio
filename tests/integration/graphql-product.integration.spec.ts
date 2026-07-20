@@ -7,7 +7,7 @@ import { AppModule } from '../../apps/api/src/app/app.module';
 import { cleanupTestUsers, seedTestUsers, TEST_PASSWORD, TEST_USERS } from './seed';
 import { graphqlUrl, loginAs } from './helpers';
 
-const OUTSIDER_EMAIL = 'jest-outsider-student@soenglish.test';
+const OUTSIDER_EMAIL = 'jest-outsider-student@arvilio.test';
 
 async function gql(
   agent: Awaited<ReturnType<typeof loginAs>>,

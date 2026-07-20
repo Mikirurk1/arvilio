@@ -1,0 +1,1 @@
+P0.16 /payment leftovers (pre-wire): Your balance, Group rate, Order summary, Most popular, Pay online, manual transfer steps/fields, ledger titles, alerts. Package label/description from API = content. Provider brands (Stripe/LiqPay) stay EN short titles.

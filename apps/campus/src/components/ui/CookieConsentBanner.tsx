@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getConsentChoice, setConsentChoice } from '../../lib/cookie-consent';
+import { useCampusT } from '../../lib/cms';
 import { Button } from './Button';
 import styles from './CookieConsentBanner.module.scss';
 
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function CookieConsentBanner({ onConsent }: Props) {
+  const t = useCampusT();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -32,19 +34,19 @@ export function CookieConsentBanner({ onConsent }: Props) {
   if (!visible) return null;
 
   return (
-    <div className={styles.banner} role="dialog" aria-label="Cookie consent">
+    <div className={styles.banner} role="dialog" aria-label={t('cookie.aria')}>
       <p className={styles.text}>
-        We use analytics cookies to improve the product.{' '}
+        {t('cookie.body')}{' '}
         <Link href="/privacy" className={styles.link}>
-          Privacy policy
+          {t('cookie.privacyLink')}
         </Link>
       </p>
       <div className={styles.actions}>
         <Button variant="ghost" onClick={decline}>
-          Decline
+          {t('cookie.decline')}
         </Button>
         <Button variant="primary" onClick={accept}>
-          Accept
+          {t('cookie.accept')}
         </Button>
       </div>
     </div>

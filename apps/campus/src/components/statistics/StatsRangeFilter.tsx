@@ -2,14 +2,8 @@
 
 import type { StatsRange } from '@pkg/types';
 import { Field, SegmentedControl } from '../ui';
+import { useCampusT } from '../../lib/cms';
 import styles from './StatisticsDashboard.module.scss';
-
-const BASE_RANGE_OPTIONS = [
-  { value: 'week', label: 'Week' },
-  { value: 'month', label: 'Month' },
-  { value: 'quarter', label: 'Quarter' },
-  { value: 'year', label: 'Year' },
-] as const;
 
 type StatsRangeFilterProps = {
   range: StatsRange;
@@ -39,9 +33,13 @@ export function StatsRangeFilter({
   preventScrollOnPointerDown = false,
   className,
 }: StatsRangeFilterProps) {
+  const t = useCampusT();
   const rangeOptions = [
-    ...BASE_RANGE_OPTIONS,
-    ...(includeCustom ? [{ value: 'custom' as const, label: 'Custom' }] : []),
+    { value: 'week' as const, label: t('stats.range.week') },
+    { value: 'month' as const, label: t('stats.range.month') },
+    { value: 'quarter' as const, label: t('stats.range.quarter') },
+    { value: 'year' as const, label: t('stats.range.year') },
+    ...(includeCustom ? [{ value: 'custom' as const, label: t('stats.range.custom') }] : []),
   ];
 
   const customRangeControl =
@@ -49,7 +47,7 @@ export function StatsRangeFilter({
       <div className={styles.customRangeRow}>
         <Field
           type="date"
-          label="From"
+          label={t('stats.range.from')}
           rootClassName={styles.customRangeFieldRoot}
           labelClassName={styles.customRangeLabel}
           className={[styles.customRangeTrigger, styles.customRangeField].filter(Boolean).join(' ')}
@@ -62,7 +60,7 @@ export function StatsRangeFilter({
         </span>
         <Field
           type="date"
-          label="To"
+          label={t('stats.range.to')}
           rootClassName={styles.customRangeFieldRoot}
           labelClassName={styles.customRangeLabel}
           className={[styles.customRangeTrigger, styles.customRangeField].filter(Boolean).join(' ')}
@@ -78,7 +76,7 @@ export function StatsRangeFilter({
     <div className={[styles.rangeFilterGroup, className].filter(Boolean).join(' ')}>
       <SegmentedControl
         className={styles.rangeSwitch}
-        ariaLabel={ariaLabel}
+        ariaLabel={ariaLabel || t('stats.range.aria')}
         value={range}
         onValueChange={(value) => onRangeChange(value as StatsRange)}
         optionClassName={styles.rangeBtn}

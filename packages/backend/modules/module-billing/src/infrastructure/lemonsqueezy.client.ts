@@ -70,7 +70,7 @@ export async function createLemonSqueezyCheckout({
             name: checkoutName,
             description: checkoutDescription,
             redirect_url: redirectUrl,
-            receipt_button_text: 'Back to SoEnglish',
+            receipt_button_text: 'Back to Arvilio',
             receipt_link_url: redirectUrl,
           },
           checkout_data: {

@@ -10,8 +10,9 @@ import { QuizAssignmentCards } from '../../components/quiz/QuizAssignmentCards';
 import { QuizPlaySession } from '../../features/quiz/QuizPlaySession';
 import { QuizResultScreen } from '../../features/quiz/QuizResultScreen';
 import type { QuizPlayResult } from '../../features/quiz/quiz-play-types';
-import { siteContent, USER_ROLE } from '../../mocks';
+import { USER_ROLE } from '@pkg/types';
 import { useActiveUser } from '../../lib/active-user';
+import { useCampusT } from '../../lib/cms';
 import { useAuth } from '../../lib/auth-context';
 import { usePracticeSessionTracker } from '../../lib/practice-session-tracker';
 import { canEdit } from '../../lib/roles';
@@ -24,6 +25,7 @@ type PlayState = {
 };
 
 export default function QuizPage() {
+  const t = useCampusT();
   const searchParams = useSearchParams();
   const activeUser = useActiveUser();
   const { user } = useAuth();
@@ -50,7 +52,7 @@ export default function QuizPage() {
     ? (firstIncompleteAssigned ?? assignedQuizzes[0] ?? null)
     : (staffQuizzes[0] ?? null);
   const introQuizId = latestBackendQuiz?.id ?? null;
-  const introTitle = latestBackendQuiz?.title ?? 'No available quizzes yet';
+  const introTitle = latestBackendQuiz?.title ?? t('quiz.hero.noQuizzes');
   const introQuestionCount = latestBackendQuiz?.questionCount ?? 0;
   const introDurationMin = Math.max(1, Math.round(introQuestionCount * 0.75));
   const totalQuizzes = isStudentView ? assignedQuizzes.length : staffQuizzes.length;
@@ -75,22 +77,22 @@ export default function QuizPage() {
     try {
       const detail = await fetchQuiz(quizId);
       if (detail.questions.length === 0) {
-        setQuizLoadError('This quiz has no questions.');
+        setQuizLoadError(t('quiz.error.noQuestions'));
         return;
       }
       const practiceMode = practice && canManageQuiz;
       setLastPracticeMode(practiceMode);
       setPlay({ quizId, practice: practiceMode });
     } catch {
-      setQuizLoadError('Quiz not found or has no questions.');
+      setQuizLoadError(t('quiz.error.notFound'));
     }
   };
 
   const handleDeleteQuiz = async (quizId: string) => {
     const ok = await confirmDialog({
-      title: 'Delete quiz?',
-      message: 'This quiz will be permanently deleted.',
-      confirmLabel: 'Delete',
+      title: t('quiz.delete.title'),
+      message: t('quiz.delete.message'),
+      confirmLabel: t('quiz.delete.confirm'),
       variant: 'danger',
     });
     if (!ok) return;
@@ -122,11 +124,11 @@ export default function QuizPage() {
 
   const backControl = useMemo(
     () => (
-      <Button href="/practice" variant="ghost" className={styles.backBtn} aria-label="Back to practice">
+      <Button href="/practice" variant="ghost" className={styles.backBtn} aria-label={t('quiz.backAria')}>
         <ArrowLeft size={18} aria-hidden />
       </Button>
     ),
-    [],
+    [t],
   );
 
   if (play) {
@@ -137,14 +139,14 @@ export default function QuizPage() {
             className={styles.pageHeader}
             titleClassName={styles.pageTitle}
             subtitleClassName={styles.pageSub}
-            title={siteContent.quiz.title}
-            subtitle={siteContent.quiz.subtitle}
+            title={t('quiz.title')}
+            subtitle={t('quiz.subtitle')}
             back={
               <Button
                 variant="ghost"
                 className={styles.backBtn}
                 onClick={() => setPlay(null)}
-                aria-label="Back to quiz overview"
+                aria-label={t('quiz.backOverviewAria')}
               >
                 <ArrowLeft size={18} aria-hidden />
               </Button>
@@ -170,8 +172,8 @@ export default function QuizPage() {
             className={styles.pageHeader}
             titleClassName={styles.pageTitle}
             subtitleClassName={styles.pageSub}
-            title={siteContent.quiz.title}
-            subtitle={siteContent.quiz.subtitle}
+            title={t('quiz.title')}
+            subtitle={t('quiz.subtitle')}
             back={backControl}
           />
           <QuizResultScreen
@@ -191,8 +193,8 @@ export default function QuizPage() {
           className={styles.pageHeader}
           titleClassName={styles.pageTitle}
           subtitleClassName={styles.pageSub}
-          title={siteContent.quiz.title}
-          subtitle={siteContent.quiz.subtitle}
+          title={t('quiz.title')}
+          subtitle={t('quiz.subtitle')}
           back={backControl}
         />
 
@@ -203,7 +205,11 @@ export default function QuizPage() {
         ) : null}
 
         <div className={styles.intro}>
-          <section className={styles.introCard} aria-labelledby="quiz-hero-title">
+          <section
+            className={styles.introCard}
+            aria-labelledby="quiz-hero-title"
+            data-tour-anchor="quiz-hero"
+          >
             <div className={styles.introIcon} aria-hidden>
               <Target size={22} />
             </div>
@@ -212,13 +218,13 @@ export default function QuizPage() {
             </h2>
             <p className={styles.introDesc}>
               {introQuizId
-                ? `${introQuestionCount} questions · about ${introDurationMin} minutes.`
-                : 'Create a quiz in the grid below, then press Start Quiz.'}
+                ? t('quiz.hero.meta', { count: introQuestionCount, minutes: introDurationMin })
+                : t('quiz.hero.metaEmpty')}
             </p>
             <div className={styles.introStats}>
-              <StatTile label="Questions" value={introQuestionCount} className={styles.introStat} />
-              <StatTile label="Minutes" value={`~${introDurationMin}`} className={styles.introStat} />
-              <StatTile label="Quizzes" value={totalQuizzes} className={styles.introStat} />
+              <StatTile label={t('quiz.stat.questions')} value={introQuestionCount} className={styles.introStat} />
+              <StatTile label={t('quiz.stat.minutes')} value={`~${introDurationMin}`} className={styles.introStat} />
+              <StatTile label={t('quiz.stat.quizzes')} value={totalQuizzes} className={styles.introStat} />
             </div>
             <Button
               type="button"
@@ -227,19 +233,17 @@ export default function QuizPage() {
               disabled={!introQuizId}
               onClick={() => introQuizId && void startQuizById(introQuizId)}
             >
-              Start quiz
+              {t('quiz.start')}
             </Button>
           </section>
 
           <section className={styles.manageSection} aria-labelledby="quiz-manage-heading">
             <div className={styles.manageHead}>
               <h2 id="quiz-manage-heading" className={styles.manageTitle}>
-                {isStudentView ? 'Your quizzes' : 'Manage quizzes'}
+                {isStudentView ? t('quiz.yourQuizzes') : t('quiz.manageQuizzes')}
               </h2>
               <p className={styles.manageSub}>
-                {isStudentView
-                  ? 'Complete assigned quizzes and review your scores'
-                  : 'Create, assign and track quiz progress'}
+                {isStudentView ? t('quiz.yourSub') : t('quiz.manageSub')}
               </p>
             </div>
             <div className={styles.manageGrid}>
@@ -258,9 +262,7 @@ export default function QuizPage() {
                 onDelete={isStudentView ? undefined : (quizId) => void handleDeleteQuiz(quizId)}
                 deletingQuizId={deletingQuizId}
                 emptyMessage={
-                  isStudentView
-                    ? 'No quizzes assigned yet. Check back after your next lesson.'
-                    : 'Generate a quiz from your vocabulary to get started.'
+                  isStudentView ? t('quiz.empty.student') : t('quiz.empty.staff')
                 }
               />
             </div>

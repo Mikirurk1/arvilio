@@ -1,0 +1,21 @@
+.scroll {
+  overflow: auto;
+  border-radius: var(--radius-md);
+  max-height: min(70vh, 40rem);
+}
+
+.sentinel {
+  height: 1px;
+  width: 100%;
+}
+
+.sentinelCell {
+  text-align: center;
+  border-bottom: none !important;
+}
+
+.error {
+  margin: 0 0 8px;
+  font-size: var(--fs-14);
+  color: var(--rose);
+}

@@ -84,6 +84,6 @@ export const useNotificationsStore = create<NotificationsState>()(
         set({ toasts: [] }, false, 'notifications/clear');
       },
     }),
-    { name: 'soenglish/notifications' },
+    { name: 'arvilio/notifications' },
   ),
 );

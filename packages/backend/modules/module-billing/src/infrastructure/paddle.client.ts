@@ -83,7 +83,7 @@ export async function createPaddleCheckout({
               currency_code: currency,
             },
             product: {
-              name: 'SoEnglish lessons',
+              name: 'Arvilio lessons',
               description: 'Lesson balance top-up',
               tax_category: 'standard',
             },

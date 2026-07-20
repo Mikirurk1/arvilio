@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Video } from 'lucide-react';
 import type { VideoMeetingProviderId } from '@pkg/types';
 import { Button } from '../ui';
+import { useCampusT } from '../../lib/cms';
 import { useLessonsStore } from '../../stores/lessons-store';
 import styles from './backend-panels.module.scss';
 
@@ -18,18 +19,13 @@ type Props = {
   fallbackClassName?: string;
 };
 
-const PROVIDER_LABEL: Record<VideoMeetingProviderId, string> = {
-  google: 'Join Google Meet',
-  zoom: 'Join Zoom',
-  livekit: 'Open meeting',
-};
-
 export function LessonVideoButton({
   lessonBackendId,
   meetUrl: meetUrlProp,
   provider,
   fallbackClassName,
 }: Props) {
+  const t = useCampusT();
   const backendLessons = useLessonsStore((s) => s.backendLessons);
   const fetchScheduledLessons = useLessonsStore((s) => s.fetchScheduledLessons);
 
@@ -55,7 +51,14 @@ export function LessonVideoButton({
   const meetUrl = meetUrlProp ?? fromStore?.url ?? null;
   const activeProvider: VideoMeetingProviderId =
     provider ?? fromStore?.provider ?? 'google';
-  const label = PROVIDER_LABEL[activeProvider] ?? 'Join meeting';
+  const providerLabel =
+    activeProvider === 'google'
+      ? t('lessonDetail.video.joinGoogle')
+      : activeProvider === 'zoom'
+        ? t('lessonDetail.video.joinZoom')
+        : activeProvider === 'livekit'
+          ? t('lessonDetail.video.openMeeting')
+          : t('lessonDetail.video.joinMeeting');
 
   if (meetUrl) {
     return (
@@ -66,7 +69,7 @@ export function LessonVideoButton({
         rel="noreferrer noopener"
       >
         <Video size={17} />
-        {label}
+        {providerLabel}
       </Link>
     );
   }
@@ -76,12 +79,12 @@ export function LessonVideoButton({
       type="button"
       className={fallbackClassName}
       disabled
-      title="The meeting is created when the lesson is saved."
+      title={t('lessonDetail.video.pendingTitle')}
     >
       <Video size={17} />
-      Join lesson call
+      {t('lessonDetail.video.joinPending')}
       <span className={styles.subtitle} style={{ marginLeft: 6 }}>
-        (pending)
+        {t('lessonDetail.video.pending')}
       </span>
     </Button>
   );

@@ -19,7 +19,7 @@ export const DICTIONARY_SETUP_GUIDES: Record<WordDictionaryProviderId, ProviderS
     envVars: [{ name: 'DICTIONARY_API_URL', note: 'Default endpoint is fine for English.' }],
     steps: [
       {
-        text: 'No signup. SoEnglish sends GET requests to the dictionary endpoint.',
+        text: 'No signup. Arvilio sends GET requests to the dictionary endpoint.',
         links: [
           { label: 'Free Dictionary API', href: 'https://dictionaryapi.dev/' },
           { label: 'API docs (GitHub)', href: 'https://github.com/meetDeveloper/freeDictionaryAPI' },
@@ -45,7 +45,7 @@ export const DICTIONARY_SETUP_GUIDES: Record<WordDictionaryProviderId, ProviderS
     ],
     steps: [
       {
-        text: 'No API key. On miss, SoEnglish falls back to Free Dictionary API.',
+        text: 'No API key. On miss, Arvilio falls back to Free Dictionary API.',
         links: [
           { label: 'MediaWiki REST API', href: 'https://www.mediawiki.org/wiki/API:REST_API' },
           {
@@ -77,7 +77,7 @@ export const DICTIONARY_SETUP_GUIDES: Record<WordDictionaryProviderId, ProviderS
         ],
       },
       {
-        text: 'Endpoint used by SoEnglish (same as Reverso mobile/web).',
+        text: 'Endpoint used by Arvilio (same as Reverso mobile/web).',
         links: [
           { label: 'Reverso Context', href: 'https://www.reverso.net/text-translation' },
         ],
@@ -173,7 +173,7 @@ export const TRANSLATION_SETUP_GUIDES: Record<TranslationProviderId, ProviderSet
     ],
     steps: [
       {
-        text: 'No public API key signup. SoEnglish calls the same endpoint as Reverso apps.',
+        text: 'No public API key signup. Arvilio calls the same endpoint as Reverso apps.',
         links: [
           { label: 'Corporate & API pricing', href: 'https://documents.reverso.net/Pricing.aspx?lang=en' },
         ],

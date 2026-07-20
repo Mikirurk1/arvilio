@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { Mail, RefreshCw } from 'lucide-react';
 import { Badge, Button, Field, SegmentedControl, SurfaceCard } from '../../components/ui';
 import { graphqlRequest } from '../../lib/graphql-client';
@@ -17,30 +17,41 @@ import type {
   PlatformIntegrationSettingsDto,
   SendTestEmailResultDto,
   SmtpConfigModeDto,
+  SmtpProviderPresetId,
   SystemMailStatusDto,
   VerifyPlatformConnectionResultDto,
 } from '@pkg/types';
+import {
+  SMTP_PROVIDER_PRESETS,
+  matchSmtpProviderPreset,
+} from '@pkg/types';
 import { ApiError } from '../../lib/api';
+import { useCampusT } from '../../lib/cms';
 import { IntegrationSecretField } from './connections/integration-ui';
 import { secretsFromIntegrationSettings } from './connections/integration-secrets-state';
 import { canVerifySmtp, smtpVerifyMutationVariables } from './smtp-verify-input';
 import emailStyles from './EmailPanel.module.scss';
 import pageStyles from './page.module.scss';
 
-const SMTP_MODE_OPTIONS: { value: SmtpConfigModeDto; label: string }[] = [
-  { value: 'server_default', label: 'Server default' },
-  { value: 'custom', label: 'Custom SMTP' },
-];
-
-function smtpModeLabel(mode: string | null | undefined): string {
-  return mode === 'custom' ? 'Custom SMTP' : 'Server default';
+function smtpModeLabel(mode: string | null | undefined, t: (key: string) => string): string {
+  return mode === 'custom' ? t('system.email.mode.custom') : t('system.email.mode.serverDefault');
 }
 
 export function EmailPanel() {
+  const t = useCampusT();
+  const smtpModeOptions = useMemo(
+    (): { value: SmtpConfigModeDto; label: string }[] => [
+      { value: 'server_default', label: t('system.email.mode.serverDefault') },
+      { value: 'custom', label: t('system.email.mode.custom') },
+    ],
+    [t],
+  );
+
   const [status, setStatus] = useState<SystemMailStatusDto | null>(null);
   const [settings, setSettings] = useState<PlatformIntegrationSettingsDto | null>(null);
   const [smtp, setSmtp] = useState<PlatformIntegrationConfigDto['smtp'] | null>(null);
   const [secrets, setSecrets] = useState<PlatformIntegrationSecretsDto>({});
+  const [preset, setPreset] = useState<SmtpProviderPresetId>('custom');
 
   const [loading, setLoading] = useState(true);
   const [refreshingStatus, setRefreshingStatus] = useState(false);
@@ -64,14 +75,14 @@ export function EmailPanel() {
       setStatus(data.systemMailStatus);
     } catch (err) {
       if (!silent) {
-        setLoadError(err instanceof Error ? err.message : 'Failed to load mail status');
+        setLoadError(err instanceof Error ? err.message : t('system.email.loadStatusError'));
       }
     } finally {
       if (silent) {
         setRefreshingStatus(false);
       }
     }
-  }, []);
+  }, [t]);
 
   const loadSettings = useCallback(async () => {
     const data = await graphqlRequest<{ platformIntegrationSettings: PlatformIntegrationSettingsDto }>(
@@ -80,6 +91,8 @@ export function EmailPanel() {
     setSettings(data.platformIntegrationSettings);
     setSmtp(data.platformIntegrationSettings.config.smtp);
     setSecrets(secretsFromIntegrationSettings(data.platformIntegrationSettings));
+    const s = data.platformIntegrationSettings.config.smtp;
+    setPreset(matchSmtpProviderPreset(s.host, s.port));
   }, []);
 
   const loadAll = useCallback(async () => {
@@ -88,11 +101,11 @@ export function EmailPanel() {
     try {
       await Promise.all([loadStatus(), loadSettings()]);
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : 'Failed to load email settings');
+      setLoadError(err instanceof Error ? err.message : t('system.email.loadError'));
     } finally {
       setLoading(false);
     }
-  }, [loadSettings, loadStatus]);
+  }, [loadSettings, loadStatus, t]);
 
   useEffect(() => {
     void loadAll();
@@ -108,11 +121,11 @@ export function EmailPanel() {
       }>(VERIFY_SMTP_CONNECTION, smtpVerifyMutationVariables({ smtp, secrets }));
       setConfigFeedback({
         type: 'success',
-        text: data.verifySmtpConnection.message || 'SMTP connection verified.',
+        text: data.verifySmtpConnection.message || t('system.email.verifySuccess'),
       });
     } catch (err) {
       const message =
-        err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Verification failed';
+        err instanceof ApiError ? err.message : err instanceof Error ? err.message : t('system.email.verifyFailed');
       setConfigFeedback({ type: 'error', text: message });
     } finally {
       setVerifying(false);
@@ -136,11 +149,11 @@ export function EmailPanel() {
       setSettings(data.updatePlatformIntegrationSettings);
       setSmtp(data.updatePlatformIntegrationSettings.config.smtp);
       setSecrets(secretsFromIntegrationSettings(data.updatePlatformIntegrationSettings));
-      setConfigFeedback({ type: 'success', text: 'SMTP settings saved.' });
+      setConfigFeedback({ type: 'success', text: t('system.email.saveSuccess') });
       await loadStatus(true);
     } catch (err) {
       const message =
-        err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Save failed';
+        err instanceof ApiError ? err.message : err instanceof Error ? err.message : t('common.saveFailed');
       setConfigFeedback({ type: 'error', text: message });
     } finally {
       setSaving(false);
@@ -160,14 +173,14 @@ export function EmailPanel() {
       if (result.sent) {
         setTestFeedback({
           type: 'success',
-          text: result.message ?? 'Test email sent. Check your inbox (e.g. Mailtrap).',
+          text: result.message ?? t('system.email.test.success'),
         });
       } else {
-        setTestFeedback({ type: 'error', text: result.message ?? 'Failed to send test email' });
+        setTestFeedback({ type: 'error', text: result.message ?? t('system.email.test.failed') });
       }
     } catch (err) {
       const message =
-        err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Failed to send test email';
+        err instanceof ApiError ? err.message : err instanceof Error ? err.message : t('system.email.test.failed');
       setTestFeedback({ type: 'error', text: message });
     } finally {
       setSendingTest(false);
@@ -182,15 +195,12 @@ export function EmailPanel() {
       <header className={pageStyles.panelHeader}>
         <Mail size={18} aria-hidden />
         <div>
-          <div className={pageStyles.panelTitle}>Email (SMTP)</div>
-          <p className={emailStyles.intro}>
-            Transactional mail for welcome and account flows. Configure delivery here, verify the endpoint, then
-            send a sample message.
-          </p>
+          <div className={pageStyles.panelTitle}>{t('system.email.title')}</div>
+          <p className={emailStyles.intro}>{t('system.email.intro')}</p>
         </div>
       </header>
 
-      {loading && !status ? <p className={emailStyles.muted}>Loading email settings…</p> : null}
+      {loading && !status ? <p className={emailStyles.muted}>{t('system.email.loading')}</p> : null}
       {loadError ? <p className={emailStyles.feedbackError}>{loadError}</p> : null}
 
       {status ? (
@@ -200,13 +210,16 @@ export function EmailPanel() {
           role="status"
         >
           <Badge variant={status.configured ? 'green' : 'amber'} size="sm">
-            {status.configured ? 'Ready to send' : 'Not configured'}
+            {status.configured ? t('system.email.badge.ready') : t('system.email.badge.notConfigured')}
           </Badge>
           <span className={emailStyles.runtimeEndpoint}>
-            {status.smtpHost ? `${status.smtpHost}:${status.smtpPort ?? '—'}` : 'No SMTP host'}
+            {status.smtpHost ? `${status.smtpHost}:${status.smtpPort ?? '—'}` : t('system.email.runtime.noHost')}
           </span>
           <span className={emailStyles.runtimeMeta}>
-            {smtpModeLabel(status.smtpMode)} · From {status.mailFrom}
+            {t('system.email.runtime.meta', {
+              mode: smtpModeLabel(status.smtpMode, t),
+              mailFrom: status.mailFrom,
+            })}
           </span>
           <div className={emailStyles.runtimeActions}>
             <Button
@@ -214,10 +227,10 @@ export function EmailPanel() {
               variant="ghost"
               startIcon={<RefreshCw size={14} aria-hidden />}
               loading={refreshingStatus}
-              loadingLabel="Refreshing…"
+              loadingLabel={t('system.email.refreshing')}
               onClick={() => void loadStatus(true)}
             >
-              Refresh
+              {t('common.refresh')}
             </Button>
           </div>
         </div>
@@ -228,42 +241,34 @@ export function EmailPanel() {
           <section className={emailStyles.panel} aria-labelledby="email-smtp-config-heading">
             <div className={emailStyles.panelHead}>
               <h2 id="email-smtp-config-heading" className={emailStyles.panelTitle}>
-                SMTP configuration
+                {t('system.email.smtpConfig.title')}
               </h2>
-              <p className={emailStyles.panelBlurb}>
-                Server default reads <code>SMTP_*</code> from the API host. Custom stores encrypted credentials in
-                the database.
-              </p>
+              <p className={emailStyles.panelBlurb}>{t('system.email.smtpConfig.blurb')}</p>
             </div>
 
             <div className={emailStyles.panelBody}>
               <SegmentedControl
                 className={emailStyles.modeNav}
-                ariaLabel="SMTP mode"
+                ariaLabel={t('system.email.mode.aria')}
                 value={smtp.mode}
                 onValueChange={(mode) => setSmtp({ ...smtp, mode })}
-                options={SMTP_MODE_OPTIONS}
+                options={smtpModeOptions}
               />
 
               {custom && settings && !settings.secretsStorageAvailable ? (
                 <p className={emailStyles.encryptionWarn} role="status">
-                  Set <code>PLATFORM_SECRETS_ENCRYPTION_KEY</code> (or{' '}
-                  <code>PAYMENT_SECRETS_ENCRYPTION_KEY</code>) in the API <code>.env</code> and restart the API to
-                  save a custom password.
+                  {t('system.email.encryptionWarn')}
                 </p>
               ) : null}
 
               {!custom ? (
-                <p className={emailStyles.envCallout}>
-                  Using deployment environment variables. Switch to <strong>Custom SMTP</strong> to override host,
-                  port, and credentials in platform settings.
-                </p>
+                <p className={emailStyles.envCallout}>{t('system.email.envCallout')}</p>
               ) : null}
 
               <div className={emailStyles.fieldGrid}>
                 <div className={emailStyles.fieldGroup}>
                   <label className={emailStyles.label} htmlFor="smtp-mail-from">
-                    From address
+                    {t('system.email.field.fromAddress')}
                   </label>
                   <Field
                     id="smtp-mail-from"
@@ -275,34 +280,77 @@ export function EmailPanel() {
 
                 {custom ? (
                   <>
+                    <div className={emailStyles.fieldGroupWide}>
+                      <label className={emailStyles.label} htmlFor="smtp-preset">
+                        {t('system.email.field.preset')}
+                      </label>
+                      <Field
+                        as="select"
+                        id="smtp-preset"
+                        className={emailStyles.input}
+                        value={preset}
+                        onChange={(e) => {
+                          const id = e.target.value as SmtpProviderPresetId;
+                          setPreset(id);
+                          const next = SMTP_PROVIDER_PRESETS.find((p) => p.id === id);
+                          if (!next || id === 'custom') return;
+                          setSmtp({
+                            ...smtp,
+                            mode: 'custom',
+                            host: next.host,
+                            port: next.port,
+                            secure: next.secure,
+                            user: next.suggestedUser ?? smtp.user,
+                          });
+                        }}
+                      >
+                        {SMTP_PROVIDER_PRESETS.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.label}
+                          </option>
+                        ))}
+                      </Field>
+                      {SMTP_PROVIDER_PRESETS.find((p) => p.id === preset)?.hint ? (
+                        <p className={emailStyles.envCallout}>
+                          {SMTP_PROVIDER_PRESETS.find((p) => p.id === preset)?.hint}
+                        </p>
+                      ) : null}
+                    </div>
                     <div className={emailStyles.fieldGroup}>
                       <label className={emailStyles.label} htmlFor="smtp-host">
-                        Host
+                        {t('system.email.field.host')}
                       </label>
                       <Field
                         id="smtp-host"
                         className={emailStyles.input}
                         value={smtp.host ?? ''}
-                        onChange={(e) => setSmtp({ ...smtp, host: e.target.value || null })}
+                        onChange={(e) => {
+                          setPreset('custom');
+                          setSmtp({ ...smtp, host: e.target.value || null });
+                        }}
                       />
                     </div>
                     <div className={emailStyles.fieldGroup}>
                       <label className={emailStyles.label} htmlFor="smtp-port">
-                        Port
+                        {t('system.email.field.port')}
                       </label>
                       <Field
                         id="smtp-port"
                         type="number"
                         className={emailStyles.input}
                         value={smtp.port ?? 587}
-                        onChange={(e) =>
-                          setSmtp({ ...smtp, port: e.target.value ? Number(e.target.value) : null })
-                        }
+                        onChange={(e) => {
+                          setPreset('custom');
+                          setSmtp({
+                            ...smtp,
+                            port: e.target.value ? Number(e.target.value) : null,
+                          });
+                        }}
                       />
                     </div>
                     <div className={emailStyles.fieldGroup}>
                       <label className={emailStyles.label} htmlFor="smtp-user">
-                        Username
+                        {t('system.email.field.username')}
                       </label>
                       <Field
                         id="smtp-user"
@@ -314,20 +362,19 @@ export function EmailPanel() {
                     <div className={emailStyles.fieldGroupWide}>
                       <IntegrationSecretField
                         id="smtp-pass"
-                        label="Password"
+                        label={t('system.email.field.password')}
                         status={settings?.secretStatuses.smtpPass}
                         value={secrets.smtpPass ?? ''}
                         onChange={(v) => setSecrets({ smtpPass: v })}
                       />
                     </div>
-                    <label className={emailStyles.checkboxRow}>
-                      <input
-                        type="checkbox"
-                        checked={smtp.secure}
-                        onChange={(e) => setSmtp({ ...smtp, secure: e.target.checked })}
-                      />
-                      <span>Use TLS/SSL (typical for port 465)</span>
-                    </label>
+                    <Field
+                      as="checkbox"
+                      checked={smtp.secure}
+                      onChange={(e) => setSmtp({ ...smtp, secure: e.target.checked })}
+                      label={t('system.email.field.tls')}
+                      rootClassName={emailStyles.checkboxRow}
+                    />
                   </>
                 ) : null}
               </div>
@@ -337,20 +384,20 @@ export function EmailPanel() {
                   type="button"
                   variant="ghost"
                   loading={verifying}
-                  loadingLabel="Verifying…"
+                  loadingLabel={t('system.email.verifying')}
                   disabled={!canVerifySmtp(verifyDraft)}
                   onClick={() => void onVerify()}
                 >
-                  Verify connection
+                  {t('system.email.verifyConnection')}
                 </Button>
                 <Button
                   type="button"
                   variant="primary"
                   loading={saving}
-                  loadingLabel="Saving…"
+                  loadingLabel={t('system.email.saving')}
                   onClick={() => void onSave()}
                 >
-                  Save SMTP
+                  {t('system.email.saveSmtp')}
                 </Button>
                 {configFeedback ? (
                   <p
@@ -371,25 +418,22 @@ export function EmailPanel() {
           <section className={emailStyles.panel} aria-labelledby="email-test-heading">
             <div className={emailStyles.panelHead}>
               <h2 id="email-test-heading" className={emailStyles.panelTitle}>
-                Test delivery
+                {t('system.email.test.title')}
               </h2>
-              <p className={emailStyles.panelBlurb}>
-                Sends the <code>welcome-account</code> template with sample password{' '}
-                <code>Example-Temp-Pass1</code>.
-              </p>
+              <p className={emailStyles.panelBlurb}>{t('system.email.test.blurb')}</p>
             </div>
 
             <div className={emailStyles.panelBody}>
               <ol className={emailStyles.steps}>
-                <li>Verify connection with the values in the form (does not send mail).</li>
-                <li>Save SMTP so the runtime banner matches your settings.</li>
-                <li>Send a test message to your inbox or Mailtrap.</li>
+                <li>{t('system.email.test.step1')}</li>
+                <li>{t('system.email.test.step2')}</li>
+                <li>{t('system.email.test.step3')}</li>
               </ol>
 
               <form className={emailStyles.testForm} onSubmit={onSendTest} noValidate>
                 <div className={emailStyles.fieldGroup}>
                   <label className={emailStyles.label} htmlFor="system-test-email">
-                    Recipient
+                    {t('system.email.test.recipient')}
                   </label>
                   <Field
                     id="system-test-email"
@@ -407,10 +451,10 @@ export function EmailPanel() {
                     type="submit"
                     variant="primary"
                     loading={sendingTest}
-                    loadingLabel="Sending…"
+                    loadingLabel={t('system.email.test.sending')}
                     disabled={!status?.configured}
                   >
-                    Send test welcome email
+                    {t('system.email.test.send')}
                   </Button>
                 </div>
 
@@ -426,7 +470,7 @@ export function EmailPanel() {
                 ) : null}
 
                 {!status?.configured ? (
-                  <p className={emailStyles.muted}>Configure SMTP before sending a test message.</p>
+                  <p className={emailStyles.muted}>{t('system.email.test.configureFirst')}</p>
                 ) : null}
               </form>
             </div>

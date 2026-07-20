@@ -6,11 +6,35 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: rgba(10, 20, 30, 0.5);
-  backdrop-filter: blur(2px);
+  /* Full dim when no spotlight; when anchored, dim comes from spotlight box-shadow */
+  background: rgba(10, 20, 30, 0.55);
+  /* Let users click the app (soft chapters). Card re-enables events. */
+  pointer-events: none;
+}
+
+.overlayAnchored {
+  background: transparent;
+  /* Anchored card is position:fixed — flex centering only for centered (no-target) cards */
+  display: block;
+  padding: 0;
+}
+
+.spotlight {
+  position: fixed;
+  z-index: 2001;
+  border-radius: 10px;
+  box-shadow: 0 0 0 9999px rgba(10, 20, 30, 0.55);
+  pointer-events: none;
+  transition:
+    top 200ms ease,
+    left 200ms ease,
+    width 200ms ease,
+    height 200ms ease;
 }
 
 .card {
+  position: relative;
+  z-index: 2002;
   display: flex;
   gap: 18px;
   width: 100%;
@@ -19,6 +43,51 @@
   border-radius: 16px;
   background: var(--card, #fff);
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
+  pointer-events: auto;
+}
+
+.cardAnchored {
+  position: fixed;
+  width: min(420px, calc(100vw - 24px));
+  max-width: min(420px, calc(100vw - 24px));
+  margin: 0;
+  transition:
+    top 200ms ease,
+    left 200ms ease;
+}
+
+.arrow {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: var(--card, #fff);
+  transform: rotate(45deg);
+  box-shadow: -2px -2px 4px rgba(0, 0, 0, 0.06);
+  pointer-events: none;
+}
+
+.arrowLeft {
+  left: -7px;
+  top: 28px;
+  box-shadow: -2px 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.arrowRight {
+  right: -7px;
+  top: 28px;
+  box-shadow: 2px -2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.arrowTop {
+  top: -7px;
+  left: 28px;
+  box-shadow: -2px -2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.arrowBottom {
+  bottom: -7px;
+  left: 28px;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.06);
 }
 
 .mascot {
@@ -40,6 +109,35 @@
   color: var(--text-muted);
 }
 
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 2px;
+}
+
+.muteBtn {
+  flex: 0 0 auto;
+  border: 0;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--fs-12, 0.75rem);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.muteBtn:hover {
+  color: var(--text, inherit);
+}
+
+.muteBtn[aria-pressed='true'] {
+  font-weight: 600;
+}
+
 .area {
   color: var(--text-muted);
 }
@@ -56,6 +154,76 @@
   font-size: var(--fs-14, 0.875rem);
 }
 
+.hint {
+  margin: -8px 0 14px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--surface-muted, rgba(0, 0, 0, 0.04));
+  color: var(--text-muted);
+  font-size: var(--fs-13, 0.8125rem);
+  line-height: 1.4;
+}
+
+.hintDone {
+  color: var(--success, #0a7a3e);
+  background: rgba(10, 122, 62, 0.08);
+}
+
+.cardHub {
+  max-width: 520px;
+}
+
+.chapterList {
+  list-style: none;
+  margin: 0 0 18px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: min(40vh, 320px);
+  overflow-y: auto;
+}
+
+.chapterItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface-muted, rgba(0, 0, 0, 0.04));
+}
+
+.chapterCopy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chapterTitle {
+  font-size: var(--fs-14, 0.875rem);
+  font-weight: 600;
+}
+
+.chapterStatusBadge {
+  font-weight: 500;
+  color: var(--text-muted);
+  font-size: var(--fs-12, 0.75rem);
+}
+
+.chapterBlurb {
+  font-size: var(--fs-12, 0.75rem);
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.chapterSkips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
 .actions {
   display: flex;
   align-items: center;
@@ -66,4 +234,19 @@
 .nav {
   display: flex;
   gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .cardAnchored {
+    left: 12px !important;
+    right: 12px;
+    width: auto;
+    max-width: none;
+    bottom: 16px;
+    top: auto !important;
+  }
+
+  .arrow {
+    display: none;
+  }
 }

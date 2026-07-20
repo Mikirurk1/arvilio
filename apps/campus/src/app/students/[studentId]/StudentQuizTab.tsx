@@ -10,7 +10,8 @@ import { QuizPlaySession } from '../../../features/quiz/QuizPlaySession';
 import { QuizResultScreen } from '../../../features/quiz/QuizResultScreen';
 import type { QuizPlayResult } from '../../../features/quiz/quiz-play-types';
 import { useQuizzesStore } from '../../../stores/quizzes-store';
-import { Button, SurfaceCard } from '../../../components/ui';
+import { SurfaceCard } from '../../../components/ui';
+import { useCampusT } from '../../../lib/cms';
 import styles from './page.module.scss';
 import quizStyles from '../../quiz/page.module.scss';
 
@@ -26,6 +27,7 @@ type Props = {
 };
 
 export function StudentQuizTab({ studentId, embedded = false }: Props) {
+  const t = useCampusT();
   const activeUser = useActiveUser();
   const canGenerate = canEdit('quiz', activeUser.role);
   const isStaff = canGenerate;
@@ -43,9 +45,9 @@ export function StudentQuizTab({ studentId, embedded = false }: Props) {
 
   const handleDelete = async (quizId: string) => {
     const ok = await confirmDialog({
-      title: 'Delete quiz?',
-      message: 'This quiz will be permanently deleted for this student.',
-      confirmLabel: 'Delete',
+      title: t('students.detail.quiz.deleteTitle'),
+      message: t('students.detail.quiz.deleteMessage'),
+      confirmLabel: t('calendar.series.delete'),
       variant: 'danger',
     });
     if (!ok) return;
@@ -85,7 +87,7 @@ export function StudentQuizTab({ studentId, embedded = false }: Props) {
   const quizBody = (
     <>
         {studentQuizzes.status === 'loading' || studentQuizzes.status === 'idle' ? (
-          <p className={styles.quizSectionSub}>Loading quizzes…</p>
+          <p className={styles.quizSectionSub}>{t('students.detail.quiz.loading')}</p>
         ) : (
           <div className={quizStyles.manageGrid}>
             {canGenerate ? (
@@ -107,8 +109,8 @@ export function StudentQuizTab({ studentId, embedded = false }: Props) {
               deletingQuizId={deletingQuizId}
               emptyMessage={
                 isStaff
-                  ? 'No quizzes yet. Use the create card to generate one from this student’s vocabulary.'
-                  : 'No quizzes assigned yet.'
+                  ? t('students.detail.quiz.emptyStaff')
+                  : t('students.detail.quiz.emptyStudent')
               }
               onPlay={(quizId) => {
                 setResult(null);
@@ -149,21 +151,21 @@ export function StudentQuizTab({ studentId, embedded = false }: Props) {
   if (embedded) {
     return (
       <div className={styles.quizTabEmbedded}>
-        <section aria-label="Assigned quizzes">{quizBody}</section>
+        <section aria-label={t('students.detail.quiz.assignedAria')}>{quizBody}</section>
       </div>
     );
   }
 
   return (
     <div className={styles.quizTab}>
-      <section aria-label="Assigned quizzes" className={styles.tabCard}>
+      <section aria-label={t('students.detail.quiz.assignedAria')} className={styles.tabCard}>
         <h2 className={styles.tabSectionTitle}>
-          {isStaff ? 'Quizzes' : 'Your quizzes'}
+          {isStaff ? t('students.detail.quiz.titleStaff') : t('students.detail.quiz.titleStudent')}
         </h2>
         <p className={styles.quizSectionSub}>
           {isStaff
-            ? 'Generated from this student’s vocabulary. Scores appear after they complete a quiz.'
-            : 'Complete assigned quizzes and review your scores.'}
+            ? t('students.detail.quiz.introStaff')
+            : t('students.detail.quiz.introStudent')}
         </p>
         {quizBody}
       </section>

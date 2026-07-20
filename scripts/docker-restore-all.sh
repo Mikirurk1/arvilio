@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Restore SoEnglish Docker stack + discover other compose projects on this machine.
+# Restore Arvilio Docker stack + discover other compose projects on this machine.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -98,7 +98,7 @@ fi
 echo ""
 yellow "Waiting for postgres (healthy)…"
 for _ in $(seq 1 30); do
-  if docker inspect -f '{{.State.Health.Status}}' soenglish-postgres 2>/dev/null | grep -q healthy; then
+  if docker inspect -f '{{.State.Health.Status}}' arvilio-postgres 2>/dev/null | grep -q healthy; then
     green "postgres is healthy."
     break
   fi
@@ -114,10 +114,10 @@ sleep 2
 docker compose -f infra/docker/docker-compose.yml ps -a
 
 if (( WITH_STACK )); then
-  if docker inspect -f '{{.State.Running}}' soenglish-api 2>/dev/null | grep -q true; then
-    green "soenglish-api is running."
+  if docker inspect -f '{{.State.Running}}' arvilio-api 2>/dev/null | grep -q true; then
+    green "arvilio-api is running."
   else
-    yellow "soenglish-api not running yet — check: docker logs soenglish-api --tail 40"
+    yellow "arvilio-api not running yet — check: docker logs arvilio-api --tail 40"
   fi
 fi
 

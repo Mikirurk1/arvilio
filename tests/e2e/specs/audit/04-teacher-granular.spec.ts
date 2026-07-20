@@ -6,14 +6,12 @@
  */
 import { test, expect, type Page } from '@playwright/test';
 import { STATE } from '../../fixtures/auth';
+import { suppressTour } from '../../helpers/tour';
 
 test.use({ storageState: STATE.teacher });
 
-async function suppressTour(page: Page) {
-  await page.route('**/api/onboarding/tour**', (r) => {
-    if (r.request().method() === 'GET') void r.fulfill({ json: { completed: true } });
-    else void r.continue();
-  });
+async function suppressTourLocal(page: Page) {
+  await suppressTour(page);
 }
 
 // ──────────────────────────────────────────────────────
@@ -21,6 +19,7 @@ async function suppressTour(page: Page) {
 // ──────────────────────────────────────────────────────
 test.describe('4A. materials', () => {
   test('4A.1 header + grid/list view toggle switches', async ({ page }) => {
+    await suppressTourLocal(page);
     await page.goto('/materials');
     await expect(page.getByRole('heading', { name: /materials/i }).first()).toBeVisible({ timeout: 10_000 });
     const listRadio = page.getByRole('radio', { name: /list/i });
@@ -36,6 +35,7 @@ test.describe('4A. materials', () => {
   });
 
   test('4A.2 search filters to empty on nonsense query', async ({ page }) => {
+    await suppressTourLocal(page);
     await page.goto('/materials');
     await expect(page.locator('main')).toBeVisible({ timeout: 10_000 });
     const search = page.getByRole('searchbox', { name: /search materials/i })
@@ -45,7 +45,31 @@ test.describe('4A. materials', () => {
     await expect(page.getByText(/seed material — grammar book/i)).toHaveCount(0, { timeout: 10_000 });
   });
 
+  test('4A.3 kind filter stat cards hide non-matching materials', async ({ page }) => {
+    await suppressTourLocal(page);
+    await page.goto('/materials');
+    await expect(page.locator('main')).toBeVisible({ timeout: 10_000 });
+    await page.getByText(/loading materials/i).waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => {});
+
+    const seedTitle = page.getByText(/seed material — grammar book/i).first();
+    if (!(await seedTitle.isVisible({ timeout: 6_000 }).catch(() => false))) {
+      test.skip(true, 'Seed book material not visible');
+      return;
+    }
+
+    await page.getByRole('button', { name: /books/i }).click();
+    await expect(seedTitle).toBeVisible({ timeout: 8_000 });
+
+    await page.getByRole('button', { name: /boards/i }).click();
+    await expect(seedTitle).toHaveCount(0, { timeout: 8_000 });
+    await expect(page.getByText(/no materials yet/i)).toBeVisible({ timeout: 6_000 });
+
+    await page.getByRole('button', { name: /total/i }).click();
+    await expect(seedTitle).toBeVisible({ timeout: 8_000 });
+  });
+
   test('4A.14 seeded material visible before filtering', async ({ page }) => {
+    await suppressTourLocal(page);
     await page.goto('/materials');
     await expect(page.locator('main')).toBeVisible({ timeout: 10_000 });
     await page.getByText(/loading materials/i).waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => {});

@@ -234,7 +234,7 @@ export const useChatStore = create<ChatState>()(
         set({ inbox: sliceSuccess(prev, next) });
       },
     }),
-    { name: 'soenglish/chat' },
+    { name: 'arvilio/chat' },
   ),
 );
 

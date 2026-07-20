@@ -3,21 +3,22 @@
 import Link from 'next/link';
 import { Shield, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import type { AdminUserSummaryDto } from '@pkg/types';
 import styles from './page.module.scss';
 
 const ROLE_LABEL: Record<string, string> = {
-  student: 'Student',
-  teacher: 'Teacher',
-  admin: 'Admin',
-  super_admin: 'Super admin',
+  student: 'admin.role.student',
+  teacher: 'admin.role.teacher',
+  admin: 'admin.role.admin',
+  super_admin: 'admin.role.superAdmin',
 };
 
 const STATUS_LABEL: Record<string, string> = {
-  active: 'Active',
-  paused: 'Paused',
-  leaved: 'Left',
-  blocked: 'Blocked',
+  active: 'admin.status.active',
+  paused: 'admin.status.paused',
+  leaved: 'admin.status.leaved',
+  blocked: 'admin.status.blocked',
 };
 
 const TEACHING_ROLES = new Set<AdminUserSummaryDto['role']>(['teacher', 'admin', 'super_admin']);
@@ -34,16 +35,17 @@ interface Props {
 }
 
 export function UsersTable({ users, isLoading, isError, error, canCreateAdmin, mutating, onDelete, onRefresh }: Props) {
+  const t = useCampusT();
   return (
-    <section className={styles.listCard} aria-label="Users">
+    <section className={styles.listCard} aria-label={t('admin.table.aria')}>
       <header className={styles.cardHeader}>
         <Shield size={16} />
         <div>
-          <div className={styles.cardTitle}>Existing accounts</div>
+          <div className={styles.cardTitle}>{t('admin.table.title')}</div>
           <div className={styles.cardSub}>
             {canCreateAdmin
-              ? 'Showing all non-SUPER_ADMIN accounts. To manage SUPER_ADMIN use the `super-admin` CLI.'
-              : 'Showing students, teachers, and admins (admins can be assigned as teachers).'}
+              ? t('admin.table.subtitle.super')
+              : t('admin.table.subtitle.default')}
           </div>
         </div>
         <Button
@@ -51,30 +53,30 @@ export function UsersTable({ users, isLoading, isError, error, canCreateAdmin, m
           className={styles.refreshBtn}
           onClick={onRefresh}
           loading={isLoading}
-          loadingLabel="Refreshing…"
+          loadingLabel={t('admin.table.refreshing')}
         >
-          Refresh
+          {t('admin.table.refresh')}
         </Button>
       </header>
-      {isLoading ? <div className={styles.muted}>Loading…</div> : null}
+      {isLoading ? <div className={styles.muted}>{t('admin.table.loading')}</div> : null}
       {isError ? (
         <div className={styles.error}>
-          Failed to load users: {error ?? 'unknown error'}
+          {t('admin.table.loadFailed', { error: error ?? 'unknown error' })}
         </div>
       ) : null}
       {!isLoading && !isError && users.length === 0 ? (
-        <div className={styles.muted}>No accounts yet.</div>
+        <div className={styles.muted}>{t('admin.table.noAccounts')}</div>
       ) : null}
       {users.length > 0 ? (
         <div className={styles.tableWrap}>
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Email</th>
-                <th>Name</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Created</th>
+                <th>{t('admin.table.col.email')}</th>
+                <th>{t('admin.table.col.name')}</th>
+                <th>{t('admin.table.col.role')}</th>
+                <th>{t('admin.table.col.status')}</th>
+                <th>{t('admin.table.col.created')}</th>
                 <th></th>
               </tr>
             </thead>
@@ -97,12 +99,12 @@ export function UsersTable({ users, isLoading, isError, error, canCreateAdmin, m
                     </td>
                     <td>
                       <span className={`${styles.role} ${styles[`role_${user.role}`]}`}>
-                        {ROLE_LABEL[user.role] ?? user.role}
+                        {t(ROLE_LABEL[user.role] ?? 'admin.role.student')}
                       </span>
                     </td>
                     <td>
                       <span className={`${styles.status} ${styles[`status_${user.status}`]}`}>
-                        {STATUS_LABEL[user.status] ?? user.status}
+                        {t(STATUS_LABEL[user.status] ?? 'admin.status.active')}
                       </span>
                     </td>
                     <td className={styles.created}>
@@ -115,7 +117,7 @@ export function UsersTable({ users, isLoading, isError, error, canCreateAdmin, m
                           className={styles.deleteBtn}
                           onClick={() => onDelete(user.id, user.email, user.role)}
                           disabled={mutating}
-                          aria-label={`Delete ${user.email}`}
+                          aria-label={t('admin.table.deleteAria', { email: user.email })}
                         >
                           <Trash2 size={14} />
                         </Button>

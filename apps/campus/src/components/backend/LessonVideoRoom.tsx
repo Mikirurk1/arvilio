@@ -31,32 +31,33 @@ import {
   Video,
   VideoOff,
 } from 'lucide-react';
+import { Button } from '../ui';
 import styles from './LessonVideoRoom.module.scss';
 
 function MicButton() {
   const { buttonProps, enabled } = useTrackToggle({ source: Track.Source.Microphone });
   return (
-    <button {...buttonProps} className={`${styles.btn} ${!enabled ? styles.toggled : ''}`} title={enabled ? 'Mute mic' : 'Unmute mic'}>
+    <Button variant="bare" {...buttonProps} className={`${styles.btn} ${!enabled ? styles.toggled : ''}`} title={enabled ? 'Mute mic' : 'Unmute mic'}>
       {enabled ? <Mic size={18} /> : <MicOff size={18} />}
-    </button>
+    </Button>
   );
 }
 
 function CameraButton() {
   const { buttonProps, enabled } = useTrackToggle({ source: Track.Source.Camera });
   return (
-    <button {...buttonProps} className={`${styles.btn} ${!enabled ? styles.toggled : ''}`} title={enabled ? 'Turn off camera' : 'Turn on camera'}>
+    <Button variant="bare" {...buttonProps} className={`${styles.btn} ${!enabled ? styles.toggled : ''}`} title={enabled ? 'Turn off camera' : 'Turn on camera'}>
       {enabled ? <Video size={18} /> : <VideoOff size={18} />}
-    </button>
+    </Button>
   );
 }
 
 function ScreenShareButton() {
   const { buttonProps, enabled } = useTrackToggle({ source: Track.Source.ScreenShare });
   return (
-    <button {...buttonProps} className={`${styles.btn} ${enabled ? styles.screenActive : ''}`} title={enabled ? 'Stop sharing' : 'Share screen'}>
+    <Button variant="bare" {...buttonProps} className={`${styles.btn} ${enabled ? styles.screenActive : ''}`} title={enabled ? 'Stop sharing' : 'Share screen'}>
       <Monitor size={18} />
-    </button>
+    </Button>
   );
 }
 
@@ -165,23 +166,25 @@ function ControlBar({ containerRef, pipCanvasRef }: ControlBarProps) {
         </>
       )}
 
-      <button
+      <Button
+        variant="bare"
         type="button"
         className={`${styles.btn} ${pipActive ? styles.active : ''}`}
         title={pipActive ? 'Exit picture-in-picture' : 'Picture-in-picture'}
         onClick={() => void togglePip()}
       >
         <PictureInPicture2 size={18} />
-      </button>
+      </Button>
 
-      <button
+      <Button
+        variant="bare"
         type="button"
         className={styles.btn}
         title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
         onClick={toggleFullscreen}
       >
         {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
-      </button>
+      </Button>
 
       <DisconnectButton className={`${styles.btn} ${styles.leave}`} title="Leave">
         <PhoneOff size={18} />

@@ -1,5 +1,4 @@
-/* Layer order: payload-default wins over base so Payload styles override our reset */
-@layer base, payload-default;
+@layer base;
 
 @import '../styles/global';
 

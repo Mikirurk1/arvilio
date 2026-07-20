@@ -6,14 +6,14 @@ import { LoginPage } from '../pages/LoginPage';
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
-const email = process.env.PLAYWRIGHT_TEST_EMAIL ?? 'jest-student@soenglish.test';
+const email = process.env.PLAYWRIGHT_TEST_EMAIL ?? 'jest-student@arvilio.test';
 const password = process.env.PLAYWRIGHT_TEST_PASSWORD ?? 'TestPass123!';
 
 test.describe('Login page', () => {
   test('renders branding logo and form fields', async ({ page }) => {
     await page.goto('/login');
     // Logo is rendered as branded text, not an <img>
-    await expect(page.getByText(/soenglish/i).first()).toBeVisible();
+    await expect(page.getByText(/arvilio/i).first()).toBeVisible();
     await expect(page.getByLabel('Email', { exact: true })).toBeVisible();
     await expect(page.getByLabel('Password', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: /sign in|увійти/i })).toBeVisible();

@@ -18,6 +18,7 @@ import { SpeakingModule } from '@be/speaking';
 import { MaterialsModule } from '@be/materials';
 import { LessonsModule } from '@be/lessons';
 import { ProgressModule } from '@be/progress';
+import { AssistantModule } from '@be/assistant';
 import { VocabularyModule } from '@be/vocabulary';
 import { NotificationsModule } from '@be/notifications';
 import { ChatModule } from '@be/chat';
@@ -30,12 +31,10 @@ import { TenantLoggingInterceptor } from './tenant-logging.interceptor';
 @Module({
   imports: [
     ThrottlerModule.forRoot([
-      // Global: 120 req/min per resolved key (user/school/IP). Applies everywhere.
-      { name: 'global', ttl: 60_000, limit: 120 },
-      // Auth: 10 attempts per 15 min per IP. Applied via @Throttle() on auth endpoints.
-      { name: 'auth', ttl: 900_000, limit: 10 },
-      // Tenant: 600 req/min per schoolId. Applied via @Throttle() on heavy API surfaces.
-      { name: 'tenant', ttl: 60_000, limit: 600 },
+      // Nest applies EVERY named throttler in forRoot to all routes. Putting
+      // `auth` (10/15min) here previously rate-limited GraphQL after ~10 clicks.
+      // Auth endpoints tighten `global` via @Throttle({ global: { … } }).
+      { name: 'global', ttl: 60_000, limit: 300 },
     ]),
     ScheduleModule.forRoot(),
     TenantModule,
@@ -52,6 +51,7 @@ import { TenantLoggingInterceptor } from './tenant-logging.interceptor';
     MaterialsModule,
     LessonsModule,
     ProgressModule,
+    AssistantModule,
     PlatformAdminModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,

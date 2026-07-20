@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { PauseCircle, PlayCircle } from 'lucide-react';
+import { Button } from '../../components/ui';
 import styles from './AudioPlayer.module.scss';
 
 type Props = {
@@ -52,7 +53,8 @@ export function AudioPlayer({ src, className }: Props) {
         <track kind="captions" />
       </audio>
 
-      <button
+      <Button
+        variant="bare"
         type="button"
         className={styles.playBtn}
         onClick={toggle}
@@ -61,7 +63,7 @@ export function AudioPlayer({ src, className }: Props) {
         {playing
           ? <PauseCircle size={20} aria-hidden />
           : <PlayCircle size={20} aria-hidden />}
-      </button>
+      </Button>
 
       <div className={styles.track}>
         <input

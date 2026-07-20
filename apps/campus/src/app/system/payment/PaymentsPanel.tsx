@@ -16,7 +16,9 @@ import {
   type PaymentSecretsDto,
   type PaymentSettingsDto,
 } from '@pkg/types';
-import { ApiError } from '../../../lib/api';
+import { ApiError, apiClient } from '../../../lib/api';
+import type { PublicSellerProfile } from '../../../lib/seller-profile';
+import { useCampusT } from '../../../lib/cms';
 import { PaymentMethodConfigModal } from './PaymentMethodConfigModal';
 import { PaymentsPricingSection } from './PaymentsPricingSection';
 import { PaymentsMethodSection } from './PaymentsMethodSection';
@@ -29,7 +31,18 @@ import {
 } from './payment-panel-utils';
 import styles from '../page.module.scss';
 
+const ONLINE_PSP: PaymentMethodKindDto[] = [
+  'stripe',
+  'liqpay',
+  'wayforpay',
+  'lemonsqueezy',
+  'paddle',
+  'monopay',
+  'paypal',
+];
+
 export function PaymentsPanel() {
+  const t = useCampusT();
   const fetchPaymentSettings = useBillingStore((s) => s.fetchPaymentSettings);
   const updatePaymentSettings = useBillingStore((s) => s.updatePaymentSettings);
   const slice = useBillingStore((s) => s.paymentSettings);
@@ -40,8 +53,16 @@ export function PaymentsPanel() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [sellerComplete, setSellerComplete] = useState<boolean | null>(null);
 
   useEffect(() => { void fetchPaymentSettings(); }, [fetchPaymentSettings]);
+
+  useEffect(() => {
+    void apiClient
+      .get<PublicSellerProfile>('/school/seller-profile')
+      .then((s) => setSellerComplete(s.isComplete))
+      .catch(() => setSellerComplete(null));
+  }, []);
 
   useEffect(() => {
     if (slice.status === 'success' && slice.data) {
@@ -74,6 +95,9 @@ export function PaymentsPanel() {
     return getPaymentSettingsCurrencyIssues({ enabledMethods: draft.enabledMethods, config: draft.config });
   }, [draft]);
 
+  const onlineEnabled = draft?.enabledMethods.some((m) => ONLINE_PSP.includes(m)) ?? false;
+  const sellerGateWarning = sellerComplete === false;
+
   const onSave = async () => {
     if (!draft) return;
     setSaving(true);
@@ -82,9 +106,9 @@ export function PaymentsPanel() {
     try {
       await updatePaymentSettings({ ...draft, secrets: secretDraft });
       setSecretDraft({});
-      setSuccess('Payment settings saved.');
+      setSuccess(t('system.payments.saved'));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Save failed');
+      setError(err instanceof ApiError ? err.message : err instanceof Error ? err.message : t('system.payments.error.save'));
     } finally {
       setSaving(false);
     }
@@ -135,54 +159,69 @@ export function PaymentsPanel() {
     providerSupportsCheckoutCurrency(method, code, { lemonSqueezyVariantCurrency: lemonVariantCurrency });
 
   return (
-    <SurfaceCard className={styles.card}>
+    <SurfaceCard className={styles.card} data-tour-anchor="system-tab-payments">
       <header className={styles.panelHeader}>
         <CreditCard size={18} />
         <div>
-          <div className={styles.panelTitle}>Payments</div>
-          <p className={styles.hint}>
-            Configure billing infrastructure, checkout templates, and provider readiness.
-          </p>
+          <div className={styles.panelTitle}>{t('system.payments.title')}</div>
+          <p className={styles.hint}>{t('system.payments.subtitle')}</p>
         </div>
       </header>
 
-      {loading ? <p className={styles.hint}>Loading…</p> : null}
+      {loading ? <p className={styles.hint}>{t('common.loading')}</p> : null}
+
+      {sellerGateWarning ? (
+        <p className={styles.actionStatusError} role="status">
+          {t('system.payments.sellerGateBefore')}{' '}
+          <strong>{t('system.payments.sellerGateLink')}</strong>{' '}
+          {t('system.payments.sellerGateAfter')}
+          {onlineEnabled ? t('system.payments.sellerGateOnlineSuffix') : ''}.
+        </p>
+      ) : null}
 
       {draft ? (
         <>
-          <section className={styles.paymentsRail} aria-label="Payments control summary">
+          <section className={styles.paymentsRail} aria-label={t('system.payments.summaryAria')}>
             <article className={styles.paymentsRailCard}>
               <span className={styles.paymentsRailIcon} aria-hidden><ShieldCheck size={14} /></span>
-              <div className={styles.paymentsRailTitle}>Operations mode</div>
-              <p className={styles.paymentsRailText}>Keep providers disabled until credentials and webhook endpoints are verified.</p>
+              <div className={styles.paymentsRailTitle}>{t('system.payments.rail.operationsTitle')}</div>
+              <p className={styles.paymentsRailText}>{t('system.payments.rail.operationsText')}</p>
             </article>
             <article className={styles.paymentsRailCard}>
               <span className={styles.paymentsRailIcon} aria-hidden><Wallet size={14} /></span>
-              <div className={styles.paymentsRailTitle}>Pricing consistency</div>
-              <p className={styles.paymentsRailText}>Match currency-specific lesson rates with package cards before saving live settings.</p>
+              <div className={styles.paymentsRailTitle}>{t('system.payments.rail.pricingTitle')}</div>
+              <p className={styles.paymentsRailText}>{t('system.payments.rail.pricingText')}</p>
             </article>
           </section>
 
           <section className={styles.overviewGrid}>
             <div className={styles.overviewCard}>
-              <div className={styles.overviewLabel}>Default lesson price</div>
+              <div className={styles.overviewLabel}>{t('system.payments.overview.defaultLessonPrice')}</div>
               <div className={styles.overviewValue}>{formatMoney(priceMinor, currency)}</div>
-              <div className={styles.overviewHint}>Applied unless a student has an override.</div>
+              <div className={styles.overviewHint}>{t('system.payments.overview.defaultLessonHint')}</div>
             </div>
             <div className={styles.overviewCard}>
-              <div className={styles.overviewLabel}>Payment methods</div>
-              <div className={styles.overviewValue}>{enabledCount} / {methodStatuses.length} enabled</div>
-              <div className={styles.overviewHint}>{configuredCount} configured for use right now.</div>
+              <div className={styles.overviewLabel}>{t('system.payments.overview.methodsLabel')}</div>
+              <div className={styles.overviewValue}>
+                {t('system.payments.overview.methodsEnabled', { enabled: enabledCount, total: methodStatuses.length })}
+              </div>
+              <div className={styles.overviewHint}>
+                {t('system.payments.overview.methodsConfigured', { count: configuredCount })}
+              </div>
             </div>
             <div className={styles.overviewCard}>
-              <div className={styles.overviewLabel}>Checkout packages</div>
+              <div className={styles.overviewLabel}>{t('system.payments.overview.packagesLabel')}</div>
               <div className={styles.overviewValue}>{draft.config.packages.length}</div>
-              <div className={styles.overviewHint}>Student self-serve packages from {minPackageLessons} lessons.</div>
+              <div className={styles.overviewHint}>
+                {t('system.payments.overview.packagesHint', { min: minPackageLessons })}
+              </div>
             </div>
             <div className={styles.overviewCard}>
-              <div className={styles.overviewLabel}>Allowed currencies</div>
+              <div className={styles.overviewLabel}>{t('system.payments.overview.currenciesLabel')}</div>
               <div className={styles.overviewValue}>{allowedCurrencies.join(', ')}</div>
-              <div className={styles.overviewHint}>Default currency: {currency}</div>
+              <div className={styles.overviewHint}>
+                {t('system.payments.overview.defaultCurrency', { currency })}
+              </div>
             </div>
           </section>
 
@@ -219,8 +258,8 @@ export function PaymentsPanel() {
           <section className={styles.readySection}>
             <div className={styles.pricingSectionHead}>
               <div>
-                <h3 className={styles.sectionTitle}>Ready for students</h3>
-                <p className={styles.hint}>Review package templates and fix currency issues before saving.</p>
+                <h3 className={styles.sectionTitle}>{t('system.payments.ready.title')}</h3>
+                <p className={styles.hint}>{t('system.payments.ready.hint')}</p>
               </div>
             </div>
             {draft.config.packages.length > 0 ? (
@@ -231,20 +270,25 @@ export function PaymentsPanel() {
                   return (
                     <li key={pkg.id} className={styles.readyPackageItem}>
                       <span>{pkg.label}</span>
-                      <span>{pkg.lessons} lessons · {formatMoney(pkg.lessons * perLesson, pkgCurrency)}</span>
+                      <span>
+                        {t('system.payments.ready.packageLine', {
+                          lessons: pkg.lessons,
+                          total: formatMoney(pkg.lessons * perLesson, pkgCurrency),
+                        })}
+                      </span>
                     </li>
                   );
                 })}
               </ul>
             ) : (
-              <p className={styles.hint}>Add at least one package template for online checkout.</p>
+              <p className={styles.hint}>{t('system.payments.ready.noPackages')}</p>
             )}
             {currencyIssues.length > 0 ? (
               <div className={styles.currencyWarning}>
                 {currencyIssues.map((issue) => <p key={issue}>{issue}</p>)}
               </div>
             ) : (
-              <p className={styles.readyOk}>Configuration looks good for student checkout.</p>
+              <p className={styles.readyOk}>{t('system.payments.ready.configOk')}</p>
             )}
           </section>
 
@@ -252,14 +296,14 @@ export function PaymentsPanel() {
             <Button
               type="button"
               loading={saving}
-              loadingLabel="Saving…"
+              loadingLabel={t('system.payments.saving')}
               disabled={saving || currencyIssues.length > 0}
               onClick={() => void onSave()}
             >
-              Save payment settings
+              {t('system.payments.save')}
             </Button>
             {currencyIssues.length > 0 ? (
-              <p className={styles.actionStatusError}>Resolve currency compatibility warnings before saving.</p>
+              <p className={styles.actionStatusError}>{t('system.payments.resolveCurrencyWarnings')}</p>
             ) : null}
             {error ? <p className={styles.actionStatusError}>{error}</p> : null}
             {success ? <p className={styles.actionStatusSuccess}>{success}</p> : null}

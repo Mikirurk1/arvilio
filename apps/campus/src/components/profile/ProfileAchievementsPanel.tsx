@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { AchievementCard, TabPanelCard } from '../ui';
+import { useCampusT } from '../../lib/cms';
 import styles from '../../app/profile/page.module.scss';
 
 type ProfileAchievement = {
@@ -16,11 +17,13 @@ export function ProfileAchievementsPanel({
 }: {
   achievements: ProfileAchievement[];
 }) {
+  const t = useCampusT();
+
   return (
     <TabPanelCard>
-      <h2 className={styles.sectionTitle}>Achievements</h2>
+      <h2 className={styles.sectionTitle}>{t('profile.achievements.title')}</h2>
       <p className={styles.panelHint}>
-        Milestones from lessons, practice, and streaks. Locked badges unlock as you progress.
+        {t('profile.achievements.hint')}
       </p>
       <div className={styles.achievementsGrid}>
         {achievements.map((achievement) => (

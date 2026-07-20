@@ -52,14 +52,14 @@ Teachers must **not** see student lesson prices. Backend redacts pricing on `stu
 
 - Module: `packages/backend/modules/module-billing` — `StaffPayrollService`, accrual/status utils, `StaffPayrollResolver`
 - Types: `packages/shared/types/src/lib/staff-payout.ts`
-- Web feature layer: `apps/web/src/features/staff-payout/` (shared forms, badges, money helpers — reused by System, `/finance`, Profile statistics)
+- Web feature layer: `apps/campus/src/features/staff-payout/` (shared forms, badges, money helpers — reused by System, `/finance`, Profile statistics)
 - **`UnifiedProfilePanel`** — shared profile form for `/profile`, `/students/[id]`, and `/staff/[userId]`; see [[concepts/unified-profile-form]]
 - **`StaffProfilePanel`** — thin wrapper around `UnifiedProfilePanel` on `/staff/[userId]` Profile tab
 - **`StaffCompensationPanel`** — `/staff/[userId]` Compensation tab: effective-rate summary card + sectioned override form (pay structure, schedule, overdue rules)
 - **`StaffPayoutDefaultsPanel`** — System → Payouts: same visual pattern for school-wide defaults (summary + section cards + footer save)
 - **`RecordStaffPayoutModal`** — portal modal for `recordStaffPayout` on `/finance` and staff earnings tab
 - **`StaffPayoutHistoryPanel`** — `/finance` Recent payouts and staff earnings payout history: staff filter, period hint, infinite scroll via `staffPayoutHistoryPage`
-- Web routes: `apps/web/src/app/finance`, `apps/web/src/app/staff`, `apps/web/src/app/system/PayoutsDefaultsPanel.tsx`
+- Web routes: `apps/campus/src/app/finance`, `apps/campus/src/app/staff`, `apps/campus/src/app/system/PayoutsDefaultsPanel.tsx`
 
 ## GraphQL (summary)
 

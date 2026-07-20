@@ -2,58 +2,171 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "SoEnglish: dev (split terminals)",
+      "label": "Arvilio: free ports",
+      "type": "shell",
+      "command": "node scripts/free-dev-ports.cjs",
+      "options": { "cwd": "${workspaceFolder}" },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "showReuseMessage": false,
+        "close": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Arvilio: dev (split terminals)",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Arvilio: free ports", "Arvilio: start all apps"],
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Arvilio: start all apps",
       "dependsOrder": "parallel",
-      "dependsOn": ["SoEnglish: dev web", "SoEnglish: dev api"]
+      "dependsOn": [
+        "api :3000",
+        "campus :4200",
+        "platform :4300",
+        "hub :4400",
+        "cms :4410"
+      ],
+      "problemMatcher": []
     },
     {
-      "label": "SoEnglish: dev web",
+      "label": "Arvilio: dev core (split terminals)",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Arvilio: free ports", "Arvilio: start core apps"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Arvilio: start core apps",
+      "dependsOrder": "parallel",
+      "dependsOn": ["campus :4200", "api :3000"],
+      "problemMatcher": []
+    },
+    {
+      "label": "api :3000",
       "type": "shell",
-      "command": "npm run dev:web",
+      "command": "echo '━━━ API  http://localhost:3000  ━━━' && npm run dev:api",
       "options": { "cwd": "${workspaceFolder}" },
       "isBackground": true,
+      "icon": { "id": "server", "color": "terminal.ansiBlue" },
       "presentation": {
         "reveal": "always",
         "panel": "dedicated",
-        "group": "soenglish-dev",
+        "group": "arvilio-dev",
         "clear": true,
         "showReuseMessage": false
       },
       "problemMatcher": {
-        "owner": "custom",
-        "pattern": { "regexp": ".+" },
+        "owner": "arvilio-api",
+        "pattern": { "regexp": "^$" },
         "background": {
           "activeOnStart": true,
-          "beginsPattern": "^.*@app/web:dev: > @app/web@0.0.0 dev.*$",
-          "endsPattern": "^.*@app/web:dev: .*Ready in.*$"
+          "beginsPattern": ".",
+          "endsPattern": "Nest application successfully started|watching packages/shared|ready"
         }
       }
     },
     {
-      "label": "SoEnglish: dev api",
+      "label": "campus :4200",
       "type": "shell",
-      "command": "npm run dev:api",
+      "command": "echo '━━━ CAMPUS  http://localhost:4200  ━━━' && npm run dev:campus",
       "options": { "cwd": "${workspaceFolder}" },
       "isBackground": true,
+      "icon": { "id": "home", "color": "terminal.ansiGreen" },
       "presentation": {
         "reveal": "always",
         "panel": "dedicated",
-        "group": "soenglish-dev",
+        "group": "arvilio-dev",
         "clear": true,
         "showReuseMessage": false
       },
       "problemMatcher": {
-        "owner": "custom",
-        "pattern": { "regexp": ".+" },
+        "owner": "arvilio-campus",
+        "pattern": { "regexp": "^$" },
         "background": {
           "activeOnStart": true,
-          "beginsPattern": "^.*\\[api:dev\\] initial build.*$",
-          "endsPattern": "^.*\\[api:dev\\] watching packages/shared.*$"
+          "beginsPattern": ".",
+          "endsPattern": "Ready in"
         }
       }
     },
     {
-      "label": "SoEnglish: typecheck (all)",
+      "label": "platform :4300",
+      "type": "shell",
+      "command": "echo '━━━ PLATFORM  http://localhost:4300  ━━━' && npm run dev:platform",
+      "options": { "cwd": "${workspaceFolder}" },
+      "isBackground": true,
+      "icon": { "id": "shield", "color": "terminal.ansiMagenta" },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "arvilio-dev",
+        "clear": true,
+        "showReuseMessage": false
+      },
+      "problemMatcher": {
+        "owner": "arvilio-platform",
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Ready in"
+        }
+      }
+    },
+    {
+      "label": "hub :4400",
+      "type": "shell",
+      "command": "echo '━━━ HUB  http://localhost:4400  ━━━' && npm run dev:hub",
+      "options": { "cwd": "${workspaceFolder}" },
+      "isBackground": true,
+      "icon": { "id": "globe", "color": "terminal.ansiCyan" },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "arvilio-dev",
+        "clear": true,
+        "showReuseMessage": false
+      },
+      "problemMatcher": {
+        "owner": "arvilio-hub",
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Ready in"
+        }
+      }
+    },
+    {
+      "label": "cms :4410",
+      "type": "shell",
+      "command": "echo '━━━ CMS  http://localhost:4410/cms-admin  ━━━' && npm run dev:cms",
+      "options": { "cwd": "${workspaceFolder}" },
+      "isBackground": true,
+      "icon": { "id": "edit", "color": "terminal.ansiYellow" },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "arvilio-dev",
+        "clear": true,
+        "showReuseMessage": false
+      },
+      "problemMatcher": {
+        "owner": "arvilio-cms",
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Ready in"
+        }
+      }
+    },
+    {
+      "label": "Arvilio: typecheck (all)",
       "type": "shell",
       "command": "npm run typecheck",
       "options": { "cwd": "${workspaceFolder}" },
@@ -62,7 +175,7 @@
       "problemMatcher": ["$tsc"]
     },
     {
-      "label": "SoEnglish: lint (all)",
+      "label": "Arvilio: lint (all)",
       "type": "shell",
       "command": "npm run lint",
       "options": { "cwd": "${workspaceFolder}" },
@@ -71,7 +184,7 @@
       "problemMatcher": ["$eslint-stylish"]
     },
     {
-      "label": "SoEnglish: test unit",
+      "label": "Arvilio: test unit",
       "type": "shell",
       "command": "npm run test:unit",
       "options": { "cwd": "${workspaceFolder}" },

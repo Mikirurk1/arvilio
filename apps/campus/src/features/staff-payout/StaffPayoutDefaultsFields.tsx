@@ -8,6 +8,7 @@ import type {
 } from '@pkg/types';
 import { CalendarClock, Coins, ShieldCheck } from 'lucide-react';
 import { Field } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import { staffCompensationModeLabel, staffPayFrequencyLabel } from '../../lib/staff-payout-ui';
 import {
   STAFF_COMPENSATION_MODE_OPTIONS,
@@ -39,6 +40,7 @@ export function StaffPayoutDefaultsFields({
   labelClassName = styles.label,
   inputClassName = styles.input,
 }: StaffPayoutDefaultsFieldsProps) {
+  const t = useCampusT();
   const showLessonRate = draft.defaultMode === 'per_lesson' || draft.defaultMode === 'mixed';
   const showSalary = draft.defaultMode === 'salary' || draft.defaultMode === 'mixed';
 
@@ -50,16 +52,14 @@ export function StaffPayoutDefaultsFields({
             <Coins size={16} />
           </span>
           <div>
-            <h4 className={styles.compensationSectionTitle}>Default pay structure</h4>
-            <p className={styles.compensationSectionText}>
-              Baseline mode, currency, and rates for new staff accrual calculations.
-            </p>
+            <h4 className={styles.compensationSectionTitle}>{t('system.payouts.section.payStructure.title')}</h4>
+            <p className={styles.compensationSectionText}>{t('system.payouts.section.payStructure.text')}</p>
           </div>
         </header>
         <div className={styles.compensationSectionBody}>
           <div className={fieldGroupClassName}>
             <label className={labelClassName} htmlFor="payout-default-mode">
-              Default compensation mode
+              {t('system.payouts.fields.defaultMode')}
             </label>
             <Field
               as="select"
@@ -76,7 +76,7 @@ export function StaffPayoutDefaultsFields({
             >
               {STAFF_COMPENSATION_MODE_OPTIONS.map((mode) => (
                 <option key={mode} value={mode}>
-                  {staffCompensationModeLabel(mode)}
+                  {staffCompensationModeLabel(mode, t)}
                 </option>
               ))}
             </Field>
@@ -84,7 +84,7 @@ export function StaffPayoutDefaultsFields({
 
           <div className={fieldGroupClassName}>
             <label className={labelClassName} htmlFor="payout-default-currency">
-              Currency
+              {t('system.payouts.currency')}
             </label>
             <Field
               as="select"
@@ -110,7 +110,7 @@ export function StaffPayoutDefaultsFields({
           {showLessonRate ? (
             <div className={fieldGroupClassName}>
               <label className={labelClassName} htmlFor="payout-default-lesson-rate">
-                Default per-lesson rate
+                {t('system.payouts.fields.defaultLessonRate')}
               </label>
               <Field
                 id="payout-default-lesson-rate"
@@ -133,7 +133,9 @@ export function StaffPayoutDefaultsFields({
           {showSalary ? (
             <div className={fieldGroupClassName}>
               <label className={labelClassName} htmlFor="payout-default-salary">
-                Default salary ({staffPayFrequencyLabel(draft.defaultPayFrequency)})
+                {t('system.payouts.fields.defaultSalary', {
+                  frequency: staffPayFrequencyLabel(draft.defaultPayFrequency, t),
+                })}
               </label>
               <Field
                 id="payout-default-salary"
@@ -161,16 +163,14 @@ export function StaffPayoutDefaultsFields({
             <CalendarClock size={16} />
           </span>
           <div>
-            <h4 className={styles.compensationSectionTitle}>Default pay schedule</h4>
-            <p className={styles.compensationSectionText}>
-              When outstanding balances become due unless a staff profile overrides this.
-            </p>
+            <h4 className={styles.compensationSectionTitle}>{t('system.payouts.section.schedule.title')}</h4>
+            <p className={styles.compensationSectionText}>{t('system.payouts.section.schedule.text')}</p>
           </div>
         </header>
         <div className={styles.compensationSectionBody}>
           <div className={fieldGroupClassName}>
             <label className={labelClassName} htmlFor="payout-default-frequency">
-              Pay frequency
+              {t('system.payouts.fields.payFrequency')}
             </label>
             <Field
               as="select"
@@ -187,7 +187,7 @@ export function StaffPayoutDefaultsFields({
             >
               {STAFF_PAY_FREQUENCY_OPTIONS.map((frequency) => (
                 <option key={frequency} value={frequency}>
-                  {staffPayFrequencyLabel(frequency)}
+                  {staffPayFrequencyLabel(frequency, t)}
                 </option>
               ))}
             </Field>
@@ -196,7 +196,7 @@ export function StaffPayoutDefaultsFields({
           {draft.defaultPayFrequency === 'weekly' ? (
             <div className={fieldGroupClassName}>
               <label className={labelClassName} htmlFor="payout-default-weekday">
-                Pay day (week)
+                {t('system.payouts.fields.payDayWeek')}
               </label>
               <Field
                 as="select"
@@ -221,7 +221,7 @@ export function StaffPayoutDefaultsFields({
           ) : (
             <div className={fieldGroupClassName}>
               <label className={labelClassName} htmlFor="payout-default-monthday">
-                Pay day of month (1–28)
+                {t('system.payouts.fields.payDayMonth')}
               </label>
               <Field
                 as="select"
@@ -238,7 +238,7 @@ export function StaffPayoutDefaultsFields({
               >
                 {STAFF_PAY_MONTH_DAY_OPTIONS.map((day) => (
                   <option key={day} value={day}>
-                    Day {day}
+                    {t('system.payouts.fields.payDayMonthOption', { day: String(day) })}
                   </option>
                 ))}
               </Field>
@@ -253,16 +253,14 @@ export function StaffPayoutDefaultsFields({
             <ShieldCheck size={16} />
           </span>
           <div>
-            <h4 className={styles.compensationSectionTitle}>Overdue rules</h4>
-            <p className={styles.compensationSectionText}>
-              Grace period before due payouts appear as overdue on finance dashboards.
-            </p>
+            <h4 className={styles.compensationSectionTitle}>{t('system.payouts.section.overdue.title')}</h4>
+            <p className={styles.compensationSectionText}>{t('system.payouts.section.overdue.text')}</p>
           </div>
         </header>
         <div className={styles.compensationSectionBody}>
           <div className={fieldGroupClassName}>
             <label className={labelClassName} htmlFor="payout-default-grace">
-              Grace days before overdue
+              {t('system.payouts.fields.graceDays')}
             </label>
             <Field
               id="payout-default-grace"

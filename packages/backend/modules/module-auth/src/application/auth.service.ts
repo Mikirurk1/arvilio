@@ -1,5 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '@be/prisma';
+import { Prisma } from '@prisma/client';
 import { DEFAULT_SCHOOL_ID, TenantContextService } from '@be/tenant';
 import { MailService } from '@be/mail';
 import { EntitlementsService } from '@be/billing/entitlements';
@@ -10,7 +11,12 @@ import type {
   ResetPasswordRequestDto,
   WebRequestSessionDto,
 } from '@pkg/types';
-import { resolveLocale } from '@pkg/types';
+import {
+  clampLocaleToEnabled,
+  normalizeLocale,
+  resolveLocale,
+  sanitizeEnabledLocales,
+} from '@pkg/types';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { AuthSessionService } from './auth-session.service';
@@ -159,6 +165,8 @@ export class AuthService {
         impersonation: null,
         trial: null,
         locale: resolveLocale({ acceptLanguage }),
+        preferredLocale: null,
+        enabledLocales: sanitizeEnabledLocales(null),
       };
     }
 
@@ -174,11 +182,22 @@ export class AuthService {
     const availableScopes: WebRequestSessionDto['availableScopes'] =
       platformRole ? ['school', 'platform'] : ['school'];
 
-    const locale = resolveLocale({
-      userPreference: localeData.userLocale,
-      schoolDefault: localeData.schoolLocale,
-      acceptLanguage,
-    });
+    const enabledLocales = sanitizeEnabledLocales(localeData.schoolEnabledLocales);
+    const locale = clampLocaleToEnabled(
+      resolveLocale({
+        userPreference: localeData.userLocale,
+        schoolDefault: localeData.schoolLocale,
+        acceptLanguage,
+      }),
+      enabledLocales,
+      localeData.schoolLocale,
+    );
+    // Explicit preference only (no Accept-Language) — drives the bare-URL redirect.
+    const preferredRaw =
+      normalizeLocale(localeData.userLocale) ?? normalizeLocale(localeData.schoolLocale);
+    const preferredLocale = preferredRaw
+      ? clampLocaleToEnabled(preferredRaw, enabledLocales, localeData.schoolLocale)
+      : null;
     this.tenant.setLocale(locale);
 
     return {
@@ -191,6 +210,8 @@ export class AuthService {
       impersonation: resolved.impersonation,
       trial,
       locale,
+      preferredLocale,
+      enabledLocales,
     };
   }
 
@@ -478,6 +499,81 @@ export class AuthService {
     return user;
   }
 
+  /**
+   * Control Plane login (ADR-008/009). Same credentials as campus login, but
+   * requires an active `PlatformOperator` row. Non-operators always get a
+   * neutral 401 — never "wrong role" — and must not receive cookies.
+   */
+  async platformLogin(
+    body: LoginRequestDto,
+    meta?: { ip?: string; userAgent?: string },
+  ) {
+    const email = this.normalizeEmail(body.email);
+    const fail = async (userId?: string) => {
+      if (userId) {
+        await this.recordPlatformAuthAudit({
+          actorUserId: userId,
+          action: 'platform.auth.login',
+          metadata: { ok: false, reason: 'denied' },
+          ip: meta?.ip,
+        });
+      }
+      throw new UnauthorizedException('Invalid credentials');
+    };
+
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: { oauthAccounts: { select: { provider: true } } },
+    });
+    if (!user || !user.passwordHash) {
+      await fail();
+    }
+    const ok = await bcrypt.compare(body.password, user!.passwordHash!);
+    if (!ok) {
+      await fail(user!.id);
+    }
+    try {
+      assertAccountStatusAllowsAuth(user!.status);
+    } catch {
+      await fail(user!.id);
+    }
+
+    const platformRole = await this.sessionAuth.resolvePlatformRole(user!.id);
+    if (!platformRole) {
+      await fail(user!.id);
+    }
+
+    await this.recordPlatformAuthAudit({
+      actorUserId: user!.id,
+      action: 'platform.auth.login',
+      metadata: { ok: true, role: platformRole },
+      ip: meta?.ip,
+    });
+    return user!;
+  }
+
+  private async recordPlatformAuthAudit(params: {
+    actorUserId: string;
+    action: string;
+    metadata?: Prisma.InputJsonValue;
+    ip?: string;
+  }): Promise<void> {
+    try {
+      await this.prisma.platformAuditLog.create({
+        data: {
+          actorUserId: params.actorUserId,
+          action: params.action,
+          metadata: params.metadata ?? undefined,
+          ip: params.ip ?? null,
+        },
+      });
+    } catch (err) {
+      this.logger.warn(
+        `platform auth audit failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+  }
+
   async upsertGoogleUser(payload: {
     googleSub: string;
     email: string;
@@ -566,7 +662,7 @@ export class AuthService {
     const email = payload.email.trim().toLowerCase();
     if (email !== user.email.trim().toLowerCase()) {
       throw new BadRequestException(
-        `Use the Google account that matches your SoEnglish email (${user.email}). You signed in as ${payload.email}.`,
+        `Use the Google account that matches your Arvilio email (${user.email}). You signed in as ${payload.email}.`,
       );
     }
 
@@ -621,7 +717,7 @@ export class AuthService {
     const connection = await this.prisma.googleCalendarConnection.findUnique({ where: { userId } });
     if (!connection?.refreshToken) {
       throw new BadRequestException(
-        'Google did not return a Calendar refresh token. Remove SoEnglish from your Google Account permissions, then connect again.',
+        'Google did not return a Calendar refresh token. Remove Arvilio from your Google Account permissions, then connect again.',
       );
     }
   }

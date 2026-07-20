@@ -33,6 +33,6 @@ export const useUiStore = create<UiState>()(
         partialize: (state) => ({ theme: state.theme, fontSize: state.fontSize }),
       },
     ),
-    { name: 'soenglish/ui' },
+    { name: 'arvilio/ui' },
   ),
 );

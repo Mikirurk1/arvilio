@@ -63,7 +63,7 @@ export async function reversoTranslate(
       Accept: 'application/json',
       'User-Agent':
         options.userAgent?.trim() ||
-        'Mozilla/5.0 (compatible; SoEnglish/1.0; +https://github.com/soenglish)',
+        'Mozilla/5.0 (compatible; Arvilio/1.0; +https://github.com/arvilio)',
       Origin: 'https://www.reverso.net',
       Referer: 'https://www.reverso.net/',
     };

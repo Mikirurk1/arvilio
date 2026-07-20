@@ -33,8 +33,8 @@ Auth and some module routes remain REST under `/api/auth`, `/api/...` from backe
 
 ## Client
 
-- `apps/web/src/lib/graphql-client.ts` — `graphql-request`, cookies included
-- Operations: `apps/web/src/graphql/operations.ts`
+- `apps/campus/src/lib/graphql-client.ts` — `graphql-request`, cookies included
+- Operations: `apps/campus/src/graphql/operations.ts`
 
 ## Auth context
 

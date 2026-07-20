@@ -8,7 +8,8 @@ import {
   type PaymentSecretStatusesDto,
   type PaymentSecretsDto,
 } from '@pkg/types';
-import { PAYMENT_PROVIDER_META } from './payment-provider-meta';
+import { useCampusT } from '../../../lib/cms';
+import { PAYMENT_PROVIDER_META, resolvePaymentProviderUiMeta } from './payment-provider-meta';
 import { ProviderHelp } from './payment-config-primitives';
 import { ManualInvoiceMethodConfig } from './ManualInvoiceMethodConfig';
 import { ProviderConfigSection } from './ProviderConfigSection';
@@ -30,7 +31,10 @@ export function PaymentMethodConfigModal({
   method, config, secretStatuses, secretDraft,
   onChange, onSecretsChange, onSave, saving = false, onClose,
 }: Props) {
-  const providerMeta = PAYMENT_PROVIDER_META[method];
+  const t = useCampusT();
+  const providerUi = resolvePaymentProviderUiMeta(method, t);
+  const providerTitle = method === 'manual_invoice' ? providerUi.title : PAYMENT_PROVIDER_META[method].title;
+  const providerDescription = method === 'manual_invoice' ? providerUi.description : PAYMENT_PROVIDER_META[method].description;
 
   return (
     <BodyPortal>
@@ -46,14 +50,14 @@ export function PaymentMethodConfigModal({
             <div className={styles.configModalHeading}>
               <div className={styles.configModalEyebrow}>
                 <Settings2 size={14} aria-hidden />
-                Payment method
+                {t('system.payments.modal.eyebrow')}
               </div>
               <h3 id="payment-method-config-title" className={styles.configModalTitle}>
-                {providerMeta.title} settings
+                {providerTitle} {t('system.payments.modal.titleSuffix')}
               </h3>
-              <p className={styles.configModalSubtitle}>{providerMeta.description}</p>
+              <p className={styles.configModalSubtitle}>{providerDescription}</p>
             </div>
-            <Button type="button" variant="ghost" className={styles.configModalClose} aria-label="Close payment method settings" onClick={onClose}>
+            <Button type="button" variant="ghost" className={styles.configModalClose} aria-label={t('system.payments.modal.closeAria')} onClick={onClose}>
               <X size={18} aria-hidden />
             </Button>
           </header>
@@ -77,12 +81,12 @@ export function PaymentMethodConfigModal({
 
           <div className={styles.configModalActions}>
             {method === 'manual_invoice' ? (
-              <Button type="button" loading={saving} loadingLabel="Saving…" disabled={saving} onClick={() => void onSave?.()}>
-                Save
+              <Button type="button" loading={saving} loadingLabel={t('system.payments.saving')} disabled={saving} onClick={() => void onSave?.()}>
+                {t('system.payments.modal.save')}
               </Button>
             ) : null}
             <Button type="button" variant="ghost" onClick={onClose}>
-              Close
+              {t('system.payments.modal.close')}
             </Button>
           </div>
         </div>

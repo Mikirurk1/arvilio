@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Check, ChevronRight, CircleAlert, PartyPopper, Play } from 'lucide-react';
 import { Button, EmptyStateCard, Field, SegmentedControl } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import { type VocabularyPlayQuestion } from '../../lib/vocabulary-ui';
 import styles from './page.module.scss';
 
@@ -49,26 +50,27 @@ export function VocabularyPlaySection({
   onFinish: () => void;
   onReset: () => void;
 }) {
+  const t = useCampusT();
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
   const current = playQuestions[playIndex];
   const complete = playPhase === 'result';
 
   const playSetupDescription =
     playPoolCount === 0
-      ? 'No words match your current filters. Add vocabulary or change the source below.'
+      ? t('vocabulary.play.descEmpty')
       : !canStart
-        ? 'Need at least two words with translations (or definitions) in this set to build answer choices. Add another word or switch the source filter.'
-        : 'You will see an English word and choose the correct translation from four options. New and mistakes work words are prioritized when using the default source.';
+        ? t('vocabulary.play.descNeedTwo')
+        : t('vocabulary.play.descDefault');
 
   return (
-    <div className={styles.playWrap}>
+    <div className={styles.playWrap} data-play-phase={playPhase}>
       {playPhase === 'setup' ? (
-        <div className={styles.playSetupCard}>
+        <div className={styles.playSetupCard} data-tour-anchor="vocab-play-setup">
           <div className={styles.playSetupHero}>
             <div className={styles.playSetupIcon} aria-hidden>
               <Play size={28} />
             </div>
-            <h2 className={styles.playSetupTitle}>Ready to play</h2>
+            <h2 className={styles.playSetupTitle}>{t('vocabulary.play.ready')}</h2>
             <p
               className={`${styles.playSetupDescription} ${!canStart && playPoolCount > 0 ? styles.playSetupDescriptionWarn : ''}`}
             >
@@ -76,26 +78,26 @@ export function VocabularyPlaySection({
             </p>
             {playPoolCount > 0 ? (
               <p className={styles.playSetupMeta}>
-                {playPoolCount} {playPoolCount === 1 ? 'word' : 'words'} in this set
+                {playPoolCount === 1 ? t('vocabulary.play.wordInSet', { count: playPoolCount }) : t('vocabulary.play.wordsInSet', { count: playPoolCount })}
               </p>
             ) : null}
           </div>
 
-          <div className={styles.playSetupControls}>
-            <span className={styles.playSetupControlsLabel}>Word source</span>
+          <div className={styles.playSetupControls} data-tour-anchor="vocab-play-source">
+            <span className={styles.playSetupControlsLabel}>{t('vocabulary.play.source')}</span>
             <SegmentedControl
               value={playSource}
               onValueChange={next =>
                 setPlaySource(next as 'random' | 'last' | 'lesson')
               }
-              ariaLabel='Play source'
+              ariaLabel={t('vocabulary.play.sourceAria')}
               className={styles.playSetupSourceToggle}
               optionClassName={styles.catBtn}
               activeOptionClassName={styles.catActive}
               options={[
-                { value: 'random', label: 'Without lesson' },
-                { value: 'last', label: 'Last lesson' },
-                { value: 'lesson', label: 'By lesson' },
+                { value: 'random', label: t('vocabulary.play.withoutLesson') },
+                { value: 'last', label: t('vocabulary.play.lastLesson') },
+                { value: 'lesson', label: t('vocabulary.play.byLesson') },
               ]}
             />
             {playSource === 'lesson' ? (
@@ -104,7 +106,7 @@ export function VocabularyPlaySection({
                 value={playLessonId}
                 onChange={e => setPlayLessonId(e.target.value)}
               >
-                <option value='all'>Select lesson</option>
+                <option value='all'>{t('vocabulary.play.selectLesson')}</option>
                 {playLessonOptions.map(option => (
                   <option key={option.value} value={option.value}>
                     {option.label}
@@ -117,18 +119,19 @@ export function VocabularyPlaySection({
           <Button
             type='button'
             className={styles.playSetupPlayBtn}
+            data-tour-anchor="vocab-play-start"
             disabled={!canStart}
             onClick={onStart}
           >
             <Play size={18} aria-hidden />
-            Play
+            {t('vocabulary.play.play')}
           </Button>
         </div>
       ) : null}
 
       {playPhase === 'quiz' && current ? (
         <div className={styles.playQuestionCard}>
-          <div className={styles.playProgress}>
+          <div className={styles.playProgress} data-tour-anchor="vocab-play-progress">
             {playIndex + 1} / {playQuestions.length}
           </div>
           <div className={styles.scoreRow}>
@@ -144,16 +147,16 @@ export function VocabularyPlaySection({
               <div key={`p-empty-${i}`} className={styles.scoreDotEmpty} />
             ))}
           </div>
-          <div className={styles.flashcard}>
+          <div className={styles.flashcard} data-tour-anchor="vocab-play-question">
             <div className={styles.fcFront}>
               <div className={styles.fcHint}>
-                Choose the correct translation
+                {t('vocabulary.play.chooseTranslation')}
               </div>
               <div className={styles.fcWord}>{current.word}</div>
               <div className={styles.fcPhonetic}>{current.phonetic}</div>
             </div>
           </div>
-          <div className={styles.playOptionsGrid}>
+          <div className={styles.playOptionsGrid} data-tour-anchor="vocab-play-options">
             {current.options.map((option, optionIndex) => {
               const isCorrect = option === current.correct;
               const isSelected = option === playSelected;
@@ -187,26 +190,26 @@ export function VocabularyPlaySection({
               <div className={styles.expIcon}>
                 {playSelected === current.correct ? (
                   <>
-                    <Check size={15} /> Correct!
+                    <Check size={15} /> {t('vocabulary.play.correct')}
                   </>
                 ) : (
                   <>
-                    <ChevronRight size={15} /> Not quite
+                    <ChevronRight size={15} /> {t('vocabulary.play.notQuite')}
                   </>
                 )}
               </div>
               <div className={styles.expText}>
-                Correct answer: {current.correct}
+                {t('vocabulary.play.correctAnswer', { answer: current.correct })}
               </div>
             </div>
           ) : null}
-          <div className={styles.qActions}>
+          <div className={styles.qActions} data-tour-anchor="vocab-play-actions">
             <Button
               type='button'
               className={styles.finishBtn}
               onClick={() => setShowFinishConfirm(true)}
             >
-              Finish game
+              {t('vocabulary.play.finish')}
             </Button>
             {!playShowExplanation ? (
               <Button
@@ -215,13 +218,13 @@ export function VocabularyPlaySection({
                 disabled={!playSelected}
                 onClick={onCheck}
               >
-                Check Answer
+                {t('vocabulary.play.check')}
               </Button>
             ) : (
               <Button type='button' className={styles.nextBtn} onClick={onNext}>
                 {playIndex + 1 >= playQuestions.length
-                  ? 'See Results →'
-                  : 'Next Question →'}
+                  ? t('vocabulary.play.seeResults')
+                  : t('vocabulary.play.nextQuestion')}
               </Button>
             )}
           </div>
@@ -229,29 +232,31 @@ export function VocabularyPlaySection({
       ) : null}
 
       {complete ? (
-        <EmptyStateCard
-          className={styles.fcComplete}
-          icon={
-            <div className={styles.fcCompleteIcon}>
-              <PartyPopper size={22} />
-            </div>
-          }
-          title={<div className={styles.fcCompleteTitle}>Round complete</div>}
-          description={
-            <div className={styles.fcCompleteSub}>
-              {playScore} / {playQuestions.length} correct
-            </div>
-          }
-          action={
-            <Button
-              type='button'
-              className={styles.fcRestartBtn}
-              onClick={onReset}
-            >
-              New round
-            </Button>
-          }
-        />
+        <div data-tour-anchor="vocab-play-result">
+          <EmptyStateCard
+            className={styles.fcComplete}
+            icon={
+              <div className={styles.fcCompleteIcon}>
+                <PartyPopper size={22} />
+              </div>
+            }
+            title={<div className={styles.fcCompleteTitle}>{t('vocabulary.play.roundComplete')}</div>}
+            description={
+              <div className={styles.fcCompleteSub}>
+                {t('vocabulary.play.correctCount', { score: playScore, total: playQuestions.length })}
+              </div>
+            }
+            action={
+              <Button
+                type='button'
+                className={styles.fcRestartBtn}
+                onClick={onReset}
+              >
+                {t('vocabulary.play.newRound')}
+              </Button>
+            }
+          />
+        </div>
       ) : null}
       {showFinishConfirm ? (
         <div
@@ -268,12 +273,11 @@ export function VocabularyPlaySection({
             <div className={styles.finishHead}>
               <span className={styles.finishBadge}>
                 <CircleAlert size={14} />
-                Confirmation
+                {t('vocabulary.play.confirmBadge')}
               </span>
-              <h3 id="vocabulary-finish-title">Finish game now?</h3>
+              <h3 id="vocabulary-finish-title">{t('vocabulary.play.finishNow')}</h3>
               <p>
-                Your current progress will be saved and results will be shown
-                immediately.
+                {t('vocabulary.play.finishBody')}
               </p>
             </div>
             <div className={styles.finishActions}>
@@ -282,7 +286,7 @@ export function VocabularyPlaySection({
                 className={styles.modalCancelBtn}
                 onClick={() => setShowFinishConfirm(false)}
               >
-                Continue game
+                {t('vocabulary.play.continue')}
               </Button>
               <Button
                 type='button'
@@ -292,7 +296,7 @@ export function VocabularyPlaySection({
                   onFinish();
                 }}
               >
-                Save & finish
+                {t('vocabulary.play.saveFinish')}
               </Button>
             </div>
           </div>

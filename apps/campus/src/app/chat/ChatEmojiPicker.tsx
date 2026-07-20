@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Button } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import styles from './page.module.scss';
 
 const CHAT_EMOJIS = [
@@ -20,6 +21,7 @@ export function ChatEmojiPicker({
   onPick: (emoji: string) => void;
   onClose: () => void;
 }) {
+  const t = useCampusT();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,7 +42,7 @@ export function ChatEmojiPicker({
       ref={ref}
       className={styles.emojiPicker}
       role="listbox"
-      aria-label="Emoji"
+      aria-label={t('chat.emoji.listAria')}
     >
       {CHAT_EMOJIS.map((emoji) => (
         <Button

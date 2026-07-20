@@ -1,6 +1,6 @@
 'use client';
 
-import { Component, type ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 
 /**
  * Falls back to 2D if the GLB fails to load (e.g. not added yet → 404) or WebGL
@@ -8,7 +8,7 @@ import { Component, type ReactNode } from 'react';
  * exists, the tour shows the 2D Arvi.
  */
 export class MascotErrorBoundary extends Component<
-  { fallback: ReactNode; children: ReactNode },
+  { fallback: ReactNode; children: ReactNode; onError?: () => void },
   { failed: boolean }
 > {
   state = { failed: false };
@@ -17,8 +17,8 @@ export class MascotErrorBoundary extends Component<
     return { failed: true };
   }
 
-  componentDidCatch() {
-    // swallow — the mascot is decorative; the fallback covers it.
+  componentDidCatch(_error: Error, _info: ErrorInfo) {
+    this.props.onError?.();
   }
 
   render() {

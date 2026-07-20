@@ -2,7 +2,7 @@
 
 - **Status:** accepted
 - **Date:** 2026-06-15
-- **Authors:** SoEnglish engineering
+- **Authors:** Arvilio engineering
 - **Supersedes:** —
 - **Superseded-by:** —
 - **Amends:** —

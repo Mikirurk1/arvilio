@@ -78,7 +78,7 @@ jobs:
       - uses: ./.github/actions/setup-monorepo
       - run: npm run build:email-templates
       - run: npm run build:api
-      - run: npm run build:web
+      - run: npm run build:campus
         env:
           # Next.js collects env at build time; placeholders for CI only.
           API_PROXY_TARGET: http://127.0.0.1:3000

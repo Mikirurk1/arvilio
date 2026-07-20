@@ -1,7 +1,7 @@
 import * as jwt from 'jsonwebtoken';
 import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard, OptionalAuthGuard, extractAccessToken, verifyAccessToken } from './auth.guard';
-import { ACCESS_COOKIE, getJwtSecret } from '../../shared/auth-cookies';
+import { ACCESS_COOKIE, PLATFORM_ACCESS_COOKIE, getJwtSecret } from '../../shared/auth-cookies';
 import { getReqRes } from '../../shared/auth-request.util';
 
 jest.mock('../../shared/auth-request.util', () => ({
@@ -24,6 +24,16 @@ describe('auth.guard helpers', () => {
       const token = jwt.sign({ sub: 'user-2' }, getJwtSecret());
       const req = { headers: {}, cookies: { [ACCESS_COOKIE]: token } };
       expect(extractAccessToken(req)).toBe(token);
+    });
+
+    it('prefers platform access cookie over campus cookie', () => {
+      const campus = jwt.sign({ sub: 'campus' }, getJwtSecret());
+      const platform = jwt.sign({ sub: 'platform' }, getJwtSecret());
+      const req = {
+        headers: {},
+        cookies: { [ACCESS_COOKIE]: campus, [PLATFORM_ACCESS_COOKIE]: platform },
+      };
+      expect(extractAccessToken(req)).toBe(platform);
     });
 
     it('returns null when no credentials', () => {

@@ -18,11 +18,21 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  gap: 8px;
   padding: 10px 10px 12px;
   flex-shrink: 0;
   border-top: 1px solid var(--border);
   margin-top: auto;
 }
+
+.localeSwitcher {
+  margin-right: auto;
+}
+
+.collapsed .localeSwitcher {
+  margin-right: 0;
+}
+
 
 .collapsed .toolbar {
   justify-content: center;

@@ -21,17 +21,17 @@ function subjectFor<T extends EmailTemplateId>(
 ): string {
   switch (templateId) {
     case 'welcome-account':
-      return 'Welcome to SoEnglish';
+      return 'Welcome to Arvilio';
     case 'password-reset':
-      return 'Reset your SoEnglish password';
+      return 'Reset your Arvilio password';
     case 'email-verification':
-      return 'Confirm your SoEnglish email address';
+      return 'Confirm your Arvilio email address';
     case 'lesson-reminder':
       return `Reminder: ${(props as EmailTemplatePropsMap['lesson-reminder']).lessonTitle} starts in 30 minutes`;
     case 'streak-alert':
       return 'Keep your learning streak alive';
     case 'weekly-report':
-      return 'Your weekly SoEnglish report';
+      return 'Your weekly Arvilio report';
     case 'new-vocabulary':
       return `Word of the day: ${(props as EmailTemplatePropsMap['new-vocabulary']).word}`;
     case 'teacher-message':
@@ -39,7 +39,7 @@ function subjectFor<T extends EmailTemplateId>(
     case 'school-invitation':
       return `You're invited to join ${(props as EmailTemplatePropsMap['school-invitation']).schoolName}`;
     default:
-      return 'SoEnglish';
+      return 'Arvilio';
   }
 }
 

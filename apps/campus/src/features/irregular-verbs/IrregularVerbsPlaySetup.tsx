@@ -3,6 +3,7 @@
 import type { IrregularVerbTier } from '@pkg/types';
 import { Play } from 'lucide-react';
 import { Button, SegmentedControl } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import {
   availableQuestionCounts,
   type IrregularVerbFormFocus,
@@ -33,6 +34,7 @@ export function IrregularVerbsPlaySetup({
   onStart,
   onCancel,
 }: Props) {
+  const t = useCampusT();
   const countOptions = availableQuestionCounts(tier);
 
   return (
@@ -41,34 +43,33 @@ export function IrregularVerbsPlaySetup({
         <div className={styles.playSetupIcon} aria-hidden>
           <Play size={28} />
         </div>
-        <h2 className={styles.playSetupTitle}>Three Forms Drill</h2>
-        <p className={styles.playSetupDescription}>
-          See the base form and pick the correct past simple or past participle. After each answer
-          you will see the full verb row from the table.
-        </p>
+        <h2 className={styles.playSetupTitle}>{t('irregular.setup.title')}</h2>
+        <p className={styles.playSetupDescription}>{t('irregular.setup.description')}</p>
         <p className={styles.playSetupMeta}>
-          {poolCount} {poolCount === 1 ? 'verb' : 'verbs'} in this set
+          {poolCount === 1
+            ? t('irregular.setup.metaOne', { count: poolCount })
+            : t('irregular.setup.metaMany', { count: poolCount })}
         </p>
       </div>
 
       <div className={styles.playSetupFields}>
         <div className={styles.playSetupField}>
-          <span className={styles.playSetupLabel}>Form focus</span>
+          <span className={styles.playSetupLabel}>{t('irregular.setup.formFocus')}</span>
           <SegmentedControl
             value={formFocus}
             onValueChange={onFormFocusChange}
-            ariaLabel="Form focus"
+            ariaLabel={t('irregular.setup.formFocusAria')}
             className={styles.playSetupSegment}
             options={[
-              { value: 'mixed', label: 'Mixed' },
-              { value: 'pastSimple', label: 'Past simple' },
-              { value: 'pastParticiple', label: 'Past participle' },
+              { value: 'mixed', label: t('irregular.setup.mixed') },
+              { value: 'pastSimple', label: t('irregular.col.pastSimple') },
+              { value: 'pastParticiple', label: t('irregular.col.pastParticiple') },
             ]}
           />
         </div>
 
         <div className={styles.playSetupField}>
-          <span className={styles.playSetupLabel}>Questions</span>
+          <span className={styles.playSetupLabel}>{t('irregular.setup.questions')}</span>
           <SegmentedControl
             value={String(questionCount)}
             onValueChange={(value) =>
@@ -76,11 +77,11 @@ export function IrregularVerbsPlaySetup({
                 value === 'all' ? 'all' : (Number(value) as IrregularVerbQuestionCount),
               )
             }
-            ariaLabel="Question count"
+            ariaLabel={t('irregular.setup.questionsAria')}
             className={styles.playSetupSegment}
             options={countOptions.map((count) => ({
               value: String(count),
-              label: count === 'all' ? 'All' : String(count),
+              label: count === 'all' ? t('irregular.setup.all') : String(count),
             }))}
           />
         </div>
@@ -88,11 +89,11 @@ export function IrregularVerbsPlaySetup({
 
       <div className={styles.playSetupActions}>
         <Button type="button" variant="ghost" onClick={onCancel}>
-          Back to table
+          {t('irregular.setup.back')}
         </Button>
         <Button type="button" disabled={!canStart} onClick={onStart}>
           <Play size={18} aria-hidden />
-          Start drill
+          {t('irregular.setup.start')}
         </Button>
       </div>
     </div>

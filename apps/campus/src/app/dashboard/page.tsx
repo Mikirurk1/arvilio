@@ -12,10 +12,11 @@ import {
   SectionHeader,
   StatTile,
 } from '../../components/ui';
-import { siteContent } from '../../mocks';
 import { isTeacherAdminOrSuperKey, useActiveUser, useActiveRoleKey } from '../../lib/active-user';
+import { useCampusI18n, useCampusT } from '../../lib/cms';
 import {
-  formatDashboardSubtitle,
+  formatDashboardDate,
+  formatLessonTime12h,
   pickPendingHomeworkLessons,
   pickTodayLessons,
   pickUpcomingWeekLessons,
@@ -26,6 +27,7 @@ import {
 import { useDashboardStore } from '../../stores/dashboard-store';
 import { useLessonsStore } from '../../stores/lessons-store';
 import { useVocabularyStore } from '../../stores/vocabulary-store';
+import { useArvi } from '../../components/mascot/useArvi';
 import {
   DashboardQuickActions,
   TeacherHomeworkPanel,
@@ -39,15 +41,39 @@ import styles from './page.module.scss';
 
 const REVIEW_STATUSES = new Set(['new', 'repeated', 'mistakes_work']);
 
-function statusLabel(status: string): string {
-  return status.charAt(0).toUpperCase() + status.slice(1);
+const LESSON_STATUS_KEYS = [
+  'planned',
+  'completed',
+  'cancelled',
+  'in_progress',
+] as const;
+
+function lessonStatusKey(status: string): string {
+  return LESSON_STATUS_KEYS.includes(status as (typeof LESSON_STATUS_KEYS)[number])
+    ? `dashboard.lessonStatus.${status}`
+    : status;
+}
+
+function heroStatusClass(status: string): string {
+  const normalized = status.charAt(0).toUpperCase() + status.slice(1).replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+  return `heroStatus${normalized.replace(/\s+/g, '')}`;
 }
 
 export default function DashboardPage() {
+  const t = useCampusT();
+  const { locale } = useCampusI18n();
   const activeUser = useActiveUser();
   const roleKey = useActiveRoleKey();
   const isStudent = roleKey === 'student';
   const isStaff = isTeacherAdminOrSuperKey(roleKey);
+  const { setPose } = useArvi();
+
+  const greetingKey = (() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'dashboard.greeting';
+    if (hour < 18) return 'dashboard.greetingAfternoon';
+    return 'dashboard.greetingEvening';
+  })();
 
   const summary = useDashboardStore((s) => s.summary);
   const streak = useDashboardStore((s) => s.streak);
@@ -58,6 +84,12 @@ export default function DashboardPage() {
   const vocabOverview = useVocabularyStore((s) => s.overview);
   const studentsList = useStudentsStore((s) => s.list);
   const fetchStudents = useStudentsStore((s) => s.fetchStudents);
+
+  useEffect(() => {
+    setPose('greet');
+    const t = setTimeout(() => setPose('idle'), 2_400);
+    return () => clearTimeout(t);
+  }, [setPose]);
 
   useEffect(() => {
     void fetchDashboard(isStudent);
@@ -97,30 +129,47 @@ export default function DashboardPage() {
 
   const hero = useMemo(
     () =>
-      resolveDashboardHero({
-        isStudent,
-        lessons: lessonRows,
-        summary: liveSummary,
-        overview: vocabOverview.data ?? null,
-      }),
-    [isStudent, lessonRows, liveSummary, vocabOverview.data],
+      resolveDashboardHero(
+        {
+          isStudent,
+          lessons: lessonRows,
+          summary: liveSummary,
+          overview: vocabOverview.data ?? null,
+          locale: locale === 'uk' ? 'uk' : 'en',
+        },
+        t,
+      ),
+    [isStudent, lessonRows, liveSummary, locale, vocabOverview.data, t],
   );
 
-  const subtitle = formatDashboardSubtitle(streak.data);
+  const dateStr = formatDashboardDate(new Date(), locale);
+  const subtitle =
+    streak.data && streak.data.streakDays > 0
+      ? t('dashboard.subtitle.withStreak', { date: dateStr, days: streak.data.streakDays })
+      : dateStr;
   const heroProgressPct =
     hero.kind === 'vocabulary' ? hero.progressPct : hero.progressPct ?? null;
   const heroLabel = isStudent
-    ? 'Today in your learning'
+    ? t('dashboard.hero.todayLearning')
     : hero.kind === 'lesson'
-      ? 'Next on your schedule'
+      ? t('dashboard.hero.nextSchedule')
       : hero.kind === 'vocabulary'
-        ? 'Vocabulary focus'
-        : 'Quick action';
+        ? t('dashboard.hero.vocabFocus')
+        : t('dashboard.hero.quickAction');
   const heroCta =
-    hero.kind === 'lesson' ? 'Open lesson' : hero.kind === 'vocabulary' ? 'Review words' : 'Go to practice';
+    hero.kind === 'lesson'
+      ? t('dashboard.hero.openLesson')
+      : hero.kind === 'vocabulary'
+        ? t('dashboard.reviewWords')
+        : t('dashboard.hero.goPractice');
 
-  const heroTime = hero.kind === 'lesson' ? hero.subtitle.split(' · ')[0] : null;
-  const heroStatus = hero.kind === 'lesson' ? hero.subtitle.split(' · ')[1] : null;
+  const heroLesson =
+    hero.kind === 'lesson' ? lessonRows.find((row) => row.id === hero.lessonId) : null;
+  const heroTime = heroLesson
+    ? formatLessonTime12h(heroLesson.startTime, locale === 'uk' ? 'uk' : 'en')
+    : null;
+  const heroStatusRaw = heroLesson?.status ?? null;
+  const heroStatus = heroStatusRaw ? t(lessonStatusKey(heroStatusRaw)) : null;
 
   const lessonsLoading =
     backendLessons.status === 'loading' || backendLessons.status === 'idle';
@@ -134,14 +183,18 @@ export default function DashboardPage() {
           subtitleClassName={styles.pageSub}
           title={
             <>
-              {siteContent.dashboard.greeting}, <em>{activeUser.fullName.split(' ')[0]}</em>{' '}
+              {t(greetingKey)}, <em>{activeUser.fullName.split(' ')[0]}</em>{' '}
               <Hand size={18} aria-hidden className={styles.pageTitleIcon} />
             </>
           }
           subtitle={subtitle}
         />
 
-        <section className={styles.heroBanner} aria-labelledby="dashboard-hero-title">
+        <section
+          className={styles.heroBanner}
+          aria-labelledby="dashboard-hero-title"
+          data-tour-anchor="dash-hero"
+        >
           <div className={styles.heroInner}>
             {/* Top row: eyebrow + time badge */}
             <div className={styles.heroTop}>
@@ -156,8 +209,10 @@ export default function DashboardPage() {
             {/* Big title + subtitle */}
             <div className={styles.heroBody}>
               <h2 id="dashboard-hero-title" className={styles.heroTitle}>{hero.title}</h2>
-              {heroStatus ? (
-                <span className={`${styles.heroStatusBadge} ${styles[`heroStatus${heroStatus.replace(/\s+/g, '')}`] ?? ''}`}>
+              {heroStatus && heroStatusRaw ? (
+                <span
+                  className={`${styles.heroStatusBadge} ${styles[heroStatusClass(heroStatusRaw)] ?? ''}`}
+                >
                   {heroStatus}
                 </span>
               ) : (
@@ -168,7 +223,9 @@ export default function DashboardPage() {
                   <div className={styles.heroBar}>
                     <div className={styles.heroBarFill} style={{ width: `${heroProgressPct}%` }} />
                   </div>
-                  <span className={styles.heroPct}>{heroProgressPct}% mastered</span>
+                  <span className={styles.heroPct}>
+                    {t('dashboard.hero.mastered', { pct: heroProgressPct })}
+                  </span>
                 </div>
               ) : null}
             </div>
@@ -180,19 +237,19 @@ export default function DashboardPage() {
                   <>
                     <div className={styles.heroStat}>
                       <span className={styles.heroStatVal}>{liveSummary ? liveSummary.lessonsToday : todayLessons.length}</span>
-                      <span className={styles.heroStatLabel}>lessons today</span>
+                      <span className={styles.heroStatLabel}>{t('dashboard.stat.lessonsToday')}</span>
                     </div>
                     <div className={styles.heroStatDivider} />
                     <div className={styles.heroStat}>
                       <span className={styles.heroStatVal}>{liveSummary ? liveSummary.lessonsThisWeek : weekLessons.length}</span>
-                      <span className={styles.heroStatLabel}>this week</span>
+                      <span className={styles.heroStatLabel}>{t('dashboard.stat.thisWeek')}</span>
                     </div>
                     {liveSummary ? (
                       <>
                         <div className={styles.heroStatDivider} />
                         <div className={styles.heroStat}>
                           <span className={styles.heroStatVal}>{liveSummary.vocabularyCount}</span>
-                          <span className={styles.heroStatLabel}>vocab cards</span>
+                          <span className={styles.heroStatLabel}>{t('dashboard.stat.vocabCards')}</span>
                         </div>
                       </>
                     ) : null}
@@ -201,24 +258,24 @@ export default function DashboardPage() {
                   <>
                     <div className={styles.heroStat}>
                       <span className={styles.heroStatVal}>{todayLessons.length}</span>
-                      <span className={styles.heroStatLabel}>lessons today</span>
+                      <span className={styles.heroStatLabel}>{t('dashboard.stat.lessonsToday')}</span>
                     </div>
                     <div className={styles.heroStatDivider} />
                     <div className={styles.heroStat}>
                       <span className={styles.heroStatVal}>{weekLessons.length}</span>
-                      <span className={styles.heroStatLabel}>upcoming</span>
+                      <span className={styles.heroStatLabel}>{t('dashboard.stat.upcoming')}</span>
                     </div>
                     <div className={styles.heroStatDivider} />
                     <div className={styles.heroStat}>
                       <span className={styles.heroStatVal}>{studentsList.data?.length ?? '—'}</span>
-                      <span className={styles.heroStatLabel}>students</span>
+                      <span className={styles.heroStatLabel}>{t('dashboard.stat.students')}</span>
                     </div>
                     {pendingHomeworkCount > 0 ? (
                       <>
                         <div className={styles.heroStatDivider} />
                         <div className={styles.heroStat}>
                           <span className={`${styles.heroStatVal} ${styles.heroStatAccent}`}>{pendingHomeworkCount}</span>
-                          <span className={styles.heroStatLabel}>to review</span>
+                          <span className={styles.heroStatLabel}>{t('dashboard.stat.toReview')}</span>
                         </div>
                       </>
                     ) : null}
@@ -229,7 +286,7 @@ export default function DashboardPage() {
                     <div className={styles.heroStatDivider} />
                     <div className={styles.heroStat}>
                       <span className={styles.heroStatVal}>{streak.data.streakDays} 🔥</span>
-                      <span className={styles.heroStatLabel}>day streak</span>
+                      <span className={styles.heroStatLabel}>{t('dashboard.stat.dayStreak')}</span>
                     </div>
                   </>
                 ) : null}
@@ -242,7 +299,7 @@ export default function DashboardPage() {
           <div className={styles.heroDecor} aria-hidden="true" />
         </section>
 
-        <div className={styles.statsGrid}>
+        <div className={styles.statsGrid} data-tour-anchor="dash-stats">
         {isStudent ? (
         <>
         <StatTile
@@ -253,11 +310,11 @@ export default function DashboardPage() {
               <BookOpen size={16} />
             </div>
           }
-          label="Vocabulary cards"
+          label={t('dashboard.tile.vocabCards')}
           labelClassName={styles.statLabel}
           value={liveSummary ? String(liveSummary.vocabularyCount) : '—'}
           valueClassName={styles.statValue}
-          subtext={isLoading ? 'Loading…' : liveSummary ? `${liveSummary.reviewCount} to review` : '—'}
+          subtext={isLoading ? t('common.loading') : liveSummary ? t('dashboard.toReview', { count: liveSummary.reviewCount }) : '—'}
           subtextClassName={styles.statSub}
         />
         <StatTile
@@ -268,11 +325,11 @@ export default function DashboardPage() {
               <Clock3 size={16} />
             </div>
           }
-          label="Lessons today"
+          label={t('dashboard.tile.lessonsToday')}
           labelClassName={styles.statLabel}
           value={liveSummary ? String(liveSummary.lessonsToday) : '—'}
           valueClassName={styles.statValue}
-          subtext={isLoading ? 'Loading…' : liveSummary ? `${liveSummary.lessonsThisWeek} this week` : '—'}
+          subtext={isLoading ? t('common.loading') : liveSummary ? t('dashboard.thisWeek', { count: liveSummary.lessonsThisWeek }) : '—'}
           subtextClassName={styles.statSub}
         />
         <StatTile
@@ -283,11 +340,11 @@ export default function DashboardPage() {
               <CheckCircle2 size={16} />
             </div>
           }
-          label="Lessons completed"
+          label={t('dashboard.tile.lessonsCompleted')}
           labelClassName={styles.statLabel}
           value={liveSummary ? String(liveSummary.lessonsCompleted) : '—'}
           valueClassName={styles.statValue}
-          subtext={isError ? 'Backend offline' : 'All-time, from backend'}
+          subtext={isError ? t('dashboard.tile.backendOffline') : t('dashboard.tile.allTime')}
           subtextClassName={styles.statSub}
         />
         </>
@@ -301,13 +358,13 @@ export default function DashboardPage() {
                   <Users size={16} />
                 </div>
               }
-              label="Students"
+              label={t('dashboard.tile.students')}
               labelClassName={styles.statLabel}
               value={
                 studentsList.data ? String(studentsList.data.length) : isLoading ? '…' : '—'
               }
               valueClassName={styles.statValue}
-              subtext="On your roster"
+              subtext={t('dashboard.tile.onRoster')}
               subtextClassName={styles.statSub}
             />
             <StatTile
@@ -318,12 +375,12 @@ export default function DashboardPage() {
                   <Clock3 size={16} />
                 </div>
               }
-              label="Lessons today"
+              label={t('dashboard.tile.lessonsToday')}
               labelClassName={styles.statLabel}
               value={liveSummary ? String(liveSummary.lessonsToday) : '—'}
               valueClassName={styles.statValue}
               subtext={
-                isLoading ? 'Loading…' : liveSummary ? `${liveSummary.lessonsThisWeek} this week` : '—'
+                isLoading ? t('common.loading') : liveSummary ? t('dashboard.thisWeek', { count: liveSummary.lessonsThisWeek }) : '—'
               }
               subtextClassName={styles.statSub}
             />
@@ -335,11 +392,15 @@ export default function DashboardPage() {
                   <CheckCircle2 size={16} />
                 </div>
               }
-              label="Homework to review"
+              label={t('dashboard.tile.homeworkReview')}
               labelClassName={styles.statLabel}
               value={String(pendingHomeworkCount)}
               valueClassName={styles.statValue}
-              subtext={pendingHomeworkCount > 0 ? 'Submitted, awaiting check' : 'All caught up'}
+              subtext={
+                pendingHomeworkCount > 0
+                  ? t('dashboard.tile.awaitingCheck')
+                  : t('dashboard.tile.allCaughtUp')
+              }
               subtextClassName={styles.statSub}
             />
           </>
@@ -354,29 +415,31 @@ export default function DashboardPage() {
 
         <div className={styles.twoCol}>
         <div className={styles.leftCol}>
+          <section data-tour-anchor="dash-today-lessons">
           <SectionHeader
             className={styles.sectionHead}
             titleClassName={styles.sectionTitle}
-            title={<h2>Today&apos;s lessons</h2>}
+            title={<h2>{t('dashboard.todayLessons')}</h2>}
             actionHref="/calendar"
-            actionLabel="Calendar →"
+            actionLabel={t('dashboard.calendarArrow')}
             actionClassName={styles.seeAll}
           />
           <div className={styles.lessonList}>
             {lessonsLoading ? (
               <EmptyStateCard
                 className={styles.emptyState}
-                title="Loading lessons…"
-                description="Fetching your schedule."
+                title={t('dashboard.loadingLessons')}
+                description={t('dashboard.empty.fetching')}
               />
             ) : todayLessons.length === 0 ? (
               <EmptyStateCard
                 className={styles.emptyState}
-                title="No lessons today"
-                description="Your calendar is clear for today."
+                showArvi
+                title={t('dashboard.empty.noLessons')}
+                description={t('dashboard.empty.clearToday')}
                 action={
                   <Link href="/calendar" className={styles.emptyLink}>
-                    Open calendar
+                    {t('dashboard.openCalendar')}
                   </Link>
                 }
               />
@@ -388,12 +451,13 @@ export default function DashboardPage() {
                     lockedClassName={styles.locked}
                     style={{ animationDelay: `${i * 0.06}s` }}
                     tagClassName={styles.tag}
-                    typeLabel={statusLabel(lesson.status)}
+                    typeLabel={t(lessonStatusKey(lesson.status))}
                     title={lesson.title}
-                    description={lesson.description ?? lesson.notes ?? 'Scheduled lesson'}
-                    duration={lesson.duration}
+                    description={lesson.description ?? lesson.notes ?? t('dashboard.scheduledLesson')}
+                    duration={t('dashboard.min', { n: lesson.duration })}
                     difficulty={lesson.startTime.slice(0, 5)}
                     locked={lesson.status === 'cancelled'}
+                    lockLabel={t('dashboard.locked')}
                     titleClassName={styles.lcTitle}
                     descClassName={styles.lcDesc}
                     footerClassName={styles.lcFooter}
@@ -405,6 +469,7 @@ export default function DashboardPage() {
               ))
             )}
           </div>
+          </section>
 
           <WeekLessonsList
             lessons={weekLessons}
@@ -413,23 +478,23 @@ export default function DashboardPage() {
           />
 
           {isStudent ? (
-            <>
+            <section data-tour-anchor="dash-review-words">
               <SectionHeader
                 className={styles.sectionHead}
                 titleClassName={styles.sectionTitle}
-                title={<h2>Review words</h2>}
+                title={<h2>{t('dashboard.reviewWords')}</h2>}
                 actionHref="/practice/vocabulary"
-                actionLabel="All words →"
+                actionLabel={t('dashboard.allWordsArrow')}
                 actionClassName={styles.seeAll}
               />
               {reviewWords.length === 0 ? (
                 <EmptyStateCard
                   className={styles.emptyState}
-                  title="All caught up"
-                  description="No words due for review right now."
+                  title={t('practice.stat.allCaughtUp')}
+                  description={t('dashboard.empty.noWordsDue')}
                   action={
                     <Link href="/practice/vocabulary" className={styles.emptyLink}>
-                      Open vocabulary
+                      {t('dashboard.openVocabulary')}
                     </Link>
                   }
                 />
@@ -449,14 +514,14 @@ export default function DashboardPage() {
                           className={`${styles.vocabDot} ${styles[vocabStatusClass(card.status)]}`}
                         />
                         <span className={styles.vocabStatusLbl}>
-                          {vocabStatusLabel(card.status)}
+                          {vocabStatusLabel(card.status, t)}
                         </span>
                       </div>
                     </Link>
                   ))}
                 </div>
               )}
-            </>
+            </section>
           ) : null}
         </div>
 

@@ -6,6 +6,7 @@ import {
   type PaymentCurrencyCode,
   type PaymentMethodKindDto,
 } from '@pkg/types';
+import { useCampusT } from '../../../lib/cms';
 import { PaymentMethodCard } from './PaymentMethodCard';
 import { getProviderCurrencyHint } from './payment-panel-utils';
 import styles from '../page.module.scss';
@@ -35,14 +36,14 @@ export function PaymentsMethodSection({
   onToggle,
   onOpenConfig,
 }: Props) {
+  const t = useCampusT();
+
   return (
     <section className={styles.methodSection}>
       <div className={styles.pricingSectionHead}>
         <div>
-          <h3 className={styles.sectionTitle}>Payment methods</h3>
-          <p className={styles.hint}>
-            Enable providers and configure credentials. Checkout currencies per provider are listed below.
-          </p>
+          <h3 className={styles.sectionTitle}>{t('system.payments.methods.title')}</h3>
+          <p className={styles.hint}>{t('system.payments.methods.subtitle')}</p>
         </div>
       </div>
       <div className={styles.methodGrid}>
@@ -56,7 +57,7 @@ export function PaymentsMethodSection({
         ))}
       </div>
       <div className={styles.providerCurrencyMatrix}>
-        <div className={styles.providerCurrencyMatrixTitle}>Checkout currency support</div>
+        <div className={styles.providerCurrencyMatrixTitle}>{t('system.payments.methods.currencyMatrixTitle')}</div>
         <div className={styles.providerCurrencyMatrixRows}>
           {(
             ['stripe', 'paypal', 'paddle', 'liqpay', 'wayforpay', 'monopay', 'lemonsqueezy'] as Exclude<PaymentMethodKindDto, 'manual_invoice'>[]
@@ -65,8 +66,8 @@ export function PaymentsMethodSection({
             const label =
               supported === 'variant'
                 ? lemonVariantCurrency
-                  ? `Variant: ${lemonVariantCurrency}`
-                  : 'Set variant currency in method config'
+                  ? t('system.payments.methods.variantCurrency', { currency: lemonVariantCurrency })
+                  : t('system.payments.methods.setVariantCurrency')
                 : supported.join(', ');
             return (
               <div key={methodId} className={styles.providerCurrencyMatrixRow}>
@@ -84,10 +85,10 @@ export function PaymentsMethodSection({
             .map((method) => (
               <div key={method.id} className={styles.providerCurrencyHint}>
                 <strong>{method.id.replace('_', ' ')}</strong>
-                <span>{getProviderCurrencyHint(method.id)}</span>
+                <span>{getProviderCurrencyHint(method.id, t)}</span>
                 {allowedCurrencies.some((code) => !providerSupportsCurrency(method.id, code)) ? (
                   <span className={styles.providerCurrencyHintWarn}>
-                    Not compatible with all selected currencies
+                    {t('system.payments.methods.currencyIncompatible')}
                   </span>
                 ) : null}
               </div>

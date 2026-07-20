@@ -33,6 +33,41 @@ export async function platformGet<T>(path: string): Promise<T> {
 
 // --- DTOs (kept in sync with @be/platform-admin; frontend must not import @be/*) ---
 
+export type PlatformPageDto<T> = {
+  items: T[];
+  hasMore: boolean;
+  nextCursor: string | null;
+  total: number;
+};
+
+export interface PlatformDashboardRecentCampusDto {
+  id: string;
+  name: string;
+  status: 'TRIAL' | 'ACTIVE' | 'SUSPENDED';
+  subscriptionStatus: string | null;
+  createdAt: string;
+}
+
+export interface PlatformDashboardTrialEndingDto {
+  id: string;
+  name: string;
+  trialEndsAt: string;
+}
+
+export interface PlatformDashboardAuditDto {
+  id: string;
+  action: string;
+  actorName: string;
+  createdAt: string;
+  targetSchoolId: string | null;
+}
+
+export interface PlatformDashboardBillingHealthDto {
+  enabledCount: number;
+  configuredCount: number;
+  totalRails: number;
+}
+
 export interface PlatformDashboardDto {
   schoolCount: number;
   activeSchoolCount: number;
@@ -42,6 +77,20 @@ export interface PlatformDashboardDto {
   activeSubscriptionCount: number;
   totalStorageUsedBytes: string;
   mrrMinor: number;
+  trialingSubscriptionCount: number;
+  trialsEndingSoon: PlatformDashboardTrialEndingDto[];
+  recentCampuses: PlatformDashboardRecentCampusDto[];
+  recentAudit: PlatformDashboardAuditDto[];
+  userStats: PlatformUserStatsDto;
+  billingHealth: PlatformDashboardBillingHealthDto;
+}
+
+export interface PlatformUserBriefDto {
+  id: string;
+  email: string;
+  displayName: string;
+  status: string;
+  createdAt: string;
 }
 
 export interface PlatformSchoolRowDto {
@@ -53,6 +102,7 @@ export interface PlatformSchoolRowDto {
   storageUsedBytes: string;
   subscriptionStatus: string | null;
   createdAt: string;
+  ownerDisplayName: string | null;
 }
 
 export interface PlatformSchoolDetailDto extends PlatformSchoolRowDto {
@@ -60,6 +110,54 @@ export interface PlatformSchoolDetailDto extends PlatformSchoolRowDto {
   teacherCount: number;
   adminCount: number;
   primaryDomain: string | null;
+  billingCountry: string | null;
+  owner: PlatformUserBriefDto | null;
+  admins: PlatformUserBriefDto[];
+}
+
+export interface PlatformSchoolMemberRowDto {
+  membershipId: string;
+  userId: string;
+  email: string;
+  displayName: string;
+  userStatus: string;
+  role: string;
+  membershipStatus: string;
+  joinedAt: string;
+  isOwner: boolean;
+}
+
+export interface PlatformUserMembershipPreviewDto {
+  schoolId: string;
+  schoolName: string;
+  schoolSlug: string;
+  role: string;
+  status: string;
+}
+
+export interface PlatformUserRowDto {
+  id: string;
+  email: string;
+  displayName: string;
+  status: string;
+  accountRole: string;
+  emailVerifiedAt: string | null;
+  createdAt: string;
+  membershipCount: number;
+  memberships: PlatformUserMembershipPreviewDto[];
+  isPlatformOperator: boolean;
+  platformRole: string | null;
+}
+
+export interface PlatformUserStatsDto {
+  totalUsers: number;
+  activeUsers: number;
+  pausedUsers: number;
+  blockedUsers: number;
+  leavedUsers: number;
+  platformOperators: number;
+  usersWithMembership: number;
+  usersWithoutMembership: number;
 }
 
 export interface PaymentAllowlistDto {

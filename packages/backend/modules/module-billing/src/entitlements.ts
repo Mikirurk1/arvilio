@@ -9,7 +9,7 @@ export {
   type StorageUsageDto,
   type EntitlementsSummaryDto,
 } from './application/entitlements.service';
-export { StorageAccountingService } from './application/storage-accounting.service';
+export { StorageAccountingService, type StorageReconcileResult } from './application/storage-accounting.service';
 export { PlatformSubscriptionService } from './application/platform-subscription.service';
 export { PURCHASABLE_PLANS } from './shared/platform-subscription.util';
 export {

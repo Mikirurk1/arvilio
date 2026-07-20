@@ -8,6 +8,7 @@ import type {
 } from '@pkg/types';
 import { AlertCircle, Check, Pencil, Sparkles, X } from 'lucide-react';
 import { BodyPortal, Button, isStorageQuotaError, UpgradePrompt } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import { useFocusTrap } from '../../hooks/use-focus-trap';
 import { useNavigationLock } from '../../hooks/use-navigation-lock';
 import { collectUniqueTags } from '../../lib/tag-list';
@@ -86,6 +87,7 @@ function materialToDrafts(material: LibraryMaterialDto): MaterialAssetDraft[] {
 }
 
 export function MaterialFormModal({ open, initial, saving = false, onClose, onSave, onUpdate }: Props) {
+  const t = useCampusT();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [kind, setKind] = useState<LibraryMaterialKindName>('board');
@@ -239,6 +241,7 @@ export function MaterialFormModal({ open, initial, saving = false, onClose, onSa
           role="dialog"
           aria-modal="true"
           aria-labelledby="material-form-title"
+          data-tour-anchor="materials-upload"
           onClick={(event) => event.stopPropagation()}
         >
           <header className={styles.header}>
@@ -255,16 +258,16 @@ export function MaterialFormModal({ open, initial, saving = false, onClose, onSa
                   )}
                 </span>
                 <h2 id="material-form-title" className={styles.title}>
-                  {initial ? 'Edit material' : 'Add material'}
+                  {initial ? t('materials.form.editTitle') : t('materials.form.createTitle')}
                 </h2>
                 <p className={styles.subtitle}>
                   Build a reusable library item — links, files, and metadata your team can attach to lessons.
                 </p>
               </div>
             </div>
-            <button type="button" className={styles.closeBtn} onClick={onClose} disabled={isBusy} aria-label="Close">
+            <Button variant="bare" type="button" className={styles.closeBtn} onClick={onClose} disabled={isBusy} aria-label={t('materials.form.closeAria')}>
               <X size={16} aria-hidden />
-            </button>
+            </Button>
           </header>
 
           <div className={styles.body}>
@@ -326,18 +329,18 @@ export function MaterialFormModal({ open, initial, saving = false, onClose, onSa
             ) : null}
             <div className={styles.footerActions}>
               <Button type="button" variant="ghost" onClick={onClose} disabled={isBusy}>
-                Cancel
+                {t('materials.form.cancel')}
               </Button>
               <Button
                 type="button"
                 variant="primary"
                 loading={isBusy}
-                loadingLabel="Saving…"
+                loadingLabel={t('materials.form.saving')}
                 disabled={isBusy}
                 onClick={() => void handleSubmit()}
               >
                 <Check size={16} aria-hidden />
-                {initial ? 'Save changes' : 'Create material'}
+                {initial ? t('materials.form.save') : t('materials.form.createAction')}
               </Button>
             </div>
           </footer>

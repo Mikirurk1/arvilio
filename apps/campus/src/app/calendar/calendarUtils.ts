@@ -4,12 +4,6 @@ import { lessonStartUtc } from '../../lib/lessonTime';
 export type StudentColor = 'Blue' | 'Green' | 'Amber' | 'Purple';
 export const STUDENT_COLOR_PALETTE: StudentColor[] = ['Blue', 'Green', 'Amber', 'Purple'];
 
-export const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
-export const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
 export const START_HOUR = 0;
 export const END_HOUR = 24;
 export const MINUTES_PER_DAY = (END_HOUR - START_HOUR) * 60;

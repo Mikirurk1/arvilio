@@ -36,9 +36,9 @@ export class TelegramDeliveryService {
     const name = escapeTelegramHtml(displayName);
     const url = escapeTelegramHtml(appUrl);
     return (
-      `✅ <b>SoEnglish connected</b>\n\n` +
+      `✅ <b>Arvilio connected</b>\n\n` +
       `Hi ${name}, you will receive lesson reminders and other alerts here when enabled in Profile → Notifications.\n\n` +
-      `<a href="${url}">Open SoEnglish</a>`
+      `<a href="${url}">Open Arvilio</a>`
     );
   }
 }

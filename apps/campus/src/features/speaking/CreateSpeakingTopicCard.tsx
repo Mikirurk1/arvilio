@@ -5,6 +5,7 @@ import type { CreateSpeakingTopicRequestDto, SpeakingTopicCardDto } from '@pkg/t
 import { Mic, Plus } from 'lucide-react';
 import { Button, Field, SurfaceCard } from '../../components/ui';
 import { useAuth } from '../../lib/auth-context';
+import { useCampusT } from '../../lib/cms';
 import { useSpeakingStore } from '../../stores/speaking-store';
 import { SpeakingTopicWordPicker } from './SpeakingTopicWordPicker';
 import styles from './CreateSpeakingTopicCard.module.scss';
@@ -16,6 +17,7 @@ type Props = {
 };
 
 export function CreateSpeakingTopicCard({ studentId, className, onCreated }: Props) {
+  const t = useCampusT();
   const { user } = useAuth();
   const creating = useSpeakingStore((s) => s.creating);
   const createError = useSpeakingStore((s) => s.createError);
@@ -60,7 +62,8 @@ export function CreateSpeakingTopicCard({ studentId, className, onCreated }: Pro
 
   if (!open) {
     return (
-      <button
+      <Button
+        variant="bare"
         type="button"
         className={[styles.createTrigger, className].filter(Boolean).join(' ')}
         onClick={() => setOpen(true)}
@@ -68,8 +71,8 @@ export function CreateSpeakingTopicCard({ studentId, className, onCreated }: Pro
         <span className={styles.createTriggerIcon} aria-hidden>
           <Plus size={14} />
         </span>
-        {studentId ? 'Create speaking topic' : 'New practice topic'}
-      </button>
+        {studentId ? t('speaking.createTopic') : t('speaking.newTopic')}
+      </Button>
     );
   }
 
@@ -78,25 +81,25 @@ export function CreateSpeakingTopicCard({ studentId, className, onCreated }: Pro
       <div className={styles.head}>
         <Mic size={18} aria-hidden />
         <h3 className={styles.title}>
-          {isStaffAssign ? 'New speaking topic for student' : 'Create speaking topic'}
+          {isStaffAssign ? t('speaking.createTitleStaff') : t('speaking.createTitle')}
         </h3>
       </div>
 
       <form className={styles.form} onSubmit={onSubmit} noValidate>
         <Field
-          label="Title"
+          label={t('speaking.form.title')}
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          placeholder="Weekend plans"
+          placeholder={t('speaking.form.titlePlaceholder')}
           disabled={creating}
         />
         <Field
-          label="Discussion prompt"
+          label={t('speaking.form.prompt')}
           as="textarea"
           rows={4}
           value={prompt}
           onChange={(event) => setPrompt(event.target.value)}
-          placeholder="Talk for one minute about how you usually spend your weekends."
+          placeholder={t('speaking.form.promptPlaceholder')}
           disabled={creating}
         />
 
@@ -112,7 +115,7 @@ export function CreateSpeakingTopicCard({ studentId, className, onCreated }: Pro
         {isStaffAssign ? (
           <>
             <Field
-              label="Personal note (optional)"
+              label={t('speaking.form.personalNote')}
               as="textarea"
               rows={2}
               value={personalNote}
@@ -120,7 +123,7 @@ export function CreateSpeakingTopicCard({ studentId, className, onCreated }: Pro
               disabled={creating}
             />
             <Field
-              label="Due date (optional)"
+              label={t('speaking.form.dueDate')}
               type="date"
               value={dueDate}
               onChange={(event) => setDueDate(event.target.value)}
@@ -133,10 +136,10 @@ export function CreateSpeakingTopicCard({ studentId, className, onCreated }: Pro
 
         <div className={styles.actions}>
           <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={creating}>
-            Cancel
+            {t('speaking.form.cancel')}
           </Button>
           <Button type="submit" disabled={creating || !title.trim() || !prompt.trim()}>
-            {creating ? 'Creating…' : 'Create topic'}
+            {creating ? t('speaking.form.creating') : t('speaking.form.create')}
           </Button>
         </div>
       </form>

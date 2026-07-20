@@ -7,6 +7,8 @@ export type SegmentedControlOption<T extends string> = {
   label: ReactNode;
   icon?: ReactNode;
   disabled?: boolean;
+  /** Optional DOM attributes (e.g. data-tour-anchor for product tour). */
+  dataAttrs?: Record<string, string | undefined>;
 };
 
 export type SegmentedControlProps<T extends string> = {
@@ -17,6 +19,8 @@ export type SegmentedControlProps<T extends string> = {
   className?: string;
   optionClassName?: string;
   activeOptionClassName?: string;
+  /** Optional DOM attributes on the radiogroup root (e.g. data-tour-anchor). */
+  dataAttrs?: Record<string, string | undefined>;
   /** Avoid focus scroll jump when clicking inside a scrollable page (mouse only). */
   preventScrollOnPointerDown?: boolean;
 };
@@ -29,6 +33,7 @@ export function SegmentedControl<T extends string>({
   className,
   optionClassName,
   activeOptionClassName,
+  dataAttrs,
   preventScrollOnPointerDown = false,
 }: SegmentedControlProps<T>) {
   return (
@@ -36,6 +41,7 @@ export function SegmentedControl<T extends string>({
       className={[uiStyles.segmentedRoot, className].filter(Boolean).join(' ')}
       role="radiogroup"
       aria-label={ariaLabel}
+      {...dataAttrs}
     >
       {options.map((option) => (
         <Button
@@ -51,6 +57,7 @@ export function SegmentedControl<T extends string>({
           ]
             .filter(Boolean)
             .join(' ')}
+          {...option.dataAttrs}
           onMouseDown={
             preventScrollOnPointerDown ? (event) => event.preventDefault() : undefined
           }

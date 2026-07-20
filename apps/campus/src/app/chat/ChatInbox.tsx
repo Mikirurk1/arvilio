@@ -4,17 +4,23 @@ import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import type { ChatConversationDto } from '@pkg/types';
 import { Button, Field, UserAvatar } from '../../components/ui';
+import { useCampusI18n, useCampusT } from '../../lib/cms';
 import styles from './page.module.scss';
 
-function formatListTime(iso: string): string {
+function formatListTime(
+  iso: string,
+  locale: string,
+  yesterdayLabel: string,
+): string {
   const date = new Date(iso);
   const now = new Date();
+  const dateLocale = locale === 'uk' ? 'uk-UA' : 'en-US';
   const sameDay =
     date.getFullYear() === now.getFullYear() &&
     date.getMonth() === now.getMonth() &&
     date.getDate() === now.getDate();
   if (sameDay) {
-    return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' });
   }
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
@@ -23,9 +29,9 @@ function formatListTime(iso: string): string {
     date.getMonth() === yesterday.getMonth() &&
     date.getDate() === yesterday.getDate()
   ) {
-    return 'Yesterday';
+    return yesterdayLabel;
   }
-  return date.toLocaleDateString(undefined, { weekday: 'short' });
+  return date.toLocaleDateString(dateLocale, { weekday: 'short' });
 }
 
 export function ChatInbox({
@@ -39,6 +45,8 @@ export function ChatInbox({
   onSelect: (id: string) => void;
   headerExtra?: React.ReactNode;
 }) {
+  const t = useCampusT();
+  const { locale } = useCampusI18n();
   const [search, setSearch] = useState('');
 
   const filtered = useMemo(() => {
@@ -48,10 +56,10 @@ export function ChatInbox({
   }, [conversations, search]);
 
   return (
-    <aside className={styles.inbox}>
+    <aside className={styles.inbox} data-tour-anchor="chat-inbox">
       <div className={styles.inboxHead}>
         <div className={styles.inboxTitleRow}>
-          <h2 className={styles.inboxTitle}>Messages</h2>
+          <h2 className={styles.inboxTitle}>{t('chat.title')}</h2>
           {headerExtra}
         </div>
         <div className={styles.searchWrap}>
@@ -59,10 +67,10 @@ export function ChatInbox({
           <Field
             type="search"
             className={styles.searchField}
-            placeholder="Search conversations..."
+            placeholder={t('chat.search.placeholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            aria-label="Search conversations"
+            aria-label={t('chat.search.aria')}
           />
         </div>
       </div>
@@ -86,10 +94,12 @@ export function ChatInbox({
                 <span className={`${styles.convName} ${conv.unreadCount > 0 ? styles.convNameUnread : ''}`}>
                   {conv.title}
                 </span>
-                <span className={styles.convTime}>{formatListTime(conv.lastMessageAt)}</span>
+                <span className={styles.convTime}>
+                  {formatListTime(conv.lastMessageAt, locale, t('chat.yesterday'))}
+                </span>
               </span>
               <span className={styles.convTop}>
-                <span className={styles.convPreview}>{conv.lastMessage ?? 'No messages yet'}</span>
+                <span className={styles.convPreview}>{conv.lastMessage ?? t('chat.noMessagesYet')}</span>
                 {conv.unreadCount > 0 ? (
                   <span className={styles.unreadBadge}>{conv.unreadCount}</span>
                 ) : null}

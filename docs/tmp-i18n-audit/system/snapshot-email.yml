@@ -1,0 +1,153 @@
+- generic [ref=f28e1]:
+  - button "Open Next.js Dev Tools" [ref=f28e7] [cursor=pointer]
+  - alert [ref=f28e11]
+  - generic [ref=f28e12]:
+    - link "Перейти до основного вмісту" [ref=f28e13] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f28e14]:
+      - link "Arvilio — go to dashboard" [ref=f28e16] [cursor=pointer]:
+        - /url: /dashboard
+        - generic [ref=f28e20]:
+          - generic [ref=f28e21]: Arvilio
+          - generic [ref=f28e22]: Campus
+      - search [ref=f28e25]:
+        - combobox "Пошук уроків, слів, учнів…" [ref=f28e29]
+        - generic: ⌘K
+      - generic [ref=f28e30]:
+        - button "Створити урок" [ref=f28e31] [cursor=pointer]
+        - 'link "Мої: 0 сьогодні · 0 лишилось" [ref=f28e32] [cursor=pointer]':
+          - /url: /lessons
+          - generic [ref=f28e36]: "Мої: 0 сьогодні"
+          - generic [ref=f28e37]: · 0 лишилось
+        - link [ref=f28e38] [cursor=pointer]:
+          - /url: /profile
+    - generic [ref=f28e39]:
+      - complementary [ref=f28e40]:
+        - navigation "Головна навігація" [ref=f28e41]:
+          - generic [ref=f28e42]:
+            - generic [ref=f28e43]: Навчання
+            - link "Дашборд" [ref=f28e45] [cursor=pointer]:
+              - /url: /dashboard
+            - link "Уроки" [ref=f28e55] [cursor=pointer]:
+              - /url: /lessons
+            - link "Практика 1" [ref=f28e62] [cursor=pointer]:
+              - /url: /practice
+              - generic [ref=f28e69]: Практика
+              - generic [ref=f28e70]: "1"
+            - link "Матеріали" [ref=f28e72] [cursor=pointer]:
+              - /url: /materials
+          - generic [ref=f28e78]:
+            - generic [ref=f28e79]: Розклад
+            - link "Календар" [ref=f28e81] [cursor=pointer]:
+              - /url: /calendar
+          - generic [ref=f28e87]:
+            - generic [ref=f28e88]: Звʼязок
+            - link "Чат" [ref=f28e90] [cursor=pointer]:
+              - /url: /chat
+            - link "Учні та групи" [ref=f28e97] [cursor=pointer]:
+              - /url: /students
+            - link "Персонал" [ref=f28e107] [cursor=pointer]:
+              - /url: /staff
+          - generic [ref=f28e123]:
+            - generic [ref=f28e124]: Акаунт
+            - link "Фінанси" [ref=f28e126] [cursor=pointer]:
+              - /url: /finance
+            - link "Підписка" [ref=f28e134] [cursor=pointer]:
+              - /url: /billing
+            - link "Профіль і налаштування" [ref=f28e142] [cursor=pointer]:
+              - /url: /profile
+          - generic [ref=f28e149]:
+            - generic [ref=f28e150]: Платформа
+            - link "Адмін" [ref=f28e152] [cursor=pointer]:
+              - /url: /admin
+            - link "Система" [ref=f28e160] [cursor=pointer]:
+              - /url: /system
+        - generic [ref=f28e167]:
+          - button "Мова інтерфейсу" [ref=f28e169] [cursor=pointer]:
+            - generic [ref=f28e170]: Українська
+          - button "Collapse sidebar" [expanded] [ref=f28e173] [cursor=pointer]
+      - main [ref=f28e177]:
+        - generic [ref=f28e180]:
+          - generic [ref=f28e181]:
+            - heading "Система" [level=1] [ref=f28e184]
+            - paragraph [ref=f28e185]: Інтеграції, оплати та словники школи.
+          - region "Огляд системи" [ref=f28e186]:
+            - article [ref=f28e187]:
+              - paragraph [ref=f28e192]: Область супер-адміна
+              - paragraph [ref=f28e193]: Зміни тут впливають на всю робочу область школи. Оновлюйте обережно й перевіряйте кожен розділ після збереження.
+            - article [ref=f28e194]:
+              - paragraph [ref=f28e199]: Спочатку діагностика
+              - paragraph [ref=f28e200]: Спочатку перевірте Email і Словник, перш ніж змінювати платіжних провайдерів — це зменшить розбіжності інтеграцій.
+          - generic [ref=f28e201]:
+            - tablist "Розділи системи" [ref=f28e202]:
+              - tab [ref=f28e203] [cursor=pointer]
+              - tab [active] [selected] [ref=f28e208] [cursor=pointer]
+              - tab [ref=f28e213] [cursor=pointer]
+              - tab [ref=f28e217] [cursor=pointer]
+              - tab [ref=f28e222] [cursor=pointer]
+              - tab [ref=f28e226] [cursor=pointer]
+              - tab [ref=f28e231] [cursor=pointer]
+              - tab [ref=f28e236] [cursor=pointer]
+              - tab [ref=f28e244] [cursor=pointer]
+            - tabpanel "Email" [ref=f28e296]:
+              - generic [ref=f28e297]:
+                - generic [ref=f28e302]:
+                  - generic [ref=f28e303]: Email (SMTP)
+                  - paragraph [ref=f28e304]: Транзакційна пошта для welcome та облікових потоків. Налаштуйте доставку, перевірте підключення й надішліть тестове повідомлення.
+                - status [ref=f28e305]:
+                  - generic [ref=f28e306]: Готово до відправки
+                  - generic [ref=f28e307]: sandbox.smtp.mailtrap.io:2525
+                  - generic [ref=f28e308]: Сервер за замовчуванням · Від SoEnglish <noreply@soenglish.local>
+                  - button "Оновити" [ref=f28e310] [cursor=pointer]
+                - generic [ref=f28e317]:
+                  - region [ref=f28e318]:
+                    - generic [ref=f28e319]:
+                      - heading "Налаштування SMTP" [level=2] [ref=f28e320]
+                      - paragraph [ref=f28e321]: Сервер за замовчуванням читає SMTP_* з API-хоста. Власний режим зберігає зашифровані облікові дані в базі.
+                    - generic [ref=f28e322]:
+                      - radiogroup "Режим SMTP" [ref=f28e323]:
+                        - radio "Сервер за замовчуванням" [ref=f28e324] [cursor=pointer]
+                        - radio "Власний SMTP" [checked] [ref=f28e325] [cursor=pointer]
+                      - generic [ref=f28e326]:
+                        - generic [ref=f28e327]:
+                          - generic [ref=f28e328]: Адреса відправника
+                          - textbox "Адреса відправника" [ref=f28e329]: SoEnglish <noreply@soenglish.local>
+                        - generic [ref=f28e330]:
+                          - generic [ref=f28e331]: Хост
+                          - textbox "Хост" [ref=f28e332]: sandbox.smtp.mailtrap.io
+                        - generic [ref=f28e333]:
+                          - generic [ref=f28e334]: Порт
+                          - spinbutton "Порт" [ref=f28e335]: "2525"
+                        - generic [ref=f28e336]:
+                          - generic [ref=f28e337]: Ім'я користувача
+                          - textbox "Ім'я користувача" [ref=f28e338]: f40551785e1bfa
+                        - generic [ref=f28e340]:
+                          - generic [ref=f28e341]:
+                            - generic [ref=f28e342]: Пароль
+                            - generic [ref=f28e343]:
+                              - textbox "Пароль" [ref=f28e344]:
+                                - /placeholder: Введіть нове значення
+                                - text: 0d19f08d856127
+                              - button "Show password" [ref=f28e345] [cursor=pointer]
+                          - status [ref=f28e349]: Збережено в налаштуваннях платформи
+                        - generic [ref=f28e350] [cursor=pointer]:
+                          - checkbox "TLS/SSL (зазвичай для порту 465)" [ref=f28e351]
+                          - generic [ref=f28e352]: TLS/SSL (зазвичай для порту 465)
+                      - generic [ref=f28e353]:
+                        - button "Перевірити підключення" [ref=f28e354] [cursor=pointer]
+                        - button "Зберегти SMTP" [ref=f28e355] [cursor=pointer]
+                  - region [ref=f28e356]:
+                    - generic [ref=f28e357]:
+                      - heading "Тестова доставка" [level=2] [ref=f28e358]
+                      - paragraph [ref=f28e359]: Надсилає шаблон welcome-account із прикладом пароля Example-Temp-Pass1.
+                    - generic [ref=f28e360]:
+                      - list [ref=f28e361]:
+                        - listitem [ref=f28e362]: Перевірте підключення зі значеннями у формі (лист не надсилається).
+                        - listitem [ref=f28e363]: Збережіть SMTP, щоб банер відповідав вашим налаштуванням.
+                        - listitem [ref=f28e364]: Надішліть тестове повідомлення на пошту або в Mailtrap.
+                      - generic [ref=f28e365]:
+                        - generic [ref=f28e366]:
+                          - generic [ref=f28e367]: Одержувач
+                          - textbox "Одержувач" [ref=f28e368]:
+                            - /placeholder: you@example.com
+                        - button "Надіслати тестовий welcome-лист" [ref=f28e370] [cursor=pointer]

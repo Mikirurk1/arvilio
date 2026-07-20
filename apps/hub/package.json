@@ -1,0 +1,17 @@
+{
+  "name": "@app/hub",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0 --port 4400",
+    "build": "next build",
+    "start": "next start -p 4400",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@fe/ui": "*",
+    "@pkg/types": "*",
+    "lucide-react": "^1.14.0"
+  }
+}

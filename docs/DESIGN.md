@@ -1,6 +1,6 @@
 # Design
 
-Візуальна система SoEnglish, знята з коду (`apps/web/src/styles/`). Код — ground truth; цей файл — компас для агентів. Напрям редизайну: **Editorial Paper** (`docs/redesign/redesign-v2.md`).
+Візуальна система Arvilio, знята з коду (`apps/campus/src/styles/`). Код — ground truth; цей файл — компас для агентів. Напрям редизайну: **Editorial Paper** (`docs/redesign/redesign-v2.md`).
 
 **Статус системи:** портативний брендовий актив. Вона розрахована на повторне використання поза цим застосунком — попереду окремий acquisition-сервіс для залучення учнів і репетиторів. Унікальність тримається на Signature-елементах нижче, а портативність — на семантичних токенах і чистих примітивах (без app-специфічних імпортів).
 
@@ -70,7 +70,7 @@
 
 ## Components
 
-Примітиви в `apps/web/src/components/ui/` (експорт через `index.ts`) — **завжди спершу вони**:
+Примітиви в `apps/campus/src/components/ui/` (експорт через `index.ts`) — **завжди спершу вони**:
 
 `Button` (variant, loading, startIcon) · `Field` (input/textarea/select/checkbox, адаптивний select) · `SurfaceCard` · `PanelCard` · `PageHeader` · `SectionHeader` · `EmptyStateCard` · `Badge` · `Tabs` · `SegmentedControl` · `Tooltip` · `StatTile` · `UserAvatar` · `PickerPopover` + date/time pickers.
 
@@ -94,7 +94,7 @@
 
 ## Don'ts
 
-- Tailwind / shadcn у `apps/web`; hex-кольори в page SCSS; inline `768px` у media queries.
+- Tailwind / shadcn у `apps/campus`; hex-кольори в page SCSS; inline `768px` у media queries.
 - `border-left` як кольоровий акцент-смужка; gradient text; glassmorphism за замовчуванням.
 - Три однакові stat-картки в ряд як перше рішення; nested cards.
 - Display-шрифт у UI-контролах; повносатуровані акценти на неактивних станах.

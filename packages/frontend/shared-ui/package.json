@@ -4,6 +4,19 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./styles/primitives.module.scss": "./src/styles/primitives.module.scss",
+    "./picker/picker.module.scss": "./src/picker/picker.module.scss"
+  },
+  "peerDependencies": {
+    "lucide-react": "^1.0.0",
+    "next": ">=15",
+    "react": "^19.0.0",
+    "react-day-picker": "^9.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0"
   }
 }

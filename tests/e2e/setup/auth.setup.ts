@@ -9,15 +9,23 @@ import { LoginPage } from '../pages/LoginPage';
 
 const creds = {
   student: {
-    email: process.env.PLAYWRIGHT_TEST_EMAIL ?? 'jest-student@soenglish.test',
+    email: process.env.PLAYWRIGHT_TEST_EMAIL ?? 'jest-student@arvilio.test',
     password: process.env.PLAYWRIGHT_TEST_PASSWORD ?? 'TestPass123!',
   },
   teacher: {
-    email: process.env.PLAYWRIGHT_TEACHER_EMAIL ?? 'jest-teacher@soenglish.test',
+    email: process.env.PLAYWRIGHT_TEACHER_EMAIL ?? 'jest-teacher@arvilio.test',
     password: process.env.PLAYWRIGHT_TEST_PASSWORD ?? 'TestPass123!',
   },
   admin: {
-    email: process.env.PLAYWRIGHT_ADMIN_EMAIL ?? 'jest-admin@soenglish.test',
+    email: process.env.PLAYWRIGHT_ADMIN_EMAIL ?? 'jest-admin@arvilio.test',
+    password: process.env.PLAYWRIGHT_TEST_PASSWORD ?? 'TestPass123!',
+  },
+  studentEmpty: {
+    email: 'jest-student-empty@arvilio.test',
+    password: process.env.PLAYWRIGHT_TEST_PASSWORD ?? 'TestPass123!',
+  },
+  teacherEmpty: {
+    email: 'jest-teacher-empty@arvilio.test',
     password: process.env.PLAYWRIGHT_TEST_PASSWORD ?? 'TestPass123!',
   },
 };

@@ -1,8 +1,11 @@
 # Payload CMS v3 — Design Spec
 
 **Date:** 2026-06-09  
-**Status:** Approved  
-**Scope:** Embed Payload CMS v3 into `apps/web` for editable static content
+**Status:** Superseded (target architecture) — 2026-07-11  
+**Scope (historical):** Embed Payload CMS v3 into `apps/campus` for editable static content
+
+> **Superseded for long-term architecture (v2).** Payload belongs on the **marketing hub** (`apps/www` / `arvilio.app`) with **brand-kit**, **products** registry, and **uk/en** localization — not as the product CMS inside Campus. See [`docs/arvilio-marketing-site-payload-plan.md`](../../arvilio-marketing-site-payload-plan.md) (authoritative).  
+> This spec remains useful as the **v1 embed** that shipped in Campus; do not use it as the plan for new CMS work.
 
 ---
 
@@ -12,14 +15,14 @@ Static text on the site (page headings, login welcome message, school branding, 
 
 ## Solution
 
-Embed **Payload CMS v3** into `apps/web` as a Next.js route group. Payload manages content tables in the same Postgres database; Prisma manages all app tables. A thin abstraction layer (`lib/cms/`) isolates all Payload calls so migration to a custom solution later is a one-file change.
+Embed **Payload CMS v3** into `apps/campus` as a Next.js route group. Payload manages content tables in the same Postgres database; Prisma manages all app tables. A thin abstraction layer (`lib/cms/`) isolates all Payload calls so migration to a custom solution later is a one-file change.
 
 ---
 
 ## Architecture
 
 ```
-apps/web/
+apps/campus/
   payload.config.ts            ← Payload root config
   payload/
     collections/
@@ -121,9 +124,9 @@ No product page TSX changes needed — the abstraction layer handles the switch.
 | `login.hero.title` | `Sign in` | Login |
 | `login.hero.subtitle` | `Welcome back. Pick up your lessons, practice, and messages in one place.` | Login |
 | `dashboard.welcome.title` | `Good morning` | Dashboard |
-| `branding.school_name` | `SoEnglish` | Global |
+| `branding.school_name` | `Arvilio` | Global |
 | `branding.tagline` | `English Platform` | Global |
-| `email.welcome.subject` | `Welcome to SoEnglish` | Email |
+| `email.welcome.subject` | `Welcome to Arvilio` | Email |
 
 ---
 

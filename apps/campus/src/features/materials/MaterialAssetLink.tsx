@@ -3,6 +3,7 @@
 import type { LibraryMaterialAssetDto } from '@pkg/types';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { Button } from '../../components/ui';
 import { openMediaViewer } from '../../stores/media-viewer-store';
 import { isAnnotatableBookAsset, isStudentFacingBookAsset } from './book-viewer-eligibility';
 import { isInAppMediaAsset } from './media-viewer-eligibility';
@@ -40,7 +41,7 @@ export function MaterialAssetLink({
       returnTo,
     });
     return (
-      <Link href={href} className={className} title={title}>
+      <Link href={href} className={className} title={title} data-tour-anchor="materials-viewer">
         {children}
       </Link>
     );
@@ -48,20 +49,27 @@ export function MaterialAssetLink({
 
   if (isInAppMediaAsset(asset) && asset.fileAttachmentId) {
     return (
-      <button
+      <Button
+        variant="bare"
         type="button"
         className={[styles.mediaOpenBtn, className].filter(Boolean).join(' ')}
         title={title}
         aria-label={title}
+        data-tour-anchor="materials-viewer"
         onClick={() => openMediaViewer(asset.fileAttachmentId!)}
       >
         {children}
-      </button>
+      </Button>
     );
   }
 
   return (
-    <MaterialAssetOpenLink asset={asset} className={className} title={title}>
+    <MaterialAssetOpenLink
+      asset={asset}
+      className={className}
+      title={title}
+      data-tour-anchor="materials-viewer"
+    >
       {children}
     </MaterialAssetOpenLink>
   );

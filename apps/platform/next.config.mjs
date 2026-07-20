@@ -1,3 +1,7 @@
+import { loadRootEnv } from '../../scripts/load-root-env.mjs';
+
+loadRootEnv();
+
 /** @type {import('next').NextConfig} */
 const apiProxyTarget = (process.env.API_PROXY_TARGET ?? 'http://127.0.0.1:3000').replace(/\/$/, '');
 
@@ -12,6 +16,7 @@ const securityHeaders = [
 
 const nextConfig = {
   output: 'standalone',
+  transpilePackages: ['@fe/ui'],
   async headers() {
     return [{ source: '/(.*)', headers: securityHeaders }];
   },

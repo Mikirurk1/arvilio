@@ -1,0 +1,193 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-gap);
+}
+
+.intro {
+  margin: 0;
+  max-width: 52rem;
+  color: var(--text-tertiary);
+  font-size: var(--fs-14);
+  line-height: 1.5;
+}
+
+.emptyState {
+  margin: 0;
+  padding: 20px 22px;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-strong);
+  background: var(--surface-raised);
+  color: var(--text-tertiary);
+  font-size: var(--fs-14);
+  line-height: 1.5;
+
+  code {
+    font-size: 0.85em;
+    color: var(--text-secondary);
+  }
+}
+
+.offerCard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px 22px;
+  box-shadow: var(--shadow-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.offerCardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.offerCardTitle {
+  margin: 0;
+  font-size: var(--fs-16);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.offerCardHint {
+  margin: 4px 0 0;
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+  line-height: 1.4;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: var(--fs-16);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.sectionHint {
+  margin: 4px 0 0;
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+}
+
+.metaRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.modeNote {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text-tertiary);
+  font-size: var(--fs-13);
+  line-height: 1.4;
+}
+
+.plansGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 720px) {
+  .plansGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.priceBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+}
+
+.priceLabel {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.pricePreview {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-18);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.pricePreviewMuted {
+  color: var(--text-faint);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-14);
+  font-family: var(--font-sans);
+}
+
+.overrideList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.overrideCardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.countryBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  background: var(--green-light);
+  color: var(--green-dark);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.countryBadgeEmpty {
+  background: var(--surface-raised);
+  color: var(--text-faint);
+  border: 1px solid var(--border);
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}

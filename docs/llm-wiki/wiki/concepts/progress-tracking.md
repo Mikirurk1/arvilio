@@ -5,7 +5,7 @@ updated: 2026-05-16
 
 # Progress tracking
 
-Two progress concepts in SoEnglish:
+Two progress concepts in Arvilio:
 
 ## 1. Catalog lesson progress
 
@@ -20,7 +20,7 @@ Two progress concepts in SoEnglish:
 
 ## Web
 
-- Dashboard widgets — `apps/web/src/app/dashboard/`
+- Dashboard widgets — `apps/campus/src/app/dashboard/`
 - Statistics components — `components/statistics/` (may blend mocks)
 
 ## Related

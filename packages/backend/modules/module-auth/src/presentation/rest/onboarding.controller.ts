@@ -47,4 +47,9 @@ export class OnboardingController {
   completeTour(@CurrentUser() userId: string): Promise<TourStateDto> {
     return this.tour.complete(userId);
   }
+
+  @Post('tour/reset')
+  resetTour(@CurrentUser() userId: string): Promise<TourStateDto> {
+    return this.tour.reset(userId);
+  }
 }

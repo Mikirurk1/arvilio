@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type SetStateAction } from 'react';
 import type { ProfileNotificationPrefs } from '@pkg/types';
 import { DEFAULT_NOTIFICATION_PREFS } from '@pkg/types';
-import { getNotificationPrefsForUser, setNotificationPrefsForUser } from '../../mocks';
 import { toast } from '../../features/notifications';
 
 interface ProfileSliceLike {
@@ -27,9 +26,8 @@ export function useProfileNotificationSync({
 
   useEffect(() => {
     if (!isAuthenticated) {
-      const mockPrefs = getNotificationPrefsForUser(Number(activeUserId));
-      setNotificationsState(mockPrefs);
-      savedJsonRef.current = JSON.stringify(mockPrefs);
+      setNotificationsState(DEFAULT_NOTIFICATION_PREFS);
+      savedJsonRef.current = JSON.stringify(DEFAULT_NOTIFICATION_PREFS);
       hydratedRef.current = null;
       return;
     }
@@ -67,7 +65,7 @@ export function useProfileNotificationSync({
     (action: SetStateAction<ProfileNotificationPrefs>) => {
       setNotificationsState((prev) => {
         const next = typeof action === 'function' ? action(prev) : action;
-        if (!isAuthenticated) setNotificationPrefsForUser(Number(activeUserId), next);
+        if (!isAuthenticated) return next;
         return next;
       });
     },

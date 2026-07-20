@@ -1,4 +1,5 @@
 import type { PaymentMethodKindDto } from '@pkg/types';
+import type { TranslateFn } from '../../../lib/cms/nav-i18n';
 
 export type ProviderFieldHelpKey =
   | 'mode'
@@ -267,3 +268,26 @@ export const PAYMENT_PROVIDER_META: Record<PaymentMethodKindDto, PaymentProvider
     },
   },
 };
+
+export function resolvePaymentProviderUiMeta(
+  method: PaymentMethodKindDto,
+  t?: TranslateFn,
+): Pick<PaymentProviderMeta, 'title' | 'description' | 'setupChecklist'> {
+  const meta = PAYMENT_PROVIDER_META[method];
+  if (method !== 'manual_invoice' || !t) {
+    return {
+      title: meta.title,
+      description: meta.description,
+      setupChecklist: meta.setupChecklist,
+    };
+  }
+  return {
+    title: t('system.payments.manualInvoice.title'),
+    description: t('system.payments.manualInvoice.description'),
+    setupChecklist: [
+      t('system.payments.manualInvoice.checklist.addMethods'),
+      t('system.payments.manualInvoice.checklist.fillDetails'),
+      t('system.payments.manualInvoice.checklist.creditManually'),
+    ],
+  };
+}

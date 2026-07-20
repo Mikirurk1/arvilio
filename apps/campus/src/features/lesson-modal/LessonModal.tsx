@@ -6,11 +6,8 @@ import Link from 'next/link';
 import { createPortal } from 'react-dom';
 import { Button, Tabs } from '../../components/ui';
 import type { LessonFormState, LessonModalMode } from './types';
-import {
-  siteContent,
-  USER_ROLE,
-  type UserRole,
-} from '../../mocks';
+import { USER_ROLE, type UserRoleId } from '@pkg/types';
+import { buildLessonModalCopy, useCampusT } from '../../lib/cms';
 import type { LessonPartyOption } from '../../hooks/use-lesson-party-options';
 import { useFocusTrap } from '../../hooks/use-focus-trap';
 import styles from './LessonModal.module.scss';
@@ -67,7 +64,7 @@ export function LessonModal({
   onSaveStudentResponse: () => void;
   students: LessonPartyOption[];
   teachers: LessonPartyOption[];
-  role: UserRole;
+  role: UserRoleId;
   canUnlinkSeries: boolean;
   onUnlinkSeries: () => void;
   canDeleteSeries: boolean;
@@ -81,7 +78,8 @@ export function LessonModal({
   studentBackendId?: string | null;
   isSaving?: boolean;
 }) {
-  const text = siteContent.calendar.lessonModal;
+  const t = useCampusT();
+  const text = useMemo(() => buildLessonModalCopy(t), [t]);
   const [mounted, setMounted] = useState(false);
   const [tab, setTab] = useState<'setup' | 'content'>('setup');
   const [fieldErrors, setFieldErrors] = useState<LessonFieldErrors>({});
@@ -299,9 +297,9 @@ export function LessonModal({
   const handleSubmit = useCallback(() => {
     const activeForm = commitMaterialDraft();
     const errors: LessonFieldErrors = {};
-    if (!activeForm.title.trim()) errors.title = 'Title is required';
-    if (!activeForm.date) errors.date = 'Date is required';
-    if (!activeForm.startTime) errors.startTime = 'Start time is required';
+    if (!activeForm.title.trim()) errors.title = t('lessonModal.error.titleRequired');
+    if (!activeForm.date) errors.date = t('lessonModal.error.dateRequired');
+    if (!activeForm.startTime) errors.startTime = t('lessonModal.error.startTimeRequired');
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       setTab('setup');
@@ -353,6 +351,7 @@ export function LessonModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="lesson-modal-title"
+        data-tour-anchor="lesson-modal"
         onClick={e => e.stopPropagation()}
       >
         <LessonModalHeader
@@ -382,7 +381,7 @@ export function LessonModal({
                 value: 'setup',
                 label: text.sections.setup,
                 panel: (
-                  <div ref={setupPanelRef}>
+                  <div ref={setupPanelRef} data-tour-anchor="lesson-modal-setup">
                   <LessonSetupTab
                     text={text}
                     canEdit={canEdit}
@@ -456,8 +455,8 @@ export function LessonModal({
         >
           <div className={styles.modalActionsHint}>
             {role === USER_ROLE.student.id
-              ? 'You can review lesson details and submit your response.'
-              : 'Changes are applied immediately after saving.'}
+              ? t('lessonModal.footer.student')
+              : t('lessonModal.footer.staff')}
           </div>
           {showLessonLink ? (
             <Link
@@ -465,7 +464,7 @@ export function LessonModal({
               className={styles.modalLessonLinkBtn}
               onClick={onClose}
             >
-              Open lesson page
+              {t('lessonModal.action.openLessonPage')}
             </Link>
           ) : null}
           {showConfirmButton ? (
@@ -475,7 +474,7 @@ export function LessonModal({
               onClick={handleSubmit}
               disabled={!canEdit || isSaving}
               loading={isSaving}
-              loadingLabel="Saving…"
+              loadingLabel={t('lessonModal.action.saving')}
             >
               {mode === 'create'
                 ? text.actions.saveLesson

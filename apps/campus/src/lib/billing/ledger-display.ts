@@ -1,6 +1,7 @@
 import type { LessonBalanceLedgerEntryDto } from '@pkg/types';
 import type { LucideIcon } from 'lucide-react';
 import { BookOpen, HandCoins, RotateCcw, ShoppingBag } from 'lucide-react';
+import type { TranslateFn } from '../cms/nav-i18n';
 
 export type LedgerKindKey =
   | 'PURCHASE'
@@ -16,7 +17,7 @@ export type LedgerKindMeta = {
   tone: 'credit' | 'debit' | 'neutral';
 };
 
-const LEDGER_KIND_META: Record<string, LedgerKindMeta> = {
+const LEDGER_KIND_STATIC: Record<string, Omit<LedgerKindMeta, 'title' | 'description'> & { title: string; description: string }> = {
   PURCHASE: {
     title: 'Lesson package purchased',
     description: 'Lessons added after a successful online payment.',
@@ -86,41 +87,71 @@ const FALLBACK_META: LedgerKindMeta = {
   tone: 'neutral',
 };
 
-export function getLedgerKindMeta(kind: string): LedgerKindMeta {
-  return LEDGER_KIND_META[kind] ?? { ...FALLBACK_META, title: kind.replace(/_/g, ' ').toLowerCase() };
+export function getLedgerKindMeta(kind: string, t?: TranslateFn): LedgerKindMeta {
+  const base = LEDGER_KIND_STATIC[kind];
+  if (!base) {
+    if (t) {
+      return {
+        title: t('payment.ledger.kind.fallback.title'),
+        description: t('payment.ledger.kind.fallback.desc'),
+        icon: FALLBACK_META.icon,
+        tone: FALLBACK_META.tone,
+      };
+    }
+    return { ...FALLBACK_META, title: kind.replace(/_/g, ' ').toLowerCase() };
+  }
+  if (!t) return base;
+  return {
+    title: t(`payment.ledger.kind.${kind}.title`),
+    description: t(`payment.ledger.kind.${kind}.desc`),
+    icon: base.icon,
+    tone: base.tone,
+  };
 }
 
-export function formatLedgerDelta(delta: number): string {
-  const abs = Math.abs(delta);
-  const unit = abs === 1 ? 'lesson' : 'lessons';
+function lessonUnit(count: number, t?: TranslateFn): string {
+  if (Math.abs(count) === 1) return t?.('payment.ledger.lesson') ?? 'lesson';
+  return t?.('payment.ledger.lessons') ?? 'lessons';
+}
+
+export function formatLedgerDelta(delta: number, t?: TranslateFn): string {
+  const unit = lessonUnit(delta, t);
   if (delta > 0) return `+${delta} ${unit}`;
   if (delta < 0) return `${delta} ${unit}`;
   return `0 ${unit}`;
 }
 
-export function formatLedgerBalanceAfter(balanceAfter: number): string {
-  const abs = Math.abs(balanceAfter);
-  const unit = abs === 1 ? 'lesson' : 'lessons';
+export function formatLedgerBalanceAfter(balanceAfter: number, t?: TranslateFn): string {
+  const unit = lessonUnit(balanceAfter, t);
+  if (t) return t('payment.ledger.left', { count: balanceAfter, unit });
   return `${balanceAfter} ${unit} left`;
 }
 
-export function formatLedgerWhen(iso: string): { label: string; title: string } {
+export function formatLedgerWhen(
+  iso: string,
+  locale = 'en',
+  labels?: { today: string; yesterday: string },
+): { label: string; title: string } {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) {
     return { label: iso.slice(0, 10), title: iso };
   }
+
+  const dateLocale = locale === 'uk' ? 'uk-UA' : 'en-US';
+  const todayLabel = labels?.today ?? 'Today';
+  const yesterdayLabel = labels?.yesterday ?? 'Yesterday';
 
   const now = new Date();
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const startOfDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const dayDiff = Math.round((startOfToday.getTime() - startOfDate.getTime()) / 86_400_000);
 
-  const time = new Intl.DateTimeFormat(undefined, {
+  const time = new Intl.DateTimeFormat(dateLocale, {
     hour: 'numeric',
     minute: '2-digit',
   }).format(date);
 
-  const full = new Intl.DateTimeFormat(undefined, {
+  const full = new Intl.DateTimeFormat(dateLocale, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -129,14 +160,14 @@ export function formatLedgerWhen(iso: string): { label: string; title: string } 
     minute: '2-digit',
   }).format(date);
 
-  if (dayDiff === 0) return { label: `Today · ${time}`, title: full };
-  if (dayDiff === 1) return { label: `Yesterday · ${time}`, title: full };
+  if (dayDiff === 0) return { label: `${todayLabel} · ${time}`, title: full };
+  if (dayDiff === 1) return { label: `${yesterdayLabel} · ${time}`, title: full };
   if (dayDiff < 7) {
-    const weekday = new Intl.DateTimeFormat(undefined, { weekday: 'short' }).format(date);
+    const weekday = new Intl.DateTimeFormat(dateLocale, { weekday: 'short' }).format(date);
     return { label: `${weekday} · ${time}`, title: full };
   }
 
-  const label = new Intl.DateTimeFormat(undefined, {
+  const label = new Intl.DateTimeFormat(dateLocale, {
     month: 'short',
     day: 'numeric',
     year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
@@ -147,9 +178,14 @@ export function formatLedgerWhen(iso: string): { label: string; title: string } 
 
 export function groupLedgerByDay(
   entries: LessonBalanceLedgerEntryDto[],
+  locale = 'en',
+  labels?: { today: string; yesterday: string },
 ): Array<{ dayKey: string; dayLabel: string; entries: LessonBalanceLedgerEntryDto[] }> {
   const groups = new Map<string, LessonBalanceLedgerEntryDto[]>();
-  const labels = new Map<string, string>();
+  const dayLabels = new Map<string, string>();
+  const dateLocale = locale === 'uk' ? 'uk-UA' : 'en-US';
+  const todayLabel = labels?.today ?? 'Today';
+  const yesterdayLabel = labels?.yesterday ?? 'Yesterday';
 
   for (const entry of entries) {
     const date = new Date(entry.createdAt);
@@ -167,24 +203,24 @@ export function groupLedgerByDay(
       const dayDiff = Math.round((startOfToday.getTime() - startOfDate.getTime()) / 86_400_000);
 
       let dayLabel: string;
-      if (dayDiff === 0) dayLabel = 'Today';
-      else if (dayDiff === 1) dayLabel = 'Yesterday';
+      if (dayDiff === 0) dayLabel = todayLabel;
+      else if (dayDiff === 1) dayLabel = yesterdayLabel;
       else {
-        dayLabel = new Intl.DateTimeFormat(undefined, {
+        dayLabel = new Intl.DateTimeFormat(dateLocale, {
           weekday: 'long',
           month: 'long',
           day: 'numeric',
           year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
         }).format(date);
       }
-      labels.set(dayKey, dayLabel);
+      dayLabels.set(dayKey, dayLabel);
     }
     groups.get(dayKey)!.push(entry);
   }
 
   return [...groups.entries()].map(([dayKey, dayEntries]) => ({
     dayKey,
-    dayLabel: labels.get(dayKey) ?? dayKey,
+    dayLabel: dayLabels.get(dayKey) ?? dayKey,
     entries: dayEntries,
   }));
 }

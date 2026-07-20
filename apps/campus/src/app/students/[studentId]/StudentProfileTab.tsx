@@ -7,7 +7,9 @@ import {
   unifiedToStudent,
 } from '../../../components/profile/profile-form-adapters';
 import type { ProfileFormContext } from '../../../components/profile/unified-profile-types';
-import type { MockStudent, UserRole } from '../../../mocks';
+import type { UserRoleId } from '@pkg/types';
+import type { MockStudent } from '../../../lib/user-models';
+import { useCampusT } from '../../../lib/cms';
 import styles from './page.module.scss';
 
 export function StudentProfileTab({
@@ -28,7 +30,7 @@ export function StudentProfileTab({
   student: MockStudent;
   onChange: (next: MockStudent) => void;
   canEdit: boolean;
-  viewerRole: UserRole;
+  viewerRole: UserRoleId;
   teacherBackendId: string | null;
   teacherOptions: Array<{ id: string; displayName: string }>;
   onTeacherBackendIdChange: (teacherId: string | null) => void;
@@ -39,6 +41,7 @@ export function StudentProfileTab({
   nativeLanguageId?: string;
   onNativeLanguageIdChange?: (languageId: string) => void;
 }) {
+  const t = useCampusT();
   const values = studentToUnified(student, nativeLanguageId, teacherBackendId);
 
   const context: ProfileFormContext = {
@@ -66,7 +69,7 @@ export function StudentProfileTab({
         saved={saved}
         saveError={saveError}
         onSave={onSave}
-        saveLabel="Save student data"
+        saveLabel={t('students.detail.saveStudent')}
         idPrefix="student-profile"
         teacherOptions={teacherOptions}
       />

@@ -3,6 +3,7 @@
 import { BookMarked, ImageIcon } from 'lucide-react';
 import { PROFICIENCY_LEVEL } from '@pkg/types';
 import { Button, Field, TagInput } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import uiStyles from '../../components/ui/ui.module.scss';
 import {
   isMaterialFileWithinSizeLimit,
@@ -37,6 +38,7 @@ export function MaterialDetailsSection({
   setLevel, setPublisher, setTags, setLocalError,
   setCoverAttachmentId, setPendingCoverFile, setCoverPreviewUrl, setRemoveCover,
 }: MaterialDetailsSectionProps) {
+  const t = useCampusT();
   return (
     <section className={styles.formSection} aria-labelledby="material-details-heading">
       <div className={styles.sectionHead}>
@@ -45,9 +47,9 @@ export function MaterialDetailsSection({
         </span>
         <div className={styles.sectionHeadText}>
           <h3 id="material-details-heading" className={styles.sectionTitle}>
-            Details
+            {t('materials.form.detailsTitle')}
           </h3>
-          <p className={styles.sectionHint}>Optional — helps teachers filter and find resources faster.</p>
+          <p className={styles.sectionHint}>{t('materials.form.detailsHint')}</p>
         </div>
       </div>
 
@@ -55,7 +57,7 @@ export function MaterialDetailsSection({
         <Field
           as="select"
           className={fieldClass}
-          label="Level"
+          label={t('materials.form.levelLabel')}
           value={level}
           disabled={isBusy}
           onChange={(event) => setLevel(event.target.value)}
@@ -72,7 +74,7 @@ export function MaterialDetailsSection({
         </Field>
         <Field
           className={fieldClass}
-          label="Publisher"
+          label={t('materials.form.publisherLabel')}
           value={publisher}
           onChange={(event) => setPublisher(event.target.value)}
           placeholder="Oxford, Cambridge…"
@@ -133,7 +135,7 @@ export function MaterialDetailsSection({
       </div>
 
       <TagInput
-        label="Tags"
+        label={t('materials.form.tagsLabel')}
         value={tags}
         onChange={setTags}
         placeholder="Add tag and press Enter"

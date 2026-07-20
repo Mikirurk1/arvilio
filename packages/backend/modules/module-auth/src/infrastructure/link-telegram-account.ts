@@ -64,8 +64,8 @@ export async function linkTelegramAccount(
 
   const appUrl = webOrigin();
   const welcomeHtml =
-    `✅ <b>SoEnglish connected</b>\n\n` +
+    `✅ <b>Arvilio connected</b>\n\n` +
     `Hi ${escapeTelegramHtml(user.displayName)}, you will receive lesson reminders and other alerts here when they are enabled under Profile → Notifications.\n\n` +
-    `<a href="${escapeTelegramHtml(appUrl)}">Open SoEnglish</a>`;
+    `<a href="${escapeTelegramHtml(appUrl)}">Open Arvilio</a>`;
   await sendTelegramBotMessage(String(from.id), welcomeHtml, { parseMode: 'HTML' });
 }

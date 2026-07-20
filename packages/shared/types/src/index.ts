@@ -11,3 +11,6 @@ export * from './lib/material-annotations';
 export * from './lib/material-media';
 export * from './lib/staff-payout';
 export * from './lib/locale';
+export * from './lib/campus-ui-catalog';
+export * from './lib/campus-tour-seed';
+export * from './lib/campus-content-map';

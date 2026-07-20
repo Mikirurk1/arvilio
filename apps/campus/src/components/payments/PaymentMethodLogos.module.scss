@@ -1,0 +1,40 @@
+.strip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 12px;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+
+.caption {
+  margin: 0;
+  font-size: var(--fs-12, 12px);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  justify-content: center;
+  align-items: center;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  height: 28px;
+  width: auto;
+  max-width: 110px;
+  object-fit: contain;
+  opacity: 0.92;
+}

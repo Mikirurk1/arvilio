@@ -1,8 +1,14 @@
-@use '../../styles/mixins' as *;
-
 .authRoot {
+  position: relative;
   min-height: 100vh;
   min-height: 100dvh;
+}
+
+.localeBar {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  z-index: 2;
 }
 
 .authMain {
@@ -23,62 +29,4 @@
       transparent 52%
     ),
     var(--surface);
-}
-
-.trustPanel {
-  display: none;
-}
-
-@include respond-to(md) {
-  .authRoot {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(320px, 480px);
-    align-items: stretch;
-  }
-
-  .trustPanel {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 48px clamp(24px, 5vw, 64px);
-    background:
-      radial-gradient(
-        ellipse 80% 60% at 20% 30%,
-        color-mix(in srgb, var(--accent-primary) 10%, var(--surface)) 0%,
-        transparent 60%
-      ),
-      var(--surface);
-    border-right: 1px solid var(--border);
-  }
-
-  .trustTitle {
-    margin: 0 0 12px;
-    font-family: var(--font-display);
-    font-size: var(--fs-28);
-    font-weight: var(--fw-semibold);
-    line-height: var(--lh-tight);
-    letter-spacing: var(--tracking-tight);
-    color: var(--text-primary);
-    max-width: 16ch;
-  }
-
-  .trustCopy {
-    margin: 0;
-    font-size: var(--fs-16);
-    line-height: var(--lh-body);
-    color: var(--text-secondary);
-    max-width: 38ch;
-  }
-
-  .authMain {
-    min-height: 0;
-    padding: 32px 24px;
-    background:
-      radial-gradient(
-        ellipse 90% 70% at 80% 0%,
-        color-mix(in srgb, var(--blue) 6%, var(--surface)) 0%,
-        transparent 55%
-      ),
-      var(--surface);
-  }
 }

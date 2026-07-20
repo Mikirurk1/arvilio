@@ -4,6 +4,7 @@ import type {
   GroupLessonBillingMode,
   StudentSummaryBackendDto,
 } from '@pkg/types';
+import type { TranslateFn } from '../../lib/cms/nav-i18n';
 
 export type GroupDraft = {
   name: string;
@@ -27,7 +28,12 @@ export const emptyDraft = (currency = 'UAH'): GroupDraft => ({
   groupPayerUserId: '',
 });
 
-export function billingModeLabel(mode: GroupLessonBillingMode): string {
+export function billingModeLabel(mode: GroupLessonBillingMode, t?: TranslateFn): string {
+  const key =
+    mode === 'per_member'
+      ? 'students.groups.billing.perMember'
+      : 'students.groups.billing.fixedTotal';
+  if (t) return t(key);
   return mode === 'per_member' ? 'Per member' : 'Fixed total';
 }
 
@@ -35,18 +41,42 @@ export function isGroupEligibleStudent(student: StudentSummaryBackendDto): boole
   return student.lessonFormat === 'mixed' || student.lessonFormat === 'group_only';
 }
 
-export function validateDraft(draft: GroupDraft): string | null {
-  if (!draft.name.trim()) return 'Group name is required.';
-  if (draft.memberUserIds.length < 2) return 'Add at least two students to the group.';
+function validationMessage(key: string, fallback: string, t?: TranslateFn): string {
+  return t ? t(key) : fallback;
+}
+
+export function validateDraft(draft: GroupDraft, t?: TranslateFn): string | null {
+  if (!draft.name.trim()) {
+    return validationMessage(
+      'students.groups.validation.nameRequired',
+      'Group name is required.',
+      t,
+    );
+  }
+  if (draft.memberUserIds.length < 2) {
+    return validationMessage(
+      'students.groups.validation.minMembers',
+      'Add at least two students to the group.',
+      t,
+    );
+  }
   if (
     draft.groupBillingMode === 'fixed_total' &&
     draft.groupSplitMode === 'single_payer' &&
     !draft.groupPayerUserId
   ) {
-    return 'Select a payer for single-payer billing.';
+    return validationMessage(
+      'students.groups.validation.payerRequired',
+      'Select a payer for single-payer billing.',
+      t,
+    );
   }
   if (draft.groupBillingMode === 'fixed_total' && draft.groupPriceMinor <= 0) {
-    return 'Enter a fixed lesson amount greater than zero.';
+    return validationMessage(
+      'students.groups.validation.amountRequired',
+      'Enter a fixed lesson amount greater than zero.',
+      t,
+    );
   }
   return null;
 }

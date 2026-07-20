@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import type { ScheduledLessonDto } from '@pkg/types';
-import { getProfileByUserId } from '../../mocks';
 import { partyNumericId } from '../../features/lesson-modal/scheduledLessonsBackendAdapter';
 import { STUDENT_COLOR_PALETTE, type StudentColor } from './calendarUtils';
 
@@ -30,7 +29,7 @@ export function useCalendarColors(
     Boolean(value && /^#[0-9a-fA-F]{6}$/.test(value));
 
   const colorHexFromStudentId = (studentId: number): string | null => {
-    const colorHex = studentColorById.get(studentId) ?? getProfileByUserId(studentId)?.color;
+    const colorHex = studentColorById.get(studentId);
     return isHexColor(colorHex) ? colorHex! : null;
   };
 

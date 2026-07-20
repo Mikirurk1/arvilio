@@ -21,7 +21,7 @@ const PAGES = ['/dashboard', '/schools', '/promo-codes', '/audit-log', '/setting
 test.describe('7.x super_admin console', () => {
   for (const path of PAGES) {
     test(`7 ${path}: render + screenshot + axe`, async ({ page }) => {
-      await loginAs(page, 'jest-super-admin@soenglish.test');
+      await loginAs(page, 'jest-super-admin@arvilio.test');
       await page.goto(`${PLATFORM}${path}`);
       await expect(page.locator('body')).toBeVisible({ timeout: 15_000 });
       await page.waitForTimeout(800);
@@ -33,7 +33,7 @@ test.describe('7.x super_admin console', () => {
   }
 
   test('7.2 /schools lists schools with statuses', async ({ page }) => {
-    await loginAs(page, 'jest-super-admin@soenglish.test');
+    await loginAs(page, 'jest-super-admin@arvilio.test');
     await page.goto(`${PLATFORM}/schools`);
     await expect(page.getByRole('heading', { name: /schools/i })).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText(/trial|active/i).first()).toBeVisible({ timeout: 10_000 });
@@ -43,7 +43,7 @@ test.describe('7.x super_admin console', () => {
 
 test.describe('7.7 access control', () => {
   test('school admin → unauthorized', async ({ page }) => {
-    await loginAs(page, 'jest-admin@soenglish.test');
+    await loginAs(page, 'jest-admin@arvilio.test');
     await page.goto(`${PLATFORM}/dashboard`);
     await page.waitForTimeout(800);
     await shot(page, `${DIR}/7-7-admin-unauthorized`);

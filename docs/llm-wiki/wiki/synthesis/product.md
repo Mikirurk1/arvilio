@@ -1,73 +1,92 @@
 ---
 tags: [synthesis, product]
-updated: 2026-05-28
+updated: 2026-07-11
 ---
 
-# Product synthesis — SoEnglish
+# Product synthesis — Arvilio
 
-SoEnglish is an **English learning platform** for structured 1:1 teaching: scheduled live lessons (with Google Meet), vocabulary tracking, quizzes/flashcards, homework flow, and curriculum-style lesson catalog.
+**Arvilio** is an education **ecosystem**: one company brand, one shared `User`, several products on a shared Platform kernel. Strategic naming and Control Plane plan: [`docs/arvilio-ecosystem-control-plane.md`](../../../arvilio-ecosystem-control-plane.md). Money: [`docs/business-model.md`](../../../business-model.md). Marketing site + Payload: [`docs/arvilio-marketing-site-payload-plan.md`](../../../arvilio-marketing-site-payload-plan.md).
 
-## Today vs target platform
+## Ecosystem products
 
-| | **Today** | **Target (vision)** |
+| Name | Role | Status |
+|------|------|--------|
+| **Arvilio** | Company + ecosystem brand | Now |
+| **Arvilio Platform** | Shared kernel: User, tenants, money A/B/C, Control Plane | Now (internal) |
+| **Arvilio Campus** | Product #1 — run courses (schedule, materials, vocab, chat, bill learners, staff) | **Now — what we built** (`apps/campus`) |
+| **Arvilio Connect** | Product #2 — discovery & matching (learners ↔ tutors ↔ campuses) | **Later** |
+| **Arvilio Control Plane** | Operator console for the fleet (`apps/platform` seed → evolve) | Seed shipped |
+| **Marketing site** | Public brand `arvilio.app` (`apps/hub`; content from `apps/cms` Payload) | **Scaffolded** (Phase B+C) — [plan v2](../../../arvilio-marketing-site-payload-plan.md) |
+
+**Do not use as product brands:** School OS, Marketplace, Tutor Recruiting. Internal DB model may still be `School` — marketing copy = campus / organization.
+
+**Hybrid vs Preply:** Campus SaaS does **not** tax a campus’s own learners. Connect charges only when the platform supplies a learner (finder fee) or places a tutor (placement fee).
+
+## Today vs target
+
+| | **Today (Campus)** | **Target** |
 |---|-----------|---------------------|
-| Tenants | One school per deployment | Many schools on one platform |
-| Who pays whom | Student → school (lesson packages); school configures providers | Same + **school → platform subscription** + **platform commission** on platform-sourced students |
-| Student acquisition | School / admin provisions accounts | Optional **platform marketplace**: students register to find a tutor; platform may assign leads to schools |
-| Comparison | School product (Edvibe-style ops) | **Hybrid**: school SaaS + marketplace take rate (Preply-like acquisition, not Preply’s tutor-only model) |
+| Tenants | Multi-tenant foundation shipped (Phases 0–5, 7); Phase 6 Connect deferred | Many campuses + Connect on one Platform |
+| Who pays whom | Layer A (learner→campus) + Layer B (campus→platform SaaS) | Same + Layer C / R2–R3 on Connect |
+| Identity | Global `User` + `SchoolMembership` (ADR-006) | Same User across Campus **and** Connect |
+| Comparison | Edvibe-style campus ops | Hybrid: Campus SaaS + Connect matching |
 
-Cursor rule: `.cursor/rules/future-multitenant-architecture.mdc` (always apply).
+Cursor rule: `.cursor/rules/future-multitenant-architecture.mdc`. Live architecture: [[concepts/multi-tenancy]].
 
-## Primary users
+## Architecture rules (locked)
+
+1. **Modular monolith** in one monorepo — do not split microservices while solo; extract only with hard reasons.
+2. **Control Plane** = one operator brain (`apps/platform`); Campus System/Admin stays tenant-local.
+3. **New product** = Nest module(s) + optional `apps/<product>` + Control Plane nav section — not a new org/DB.
+4. **Marketing site** = `apps/hub` + Payload (brand-kit, `products` registry, extensible UI locales); not product data ([[concepts/payload-cms]]). **UI locale ≠ learning language** ([[entities/language]]).
+5. **Three money layers:** A learner→campus, B campus→platform, C platform fees on platform-sourced matches.
+6. **PlatformOperator ≠ campus ADMIN** — separate axis (ADR-008 / ADR-009).
+7. **Learning languages** are catalog-driven (`Language`); do not hard-code English-only in new Campus/Connect features.
+
+## Primary users (Campus)
 
 | Persona | Goal |
 |---------|------|
-| **Student** | Attend lessons, study vocabulary, complete quizzes/practice, submit homework |
-| **Teacher** | Schedule lessons, manage assigned students, review homework, assign quizzes |
-| **Admin** | Provision student accounts, oversee platform users (students) |
-| **Super admin** | Full user lifecycle including teachers/admins; CLI-only promotion to SUPER_ADMIN |
+| **Student / learner** | Attend lessons, vocabulary, quizzes/practice, homework |
+| **Teacher** | Schedule lessons, manage students, review homework |
+| **Campus admin** | Accounts, payments, school settings (tenant-scoped) |
+| **Platform operator** | Fleet health, Layer B billing, allowlists — Control Plane only |
 
 See [[concepts/roles-matrix]] and [[concepts/auth-rbac]].
 
-## Core product areas
+## Core Campus product areas
 
-### Scheduled lessons (1:1)
+### Scheduled lessons
 
-- [[entities/scheduled-lesson]] — calendar events with teacher/student, status, recurrence, materials, homework
-- Google Calendar + Meet integration — [[concepts/lessons-calendar]]
-- Web: `/calendar`, `/lessons`, lesson modal — [[concepts/web-app]]
+- [[entities/scheduled-lesson]] — calendar, Meet/Zoom/LiveKit, homework
+- [[concepts/lessons-calendar]], [[concepts/video-meeting-providers]], [[concepts/group-lessons]]
 
-### Vocabulary
+### Vocabulary & practice
 
-- Global [[entities/word]] dictionary enriched from external API
-- Per-student [[entities/student-word-card]] with mastery status
-- Spaced repetition via [[entities/review-queue]]
-- Web: `/vocabulary`, `/practice/vocabulary` — [[concepts/vocabulary]]
+- [[entities/word]], [[entities/student-word-card]], [[entities/review-queue]]
+- [[concepts/vocabulary]], [[concepts/quizzes-flashcards]]
 
-### Quizzes & practice
+### Materials & chat
 
-- [[entities/quiz]] with questions, assignments, attempts
-- Generation from vocabulary or manual — [[concepts/quizzes-flashcards]]
-- Web: `/quiz`, `/practice/quiz`, `/practice`
+- [[concepts/materials-library]], [[concepts/chat]]
 
-### Curriculum catalog (catalog lessons)
+### Billing (Layer A)
 
-- [[entities/lesson]] + [[entities/exercise]] — slug-based content tree (separate from scheduled 1:1 lessons)
-- [[entities/progress]] — completion per user per catalog lesson — [[concepts/progress-tracking]]
+- [[entities/student-lesson-balance]], [[concepts/billing-payments]]
 
-### Dashboard & students
+### Onboarding & mascot
 
-- Role-scoped dashboard stats — `module-auth` `DashboardService`
-- Teacher/admin student list — GraphQL `students`, REST `GET /users/students`
+- Arvi tour / presence — [[concepts/arvi]]
 
-## What is out of scope (today)
+## Out of scope (now)
 
-- **Multi-tenant schools**, **subscription to open a school**, **student marketplace**, **commission ledger** — vision only; see table above
-- **Facebook / Telegram OAuth** — configurable in System → Connections; Google wired for calendar/auth
-- Fine-grained **platform vs school** admin surfaces — coarse `scope` / `/platform` seams exist; see [[concepts/auth-rbac]]
+- **Arvilio Connect UI** — after Campus retention with design partners (business-model Phase A)
+- Full marketplace trust/safety, Stripe Connect KYC (Phase 6 deferred)
+- Renaming Prisma `School` → Campus (internal name OK for now)
 
 ## Related
 
 - [[overview]]
 - [[synthesis/tech-stack]]
 - [[synthesis/architecture]]
+- [[concepts/multi-tenancy]]

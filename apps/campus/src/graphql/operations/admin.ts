@@ -110,6 +110,14 @@ const PLATFORM_INTEGRATION_FIELDS = `
       sourceLanguage
       targetLanguages
     }
+    llm {
+      enabled
+      provider
+      baseUrl
+      model
+      maxTokens
+      temperature
+    }
     smtp {
       mode
       host
@@ -154,6 +162,8 @@ const PLATFORM_INTEGRATION_FIELDS = `
     googleTranslateApiKey
     azureTranslatorKey
     openaiWhisperApiKey
+    llmApiKey
+    anthropicApiKey
     telegramBotToken
     googleClientSecret
     facebookAppSecret
@@ -169,6 +179,8 @@ const PLATFORM_INTEGRATION_FIELDS = `
     googleTranslateApiKey { configured source }
     azureTranslatorKey { configured source }
     openaiWhisperApiKey { configured source }
+    llmApiKey { configured source }
+    anthropicApiKey { configured source }
     telegramBotToken { configured source }
     googleClientSecret { configured source }
     facebookAppSecret { configured source }

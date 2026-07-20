@@ -1,6 +1,7 @@
 'use client';
 
 import type { LibraryMaterialAssetDto } from '@pkg/types';
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { libraryMaterialFileHref } from '../../lib/material-upload';
 
@@ -19,28 +20,36 @@ type Props = {
   className?: string;
   title?: string;
   children: ReactNode;
+  'data-tour-anchor'?: string;
 };
 
-export function MaterialAssetOpenLink({ asset, className, title, children }: Props) {
+export function MaterialAssetOpenLink({
+  asset,
+  className,
+  title,
+  children,
+  'data-tour-anchor': tourAnchor,
+}: Props) {
   const href = materialAssetHref(asset);
 
   if (!href) {
     return (
-      <span className={className} title={title}>
+      <span className={className} title={title} data-tour-anchor={tourAnchor}>
         {children}
       </span>
     );
   }
 
   return (
-    <a
+    <Link
       href={href}
       target="_blank"
       rel="noopener noreferrer"
       className={className}
       title={title}
+      data-tour-anchor={tourAnchor}
     >
       {children}
-    </a>
+    </Link>
   );
 }

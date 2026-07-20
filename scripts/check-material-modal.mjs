@@ -7,7 +7,7 @@ const page = await browser.newPage();
 await page.setViewportSize({ width: 1280, height: 900 });
 
 await page.goto(`${base}/login`, { waitUntil: 'domcontentloaded' });
-await page.fill('input[type="email"]', 'jest-teacher@soenglish.test');
+await page.fill('input[type="email"]', 'jest-teacher@arvilio.test');
 await page.fill('input[type="password"]', 'TestPass123!');
 await page.click('button[type="submit"]');
 await page.waitForTimeout(2000);

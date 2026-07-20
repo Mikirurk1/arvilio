@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { apiClient } from '../../lib/api';
 import { track } from '../../lib/analytics';
 import { Button, Field, PageHeader, SurfaceCard } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import styles from './page.module.scss';
 
 interface EntitlementsSummary {
@@ -20,37 +21,45 @@ interface EntitlementsSummary {
     percentUsed: number;
     overQuota: boolean;
   };
+  /** Stripe Customer Portal available (paid Layer-B subscription). */
+  billingManaged: boolean;
 }
 
-const PURCHASABLE = [
-  { key: 'STARTER', name: 'Starter', blurb: 'Up to 50 students · 10 GB storage · lesson recordings' },
-  {
-    key: 'PRO',
-    name: 'Pro',
-    blurb: 'Unlimited students · 100 GB storage · custom domain · AI assist',
-  },
+const BYTE_UNIT_KEYS = [
+  'entitlements.bytes.b',
+  'entitlements.bytes.kb',
+  'entitlements.bytes.mb',
+  'entitlements.bytes.gb',
+  'entitlements.bytes.tb',
 ] as const;
 
-/** Plans that already have an active paid subscription (not on free tier). */
-const PAID_PLANS = new Set(['STARTER', 'PRO']);
+const PURCHASABLE = [
+  { key: 'STARTER', nameKey: 'billing.plan.starter.name', blurbKey: 'billing.plan.starter.blurb' },
+  { key: 'PRO', nameKey: 'billing.plan.pro.name', blurbKey: 'billing.plan.pro.blurb' },
+] as const;
 
-function formatBytes(bytes: string): string {
+function formatBytes(bytes: string, unitLabel: (i: number) => string): string {
   const n = Number(bytes);
-  if (!Number.isFinite(n) || n === 0) return '0 B';
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.min(Math.floor(Math.log(n) / Math.log(1024)), units.length - 1);
-  return `${(n / 1024 ** i).toFixed(1)} ${units[i]}`;
+  if (!Number.isFinite(n) || n === 0) return `0 ${unitLabel(0)}`;
+  const i = Math.min(Math.floor(Math.log(n) / Math.log(1024)), BYTE_UNIT_KEYS.length - 1);
+  return `${(n / 1024 ** i).toFixed(1)} ${unitLabel(i)}`;
+}
+
+function BillingPageFallback() {
+  const t = useCampusT();
+  return <div className={styles.page}>{t('billing.loading')}</div>;
 }
 
 export default function BillingPage() {
   return (
-    <Suspense fallback={<div className={styles.page}>Loading…</div>}>
+    <Suspense fallback={<BillingPageFallback />}>
       <BillingPageInner />
     </Suspense>
   );
 }
 
 function BillingPageInner() {
+  const t = useCampusT();
   const searchParams = useSearchParams();
   const billingStatus = searchParams.get('billing');
   const [summary, setSummary] = useState<EntitlementsSummary | null>(null);
@@ -64,14 +73,16 @@ function BillingPageInner() {
   const [trialPromoResult, setTrialPromoResult] = useState<string | null>(null);
   const [trialPromoError, setTrialPromoError] = useState<string | null>(null);
 
+  const unitLabel = (i: number) => t(BYTE_UNIT_KEYS[i]);
+
   const load = useCallback(() => {
     setLoading(true);
     apiClient
       .get<EntitlementsSummary>('/billing/entitlements')
       .then((data) => setSummary(data))
-      .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load billing'))
+      .catch((e) => setError(e instanceof Error ? e.message : t('billing.loadError')))
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   useEffect(() => load(), [load]);
 
@@ -85,7 +96,7 @@ function BillingPageInner() {
       track({ name: 'trial_checkout_started', plan, schoolId: '' });
       window.location.href = res.url;
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not start checkout');
+      setError(e instanceof Error ? e.message : t('billing.checkoutError'));
       setCheckoutPlan(null);
     }
   }
@@ -98,12 +109,16 @@ function BillingPageInner() {
     setTrialPromoResult(null);
     try {
       const res = await apiClient.post<{ trialEndsAt: string }>('/billing/subscription/promo/redeem', { code });
-      const date = new Date(res.trialEndsAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-      setTrialPromoResult(`Trial extended — your trial now runs until ${date}.`);
+      const date = new Date(res.trialEndsAt).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+      setTrialPromoResult(t('billing.trialExtended', { date }));
       setTrialPromoCode('');
       load();
     } catch (e) {
-      setTrialPromoError(e instanceof Error ? e.message : 'Could not apply promo code');
+      setTrialPromoError(e instanceof Error ? e.message : t('billing.promoApplyError'));
     } finally {
       setTrialPromoLoading(false);
     }
@@ -116,23 +131,23 @@ function BillingPageInner() {
       const res = await apiClient.post<{ url: string }>('/billing/subscription/portal', {});
       window.location.href = res.url;
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not open billing portal');
+      setError(e instanceof Error ? e.message : t('billing.portalError'));
       setPortaling(false);
     }
   }
 
-  const isSubscribed = summary != null && PAID_PLANS.has(summary.plan);
+  const isBillingManaged = Boolean(summary?.billingManaged);
   const isBusy = checkoutPlan !== null || portaling;
 
   return (
     <div className={styles.page}>
-      <PageHeader title="Subscription" subtitle="Your school plan, usage, and billing." />
+      <PageHeader title={t('billing.title')} subtitle={t('billing.subtitle')} />
 
       {billingStatus === 'success' ? (
-        <div className={styles.success}>Subscription updated — thank you!</div>
+        <div className={styles.success}>{t('billing.success')}</div>
       ) : null}
       {billingStatus === 'cancelled' ? (
-        <div className={styles.notice}>Checkout cancelled — no changes were made.</div>
+        <div className={styles.notice}>{t('billing.checkoutCancelled')}</div>
       ) : null}
       {error ? (
         <div className={styles.error} role="alert">
@@ -141,20 +156,26 @@ function BillingPageInner() {
       ) : null}
 
       {loading || !summary ? (
-        <SurfaceCard>Loading…</SurfaceCard>
+        <SurfaceCard>{t('billing.loading')}</SurfaceCard>
       ) : (
         <>
-          <SurfaceCard className={styles.usage}>
+          <SurfaceCard className={styles.usage} data-tour-anchor="billing-plan">
             <div className={styles.planRow}>
-              <span className={styles.planLabel}>Current plan</span>
-              <span className={styles.planValue}>{summary.plan}</span>
+              <span className={styles.planLabel}>{t('billing.currentPlan')}</span>
+              <span className={styles.planValue}>
+                {summary.plan}
+                {!summary.billingManaged && summary.plan === 'PRO' ? (
+                  <span className={styles.planHint}>{t('billing.legacyHint')}</span>
+                ) : null}
+              </span>
             </div>
 
-            <div className={styles.meter}>
+            <div className={styles.meter} data-tour-anchor="billing-usage">
               <div className={styles.meterHead}>
-                <span>Storage</span>
+                <span>{t('entitlements.storage')}</span>
                 <span>
-                  {formatBytes(summary.storage.usedBytes)} / {formatBytes(summary.storage.quotaBytes)}
+                  {formatBytes(summary.storage.usedBytes, unitLabel)} /{' '}
+                  {formatBytes(summary.storage.quotaBytes, unitLabel)}
                 </span>
               </div>
               <div className={styles.bar}>
@@ -165,18 +186,18 @@ function BillingPageInner() {
                 />
               </div>
               {summary.storage.overQuota ? (
-                <p className={styles.overQuotaHint}>
-                  Storage quota exceeded — uploads are blocked. Upgrade to continue.
-                </p>
+                <p className={styles.overQuotaHint}>{t('billing.overQuota')}</p>
               ) : null}
             </div>
 
             <div className={styles.meter}>
               <div className={styles.meterHead}>
-                <span>Students</span>
+                <span>{t('entitlements.students')}</span>
                 <span>
                   {summary.activeStudentCount}
-                  {summary.maxActiveStudents == null ? ' (unlimited)' : ` / ${summary.maxActiveStudents}`}
+                  {summary.maxActiveStudents == null
+                    ? t('billing.unlimited')
+                    : ` / ${summary.maxActiveStudents}`}
                 </span>
               </div>
               {summary.maxActiveStudents != null ? (
@@ -191,39 +212,36 @@ function BillingPageInner() {
               ) : null}
             </div>
 
-            {isSubscribed ? (
+            {isBillingManaged ? (
               <div className={styles.portalRow}>
                 <Button
                   variant="default"
                   loading={portaling}
-                  loadingLabel="Opening…"
+                  loadingLabel={t('billing.openingPortal')}
                   disabled={isBusy}
                   onClick={() => void openPortal()}
                 >
-                  Manage subscription
+                  {t('billing.manageSubscription')}
                 </Button>
-                <span className={styles.portalHint}>
-                  Change plan, update payment method, or cancel via the Stripe portal.
-                </span>
+                <span className={styles.portalHint}>{t('billing.portalHint')}</span>
               </div>
             ) : null}
           </SurfaceCard>
 
-          {/* Trial-extension promo code — only for schools actively on TRIAL */}
           {summary.plan === 'TRIAL' ? (
-            <SurfaceCard className={styles.trialPromo}>
-              <h3 className={styles.trialPromoTitle}>Have a promo code?</h3>
-              <p className={styles.trialPromoHint}>Enter a trial-extension code to add more days to your free trial.</p>
-              {trialPromoResult ? (
-                <div className={styles.success}>{trialPromoResult}</div>
-              ) : null}
+            <SurfaceCard className={styles.trialPromo} data-tour-anchor="billing-promo">
+              <h3 className={styles.trialPromoTitle}>{t('billing.trialPromoTitle')}</h3>
+              <p className={styles.trialPromoHint}>{t('billing.trialPromoHint')}</p>
+              {trialPromoResult ? <div className={styles.success}>{trialPromoResult}</div> : null}
               {trialPromoError ? (
-                <div className={styles.error} role="alert">{trialPromoError}</div>
+                <div className={styles.error} role="alert">
+                  {trialPromoError}
+                </div>
               ) : null}
               <div className={styles.trialPromoRow}>
                 <Field
-                  label="Trial extension code"
-                  placeholder="e.g. PARTNER30"
+                  label={t('billing.trialExtensionCode')}
+                  placeholder={t('billing.trialExtensionPlaceholder')}
                   value={trialPromoCode}
                   onChange={(e) => setTrialPromoCode((e.target as HTMLInputElement).value.toUpperCase())}
                   disabled={trialPromoLoading || isBusy}
@@ -231,23 +249,25 @@ function BillingPageInner() {
                 <Button
                   variant="default"
                   loading={trialPromoLoading}
-                  loadingLabel="Applying…"
+                  loadingLabel={t('billing.applying')}
                   disabled={!trialPromoCode.trim() || trialPromoLoading || isBusy}
                   onClick={() => void redeemTrialPromo()}
                 >
-                  Apply
+                  {t('billing.apply')}
                 </Button>
               </div>
             </SurfaceCard>
           ) : null}
 
-          {/* Plan picker — only shown for non-subscribers (trial / grandfathered) */}
-          {!isSubscribed ? (
+          {!isBillingManaged ? (
             <>
-              <div className={styles.promoRow}>
+              {summary.plan === 'PRO' ? (
+                <p className={styles.notice}>{t('billing.legacyNotice')}</p>
+              ) : null}
+              <div className={styles.promoRow} data-tour-anchor="billing-promo">
                 <Field
-                  label="Promo code"
-                  placeholder="e.g. LAUNCH20"
+                  label={t('billing.promoCode')}
+                  placeholder={t('billing.promoPlaceholder')}
                   value={promoCode}
                   onChange={(e) => setPromoCode((e.target as HTMLInputElement).value)}
                   disabled={isBusy}
@@ -255,21 +275,24 @@ function BillingPageInner() {
               </div>
 
               <div className={styles.plans}>
-                {PURCHASABLE.map((p) => (
-                  <SurfaceCard key={p.key} className={styles.planCard}>
-                    <h3 className={styles.planName}>{p.name}</h3>
-                    <p className={styles.planBlurb}>{p.blurb}</p>
-                    <Button
-                      variant="primary"
-                      disabled={isBusy}
-                      loading={checkoutPlan === p.key}
-                      loadingLabel="Redirecting…"
-                      onClick={() => void checkout(p.key)}
-                    >
-                      {`Subscribe to ${p.name}`}
-                    </Button>
-                  </SurfaceCard>
-                ))}
+                {PURCHASABLE.map((p) => {
+                  const planName = t(p.nameKey);
+                  return (
+                    <SurfaceCard key={p.key} className={styles.planCard}>
+                      <h3 className={styles.planName}>{planName}</h3>
+                      <p className={styles.planBlurb}>{t(p.blurbKey)}</p>
+                      <Button
+                        variant="primary"
+                        disabled={isBusy}
+                        loading={checkoutPlan === p.key}
+                        loadingLabel={t('billing.redirecting')}
+                        onClick={() => void checkout(p.key)}
+                      >
+                        {t('billing.subscribeTo', { plan: planName })}
+                      </Button>
+                    </SurfaceCard>
+                  );
+                })}
               </div>
             </>
           ) : null}

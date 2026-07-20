@@ -9,16 +9,28 @@ describe('EntitlementsService', () => {
   const prisma = {
     school: { findUnique: jest.fn() },
     schoolMembership: { count: jest.fn() },
+    schoolSubscription: { findUnique: jest.fn() },
   };
   const service = new EntitlementsService(prisma as unknown as PrismaService);
 
   // `school.findUnique` backs both resolveForSchool (status+plan) and getStorageUsage
   // (storageUsedBytes), so the mock returns all fields.
-  function mockSchool(opts: { plan?: string | null; status?: string; usedBytes?: bigint }) {
+  function mockSchool(opts: {
+    plan?: string | null;
+    status?: string;
+    usedBytes?: bigint;
+    stripeCustomerId?: string | null;
+    stripeSubscriptionId?: string | null;
+  }) {
     prisma.school.findUnique.mockResolvedValue({
       status: opts.status ?? 'ACTIVE',
       storageUsedBytes: opts.usedBytes ?? 0n,
       subscription: { plan: opts.plan ?? null },
+    });
+    prisma.schoolSubscription.findUnique.mockResolvedValue({
+      stripeCustomerId: opts.stripeCustomerId ?? null,
+      stripeSubscriptionId: opts.stripeSubscriptionId ?? null,
+      plan: opts.plan ?? null,
     });
   }
 
@@ -74,6 +86,7 @@ describe('EntitlementsService', () => {
     expect(dto.activeStudentCount).toBe(4);
     expect(dto.seatsRemaining).toBe(6);
     expect(dto.storage.percentUsed).toBe(50);
+    expect(dto.billingManaged).toBe(false);
   });
 
   it('getSummary reports null seatsRemaining for unlimited (PRO)', async () => {
@@ -82,6 +95,18 @@ describe('EntitlementsService', () => {
     const dto = await service.getSummary('s1');
     expect(dto.maxActiveStudents).toBeNull();
     expect(dto.seatsRemaining).toBeNull();
+    expect(dto.billingManaged).toBe(false);
+  });
+
+  it('getSummary billingManaged is true when Stripe customer + subscription exist', async () => {
+    mockSchool({
+      plan: 'STARTER',
+      stripeCustomerId: 'cus_1',
+      stripeSubscriptionId: 'sub_1',
+    });
+    prisma.schoolMembership.count.mockResolvedValue(1);
+    const dto = await service.getSummary('s1');
+    expect(dto.billingManaged).toBe(true);
   });
 
   it('hasFeature/assertFeature reflect the plan feature flags', async () => {

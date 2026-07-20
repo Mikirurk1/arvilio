@@ -2,12 +2,15 @@
 
 import { useRef, useState, type ReactNode } from 'react';
 import { CircleHelp, ExternalLink } from 'lucide-react';
-import { Field, Tooltip } from '../../../components/ui';
+import Link from 'next/link';
+import { Button, Field, Tooltip } from '../../../components/ui';
+import { useCampusT } from '../../../lib/cms';
 import type { IntegrationSecretFieldStatusDto } from '@pkg/types';
 import { SecretStatusLine, secretFieldPlaceholder } from './integration-ui';
 import styles from './ConnectionsPanel.module.scss';
 
 export function FieldLabelHint({ label, tooltip, htmlFor }: { label: string; tooltip: string; htmlFor?: string }) {
+  const t = useCampusT();
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
 
@@ -20,18 +23,19 @@ export function FieldLabelHint({ label, tooltip, htmlFor }: { label: string; too
       ) : (
         <span className={styles.fieldLabel}>{label}</span>
       )}
-      <button
+      <Button
         ref={buttonRef}
+        variant="bare"
         type="button"
         className={styles.infoBtn}
-        aria-label={`How to get ${label}`}
+        aria-label={t('system.connections.fieldHint.aria', { label })}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
       >
         <CircleHelp size={14} aria-hidden />
-      </button>
+      </Button>
       <Tooltip
         open={open}
         targetEl={buttonRef.current}
@@ -81,6 +85,7 @@ export function ConnectionSecretField({
   onChange,
   placeholder,
 }: SecretFieldProps) {
+  const t = useCampusT();
   return (
     <ConnectionField
       id={id}
@@ -94,7 +99,7 @@ export function ConnectionSecretField({
         className={styles.input}
         autoComplete="off"
         value={value}
-        placeholder={placeholder ?? secretFieldPlaceholder(status)}
+        placeholder={placeholder ?? secretFieldPlaceholder(status, t)}
         onChange={(e) => onChange(e.target.value)}
       />
     </ConnectionField>
@@ -135,16 +140,17 @@ export function ConnectionTextField({
 }
 
 export function DocsLink({ href, label }: { href: string; label: string }) {
+  const t = useCampusT();
   return (
-    <a
+    <Link
       className={styles.docsLink}
       href={href}
       target="_blank"
       rel="noopener noreferrer"
       title={label}
     >
-      Docs
+      {t('system.connections.docsShort')}
       <ExternalLink size={13} aria-hidden />
-    </a>
+    </Link>
   );
 }

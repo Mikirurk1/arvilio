@@ -41,6 +41,24 @@ export const TENANT_SCOPED_MODELS = new Set<string>([
   // Global catalogs stay OUT: Language, Word, WordDefinition.
 ]);
 
+/**
+ * Parent-scoped child models (N/A for `TENANT_SCOPED_MODELS`):
+ *
+ * These tables intentionally carry **no** `schoolId` column. Isolation is enforced
+ * via their tenant-scoped parent row (FK + service-layer checks), not row-level
+ * `$extends` filtering:
+ *
+ * - QuizQuestion, QuizAnswer → Quiz.schoolId
+ * - SpeakingTopicAssignment → SpeakingTopic.schoolId
+ * - ChatParticipant, ChatMessage, ChatMessageAttachment → ChatConversation.schoolId
+ * - StudentGroupMember → StudentGroup.schoolId
+ * - LessonMaterial, LibraryMaterial children (file attachments) → LibraryMaterial.schoolId
+ * - ScheduledLessonParticipant → ScheduledLesson.schoolId (create sites manually stamp when nested)
+ *
+ * Do not add these to `TENANT_SCOPED_MODELS` unless a migration adds `schoolId` to
+ * the child table itself (denormalized scoping — only if query patterns require it).
+ */
+
 /** Operations whose `where` must be constrained to the tenant. */
 const WHERE_OPS = new Set([
   'findFirst',

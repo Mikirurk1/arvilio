@@ -28,7 +28,9 @@ import { useChatNavBadge } from '../../hooks/use-chat-nav-badge';
 import { usePracticeNavBadge } from '../../hooks/use-practice-nav-badge';
 import { useSchoolGroupLessons } from '../../hooks/use-school-group-lessons';
 import { canRoleAccessPathname } from '../../lib/auth/route-policy';
-import { getStudentsNavLabel } from '../../lib/nav/students-nav-label';
+import { stripLocalePrefix } from '@pkg/types';
+import { mapCampusNavToItems, useCampusNavSections, useCampusT } from '../../lib/cms';
+import { localizeNavItem, navSectionLabelKey } from '../../lib/cms/nav-i18n';
 import styles from './Sidebar.module.scss';
 
 export type NavItem = {
@@ -40,9 +42,8 @@ export type NavItem = {
 };
 
 /**
- * Групи за задачами учня («навігація курсу», redesign v2 V1-01), не admin-menu.
- * Platform — операційна зона школи/платформи; RBAC ховає її від учнів,
- * порожні секції відфільтровує useVisibleNavSections.
+ * Legacy hardcoded nav (labels only). Structure SoT is Payload `campus-nav`
+ * via `useCampusNavSections` / `CAMPUS_NAV_SEED`. Kept for reference & tests.
  */
 export const navSections = [
   {
@@ -108,36 +109,31 @@ function NavIcon({ name }: { name: string }) {
   return <Icon className={styles.iconSvg} size={18} strokeWidth={2} aria-hidden />;
 }
 
-function findNavItem(href: string) {
-  for (const { items } of navSections) {
-    const item = items.find((i) => i.href === href);
-    if (item) return item;
-  }
-  return undefined;
-}
-
 export function useVisibleNavSections() {
   const practiceTotal = usePracticeNavBadge();
   const chatUnread = useChatNavBadge();
   const roleKey = useActiveRoleKey();
   const { enabled: groupLessonsEnabled } = useSchoolGroupLessons();
+  const t = useCampusT();
+  const cmsSections = useCampusNavSections();
+  const baseSections = mapCampusNavToItems(cmsSections);
 
-  return navSections
+  return baseSections
     .map((section) => ({
-      ...section,
+      sectionKey: section.sectionKey,
+      section: t(navSectionLabelKey(section.sectionKey) ?? navSectionLabelKey(section.section) ?? section.sectionKey) || section.section,
       items: section.items
         .filter((item) => canRoleAccessPathname(item.href, roleKey))
         .map((item) => {
-          if (item.href === '/students') {
-            return { ...item, label: getStudentsNavLabel(groupLessonsEnabled) };
-          }
+          const studentsKey = groupLessonsEnabled ? 'nav.studentsGroups' : 'nav.students';
+          const localized = localizeNavItem(item, t, studentsKey);
           if (item.href === '/practice' && practiceTotal > 0) {
-            return { ...item, badge: String(practiceTotal), badgeColor: 'green' as const };
+            return { ...localized, badge: String(practiceTotal), badgeColor: 'green' as const };
           }
           if (item.href === '/chat' && chatUnread > 0) {
-            return { ...item, badge: String(chatUnread), badgeColor: 'green' as const };
+            return { ...localized, badge: String(chatUnread), badgeColor: 'green' as const };
           }
-          return item;
+          return localized;
         }),
     }))
     .filter((section) => section.items.length > 0);
@@ -152,22 +148,25 @@ export function SidebarNav({
   variant?: 'rail' | 'drawer';
   onNavigate?: () => void;
 }) {
-  const pathname = usePathname();
+  const pathname = stripLocalePrefix(usePathname() || '/').pathname;
   const visibleNavItems = useVisibleNavSections();
+  const t = useCampusT();
   const [hoveredHref, setHoveredHref] = useState<string | null>(null);
   const rowRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const isDrawer = variant === 'drawer';
   const showCollapsed = isDrawer ? false : collapsed;
 
-  const hoveredItem = hoveredHref ? findNavItem(hoveredHref) : undefined;
+  const hoveredItem = hoveredHref
+    ? visibleNavItems.flatMap((s) => s.items).find((i) => i.href === hoveredHref)
+    : undefined;
   const hoveredEl = hoveredHref ? rowRefs.current.get(hoveredHref) ?? null : null;
   const showTip = showCollapsed && hoveredHref && hoveredItem;
 
   return (
     <>
-      <nav className={styles.nav} aria-label="Main navigation">
-        {visibleNavItems.map(({ section, items }) => (
-          <div key={section} className={styles.section}>
+      <nav className={styles.nav} aria-label={t('nav.aria.main')}>
+        {visibleNavItems.map(({ section, sectionKey, items }) => (
+          <div key={sectionKey} className={styles.section}>
             <div className={styles.sectionTitle}>{section}</div>
             {items.map(({ href, label, icon, badge, badgeColor }) => {
               const active =
@@ -189,6 +188,7 @@ export function SidebarNav({
                 >
                   <Link
                     href={href}
+                    data-tour-nav={href}
                     className={`${styles.item} ${active ? styles.active : ''} ${isDrawer ? styles.itemDrawer : ''}`}
                     aria-current={active ? 'page' : undefined}
                     aria-label={showCollapsed ? label : undefined}

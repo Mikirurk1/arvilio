@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react';
 import { DEFAULT_STAFF_PAYOUT_DEFAULTS, type StaffPayoutDefaultsDto } from '@pkg/types';
 import { TabPanelCard } from '../../../components/ui';
 import { StaffPayoutDefaultsPanel } from '../../../features/staff-payout';
+import { useCampusT } from '../../../lib/cms';
 import { useFinanceStore } from '../../../stores/finance-store';
 
 export function PayoutsDefaultsPanel() {
+  const t = useCampusT();
   const defaultsSlice = useFinanceStore((s) => s.defaults);
   const fetchDefaults = useFinanceStore((s) => s.fetchDefaults);
   const updateDefaults = useFinanceStore((s) => s.updateDefaults);
@@ -32,9 +34,9 @@ export function PayoutsDefaultsPanel() {
     try {
       const saved = await updateDefaults(draft);
       setDraft(saved);
-      setFeedback('Payout defaults saved.');
+      setFeedback(t('system.payouts.saved'));
     } catch (error) {
-      setFeedback(error instanceof Error ? error.message : 'Save failed');
+      setFeedback(error instanceof Error ? error.message : t('system.payouts.error.save'));
     } finally {
       setSaving(false);
     }

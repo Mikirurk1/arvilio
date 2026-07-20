@@ -9,6 +9,29 @@ export {
 } from './application/entitlements.service';
 export { StorageAccountingService } from './application/storage-accounting.service';
 export { PlatformSubscriptionService } from './application/platform-subscription.service';
+export {
+  PlatformBillingRailsService,
+  type PlatformBillingRailsDto,
+  type PlatformBillingRailDto,
+  type CampusSubscriptionProductDto,
+  type PlatformRailTestResult,
+  type ResolvedPlatformStripeConfig,
+  normalizeBillingCountryInput,
+} from './application/platform-billing-rails.service';
+export {
+  PLATFORM_BILLING_RAIL_CATALOG,
+  resolvePlatformRailsForRegion,
+  pricingModeForRail,
+  type PlatformRailId,
+} from './shared/platform-billing-rails.catalog';
+export {
+  readCampusSubscriptionProduct,
+  resolveOfferFromProduct,
+  planPriceFromOffer,
+  coerceCampusSubscriptionRails,
+  type CampusSubscriptionProductConfig,
+  type ResolvedCampusSubscriptionOffer,
+} from './shared/platform-billing-products';
 export { PURCHASABLE_PLANS } from './shared/platform-subscription.util';
 export {
   PLAN_CATALOG,

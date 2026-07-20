@@ -6,6 +6,7 @@ import { ArrowLeft, Play } from 'lucide-react';
 import { countIrregularVerbs, listIrregularVerbs, type IrregularVerbTier } from '@pkg/types';
 import { Button, Field, PageHeader, SegmentedControl, SurfaceCard } from '../../../components/ui';
 import { useAuth } from '../../../lib/auth-context';
+import { useCampusT } from '../../../lib/cms';
 import { usePracticeSessionTracker } from '../../../lib/practice-session-tracker';
 import { IrregularVerbsPlaySession } from '../../../features/irregular-verbs/IrregularVerbsPlaySession';
 import { IrregularVerbsPlaySetup } from '../../../features/irregular-verbs/IrregularVerbsPlaySetup';
@@ -37,6 +38,7 @@ function defaultQuestionCount(tier: IrregularVerbTier): IrregularVerbQuestionCou
 }
 
 export default function IrregularVerbsPracticePage() {
+  const t = useCampusT();
   const { user } = useAuth();
   const [tier, setTier] = useState<IrregularVerbTier>('common');
   const [search, setSearch] = useState('');
@@ -48,7 +50,7 @@ export default function IrregularVerbsPracticePage() {
 
   const practiceSessionActive =
     playPhase === 'setup' || playPhase === 'quiz' || playPhase === 'result';
-  usePracticeSessionTracker(user?.id, 'games', practiceSessionActive);
+  usePracticeSessionTracker(user?.id, 'game', practiceSessionActive);
 
   useEffect(() => {
     setTier(readStoredTier());
@@ -80,8 +82,11 @@ export default function IrregularVerbsPracticePage() {
 
   const pageSubtitle =
     playPhase === 'table'
-      ? `${commonCount} common · ${extendedCount} total · study the table or start a drill`
-      : 'Three Forms Drill — pick the missing past form';
+      ? t('irregular.subtitle.table', { common: commonCount, total: extendedCount })
+      : t('irregular.subtitle.drill');
+
+  const tierLabel =
+    tier === 'common' ? t('irregular.tierLabel.common') : t('irregular.tierLabel.extended');
 
   const openSetup = () => {
     setPlayPhase('setup');
@@ -117,11 +122,11 @@ export default function IrregularVerbsPracticePage() {
           titleClassName={styles.pageTitle}
           subtitleClassName={styles.pageSub}
           back={
-            <Link href="/practice" className={styles.backLink} aria-label="Back to practice">
+            <Link href="/practice" className={styles.backLink} aria-label={t('irregular.backAria')}>
               <ArrowLeft size={16} aria-hidden />
             </Link>
           }
-          title="Irregular verbs"
+          title={t('irregular.title')}
           subtitle={pageSubtitle}
         />
 
@@ -130,34 +135,37 @@ export default function IrregularVerbsPracticePage() {
             <SegmentedControl
               value={tier}
               onValueChange={setTier}
-              ariaLabel="Verb list scope"
+              ariaLabel={t('irregular.tier.aria')}
               className={styles.tierSwitch}
               options={[
-                { value: 'common', label: `Common (${commonCount})` },
-                { value: 'extended', label: `Extended (${extendedCount})` },
+                { value: 'common', label: t('irregular.tier.common', { count: commonCount }) },
+                {
+                  value: 'extended',
+                  label: t('irregular.tier.extended', { count: extendedCount }),
+                },
               ]}
             />
 
             <Field
-              label="Search verbs"
+              label={t('irregular.search')}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search base or past forms…"
+              placeholder={t('irregular.searchPlaceholder')}
             />
 
             <IrregularVerbsTable verbs={verbs} />
 
-            <div className={styles.playBar}>
+            <div className={styles.playBar} data-tour-anchor="irregular-play">
               <SurfaceCard className={styles.playBarCard}>
                 <div className={styles.playBarText}>
-                  <p className={styles.playBarTitle}>Ready to practice?</p>
+                  <p className={styles.playBarTitle}>{t('irregular.play.ready')}</p>
                   <p className={styles.playBarSub}>
-                    Run a multiple-choice drill on the {tier} set ({poolForPlay.length} verbs).
+                    {t('irregular.play.sub', { tier: tierLabel, count: poolForPlay.length })}
                   </p>
                 </div>
                 <Button type="button" disabled={!canStartDrill} onClick={openSetup}>
                   <Play size={18} aria-hidden />
-                  Play
+                  {t('irregular.play.button')}
                 </Button>
               </SurfaceCard>
             </div>

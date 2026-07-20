@@ -1738,6 +1738,12 @@ export class IntegrationSecretStatusesType {
   openaiWhisperApiKey!: IntegrationSecretFieldStatusType;
 
   @Field(() => IntegrationSecretFieldStatusType)
+  llmApiKey!: IntegrationSecretFieldStatusType;
+
+  @Field(() => IntegrationSecretFieldStatusType)
+  anthropicApiKey!: IntegrationSecretFieldStatusType;
+
+  @Field(() => IntegrationSecretFieldStatusType)
   telegramBotToken!: IntegrationSecretFieldStatusType;
 
   @Field(() => IntegrationSecretFieldStatusType)
@@ -1877,12 +1883,36 @@ export class PlatformMediaCaptionsConfigType {
 }
 
 @ObjectType()
+export class PlatformLlmConfigType {
+  @Field()
+  enabled!: boolean;
+
+  @Field()
+  provider!: string;
+
+  @Field({ nullable: true })
+  baseUrl?: string | null;
+
+  @Field({ nullable: true })
+  model?: string | null;
+
+  @Field(() => Int)
+  maxTokens!: number;
+
+  @Field()
+  temperature!: number;
+}
+
+@ObjectType()
 export class PlatformIntegrationConfigType {
   @Field(() => PlatformTranslationConfigType)
   translation!: PlatformTranslationConfigType;
 
   @Field(() => PlatformMediaCaptionsConfigType)
   mediaCaptions!: PlatformMediaCaptionsConfigType;
+
+  @Field(() => PlatformLlmConfigType)
+  llm!: PlatformLlmConfigType;
 
   @Field(() => PlatformSmtpConfigType)
   smtp!: PlatformSmtpConfigType;
@@ -1922,6 +1952,12 @@ export class PlatformIntegrationSecretsType {
 
   @Field({ nullable: true })
   openaiWhisperApiKey?: string | null;
+
+  @Field({ nullable: true })
+  llmApiKey?: string | null;
+
+  @Field({ nullable: true })
+  anthropicApiKey?: string | null;
 
   @Field({ nullable: true })
   telegramBotToken?: string | null;
@@ -2078,12 +2114,36 @@ export class PlatformMediaCaptionsConfigInput {
 }
 
 @InputType()
+export class PlatformLlmConfigInput {
+  @Field({ nullable: true })
+  enabled?: boolean;
+
+  @Field({ nullable: true })
+  provider?: string;
+
+  @Field({ nullable: true })
+  baseUrl?: string | null;
+
+  @Field({ nullable: true })
+  model?: string | null;
+
+  @Field(() => Int, { nullable: true })
+  maxTokens?: number;
+
+  @Field({ nullable: true })
+  temperature?: number;
+}
+
+@InputType()
 export class PlatformIntegrationConfigInput {
   @Field(() => PlatformTranslationConfigInput, { nullable: true })
   translation?: PlatformTranslationConfigInput;
 
   @Field(() => PlatformMediaCaptionsConfigInput, { nullable: true })
   mediaCaptions?: PlatformMediaCaptionsConfigInput;
+
+  @Field(() => PlatformLlmConfigInput, { nullable: true })
+  llm?: PlatformLlmConfigInput;
 
   @Field(() => PlatformSmtpConfigInput, { nullable: true })
   smtp?: PlatformSmtpConfigInput;
@@ -2123,6 +2183,12 @@ export class PlatformIntegrationSecretsInput {
 
   @Field({ nullable: true })
   openaiWhisperApiKey?: string | null;
+
+  @Field({ nullable: true })
+  llmApiKey?: string | null;
+
+  @Field({ nullable: true })
+  anthropicApiKey?: string | null;
 
   @Field({ nullable: true })
   telegramBotToken?: string | null;
@@ -2357,6 +2423,9 @@ export class LessonPackageType {
   label!: string;
 
   @Field({ nullable: true })
+  description?: string | null;
+
+  @Field({ nullable: true })
   currency?: string | null;
 
   @Field({ nullable: true })
@@ -2373,6 +2442,9 @@ export class ResolvedLessonPackageType {
 
   @Field()
   label!: string;
+
+  @Field({ nullable: true })
+  description?: string | null;
 
   @Field()
   currency!: string;
@@ -2781,6 +2853,9 @@ export class LessonPackageInput {
 
   @Field()
   label!: string;
+
+  @Field({ nullable: true })
+  description?: string | null;
 
   @Field({ nullable: true })
   currency?: string | null;

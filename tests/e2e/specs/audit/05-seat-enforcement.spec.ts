@@ -32,7 +32,7 @@ test('5C.7 create account beyond seat limit → error shown, no navigation', asy
   await expect(page.getByRole('heading', { name: /account administration/i })).toBeVisible({ timeout: 10_000 });
 
   const emailField = page.getByLabel(/email/i).first();
-  await emailField.fill(`seat-probe-${Date.now()}@soenglish.test`);
+  await emailField.fill(`seat-probe-${Date.now()}@arvilio.test`);
   await page.getByRole('button', { name: /create account/i }).click();
 
   // UI surfaces the seat-limit error and stays on /admin

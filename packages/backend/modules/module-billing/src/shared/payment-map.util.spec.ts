@@ -314,7 +314,7 @@ describe('getPaymentMethodStatuses', () => {
             recipientTaxId: '1234567890',
             paymentPurpose: 'За ведення уроків',
             importantNotes: ['SEPA only'],
-            beneficiaryName: 'SoEnglish',
+            beneficiaryName: 'Arvilio',
             iban: 'DE89370400440532013000',
             bic: 'DEUTDEFF',
           },
@@ -340,7 +340,7 @@ describe('getPaymentMethodStatuses', () => {
             recipientTaxId: '1234567890',
             paymentPurpose: 'За ведення уроків',
             importantNotes: ['SEPA only'],
-            beneficiaryName: 'SoEnglish',
+            beneficiaryName: 'Arvilio',
             iban: 'DE89370400440532013000',
             bic: 'DEUTDEFF',
           },
@@ -437,7 +437,7 @@ describe('getPaymentMethodStatuses', () => {
       wayforpay: {
         mode: 'live',
         liveMerchantAccount: 'merchant',
-        liveMerchantDomainName: 'soenglish.com',
+        liveMerchantDomainName: 'arvilio.com',
       },
     });
     let method = getPaymentMethodStatuses(config, []).find((m) => m.id === 'wayforpay');

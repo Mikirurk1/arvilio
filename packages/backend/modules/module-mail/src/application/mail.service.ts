@@ -236,8 +236,8 @@ function buildFrom(
 
   const match = mailFrom.match(/^"?([^"<]*)"?\s*<(.+)>$/);
   if (match) {
-    const platformName = (match[1]!.trim() || 'SoEnglish').replace(/[\r\n]/g, '');
+    const platformName = (match[1]!.trim() || 'Arvilio').replace(/[\r\n]/g, '');
     return { name: `${safeName} via ${platformName}`, address: match[2]!.trim() };
   }
-  return { name: `${safeName} via SoEnglish`, address: mailFrom.trim() };
+  return { name: `${safeName} via Arvilio`, address: mailFrom.trim() };
 }

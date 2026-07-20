@@ -1,6 +1,6 @@
 # Backend (`packages/backend`)
 
-NestJS domain modules for SoEnglish. Import via `@be/*` path aliases.
+NestJS domain modules for Arvilio. Import via `@be/*` path aliases.
 
 ## Packages
 

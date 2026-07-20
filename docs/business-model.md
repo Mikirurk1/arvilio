@@ -1,10 +1,12 @@
 # arvilio — Business Model & Commercial Plan
 
 > **Working product/platform name: `arvilio`** (domains `.com/.io/.org/.app/.ai` free as of 2026-06-16).
-> `SoEnglish` (current codebase) becomes the first school/tenant on the arvilio platform.
+> `Arvilio` (current codebase) becomes the first school/tenant on the arvilio platform.
 
 
-> Companion to `docs/multi-tenant-execution-plan.md` (how we build) and ADR-005…009 (what we decided).
+> Companion to `docs/multi-tenant-execution-plan.md` (how we build), ADR-005…009 (what we decided),
+> [`arvilio-ecosystem-control-plane.md`](./arvilio-ecosystem-control-plane.md) (ecosystem shape, Control Plane, monolith advice),
+> and [`arvilio-marketing-site-payload-plan.md`](./arvilio-marketing-site-payload-plan.md) (public `arvilio.app` hub: brand-kit, product registry, i18n — Payload extraction).
 > This file = **how we make money and grow**. Numbers below are a proposed v1 — assumptions are tagged
 > ⚠️ and the strategic forks are listed in "Open decisions" at the end.
 
@@ -12,15 +14,14 @@
 
 ## 1. What we are
 
-**SoEnglish is the operating system for language schools — plus two demand/supply services on top: a student-acquisition marketplace and a tutor-recruiting service.**
+**Arvilio** is an education ecosystem: **Campus** (run courses) + later **Connect** (match learners, tutors, and campuses) on one shared platform and one User identity.
 
-Three product pillars:
+Product names (see [`arvilio-ecosystem-control-plane.md`](./arvilio-ecosystem-control-plane.md) §1):
 
-- **Pillar 1 — B2B SaaS (core):** a school runs its entire operation inside SoEnglish — teachers, students, scheduling, lessons (video), materials, vocabulary, quizzes, chat, billing to its own learners, payouts to its staff. School pays SoEnglish a subscription. *(Edvibe is the closest comparable.)*
-- **Pillar 2 — Student marketplace (demand):** learners discover schools/tutors on the platform; SoEnglish matches them to partner schools/teachers and earns a **finder fee** on platform-sourced students. *(Preply/italki are comparables.)*
-- **Pillar 3 — Tutor-recruiting service (supply):** a two-sided talent layer — help **schools hire tutors** and help **tutors find positions/students**. Monetized by placement fees and recruiting tools. This also feeds Pillar 1 (recruited tutors often onboard their school onto our SaaS) and Pillar 2 (more tutors = more marketplace supply).
+- **Arvilio Campus (Pillar 1 — B2B SaaS, core):** a campus / academy / studio runs operations inside Arvilio — teachers, learners, scheduling, lessons (video), materials, vocabulary, quizzes, chat, billing to its own learners, payouts to staff. The organization pays Arvilio a subscription. *(Edvibe is the closest comparable.)*
+- **Arvilio Connect (Pillars 2+3 — matching network, later):** one product surface where learners find tutors/campuses, tutors take private learners **and/or** seek a campus role, and campuses hire tutors / receive platform-sourced learners. Monetized by **finder fee** (learner we supply) and **placement fee** (tutor we place) — not an ongoing tax on a campus’s own learners. *(Preply-like discovery + recruiting, without Preply’s ongoing cut on owned students.)*
 
-This is a **hybrid**, not a "Preply clone": Preply taxes every lesson ongoing; we sell the school its own software (a school's *own* students are never taxed) and only charge when **we** supply a student (finder fee) or **we** supply a tutor (placement fee).
+This is a **hybrid**, not a "Preply clone": Preply taxes every lesson ongoing; we sell the campus its own software (its *own* learners are never taxed) and only charge when **we** supply a learner or **we** supply a tutor.
 
 ### Benchmark — how the comparables work (June 2026)
 | Platform | Model | Pricing | Lesson for us |
@@ -83,7 +84,7 @@ We price on **monthly active students (MAS)** as the primary meter — it scales
 
 | Tier | Price (intl) | Price (UA) | Active students | Teachers | **Storage** | Key features |
 |------|-------------|-----------|-----------------|----------|-------------|--------------|
-| **Free** | €0 | ₴0 | up to 5 | 1 | **1 GB** | Core teaching, `slug.soenglish.app`, SoEnglish branding, no payments-out |
+| **Free** | €0 | ₴0 | up to 5 | 1 | **1 GB** | Core teaching, `slug.arvilio.app`, Arvilio branding, no payments-out |
 | **Starter** | €29/mo | ₴990/mo | up to 30 | up to 3 | **10 GB** | Student billing (Layer A), basic reports, email support |
 | **Pro** ⭐ | €79/mo | ₴2 900/mo | up to 150 | up to 15 | **100 GB** | Custom domain, white-label branding, AI assist, staff payouts, priority support |
 | **Business** | from €199/mo | from ₴7 500/mo | 150+ (tiered) | unlimited | **500 GB+** (tiered) | SSO, SLA, dedicated success, API, advanced analytics |
@@ -93,7 +94,7 @@ We price on **monthly active students (MAS)** as the primary meter — it scales
 - **Annual billing:** 2 months free (≈17% off) — improves cash + retention.
 - **Overage:** above-tier MAS → auto-suggest upgrade (soft cap with grace), not hard cutoff mid-month.
 - **Trial:** 7 days free, **no card** (→ 14 days with a promo code). See execution plan Phase 4.5.
-- **Free tier purpose:** PLG funnel + marketplace supply, deliberately limited (no payouts, SoEnglish-branded) so growing schools upgrade.
+- **Free tier purpose:** PLG funnel + marketplace supply, deliberately limited (no payouts, Arvilio-branded) so growing schools upgrade.
 
 ### 4.3 Add-ons (à la carte, mostly Pro+)
 - AI pack (auto lesson summaries, quiz/vocab generation, speaking feedback): €/mo per school or usage-metered.

@@ -1,6 +1,6 @@
 ---
 tags: [concept, email, auth]
-updated: 2026-05-16
+updated: 2026-07-20
 ---
 
 # Transactional email
@@ -27,29 +27,60 @@ See [[concepts/profile-notifications]] for prefs and schedules.
 
 ## SMTP configuration
 
-Super-admin configures delivery in **System → Email**:
+Transport is **provider-agnostic SMTP** (nodemailer). Mailtrap is only one possible host — any SMTP works.
+
+### Where to configure (platform-global)
+
+| UI | Who | Notes |
+|----|-----|--------|
+| **Control Plane → Settings → Transactional email** | Platform operators | Primary. REST `GET/PUT /api/platform/smtp`, verify, test |
+| **Campus → System → Email** | SUPER_ADMIN | Same `PlatformSettings` row; presets shared |
+
+School-level SMTP override is **not** built yet (future multi-tenant seam).
 
 | Mode | Behavior |
 |------|----------|
-| **Server default** | Uses deployment `SMTP_*` / `MAIL_FROM` from the API process environment (e.g. Mailtrap in dev). |
-| **Custom SMTP** | Host, port, user, password, and from address stored in `PlatformSettings.integrationConfig` / encrypted `integrationSecrets` (same key as payment secrets: `PAYMENT_SECRETS_ENCRYPTION_KEY`). |
+| **Server default** | Uses deployment `SMTP_*` / `MAIL_FROM` from the API process environment. |
+| **Custom SMTP** | Host, port, user, password, and from address stored in `PlatformSettings.integrationConfig` / encrypted `integrationSecrets` (`PAYMENT_SECRETS_ENCRYPTION_KEY` / `PLATFORM_SECRETS_ENCRYPTION_KEY`). |
 
-`platformIntegrationSettings.secretsStorageAvailable` reflects whether the API has that encryption key loaded. **Config-only** SMTP saves (from address, host, port, user — without a new password field) do not re-encrypt secrets and work without the key. Saving a **new** custom SMTP password (or other integration secrets) requires the key; the API returns `400` with an explicit message if it is missing.
+Presets (host/port/secure only): Resend, Brevo, Amazon SES, Mailtrap, Custom — see `SMTP_PROVIDER_PRESETS` in `@pkg/types`.
+
+`platformIntegrationSettings.secretsStorageAvailable` reflects whether the API has that encryption key loaded. **Config-only** SMTP saves (from address, host, port, user — without a new password field) do not re-encrypt secrets and work without the key. Saving a **new** custom SMTP password requires the key.
 
 `MailService` resolves SMTP via `getPlatformIntegrationRuntime()` (DB + env fallback). If no host is available, user creation still succeeds; `welcomeEmailSent` is `false`.
 
-## Super-admin test tools
+### Provider alternatives (when Mailtrap limits hit)
 
-Route: `/system` → **Email** tab (super-admin only): verify connection (form draft), save SMTP, then send test. After **Save SMTP**, the **runtime bar** refetches `systemMailStatus` in place (silent refresh; form stays mounted). UI: `EmailPanel.tsx`.
+| Provider | Typical SMTP | Notes |
+|----------|--------------|--------|
+| **Resend** | `smtp.resend.com:465` (user `resend`, pass = API key) | Good DX; verify domain for prod |
+| **Brevo** | `smtp-relay.brevo.com:587` | Generous free tier |
+| **Amazon SES** | `email-smtp.<region>.amazonaws.com:587` | Cheap at volume |
+| **Postmark / Mailgun** | their SMTP hosts | Paid; reliable |
+| **Mailtrap** | `sandbox.smtp.mailtrap.io:2525` | Dev capture only |
 
-GraphQL:
+No HTTP SDK required for this slice — SMTP only.
 
-- `platformIntegrationSettings` / `updatePlatformIntegrationSettings` — translation, SMTP, OAuth, Telegram (see [[concepts/web-app#System control room]])
+## Super-admin / platform test tools
+
+- Platform Settings: verify connection (form draft), save, send test welcome.
+- Campus `/system` → **Email** tab: same via GraphQL.
+
+GraphQL (Campus):
+
+- `platformIntegrationSettings` / `updatePlatformIntegrationSettings`
 - `systemMailStatus` — resolved SMTP snapshot (`smtpMode`: `server_default` \| `custom`)
-- `verifySmtpConnection(input!)` — required `config.smtp` draft from the Email form (tests exact host/port in the form, not only saved runtime / `.env`). Returns `{ ok, message }` with the host:port verified. **Does not send mail** — only opens SMTP; use `sendTestWelcomeEmail` for delivery.
-- `sendTestWelcomeEmail(input: { to })` — sends `welcome-account` template with sample password `Example-Temp-Pass1`
+- `verifySmtpConnection(input!)` — draft from the Email form
+- `sendTestWelcomeEmail(input: { to })`
+
+REST (Control Plane):
+
+- `GET/PUT /api/platform/smtp`
+- `POST /api/platform/smtp/verify`
+- `POST /api/platform/smtp/test` — `{ to }`
 
 ## Related
 
 - [[entities/user]]
 - [[concepts/auth-rbac]]
+- [[concepts/multi-tenancy]] — platform vs future school SMTP

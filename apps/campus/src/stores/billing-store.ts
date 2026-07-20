@@ -213,7 +213,13 @@ export const useBillingStore = create<BillingState>()(
           input: {
             enabledMethods: input.enabledMethods,
             config: {
-              packages: input.config.packages.map(({ id, lessons, label, currency }) => ({ id, lessons, label, currency })),
+              packages: input.config.packages.map(({ id, lessons, label, description, currency }) => ({
+                id,
+                lessons,
+                label,
+                description: description ?? null,
+                currency,
+              })),
               defaultPricePerLessonMinor: input.config.defaultPricePerLessonMinor,
               pricePerLessonByCurrency: input.config.pricePerLessonByCurrency,
               defaultCurrency: input.config.defaultCurrency,
@@ -354,7 +360,7 @@ export const useBillingStore = create<BillingState>()(
         return data.createLessonPurchaseCheckout.checkoutUrl;
       },
     }),
-    { name: 'soenglish/billing' },
+    { name: 'arvilio/billing' },
   ),
 );
 

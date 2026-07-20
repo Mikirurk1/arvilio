@@ -51,22 +51,31 @@ export function todayDateKey(now = new Date()): string {
   return `${y}-${m}-${d}`;
 }
 
-export function formatDashboardSubtitle(streak: LearningStreakDto | null, now = new Date()): string {
-  const dateStr = new Intl.DateTimeFormat(undefined, {
+/** Locale-aware date for dashboard page header (streak copy is composed via `t()`). */
+export function formatDashboardDate(now = new Date(), locale: string = 'en'): string {
+  return new Intl.DateTimeFormat(locale === 'uk' ? 'uk-UA' : 'en-GB', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
   }).format(now);
+}
+
+/** @deprecated Prefer formatDashboardDate + campus-strings `dashboard.subtitle.withStreak`. */
+export function formatDashboardSubtitle(streak: LearningStreakDto | null, now = new Date()): string {
+  const dateStr = formatDashboardDate(now, 'en');
   if (!streak || streak.streakDays === 0) return dateStr;
   return `${dateStr} · You're on a ${streak.streakDays}-day streak — keep it up!`;
 }
 
-function formatLessonTime(startTime: string): string {
+function formatLessonTime(startTime: string, locale: string = 'en'): string {
   const [h, m] = startTime.split(':').map(Number);
   if (Number.isNaN(h) || Number.isNaN(m)) return startTime;
-  const period = h >= 12 ? 'PM' : 'AM';
-  const hour12 = h % 12 || 12;
-  return `${hour12}:${String(m).padStart(2, '0')} ${period}`;
+  const dt = new Date();
+  dt.setHours(h, m, 0, 0);
+  return new Intl.DateTimeFormat(locale === 'uk' ? 'uk-UA' : 'en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(dt);
 }
 
 function statusLabel(status: ScheduledLessonBackendDto['status']): string {
@@ -134,18 +143,32 @@ export function lessonCountByDate(
   return counts;
 }
 
-export function formatLessonTime12h(startTime: string): string {
-  return formatLessonTime(startTime);
+export function formatLessonTime12h(startTime: string, locale: string = 'en'): string {
+  return formatLessonTime(startTime, locale);
 }
 
-export function formatShortWeekdayDate(dateKey: string, now = new Date()): string {
+type CampusTranslate = (key: string, vars?: Record<string, string | number>) => string;
+
+function monthTitle(year: number, monthIndex0: number, locale: string): string {
+  return new Intl.DateTimeFormat(locale === 'uk' ? 'uk-UA' : 'en-GB', {
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(year, monthIndex0, 1));
+}
+
+export function formatShortWeekdayDate(
+  dateKey: string,
+  now = new Date(),
+  opts?: { locale?: string; todayLabel?: string; tomorrowLabel?: string },
+): string {
   const today = todayDateKey(now);
-  if (dateKey === today) return 'Today';
+  if (dateKey === today) return opts?.todayLabel ?? 'Today';
   const tomorrow = addDaysToDateKey(today, 1);
-  if (dateKey === tomorrow) return 'Tomorrow';
+  if (dateKey === tomorrow) return opts?.tomorrowLabel ?? 'Tomorrow';
   const [y, m, d] = dateKey.split('-').map(Number);
   const dt = new Date(y, m - 1, d);
-  return new Intl.DateTimeFormat(undefined, { weekday: 'short', month: 'short', day: 'numeric' }).format(
+  const locale = opts?.locale === 'uk' ? 'uk-UA' : opts?.locale === 'en' ? 'en-GB' : undefined;
+  return new Intl.DateTimeFormat(locale, { weekday: 'short', month: 'short', day: 'numeric' }).format(
     dt,
   );
 }
@@ -157,18 +180,26 @@ export function resolveDashboardHero(
     summary: DashboardSummaryDto | null;
     overview: VocabularyOverviewDto | null;
     today?: string;
+    locale?: string;
   },
+  t?: CampusTranslate,
 ): DashboardHero {
+  const translate: CampusTranslate = t ?? ((key) => key);
+  const locale = input.locale ?? 'en';
   const today = input.today ?? todayDateKey();
   const todayLessons = pickTodayLessons(input.lessons, today);
   const nextPlanned = todayLessons.find((l) => l.status === 'planned') ?? todayLessons[0];
 
   if (nextPlanned) {
+    const statusKey = `dashboard.lessonStatus.${nextPlanned.status}`;
+    const statusText = translate(statusKey);
     return {
       kind: 'lesson',
       lessonId: nextPlanned.id,
       title: nextPlanned.title,
-      subtitle: `${formatLessonTime(nextPlanned.startTime)} · ${statusLabel(nextPlanned.status)}`,
+      subtitle: `${formatLessonTime(nextPlanned.startTime, locale)} · ${
+        statusText === statusKey ? statusLabel(nextPlanned.status) : statusText
+      }`,
       href: `/lessons/${nextPlanned.id}`,
       progressPct: null,
     };
@@ -181,8 +212,11 @@ export function resolveDashboardHero(
     const progressPct = total > 0 ? Math.round((mastered / total) * 100) : 0;
     return {
       kind: 'vocabulary',
-      title: 'Vocabulary review',
-      subtitle: `${reviewCount} word${reviewCount === 1 ? '' : 's'} due`,
+      title: translate('dashboard.hero.vocabReview'),
+      subtitle: translate(
+        reviewCount === 1 ? 'dashboard.hero.wordDue' : 'dashboard.hero.wordsDue',
+        { count: reviewCount },
+      ),
       href: '/practice/vocabulary',
       progressPct,
     };
@@ -190,21 +224,29 @@ export function resolveDashboardHero(
 
   return {
     kind: 'practice',
-    title: input.isStudent ? 'Keep practicing' : 'Your teaching day',
-    subtitle: input.isStudent ? 'Build your streak with a quick session' : 'Open practice tools and resources',
+    title: input.isStudent
+      ? translate('dashboard.hero.keepPracticing')
+      : translate('dashboard.hero.teachingDay'),
+    subtitle: input.isStudent
+      ? translate('dashboard.hero.practiceHint')
+      : translate('dashboard.hero.staffPracticeHint'),
     href: '/practice',
     progressPct: null,
   };
 }
 
-export function monthCalendarMeta(streak: LearningStreakDto | null, now = new Date()) {
+export function monthCalendarMeta(
+  streak: LearningStreakDto | null,
+  now = new Date(),
+  locale: string = 'en',
+) {
   if (!streak) {
     const year = now.getFullYear();
     const monthIndex = now.getMonth() + 1;
     const daysInMonth = new Date(year, monthIndex, 0).getDate();
     const leadingBlanks = (new Date(year, monthIndex - 1, 1).getDay() + 6) % 7;
     return {
-      title: `${MONTH_NAMES[monthIndex - 1]} ${year}`,
+      title: monthTitle(year, monthIndex - 1, locale),
       days: Array.from({ length: daysInMonth }, (_, i) => i + 1),
       leadingBlanks,
       today: now.getDate(),
@@ -220,7 +262,7 @@ export function monthCalendarMeta(streak: LearningStreakDto | null, now = new Da
     streak.year === now.getFullYear() && monthIndex === now.getMonth() + 1;
 
   return {
-    title: `${streak.month} ${streak.year}`,
+    title: monthTitle(streak.year, Math.max(monthIndex - 1, 0), locale),
     days: Array.from({ length: daysInMonth }, (_, i) => i + 1),
     leadingBlanks,
     today: isCurrentMonth ? now.getDate() : -1,
@@ -235,7 +277,15 @@ export function vocabStatusClass(status: string): string {
   return 'learning';
 }
 
-export function vocabStatusLabel(status: string): string {
+export function vocabStatusLabel(
+  status: string,
+  t?: (key: string) => string,
+): string {
+  const key = `dashboard.vocabStatus.${status}`;
+  if (t) {
+    const translated = t(key);
+    if (translated !== key) return translated;
+  }
   return status
     .split('_')
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))

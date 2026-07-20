@@ -6,7 +6,7 @@
 - `helmet({ crossOriginEmbedderPolicy: false, contentSecurityPolicy: false })` — вмикає 11 security headers. CSP вимкнено через GraphQL/Apollo (потребує налаштування nonces).
 - CORS: `WEB_ORIGIN` env var, `credentials: true`.
 
-### Next.js (`apps/web/next.config.mjs`)
+### Next.js (`apps/campus/next.config.mjs`)
 Headers застосовані до всіх маршрутів `/(.*)*`:
 - `X-Frame-Options: SAMEORIGIN` — захист від clickjacking
 - `X-Content-Type-Options: nosniff` — захист від MIME sniffing
@@ -16,7 +16,18 @@ Headers застосовані до всіх маршрутів `/(.*)*`:
 
 ## Rate Limiting
 
-`@nestjs/throttler` — `ThrottlerGuard` глобально: 120 запитів / 60 сек на IP. Ендпоінти можна анотувати `@Throttle({ default: { ttl: 60000, limit: 5 } })` для жорсткіших лімітів (наприклад, `/auth/login`).
+`GqlThrottlerGuard` (APP_GUARD) — Nest `@nestjs/throttler` with GraphQL-aware request extraction.
+
+| Tier | Limit | Where |
+|------|-------|--------|
+| `global` | **300 req / 60s** per tracker key | All routes (sole forRoot throttler) |
+| Auth overrides | 5–10 / 10–15 min | `@Throttle({ global: { … } })` on login/signup/forgot/reset/verify |
+
+**Tracker key:** JWT `sid` (school) → `sub` (user) → IP. Token from `Authorization: Bearer` **or** httpOnly access cookie — Control Plane `arvilio_pat` preferred, then Campus `arvilio_at`.
+
+**Important:** Nest applies *every* named throttler listed in `ThrottlerModule.forRoot` to all routes. Do not register a tight `auth` tier in forRoot without `skipIf` — it previously capped GraphQL at 10/15min and broke SPA tab navigation (`ThrottlerException: Too Many Requests`).
+
+E2E bypass: header `x-e2e-skip-throttle` matching `E2E_THROTTLE_BYPASS_TOKEN` (or `dev-e2e-bypass` outside production).
 
 ## Input Validation
 
@@ -42,7 +53,7 @@ Three env vars are now **required** (app throws on startup if missing):
 | `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET` | `platform-integration.config.util.ts` | Falls back to `null` → `livekitCredentials()` returns `null` → LiveKit disabled (fail-secure) |
 | `PLATFORM_SECRETS_ENCRYPTION_KEY` | `module-lessons/livekit.service.ts:roomNameFor` | Throws if neither `PLATFORM_SECRETS_ENCRYPTION_KEY` nor `PAYMENT_SECRETS_ENCRYPTION_KEY` set |
 
-Previously `JWT_SECRET` fell back to `'soenglish-dev-secret'` (critical auth bypass) and LiveKit used `'devkey'`/`'devsecret'` (bypassed null guard).
+Previously `JWT_SECRET` fell back to `'arvilio-dev-secret'` (critical auth bypass) and LiveKit used `'devkey'`/`'devsecret'` (bypassed null guard).
 
 ## Password Hashing
 
@@ -68,7 +79,7 @@ Previously `JWT_SECRET` fell back to `'soenglish-dev-secret'` (critical auth byp
 | XSS | ✅ React + helmet + security headers |
 | IDOR (lessons) | ✅ `isLessonMember()` перевірка в REST і GraphQL |
 | Clickjacking | ✅ `X-Frame-Options: SAMEORIGIN` |
-| Brute force | ✅ ThrottlerGuard 120/60s |
+| Brute force | ✅ ThrottlerGuard — auth endpoints override global to 5–10 / 10–15 min |
 | Mass assignment | ✅ ValidationPipe whitelist |
 | File upload abuse | ✅ MIME whitelist filter |
 | Open redirect | ✅ Відсутній |

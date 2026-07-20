@@ -15,7 +15,7 @@ const OUT = resolve(ROOT, process.env.TRANSLATION_MATRIX_OUT ?? 'tmp/translation
 const WORDS_FILE = resolve(ROOT, 'scripts/translation-matrix-words.txt');
 const BASE = (process.env.AGENT_BROWSER_BASE_URL ?? 'http://localhost:4200').replace(/\/$/, '');
 const AB = process.env.AGENT_BROWSER_BIN ?? 'agent-browser';
-const SUPER = process.env.PLAYWRIGHT_SUPER_ADMIN_EMAIL ?? 'jest-super-admin@soenglish.test';
+const SUPER = process.env.PLAYWRIGHT_SUPER_ADMIN_EMAIL ?? 'jest-super-admin@arvilio.test';
 const PASS = process.env.PLAYWRIGHT_TEST_PASSWORD ?? 'TestPass123!';
 const AB_TIMEOUT_MS = Number(process.env.AB_CMD_TIMEOUT_MS ?? 60_000);
 

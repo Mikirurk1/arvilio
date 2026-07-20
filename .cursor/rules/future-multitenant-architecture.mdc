@@ -5,15 +5,15 @@ alwaysApply: true
 
 # Future multi-tenant architecture
 
-Today SoEnglish is implemented as a product for **one school**. Build for that reality by default, but do not make new architecture decisions that force a full rewrite when the product grows into the **platform vision** below.
+Today Arvilio is implemented as a product for **one school**. Build for that reality by default, but do not make new architecture decisions that force a full rewrite when the product grows into the **platform vision** below.
 
 ## Target product vision (not built yet)
 
-SoEnglish is expected to evolve into a **two-sided platform**:
+Arvilio is expected to evolve into a **two-sided platform**:
 
 1. **School SaaS (B2B)** — schools open and run on the product via **subscription** (tenant = school). Each school operates its teachers, students, lessons, billing to its learners, and school-branded workflows inside its tenant.
 2. **Student marketplace (B2C / acquisition)** — learners can **register on the platform** to find a tutor / school (discovery, matching, trials — product TBD). The platform may **route or assign learners to partner schools**.
-3. **Platform take rate** — when the platform supplies a learner to a school, SoEnglish earns a **commission per student** (or per lesson / enrollment event — exact commercial model TBD). This is separate from the school’s own lesson pricing to that student.
+3. **Platform take rate** — when the platform supplies a learner to a school, Arvilio earns a **commission per student** (or per lesson / enrollment event — exact commercial model TBD). This is separate from the school’s own lesson pricing to that student.
 
 **Not the same as “Preply only”:** Preply today is mainly a **tutor marketplace** (student ↔ individual tutor, platform commission on lessons). Our direction is **hybrid**: multi-tenant **school OS** + optional **platform-driven student acquisition** with commission. Tutors belong to schools as tenants; the marketplace layer is platform-wide.
 

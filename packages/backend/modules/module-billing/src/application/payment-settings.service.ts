@@ -47,6 +47,20 @@ import {
 
 const SETTINGS_ID = 'default';
 
+const ONLINE_PSP_METHODS: PaymentMethodKindDto[] = [
+  'stripe',
+  'liqpay',
+  'wayforpay',
+  'lemonsqueezy',
+  'paddle',
+  'monopay',
+  'paypal',
+];
+
+function isOnlinePsp(method: PaymentMethodKindDto): boolean {
+  return ONLINE_PSP_METHODS.includes(method);
+}
+
 @Injectable()
 export class PaymentSettingsService {
   constructor(
@@ -85,6 +99,12 @@ export class PaymentSettingsService {
         );
       }
     }
+
+    const enablingOnline = body.enabledMethods.some(isOnlinePsp);
+    if (enablingOnline) {
+      await this.assertSellerProfileCompleteForOnlinePayments();
+    }
+
     const minLessons = Math.max(1, body.config.minPackageLessons ?? DEFAULT_PAYMENT_CONFIG.minPackageLessons);
     const methodIds = new Set<string>();
     for (const pkg of body.config.packages) {
@@ -267,6 +287,28 @@ export class PaymentSettingsService {
   async getPackageById(packageId: string): Promise<PaymentConfigDto['packages'][number] | null> {
     const settings = await this.getPaymentSettings();
     return settings.config.packages.find((p) => p.id === packageId) ?? null;
+  }
+
+  /** Merchant compliance: online PSPs require seller legal name, address, and support email. */
+  private async assertSellerProfileCompleteForOnlinePayments(): Promise<void> {
+    const schoolId = this.tenant.schoolId ?? DEFAULT_SCHOOL_ID;
+    const school = await this.prisma.school.findUnique({
+      where: { id: schoolId },
+      select: {
+        legalName: true,
+        legalAddress: true,
+        supportEmail: true,
+      },
+    });
+    const missing: string[] = [];
+    if (!school?.legalName?.trim()) missing.push('legal name');
+    if (!school?.legalAddress?.trim()) missing.push('legal address');
+    if (!school?.supportEmail?.trim()) missing.push('support email');
+    if (missing.length > 0) {
+      throw new BadRequestException(
+        `Complete the seller profile (System → Seller & legal) before enabling online payment methods. Missing: ${missing.join(', ')}.`,
+      );
+    }
   }
 
   private async ensureSettingsRow() {

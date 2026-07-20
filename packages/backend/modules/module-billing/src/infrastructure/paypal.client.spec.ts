@@ -31,10 +31,10 @@ describe('paypal client helpers', () => {
       amountMinor: 12500,
       currency: 'USD',
       title: '5 lessons',
-      description: '5 lessons for SoEnglish balance top-up',
+      description: '5 lessons for Arvilio balance top-up',
       customId: 'payment-1',
-      returnUrl: 'https://soenglish.com/payment?status=success',
-      cancelUrl: 'https://soenglish.com/payment?status=cancelled',
+      returnUrl: 'https://arvilio.com/payment?status=success',
+      cancelUrl: 'https://arvilio.com/payment?status=cancelled',
     });
 
     expect(result).toEqual({

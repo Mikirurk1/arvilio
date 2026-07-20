@@ -1,5 +1,6 @@
 import type {
   IntegrationSecretStatusesDto,
+  LlmProviderId,
   PlatformIntegrationConfigDto,
   PlatformIntegrationConfigPatchDto,
   PlatformIntegrationSecretsDto,
@@ -84,6 +85,15 @@ export type ResolvedPlatformIntegration = {
     targetLanguages: string[];
     openaiWhisperApiKey: string | null;
   };
+  llm: {
+    enabled: boolean;
+    provider: LlmProviderId;
+    baseUrl: string | null;
+    model: string | null;
+    maxTokens: number;
+    temperature: number;
+    apiKey: string | null;
+  };
 };
 
 const DEFAULT_MYMEMORY_URL = 'https://api.mymemory.translated.net/get';
@@ -91,15 +101,21 @@ const DEFAULT_DEEPL_API_URL = 'https://api-free.deepl.com';
 const DEFAULT_GOOGLE_TRANSLATE_API_URL = 'https://translation.googleapis.com';
 const DEFAULT_AZURE_TRANSLATOR_URL =
   'https://api.cognitive.microsofttranslator.com';
-const DEFAULT_MAIL_FROM = 'SoEnglish <noreply@soenglish.local>';
+const DEFAULT_MAIL_FROM = 'Arvilio <noreply@arvilio.local>';
 
 export function defaultPlatformIntegrationConfig(): PlatformIntegrationConfigDto {
-  const apiPublic =
-    process.env['API_PUBLIC_URL']?.replace(/\/$/, '') ??
-    'http://localhost:3000/api';
-  const apiBase = apiPublic.replace(/\/api\/?$/, '') || 'http://localhost:3000';
   const webOrigin =
     process.env['WEB_ORIGIN']?.replace(/\/$/, '') ?? 'http://localhost:4200';
+  /**
+   * Browser-facing OAuth callbacks must hit the web origin (Next `/api` rewrite),
+   * not the Nest port. Cookies set on `:3000` are not sent to `:4200` when the
+   * callback host differs (host-only cookies), so Google "succeeds" but the app
+   * stays logged out. Override with GOOGLE_CALLBACK_URL / FACEBOOK_CALLBACK_URL /
+   * ZOOM_CALLBACK_URL or OAUTH_PUBLIC_BASE_URL when the API is publicly reachable
+   * on its own host.
+   */
+  const oauthPublicBase =
+    process.env['OAUTH_PUBLIC_BASE_URL']?.replace(/\/$/, '') || webOrigin;
 
   return {
     translation: {
@@ -127,6 +143,27 @@ export function defaultPlatformIntegrationConfig(): PlatformIntegrationConfigDto
         .map(item => item.trim().toLowerCase())
         .filter(Boolean),
     },
+    llm: {
+      enabled:
+        process.env['LLM_ENABLED'] === 'true' ||
+        Boolean(process.env['LLM_API_KEY']?.trim()) ||
+        Boolean(process.env['ANTHROPIC_API_KEY']?.trim()) ||
+        Boolean(process.env['OPENAI_API_KEY']?.trim()),
+      provider:
+        process.env['LLM_PROVIDER']?.trim() === 'anthropic'
+          ? ('anthropic' as const)
+          : ('openai_compat' as const),
+      baseUrl: process.env['LLM_BASE_URL']?.trim() || null,
+      model: process.env['LLM_MODEL']?.trim() || null,
+      maxTokens: (() => {
+        const raw = Number(process.env['LLM_MAX_TOKENS'] ?? 384);
+        return Number.isFinite(raw) && raw > 0 ? Math.min(Math.round(raw), 2048) : 384;
+      })(),
+      temperature: (() => {
+        const raw = Number(process.env['LLM_TEMPERATURE'] ?? 0.3);
+        return Number.isFinite(raw) ? Math.min(Math.max(raw, 0), 1) : 0.3;
+      })(),
+    },
     smtp: {
       mode: 'server_default',
       host: null,
@@ -141,14 +178,14 @@ export function defaultPlatformIntegrationConfig(): PlatformIntegrationConfigDto
     },
     google: {
       clientId: null,
-      callbackUrl: `${apiBase}/api/auth/google/callback`,
+      callbackUrl: `${oauthPublicBase}/api/auth/google/callback`,
       successRedirect: `${webOrigin}/dashboard`,
       linkSuccessRedirect: `${webOrigin}/profile`,
       failureRedirect: `${webOrigin}/login?error=no_account`,
     },
     facebook: {
       appId: null,
-      callbackUrl: `${apiBase}/api/auth/facebook/callback`,
+      callbackUrl: `${oauthPublicBase}/api/auth/facebook/callback`,
     },
     videoMeeting: {
       provider: 'google',
@@ -158,7 +195,7 @@ export function defaultPlatformIntegrationConfig(): PlatformIntegrationConfigDto
       },
       zoom: {
         clientId: null,
-        callbackUrl: `${apiBase}/api/auth/zoom/callback`,
+        callbackUrl: `${oauthPublicBase}/api/auth/zoom/callback`,
         useServerToServer: false,
       },
     },
@@ -181,6 +218,7 @@ export function parsePlatformIntegrationConfig(
   const google = (obj['google'] ?? {}) as Record<string, unknown>;
   const facebook = (obj['facebook'] ?? {}) as Record<string, unknown>;
   const mediaCaptions = (obj['mediaCaptions'] ?? {}) as Record<string, unknown>;
+  const llm = (obj['llm'] ?? {}) as Record<string, unknown>;
   const videoMeeting = (obj['videoMeeting'] ?? {}) as Record<string, unknown>;
   const videoLiveKit = (videoMeeting['livekit'] ?? {}) as Record<string, unknown>;
   const videoZoom = (videoMeeting['zoom'] ?? {}) as Record<string, unknown>;
@@ -234,6 +272,38 @@ export function parsePlatformIntegrationConfig(
             .map(item => item.trim().toLowerCase())
             .filter(Boolean)
         : defaults.mediaCaptions.targetLanguages,
+    },
+    llm: {
+      enabled:
+        llm['enabled'] === false
+          ? false
+          : llm['enabled'] === true
+            ? true
+            : defaults.llm.enabled,
+      provider:
+        llm['provider'] === 'anthropic'
+          ? ('anthropic' as const)
+          : llm['provider'] === 'openai_compat'
+            ? ('openai_compat' as const)
+            : defaults.llm.provider,
+      baseUrl: cleanOptionalString(llm['baseUrl']),
+      model: cleanOptionalString(llm['model']),
+      maxTokens: (() => {
+        const raw =
+          typeof llm['maxTokens'] === 'number'
+            ? llm['maxTokens']
+            : Number(llm['maxTokens']);
+        if (!Number.isFinite(raw) || raw <= 0) return defaults.llm.maxTokens;
+        return Math.min(Math.round(raw), 2048);
+      })(),
+      temperature: (() => {
+        const raw =
+          typeof llm['temperature'] === 'number'
+            ? llm['temperature']
+            : Number(llm['temperature']);
+        if (!Number.isFinite(raw)) return defaults.llm.temperature;
+        return Math.min(Math.max(raw, 0), 1);
+      })(),
     },
     smtp: {
       mode: smtpMode,
@@ -478,6 +548,31 @@ export function resolvePlatformIntegration(
         process.env['OPENAI_API_KEY']?.trim() ??
         null,
     },
+    llm: {
+      enabled: config.llm.enabled,
+      provider: config.llm.provider,
+      baseUrl:
+        config.llm.baseUrl ??
+        process.env['LLM_BASE_URL']?.trim() ??
+        (config.llm.provider === 'openai_compat'
+          ? 'https://api.openai.com/v1'
+          : null),
+      model:
+        config.llm.model ??
+        process.env['LLM_MODEL']?.trim() ??
+        (config.llm.provider === 'anthropic'
+          ? 'claude-sonnet-4-20250514'
+          : 'gpt-4.1-mini'),
+      maxTokens: config.llm.maxTokens,
+      temperature: config.llm.temperature,
+      apiKey:
+        (config.llm.provider === 'anthropic'
+          ? secrets.anthropicApiKey ??
+            process.env['ANTHROPIC_API_KEY']?.trim()
+          : secrets.llmApiKey ??
+            process.env['LLM_API_KEY']?.trim() ??
+            process.env['OPENAI_API_KEY']?.trim()) ?? null,
+    },
     smtp: {
       host: smtpHost ?? '',
       port: smtpPort,
@@ -550,6 +645,14 @@ export function configWithEnvFallbacks(
     },
     mediaCaptions: {
       ...config.mediaCaptions,
+    },
+    llm: {
+      ...config.llm,
+      baseUrl:
+        config.llm.baseUrl ??
+        process.env['LLM_BASE_URL']?.trim() ??
+        null,
+      model: config.llm.model ?? process.env['LLM_MODEL']?.trim() ?? null,
     },
     smtp: {
       ...config.smtp,
@@ -634,6 +737,16 @@ export function buildIntegrationSettingsDto(
         process.env['OPENAI_API_KEY']?.trim() ??
         undefined,
     ),
+    llmApiKey: integrationSecretStatus(
+      secrets.llmApiKey,
+      process.env['LLM_API_KEY']?.trim() ??
+        process.env['OPENAI_API_KEY']?.trim() ??
+        undefined,
+    ),
+    anthropicApiKey: integrationSecretStatus(
+      secrets.anthropicApiKey,
+      process.env['ANTHROPIC_API_KEY']?.trim() ?? undefined,
+    ),
     telegramBotToken: integrationSecretStatus(
       secrets.telegramBotToken,
       envTg.botToken ?? undefined,
@@ -672,6 +785,15 @@ export function buildIntegrationSettingsDto(
     azureTranslatorKey: resolved.translation.azureTranslatorKey ?? undefined,
     openaiWhisperApiKey:
       resolved.mediaCaptions.openaiWhisperApiKey ?? undefined,
+    llmApiKey:
+      secrets.llmApiKey ??
+      process.env['LLM_API_KEY']?.trim() ??
+      process.env['OPENAI_API_KEY']?.trim() ??
+      undefined,
+    anthropicApiKey:
+      secrets.anthropicApiKey ??
+      process.env['ANTHROPIC_API_KEY']?.trim() ??
+      undefined,
     telegramBotToken: resolved.telegram.botToken ?? undefined,
     googleClientSecret: resolved.google.clientSecret ?? undefined,
     facebookAppSecret: resolved.facebook.appSecret ?? undefined,
@@ -696,6 +818,7 @@ export function mergePlatformIntegrationConfig(
   return parsePlatformIntegrationConfig({
     translation: { ...current.translation, ...patch.translation },
     mediaCaptions: { ...current.mediaCaptions, ...patch.mediaCaptions },
+    llm: { ...current.llm, ...patch.llm },
     smtp: { ...current.smtp, ...patch.smtp },
     telegram: { ...current.telegram, ...patch.telegram },
     google: { ...current.google, ...patch.google },

@@ -53,6 +53,6 @@ export const usePracticeStore = create<PracticeState>()(
         await get().fetchWeekSummary(true);
       },
     }),
-    { name: 'soenglish/practice' },
+    { name: 'arvilio/practice' },
   ),
 );

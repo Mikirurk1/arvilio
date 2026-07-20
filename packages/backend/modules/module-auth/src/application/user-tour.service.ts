@@ -35,4 +35,13 @@ export class UserTourService {
     }
     return { completed: true, completedAt: completedAt.toISOString() };
   }
+
+  /** Clear completion so Help / Profile → Account can replay the tour. */
+  async reset(userId: string): Promise<TourStateDto> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { tourCompletedAt: null },
+    });
+    return { completed: false, completedAt: null };
+  }
 }

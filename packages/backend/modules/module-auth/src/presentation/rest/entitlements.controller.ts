@@ -1,7 +1,14 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { TenantContextService } from '@be/tenant';
-import { EntitlementsService, type EntitlementsSummaryDto } from '@be/billing/entitlements';
+import {
+  EntitlementsService,
+  StorageAccountingService,
+  type EntitlementsSummaryDto,
+  type StorageReconcileResult,
+} from '@be/billing/entitlements';
 import { AuthGuard } from '../guards/auth.guard';
+import { Roles } from '../guards/roles.decorator';
+import { RolesGuard } from '../guards/roles.guard';
 
 /**
  * School-scoped entitlements + usage meter (Phase 5). Reads the current school's
@@ -14,11 +21,20 @@ import { AuthGuard } from '../guards/auth.guard';
 export class EntitlementsController {
   constructor(
     private readonly entitlements: EntitlementsService,
+    private readonly storage: StorageAccountingService,
     private readonly tenant: TenantContextService,
   ) {}
 
   @Get('entitlements')
   getEntitlements(): Promise<EntitlementsSummaryDto> {
     return this.entitlements.getSummary(this.tenant.requireSchoolId());
+  }
+
+  /** Recompute storage meter from attachment tables (admin). Fixes seed/legacy drift. */
+  @Post('entitlements/reconcile-storage')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  reconcileStorage(): Promise<StorageReconcileResult> {
+    return this.storage.reconcile(this.tenant.requireSchoolId());
   }
 }

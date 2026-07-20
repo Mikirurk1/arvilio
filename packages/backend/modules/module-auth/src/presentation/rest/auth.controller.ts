@@ -32,14 +32,17 @@ import {
   clearFacebookOAuthCookies,
   clearGoogleOAuthCookies,
   clearOAuthSchoolCookie,
+  clearPlatformAuthCookies,
   readFacebookLinkUserId,
   readGoogleLinkUserId,
   readOAuthSchoolId,
   REFRESH_COOKIE,
+  PLATFORM_REFRESH_COOKIE,
   setAuthCookies,
   setFacebookLinkCookies,
   setGoogleLinkCookies,
   setOAuthSchoolCookie,
+  setPlatformAuthCookies,
 } from '../../shared/auth-cookies';
 import { buildFacebookAuthUrl, exchangeFacebookCode } from '../../shared/facebook-oauth';
 import { profileConnectionsRedirect, webOrigin } from '../../shared/oauth-link-redirect';
@@ -60,7 +63,7 @@ export class AuthController {
     private readonly tenant: TenantContextService,
   ) {}
 
-  @Throttle({ auth: { ttl: 900_000, limit: 10 } })
+  @Throttle({ global: { ttl: 900_000, limit: 10 } })
   @Post('login')
   async login(
     @Body() body: LoginRequestDto,
@@ -77,10 +80,38 @@ export class AuthController {
   }
 
   /**
+   * Arvilio Control Plane login — operators only. Stricter throttle than campus
+   * login. No registration / OAuth / forgot-password on this surface.
+   */
+  @Throttle({ global: { ttl: 900_000, limit: 5 } })
+  @Post('platform/login')
+  async platformLogin(
+    @Body() body: LoginRequestDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthSessionDto> {
+    try {
+      const user = await this.authService.platformLogin(body, {
+        userAgent: req.headers['user-agent'] ?? undefined,
+        ip: req.ip,
+      });
+      const tokens = await this.authService.issueTokens(user.id, {
+        userAgent: req.headers['user-agent'] ?? undefined,
+        ip: req.ip,
+      });
+      setPlatformAuthCookies(res, tokens);
+      return { user: mapUserToDto(user) };
+    } catch (err) {
+      clearPlatformAuthCookies(res);
+      throw err;
+    }
+  }
+
+  /**
    * Self-serve "create your school" signup (Phase 4.5.1, G19/G28). Public, no card.
    * Provisions the school + admin + 7-day trial and auto-logs the admin in.
    */
-  @Throttle({ auth: { ttl: 900_000, limit: 5 } })
+  @Throttle({ global: { ttl: 900_000, limit: 5 } })
   @Post('register-school')
   async registerSchool(
     @Body() body: RegisterSchoolRequestDto,
@@ -100,7 +131,7 @@ export class AuthController {
     return { user: mapUserToDto(user) };
   }
 
-  @Throttle({ auth: { ttl: 900_000, limit: 10 } })
+  @Throttle({ global: { ttl: 900_000, limit: 10 } })
   @Post('forgot-password')
   async forgotPassword(
     @Body() body: ForgotPasswordRequestDto,
@@ -112,14 +143,14 @@ export class AuthController {
     });
   }
 
-  @Throttle({ auth: { ttl: 900_000, limit: 10 } })
+  @Throttle({ global: { ttl: 900_000, limit: 10 } })
   @Post('reset-password')
   async resetPassword(@Body() body: ResetPasswordRequestDto): Promise<{ ok: true }> {
     return this.authService.resetPassword(body);
   }
 
   /** 10 verify attempts per IP per 10 minutes — prevents token enumeration (G37). */
-  @Throttle({ auth: { ttl: 600_000, limit: 10 } })
+  @Throttle({ global: { ttl: 600_000, limit: 10 } })
   @Get('verify-email')
   async verifyEmail(@Query('token') token: string): Promise<{ ok: true }> {
     return this.authService.verifyEmail(token ?? '');
@@ -130,17 +161,24 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<AuthSessionDto> {
-    const rawRefresh = (req as Request & { cookies?: Record<string, string> }).cookies?.[REFRESH_COOKIE];
+    const cookies = (req as Request & { cookies?: Record<string, string> }).cookies;
+    const rawRefresh =
+      cookies?.[PLATFORM_REFRESH_COOKIE] ?? cookies?.[REFRESH_COOKIE];
     if (!rawRefresh) throw new UnauthorizedException();
     const rotated = await this.authService.rotateSessionFromRefreshToken(rawRefresh, {
       userAgent: req.headers['user-agent'] ?? undefined,
       ip: req.ip,
     });
     if (!rotated) throw new UnauthorizedException();
-    setAuthCookies(res, {
+    const tokens = {
       accessToken: rotated.accessToken,
       refreshToken: rotated.refreshToken,
-    });
+    };
+    if (cookies?.[PLATFORM_REFRESH_COOKIE]) {
+      setPlatformAuthCookies(res, tokens);
+    } else {
+      setAuthCookies(res, tokens);
+    }
     const user = await this.authService.getUserWithProviders(rotated.userId);
     if (!user) throw new UnauthorizedException();
     return { user: mapUserToDto(user) };
@@ -148,11 +186,17 @@ export class AuthController {
 
   @Post('logout')
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<{ ok: true }> {
-    const refresh = (req as Request & { cookies?: Record<string, string> }).cookies?.[REFRESH_COOKIE];
-    if (refresh) {
-      await this.authService.revokeRefreshToken(refresh);
+    const cookies = (req as Request & { cookies?: Record<string, string> }).cookies;
+    const campusRefresh = cookies?.[REFRESH_COOKIE];
+    const platformRefresh = cookies?.[PLATFORM_REFRESH_COOKIE];
+    if (campusRefresh) {
+      await this.authService.revokeRefreshToken(campusRefresh);
+    }
+    if (platformRefresh) {
+      await this.authService.revokeRefreshToken(platformRefresh);
     }
     clearAuthCookies(res);
+    clearPlatformAuthCookies(res);
     return { ok: true };
   }
 

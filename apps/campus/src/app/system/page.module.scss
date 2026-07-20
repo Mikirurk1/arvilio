@@ -73,6 +73,9 @@
 }
 
 .tabsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-bottom: 10px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border);
@@ -812,11 +815,8 @@
 }
 
 .currencyCheck {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.875rem;
-  cursor: pointer;
+  width: auto;
+  max-width: none;
 }
 
 .packagesSection,
@@ -1519,12 +1519,9 @@
 }
 
 .checkboxRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: var(--fs-13);
-  color: var(--text-secondary);
   grid-column: 1 / -1;
+  width: 100%;
+  max-width: none;
 }
 
 .connectionVerifyRow {
@@ -1746,11 +1743,8 @@
 }
 
 .checkboxRow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: var(--fs-13);
-  color: var(--text);
+  width: auto;
+  max-width: none;
 }
 
 .helpText {

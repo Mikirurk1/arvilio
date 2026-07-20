@@ -1,0 +1,124 @@
+.methodGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 16px 0 4px;
+}
+
+.methodCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
+  font: inherit;
+  color: inherit;
+}
+
+.methodCard:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.methodCard:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.methodCardSelected {
+  border-color: color-mix(in srgb, var(--accent-primary) 55%, var(--border));
+  box-shadow: inset 3px 0 0 var(--accent-primary);
+}
+
+.methodCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.methodLogo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.methodLogoSvg {
+  width: 22px;
+  height: 22px;
+}
+
+.methodCheck {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border-strong);
+  background: var(--card);
+  flex-shrink: 0;
+  color: transparent;
+}
+
+.methodCheckIcon {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
+.methodCardSelected .methodCheck {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary);
+  color: var(--on-inverse);
+}
+
+.methodTitle {
+  margin: 0;
+  font-size: var(--fs-15);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.methodDesc {
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+  line-height: 1.4;
+  flex: 1;
+}
+
+.methodState {
+  margin: 0;
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  color: var(--text-tertiary);
+}
+
+.methodCardSelected .methodState {
+  color: var(--accent-primary);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -10,11 +10,17 @@ import {
   getLedgerKindMeta,
   groupLedgerByDay,
 } from '../../lib/billing/ledger-display';
+import { useCampusI18n, useCampusT } from '../../lib/cms';
 import styles from './LessonBalanceLedgerActivity.module.scss';
 
 function LedgerRow({ row }: { row: LessonBalanceLedgerEntryDto }) {
-  const meta = getLedgerKindMeta(row.kind);
-  const when = formatLedgerWhen(row.createdAt);
+  const t = useCampusT();
+  const { locale } = useCampusI18n();
+  const meta = getLedgerKindMeta(row.kind, t);
+  const when = formatLedgerWhen(row.createdAt, locale, {
+    today: t('payment.ledger.today'),
+    yesterday: t('payment.ledger.yesterday'),
+  });
   const Icon = meta.icon;
   const deltaTone = row.delta > 0 ? 'credit' : row.delta < 0 ? 'debit' : 'neutral';
 
@@ -39,9 +45,9 @@ function LedgerRow({ row }: { row: LessonBalanceLedgerEntryDto }) {
       </div>
       <div className={styles.rowAside}>
         <span className={[styles.delta, styles[`delta_${deltaTone}`]].join(' ')}>
-          {formatLedgerDelta(row.delta)}
+          {formatLedgerDelta(row.delta, t)}
         </span>
-        <span className={styles.balanceAfter}>{formatLedgerBalanceAfter(row.balanceAfter)}</span>
+        <span className={styles.balanceAfter}>{formatLedgerBalanceAfter(row.balanceAfter, t)}</span>
       </div>
     </li>
   );
@@ -59,9 +65,15 @@ export function LessonBalanceLedgerActivity({
   showWhenEmpty = false,
   className,
 }: LessonBalanceLedgerActivityProps) {
+  const t = useCampusT();
+  const { locale } = useCampusI18n();
+
   if (entries.length === 0 && !showWhenEmpty) return null;
 
-  const dayGroups = groupLedgerByDay(entries);
+  const dayGroups = groupLedgerByDay(entries, locale, {
+    today: t('payment.ledger.today'),
+    yesterday: t('payment.ledger.yesterday'),
+  });
 
   return (
     <section
@@ -74,17 +86,15 @@ export function LessonBalanceLedgerActivity({
         </span>
         <div className={styles.headerText}>
           <h2 id="lesson-balance-ledger-heading" className={styles.title}>
-            Recent balance activity
+            {t('payment.ledger.title')}
           </h2>
-          <p className={styles.subtitle}>
-            Purchases, lesson charges, manual top-ups, and reversals on your prepaid balance.
-          </p>
+          <p className={styles.subtitle}>{t('payment.ledger.subtitle')}</p>
         </div>
       </div>
 
       <SurfaceCard className={styles.card}>
         {entries.length === 0 ? (
-          <p className={styles.empty}>No balance changes yet. Top up or complete a lesson to see activity here.</p>
+          <p className={styles.empty}>{t('payment.ledger.empty')}</p>
         ) : (
           dayGroups.map((group) => (
             <div key={group.dayKey} className={styles.dayGroup}>

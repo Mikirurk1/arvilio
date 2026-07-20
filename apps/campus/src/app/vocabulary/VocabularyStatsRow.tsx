@@ -1,7 +1,7 @@
 'use client';
 
-import { vocabularyStatusLabel } from '@pkg/types';
 import { StatTile } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import styles from './page.module.scss';
 
 export function VocabularyStatsRow({
@@ -18,13 +18,19 @@ export function VocabularyStatsRow({
   };
   onFilter: (value: string) => void;
 }) {
+  const t = useCampusT();
   return (
-    <div className={styles.statsRow} role="group" aria-label="Filter words by status">
+    <div
+      className={styles.statsRow}
+      role="group"
+      aria-label={t('vocabulary.stat.filterAria')}
+      data-tour-anchor="vocab-stats"
+    >
       <StatTile
         className={styles.statChip}
         interactive
         onClick={() => onFilter('all')}
-        label='Total'
+        label={t('vocabulary.stat.total')}
         labelClassName={styles.statLbl}
         value={total}
         valueClassName={styles.statNum}
@@ -33,7 +39,7 @@ export function VocabularyStatsRow({
         className={`${styles.statChip} ${styles.statBlue}`}
         interactive
         onClick={() => onFilter('new')}
-        label='New'
+        label={t('vocabulary.status.new')}
         labelClassName={styles.statLbl}
         value={stats.new}
         valueClassName={styles.statNum}
@@ -42,7 +48,7 @@ export function VocabularyStatsRow({
         className={`${styles.statChip} ${styles.statAmber}`}
         interactive
         onClick={() => onFilter('repeated')}
-        label='Repeated'
+        label={t('vocabulary.status.repeated')}
         labelClassName={styles.statLbl}
         value={stats.repeated}
         valueClassName={styles.statNum}
@@ -51,7 +57,7 @@ export function VocabularyStatsRow({
         className={`${styles.statChip} ${styles.statRose}`}
         interactive
         onClick={() => onFilter('mistakes_work')}
-        label={vocabularyStatusLabel('mistakes_work')}
+        label={t('vocabulary.status.mistakes_work')}
         labelClassName={styles.statLbl}
         value={stats.mistakesWork}
         valueClassName={styles.statNum}
@@ -60,7 +66,7 @@ export function VocabularyStatsRow({
         className={`${styles.statChip} ${styles.statGreen}`}
         interactive
         onClick={() => onFilter('learned')}
-        label='Learned'
+        label={t('vocabulary.status.learned')}
         labelClassName={styles.statLbl}
         value={stats.learned}
         valueClassName={styles.statNum}

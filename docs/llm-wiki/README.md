@@ -1,4 +1,4 @@
-# SoEnglish LLM Wiki
+# Arvilio LLM Wiki
 
 Персистентна база знань проєкту за патерном [LLM Wiki](https://github.com/karpathy/llm-wiki) (Karpathy): джерела → wiki → схема.
 

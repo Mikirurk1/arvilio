@@ -3,6 +3,7 @@
 import { type ReactNode } from 'react';
 import { type VocabularyWordStatusName } from '@pkg/types';
 import { EmptyStateCard } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import { type VocabularyListItem } from '../../lib/vocabulary-ui';
 import { VocabularyFiltersBar } from './VocabularyFiltersBar';
 import { VocabularyWordCards } from './VocabularyWordCards';
@@ -49,6 +50,7 @@ export function VocabularyListSection({
   totalSourceCount: number;
   isLoading?: boolean;
 }) {
+  const t = useCampusT();
   return (
     <>
       <VocabularyFiltersBar
@@ -62,7 +64,7 @@ export function VocabularyListSection({
         lessonOptions={lessonOptions}
       />
 
-      <div className={styles.wordGrid}>
+      <div className={styles.wordGrid} data-tour-anchor="vocab-word-list">
         {prependSlot}
         <VocabularyWordCards
           items={filtered}
@@ -80,15 +82,15 @@ export function VocabularyListSection({
       {filtered.length === 0 && totalSourceCount > 0 ? (
         <EmptyStateCard
           className={styles.empty}
-          title='No words match filters'
-          description='Try a different filter or clear search.'
+          title={t('vocabulary.empty.noMatch')}
+          description={t('vocabulary.empty.noMatchHint')}
         />
       ) : null}
       {isLoading ? (
         <EmptyStateCard
           className={styles.empty}
-          title='Loading vocabulary…'
-          description='Fetching your words.'
+          title={t('vocabulary.empty.loading')}
+          description={t('vocabulary.empty.fetching')}
         />
       ) : null}
       {!isLoading &&
@@ -97,8 +99,9 @@ export function VocabularyListSection({
       !prependSlot ? (
         <EmptyStateCard
           className={styles.empty}
-          title='No words yet'
-          description='Add your first word using the form above.'
+          showArvi
+          title={t('vocabulary.empty.noWords')}
+          description={t('vocabulary.empty.noWordsHint')}
         />
       ) : null}
     </>

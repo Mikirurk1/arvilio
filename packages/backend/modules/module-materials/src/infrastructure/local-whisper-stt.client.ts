@@ -20,7 +20,7 @@ export async function transcribeWithLocalWhisper(options: {
   language?: string | null;
   timeoutMs: number;
 }): Promise<WhisperVerboseResponse> {
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'soenglish-whisper-'));
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'arvilio-whisper-'));
   const safeName = options.fileName.replace(/[^\w.\-()\s]/g, '_') || 'audio.bin';
   const inputPath = path.join(tempDir, safeName);
   const wavPath = path.join(tempDir, 'audio.wav');

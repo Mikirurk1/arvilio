@@ -8,9 +8,13 @@
  * Commands:
  *   route          - Route a task to optimal agent (reads PROMPT from env/stdin)
  *   pre-bash       - Validate command safety before execution
+ *   pre-edit       - Pre-edit gate (Cursor PreToolUse JSON)
+ *   post-bash      - Post-bash continue signal
  *   post-edit      - Record edit outcome for learning
  *   session-restore - Restore previous session state
  *   session-end    - End session and persist state
+ *
+ * Cursor PreToolUse hooks require valid JSON on stdout. Human logs go to stderr.
  */
 
 const path = require('path');
@@ -50,31 +54,48 @@ const intelligence = safeRequire(path.join(helpersDir, 'intelligence.cjs'));
 // ── Intelligence timeout protection (fixes #1530, #1531) ───────────────────
 const INTELLIGENCE_TIMEOUT_MS = 3000;
 function runWithTimeout(fn, label) {
-  // For synchronous blocking calls, we use a global safety timer.
-  // The readJSON file-size guard prevents loading huge files, but this
-  // is an additional safety net.
-  return new Promise((resolve) => {
-    const timer = setTimeout(() => {
+  let timer;
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(() => {
       process.stderr.write("[WARN] " + label + " timed out after " + INTELLIGENCE_TIMEOUT_MS + "ms, skipping\n");
       resolve(null);
     }, INTELLIGENCE_TIMEOUT_MS);
-    try {
-      const result = fn();
-      clearTimeout(timer);
-      resolve(result);
-    } catch (e) {
-      clearTimeout(timer);
-      resolve(null);
-    }
+  });
+  const work = Promise.resolve().then(fn).catch(() => null);
+  return Promise.race([work, timeout]).then((result) => {
+    clearTimeout(timer);
+    return result;
   });
 }
 
+/** Emit Cursor-compatible PreToolUse allow JSON (stdout must be valid JSON only). */
+function emitAllow() {
+  process.stdout.write(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'allow',
+    },
+  }) + '\n');
+}
 
-// Get the command from argv
+/** Emit Cursor-compatible PreToolUse deny JSON. */
+function emitDeny(reason) {
+  process.stdout.write(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'deny',
+      permissionDecisionReason: reason || 'Blocked by hook-handler',
+    },
+  }) + '\n');
+}
+
+/** Emit simple continue JSON for pre-edit / post-bash. */
+function emitContinue(extra) {
+  process.stdout.write(JSON.stringify(Object.assign({ continue: true }, extra || {})) + '\n');
+}
+
 const [,, command, ...args] = process.argv;
 
-// Read stdin with timeout — Claude Code sends hook data as JSON via stdin.
-// Timeout prevents hanging when stdin is not properly closed (common on Windows).
 async function readStdin() {
   if (process.stdin.isTTY) return '';
   return new Promise((resolve) => {
@@ -93,12 +114,12 @@ async function readStdin() {
 }
 
 async function main() {
-  // Global safety timeout: hooks must NEVER hang (#1530, #1531)
   const safetyTimer = setTimeout(() => {
     process.stderr.write("[WARN] Hook handler global timeout (5s), forcing exit\n");
+    try { emitAllow(); } catch (_) {}
     process.exit(0);
   }, 5000);
-  safetyTimer.unref(); // don't keep process alive just for this timer
+  safetyTimer.unref();
 
   let stdinData = '';
   try { stdinData = await readStdin(); } catch (e) { /* ignore stdin errors */ }
@@ -108,30 +129,36 @@ async function main() {
     try { hookInput = JSON.parse(stdinData); } catch (e) { /* ignore parse errors */ }
   }
 
-  // Normalize snake_case/camelCase: Claude Code sends tool_input/tool_name (snake_case)
   const toolInput = hookInput.toolInput || hookInput.tool_input || {};
   const toolName = hookInput.toolName || hookInput.tool_name || '';
 
-  // Merge stdin data into prompt resolution: prefer stdin fields, then env, then argv.
-  // `toolInput` is an object (e.g. {command:"ls"}) — it's truthy but not a string,
-  // so falling back to it directly bound `prompt` to the object and tripped
-  // `.toLowerCase()` / `.substring()` on every Bash hook (#1944). Use the
-  // `.command` field instead, which is the actual string the hook needs.
   const prompt = hookInput.prompt || hookInput.command || toolInput.command
     || process.env.PROMPT || process.env.TOOL_INPUT_command || args.join(' ') || '';
 
+  const toolFailed = (function (hi) {
+    if (!hi || typeof hi !== 'object') return false;
+    const tr = hi.tool_response != null ? hi.tool_response : (hi.toolResponse != null ? hi.toolResponse : hi.result);
+    if (tr == null) return false;
+    if (typeof tr === 'string') return /\b(error|failed|failure|exception|not found|no such|permission denied|traceback)\b/i.test(tr);
+    if (typeof tr === 'object') {
+      if (tr.is_error === true || tr.isError === true || tr.success === false || tr.error != null) return true;
+      const code = tr.exit_code != null ? tr.exit_code : (tr.exitCode != null ? tr.exitCode : tr.code);
+      if (typeof code === 'number' && code !== 0) return true;
+      if (Array.isArray(tr.content) && tr.is_error === true) return true;
+    }
+    return false;
+  })(hookInput);
+
 const handlers = {
   'route': () => {
-    // Inject ranked intelligence context before routing
     if (intelligence && intelligence.getContext) {
       try {
         const ctx = intelligence.getContext(prompt);
-        if (ctx) console.log(ctx);
+        if (ctx) process.stderr.write(String(ctx) + '\n');
       } catch (e) { /* non-fatal */ }
     }
     if (router && router.routeTask) {
       const result = router.routeTask(prompt);
-      // Format output for Claude Code hook consumption — real data only
       const output = [
         `[INFO] Routing task: ${prompt.substring(0, 80) || '(no prompt)'}`,
         '',
@@ -141,146 +168,146 @@ const handlers = {
         `| Reason: ${(result.reason || '').substring(0, 53).padEnd(53)}|`,
         '+--------------------------------------------------------------+',
       ];
-      console.log(output.join('\n'));
+      process.stderr.write(output.join('\n') + '\n');
     } else {
-      console.log('[INFO] Router not available, using default routing');
+      process.stderr.write('[INFO] Router not available, using default routing\n');
     }
+    emitAllow();
   },
 
   'pre-bash': () => {
-    // Basic command safety check — prefer stdin command data from Claude Code.
-    // String() wrap is belt-and-suspenders for #2017: even if a future regression
-    // re-binds `prompt` or `hookInput.command` to a non-string, `.toLowerCase()`
-    // can no longer throw a TypeError that the global try/catch would swallow
-    // (silently exiting 0 and letting the dangerous command through).
     const cmd = String(hookInput.command || toolInput.command || prompt || '').toLowerCase();
     const dangerous = ['rm -rf /', 'format c:', 'del /s /q c:\\', ':(){:|:&};:'];
     for (const d of dangerous) {
       if (cmd.includes(d)) {
-        console.error(`[BLOCKED] Dangerous command detected: ${d}`);
-        process.exit(1);
+        process.stderr.write(`[BLOCKED] Dangerous command detected: ${d}\n`);
+        emitDeny(`Dangerous command detected: ${d}`);
+        process.exitCode = 2;
+        return;
       }
     }
-    console.log('[OK] Command validated');
+    process.stderr.write('[OK] Command validated\n');
+    emitAllow();
+  },
+
+  'pre-edit': () => {
+    const file = hookInput.file_path || toolInput.file_path
+      || process.env.TOOL_INPUT_file_path || args[0] || '';
+    process.stderr.write(`[OK] Pre-edit allowed${file ? ': ' + file : ''}\n`);
+    emitAllow();
+  },
+
+  'post-bash': () => {
+    process.stderr.write('[OK] Post-bash\n');
+    emitContinue();
   },
 
   'post-edit': () => {
-    // Record edit for session metrics
     if (session && session.metric) {
       try { session.metric('edits'); } catch (e) { /* no active session */ }
     }
-    // Record edit for intelligence consolidation — prefer stdin data from Claude Code
     if (intelligence && intelligence.recordEdit) {
       try {
         const file = hookInput.file_path || toolInput.file_path
           || process.env.TOOL_INPUT_file_path || args[0] || '';
-        intelligence.recordEdit(file);
+        intelligence.recordEdit(file, !toolFailed);
       } catch (e) { /* non-fatal */ }
     }
-    console.log('[OK] Edit recorded');
+    process.stderr.write(toolFailed ? '[LEARN] Edit FAILURE recorded\n' : '[OK] Edit recorded\n');
+    emitContinue();
   },
 
   'session-restore': async () => {
     if (session) {
-      // Try restore first, fall back to start
       const existing = session.restore && session.restore();
       if (!existing) {
         session.start && session.start();
       }
     } else {
-      // Minimal session restore output
       const sessionId = `session-${Date.now()}`;
-      console.log(`[INFO] Restoring session: %SESSION_ID%`);
-      console.log('');
-      console.log(`[OK] Session restored from %SESSION_ID%`);
-      console.log(`New session ID: ${sessionId}`);
-      console.log('');
-      console.log('Restored State');
-      console.log('+----------------+-------+');
-      console.log('| Item           | Count |');
-      console.log('+----------------+-------+');
-      console.log('| Tasks          |     0 |');
-      console.log('| Agents         |     0 |');
-      console.log('| Memory Entries |     0 |');
-      console.log('+----------------+-------+');
+      process.stderr.write(`[INFO] Restoring session: %SESSION_ID%\n\n`);
+      process.stderr.write(`[OK] Session restored from %SESSION_ID%\n`);
+      process.stderr.write(`New session ID: ${sessionId}\n\n`);
     }
-    // Initialize intelligence graph after session restore (with timeout — #1530)
     if (intelligence && intelligence.init) {
       const initResult = await runWithTimeout(() => intelligence.init(), 'intelligence.init()');
       if (initResult && initResult.nodes > 0) {
-        console.log(`[INTELLIGENCE] Loaded ${initResult.nodes} patterns, ${initResult.edges} edges`);
+        process.stderr.write(`[INTELLIGENCE] Loaded ${initResult.nodes} patterns, ${initResult.edges} edges\n`);
       }
     }
+    emitAllow();
   },
 
   'session-end': async () => {
-    // Consolidate intelligence before ending session (with timeout — #1530)
     if (intelligence && intelligence.consolidate) {
       const consResult = await runWithTimeout(() => intelligence.consolidate(), 'intelligence.consolidate()');
       if (consResult && consResult.entries > 0) {
-        console.log(`[INTELLIGENCE] Consolidated: ${consResult.entries} entries, ${consResult.edges} edges${consResult.newEntries > 0 ? `, ${consResult.newEntries} new` : ''}, PageRank recomputed`);
+        process.stderr.write(`[INTELLIGENCE] Consolidated: ${consResult.entries} entries, ${consResult.edges} edges${consResult.newEntries > 0 ? `, ${consResult.newEntries} new` : ''}, PageRank recomputed\n`);
       }
     }
     if (session && session.end) {
       session.end();
     } else {
-      console.log('[OK] Session ended');
+      process.stderr.write('[OK] Session ended\n');
     }
+    emitContinue();
   },
 
   'pre-task': () => {
     if (session && session.metric) {
       try { session.metric('tasks'); } catch (e) { /* no active session */ }
     }
-    // Route the task if router is available
     if (router && router.routeTask && prompt) {
       const result = router.routeTask(prompt);
-      console.log(`[INFO] Task routed to: ${result.agent} (confidence: ${result.confidence})`);
+      process.stderr.write(`[INFO] Task routed to: ${result.agent} (confidence: ${result.confidence})\n`);
     } else {
-      console.log('[OK] Task started');
+      process.stderr.write('[OK] Task started\n');
     }
+    emitAllow();
   },
 
   'post-task': () => {
-    // Implicit success feedback for intelligence
     if (intelligence && intelligence.feedback) {
       try {
-        intelligence.feedback(true);
+        intelligence.feedback(!toolFailed);
       } catch (e) { /* non-fatal */ }
     }
-    console.log('[OK] Task completed');
+    process.stderr.write(toolFailed ? '[LEARN] Task FAILURE recorded\n' : '[OK] Task completed\n');
+    emitContinue();
   },
 
   'stats': () => {
     if (intelligence && intelligence.stats) {
       intelligence.stats(args.includes('--json'));
     } else {
-      console.log('[WARN] Intelligence module not available. Run session-restore first.');
+      process.stderr.write('[WARN] Intelligence module not available. Run session-restore first.\n');
     }
+    process.stdout.write('{}\n');
   },
 };
 
-  // Execute the handler
   if (command && handlers[command]) {
     try {
       await Promise.resolve(handlers[command]());
     } catch (e) {
-      // Hooks should never crash Claude Code - fail silently
-      console.log(`[WARN] Hook ${command} encountered an error: ${e.message}`);
+      process.stderr.write(`[WARN] Hook ${command} encountered an error: ${e.message}\n`);
+      emitAllow();
     }
   } else if (command) {
-    // Unknown command - pass through without error
-    console.log(`[OK] Hook: ${command}`);
+    process.stderr.write(`[OK] Hook: ${command}\n`);
+    emitAllow();
   } else {
-    console.log('Usage: hook-handler.cjs <route|pre-bash|post-edit|session-restore|session-end|pre-task|post-task|stats>');
+    process.stderr.write('Usage: hook-handler.cjs <route|pre-bash|pre-edit|post-bash|post-edit|session-restore|session-end|pre-task|post-task|stats>\n');
+    process.stdout.write('{}\n');
   }
 }
 
-// Hooks must ALWAYS exit 0 — Claude Code treats non-zero as "hook error"
-// and skips all subsequent hooks for the event.
 process.exitCode = 0;
 main().catch((e) => {
-  try { console.log(`[WARN] Hook handler error: ${e.message}`); } catch (_) {}
+  try {
+    process.stderr.write(`[WARN] Hook handler error: ${e.message}\n`);
+    emitAllow();
+  } catch (_) {}
 }).finally(() => {
-  process.exit(0);
+  process.exit(typeof process.exitCode === 'number' ? process.exitCode : 0);
 });

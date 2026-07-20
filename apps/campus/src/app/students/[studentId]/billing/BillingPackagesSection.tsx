@@ -85,10 +85,13 @@ export function AdminPackagesSection({
                   <div className={styles.billingPackageControls}>
                     <div className={styles.billingPackageControlCell}>
                       <span className={styles.billingPackageControlLabel}>Visibility</span>
-                      <label className={styles.billingPackageToggle}>
-                        <input type="checkbox" checked={ov.enabled} onChange={(e) => updatePackageOverride(ov.packageId, { enabled: e.target.checked })} />
-                        <span>Visible to student</span>
-                      </label>
+                      <Field
+                        as="checkbox"
+                        checked={ov.enabled}
+                        onChange={(e) => updatePackageOverride(ov.packageId, { enabled: e.target.checked })}
+                        label="Visible to student"
+                        rootClassName={styles.billingPackageToggle}
+                      />
                     </div>
                     <div className={`${styles.billingPackageControlCell} ${styles.billingPackageControlCellWide}`}>
                       <div className={styles.billingInlineField}>
@@ -99,10 +102,18 @@ export function AdminPackagesSection({
                     </div>
                     <div className={styles.billingPackageControlCell}>
                       <span className={styles.billingPackageControlLabel}>Size rule</span>
-                      <label className={styles.billingPackageToggle}>
-                        <input type="checkbox" checked={ov.lessonsLocked} onChange={(e) => updatePackageOverride(ov.packageId, { lessonsLocked: e.target.checked, lessons: e.target.checked && ov.lessons == null ? lessons : ov.lessons })} />
-                        <span>Fixed for student</span>
-                      </label>
+                      <Field
+                        as="checkbox"
+                        checked={ov.lessonsLocked}
+                        onChange={(e) =>
+                          updatePackageOverride(ov.packageId, {
+                            lessonsLocked: e.target.checked,
+                            lessons: e.target.checked && ov.lessons == null ? lessons : ov.lessons,
+                          })
+                        }
+                        label="Fixed for student"
+                        rootClassName={styles.billingPackageToggle}
+                      />
                     </div>
                   </div>
                 </div>

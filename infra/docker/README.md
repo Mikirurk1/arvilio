@@ -1,12 +1,12 @@
-# SoEnglish — Docker (local)
+# Arvilio — Docker (local)
 
 ## Рекомендований локальний dev (без api/web у Docker)
 
 Логи API і web у **терміналі**, hot reload:
 
 ```bash
-npm run docker:up      # лише Postgres (порт 5432)
-npm run dev            # API :3000 + Next :4200 на хості
+npm run docker:up      # Postgres (+ LiveKit / LibreTranslate з compose)
+npm run dev            # API :3000 + Campus :4200 на хості
 ```
 
 Якщо раніше піднімали повний стек у Docker — зупиніть api/web:
@@ -17,13 +17,17 @@ npm run docker:stack:down
 
 ## Що в `docker-compose.yml`
 
-| Сервіс | За замовчуванням | Профіль `stack` |
-|--------|------------------|-----------------|
-| `soenglish-postgres` | ✅ `docker:up` | ✅ |
-| `soenglish-api` | ❌ | `npm run docker:stack` |
-| `soenglish-web` | ❌ | `npm run docker:stack` |
+| Сервіс | Container | За замовчуванням | Профіль `stack` |
+|--------|-----------|------------------|-----------------|
+| `postgres` | `arvilio-postgres` | ✅ `docker:up` | ✅ |
+| `livekit` | `arvilio-livekit` | ✅ | ✅ |
+| `libretranslate` | `arvilio-libretranslate` | ✅ | ✅ |
+| `api` | `arvilio-api` | ❌ | `npm run docker:stack` |
+| `campus` | `arvilio-campus` | ❌ | `npm run docker:stack` |
 
-Volume: `soenglish-postgres-data`.
+Volume: `arvilio-postgres-data`.
+
+Postgres **credentials** для local лишаються `soenglish` / `soenglish` (user/db/password) — щоб існуючий `DATABASE_URL` і дампи не ламались. Імена контейнерів/volume — лише `arvilio-*`.
 
 Production: `docker-compose.prod.yml` (GHCR) — не для щоденного dev.
 
@@ -31,10 +35,10 @@ Production: `docker-compose.prod.yml` (GHCR) — не для щоденного 
 
 | npm script | Дія |
 |------------|-----|
-| `docker:up` | Postgres only |
+| `docker:up` | Postgres + LiveKit + LibreTranslate |
 | `docker:postgres` | Те саме, що `docker:up` |
-| `docker:stack` | Postgres + api + web у контейнерах (логи: `docker:logs`) |
-| `docker:stack:down` | Зупинити лише `soenglish-api` і `soenglish-web` |
+| `docker:stack` | Postgres + api + campus у контейнерах (логи: `docker:logs`) |
+| `docker:stack:down` | Зупинити лише `arvilio-api` і `arvilio-campus` |
 | `docker:down` | Зупинити всі сервіси compose (включно з Postgres) |
 | `docker:ps` / `docker:logs` | Статус / логи |
 

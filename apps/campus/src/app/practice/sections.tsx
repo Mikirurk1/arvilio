@@ -1,12 +1,17 @@
+'use client';
+
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import { ArrowRight, BookOpen, Gamepad2, Mic, Repeat, Target, Trophy } from 'lucide-react';
 import { Badge, type BadgeVariant } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import uiStyles from '../../components/ui/ui.module.scss';
 import styles from './page.module.scss';
 
 export type PracticeActivityTagVariant = 'green' | 'blue' | 'amber' | 'neutral';
 
 export type PracticeActivity = {
+  id: string;
   href: string;
   title: string;
   description: string;
@@ -61,18 +66,29 @@ function toBadgeVariant(tagVariant: PracticeActivityTagVariant): BadgeVariant {
 }
 
 export function PracticeActivitiesGrid({ activities }: { activities: ReadonlyArray<PracticeActivity> }) {
+  const t = useCampusT();
   const active = activities.filter((activity) => !activity.disabled);
   const comingSoon = activities.filter((activity) => activity.disabled);
 
   return (
     <div className={styles.modulesLayout}>
-      {/* V3-03: Full-width shelf rows, not 3-column grid */}
-      <div className={styles.shelfList}>
+      <div className={styles.shelfList} data-tour-anchor="practice-hub-cards">
         {active.map((activity) => (
-          <a
-            key={activity.title}
+          <Link
+            key={activity.id}
             href={activity.href}
             className={`${styles.shelfRow} ${shelfAccentClass(activity.accent)}`}
+            data-tour-anchor={
+              activity.id === 'vocab'
+                ? 'practice-card-vocabulary'
+                : activity.id === 'quiz'
+                  ? 'practice-card-quiz'
+                  : activity.id === 'speaking'
+                    ? 'practice-card-speaking'
+                    : activity.id === 'irregular'
+                      ? 'practice-card-irregular'
+                      : undefined
+            }
           >
             <span className={`${styles.shelfIcon} ${iconToneClass(activity.accent)}`}>
               {iconById[activity.icon] ?? <BookOpen size={20} strokeWidth={2} aria-hidden />}
@@ -89,16 +105,16 @@ export function PracticeActivitiesGrid({ activities }: { activities: ReadonlyArr
               ) : null}
               <span className={styles.shelfArrow} aria-hidden><ArrowRight size={14} strokeWidth={2.5} /></span>
             </span>
-          </a>
+          </Link>
         ))}
       </div>
 
       {comingSoon.length > 0 ? (
         <div className={styles.soonBlock}>
-          <p className={styles.soonHeading}>Coming soon</p>
+          <p className={styles.soonHeading}>{t('practice.comingSoon')}</p>
           <ul className={styles.soonList}>
             {comingSoon.map((activity) => (
-              <li key={activity.title} className={styles.soonItem}>
+              <li key={activity.id} className={styles.soonItem}>
                 <span className={`${styles.soonIcon} ${iconToneClass(activity.accent)}`}>
                   {iconById[activity.icon]}
                 </span>

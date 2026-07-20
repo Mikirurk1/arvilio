@@ -3,6 +3,7 @@ import { PrismaModule } from '@be/prisma';
 import { EntitlementsService } from './application/entitlements.service';
 import { StorageAccountingService } from './application/storage-accounting.service';
 import { PlatformSubscriptionService } from './application/platform-subscription.service';
+import { PlatformBillingRailsService } from './application/platform-billing-rails.service';
 import { PlatformSubscriptionWebhookController } from './presentation/rest/platform-subscription-webhook.controller';
 import { LemonSqueezyCheckoutService } from './application/lemonsqueezy-checkout.service';
 import { LessonBalanceService } from './application/lesson-balance.service';
@@ -23,6 +24,7 @@ import { PaddleWebhookController } from './presentation/rest/paddle-webhook.cont
 import { PayPalWebhookController } from './presentation/rest/paypal-webhook.controller';
 import { StripeWebhookController } from './presentation/rest/stripe-webhook.controller';
 import { WayForPayCallbackController } from './presentation/rest/wayforpay-callback.controller';
+import { SchoolPublicOfferController } from './presentation/rest/school-public-offer.controller';
 
 @Module({
   imports: [PrismaModule],
@@ -35,11 +37,13 @@ import { WayForPayCallbackController } from './presentation/rest/wayforpay-callb
     MonoPayWebhookController,
     PayPalWebhookController,
     PlatformSubscriptionWebhookController,
+    SchoolPublicOfferController,
   ],
   providers: [
     EntitlementsService,
     StorageAccountingService,
     PlatformSubscriptionService,
+    PlatformBillingRailsService,
     PaymentSettingsService,
     LessonBalanceService,
     StripeCheckoutService,
@@ -60,6 +64,7 @@ import { WayForPayCallbackController } from './presentation/rest/wayforpay-callb
     EntitlementsService,
     StorageAccountingService,
     PlatformSubscriptionService,
+    PlatformBillingRailsService,
   ],
 })
 export class BillingModule {}

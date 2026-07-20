@@ -37,8 +37,30 @@ describe('Platform admin console (integration)', () => {
   it('lets a platform operator list schools (cross-tenant)', async () => {
     const agent = await loginAs(app, 'superAdmin');
     const res = await agent.get('/api/platform/schools').expect(200);
-    expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body.some((s: { id: string }) => s.id === 'school_default')).toBe(true);
+    expect(Array.isArray(res.body.items)).toBe(true);
+    expect(res.body.items.some((s: { id: string }) => s.id === 'school_default')).toBe(true);
+    expect(typeof res.body.total).toBe('number');
+    expect(typeof res.body.hasMore).toBe('boolean');
+  });
+
+  it('lists global users and school members with pagination', async () => {
+    const agent = await loginAs(app, 'superAdmin');
+    const users = await agent.get('/api/platform/users?limit=10').expect(200);
+    expect(Array.isArray(users.body.items)).toBe(true);
+    expect(users.body.total).toBeGreaterThanOrEqual(1);
+
+    const stats = await agent.get('/api/platform/users/stats').expect(200);
+    expect(stats.body.totalUsers).toBeGreaterThanOrEqual(1);
+
+    const members = await agent
+      .get('/api/platform/schools/school_default/members?limit=10')
+      .expect(200);
+    expect(Array.isArray(members.body.items)).toBe(true);
+    expect(members.body.total).toBeGreaterThanOrEqual(1);
+
+    const detail = await agent.get('/api/platform/schools/school_default').expect(200);
+    expect(detail.body.owner === null || typeof detail.body.owner?.email === 'string').toBe(true);
+    expect(Array.isArray(detail.body.admins)).toBe(true);
   });
 
   it('rejects a non-operator (student) with 403', async () => {
@@ -72,7 +94,7 @@ describe('Platform admin console (integration)', () => {
     const log = await (await loginAs(app, 'superAdmin'))
       .get('/api/platform/audit-log?schoolId=school_default')
       .expect(200);
-    expect(log.body.map((e: { action: string }) => e.action)).toContain('school.impersonate');
+    expect(log.body.items.map((e: { action: string }) => e.action)).toContain('school.impersonate');
 
     // Stopping returns to the operator's own session.
     await agent.post('/api/auth/impersonate/stop').expect(201);
@@ -210,9 +232,9 @@ describe('Platform admin console (integration)', () => {
       expect(activated.body.status).toBe('ACTIVE');
 
       const log = await agent.get(`/api/platform/audit-log?schoolId=${id}`).expect(200);
-      const actions = log.body.map((e: { action: string }) => e.action);
+      const actions = log.body.items.map((e: { action: string }) => e.action);
       expect(actions).toEqual(expect.arrayContaining(['school.suspend', 'school.activate']));
-      expect(log.body[0].actorName).toBeTruthy();
+      expect(log.body.items[0].actorName).toBeTruthy();
     } finally {
       await ctx.prisma.platformAuditLog.deleteMany({ where: { targetSchoolId: id } });
       await ctx.prisma.school.delete({ where: { id } }).catch(() => undefined);

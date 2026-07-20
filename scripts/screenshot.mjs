@@ -8,7 +8,7 @@ import { chromium } from 'playwright';
 
 const route = process.argv[2] ?? '/dashboard';
 const outFile = process.argv[3] ?? `docs/screenshots/page-${Date.now()}.png`;
-const email = process.env.PLAYWRIGHT_TEACHER_EMAIL ?? 'jest-teacher@soenglish.test';
+const email = process.env.PLAYWRIGHT_TEACHER_EMAIL ?? 'jest-teacher@arvilio.test';
 const password = process.env.PLAYWRIGHT_TEST_PASSWORD ?? 'TestPass123!';
 const base = process.env.APP_URL ?? 'http://localhost:4200';
 

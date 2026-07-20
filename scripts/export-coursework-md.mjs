@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Exports docs/coursework/Курсова_SoEnglish.md from coursework-data.mjs */
+/** Exports docs/coursework/Курсова_Arvilio.md from coursework-data.mjs */
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -85,7 +85,7 @@ ${META.department}
 
 ## АНОТАЦІЯ
 
-Курсова робота присвячена проектуванню та практичній реалізації веб-платформи **SoEnglish** для дистанційного навчання англійської мови. Система охоплює індивідуальні уроки 1:1 з інтеграцією Google Meet, персональний словник із spaced repetition, генерацію та проходження квізів, календар занять, dashboard зі streak і daily goals, а також realtime-чат між учасниками навчального процесу.
+Курсова робота присвячена проектуванню та практичній реалізації веб-платформи **Arvilio** для дистанційного навчання англійської мови. Система охоплює індивідуальні уроки 1:1 з інтеграцією Google Meet, персональний словник із spaced repetition, генерацію та проходження квізів, календар занять, dashboard зі streak і daily goals, а також realtime-чат між учасниками навчального процесу.
 
 Рівень зберігання даних реалізовано на **PostgreSQL** із ORM **Prisma**. Серверна частина побудована на **NestJS** (REST + GraphQL + Socket.IO), клієнтська — на **Next.js 16** та **React 19**.
 
@@ -93,7 +93,7 @@ ${META.department}
 
 ## ВСТУП
 
-Володіння англійською мовою є критичним фактором професійного та академічного успіху. Метою проєкту SoEnglish є створення єдиного веб-застосунку, який об’єднує розклад уроків, словникову роботу, практику, оцінювання через квізи та комунікацію в чаті.
+Володіння англійською мовою є критичним фактором професійного та академічного успіху. Метою проєкту Arvilio є створення єдиного веб-застосунку, який об’єднує розклад уроків, словникову роботу, практику, оцінювання через квізи та комунікацію в чаті.
 
 ${fig(1)}
 
@@ -132,12 +132,12 @@ ${USAGE_PERSPECTIVES.map((t) => `- ${t}`).join('\n')}
 ${tableMd(['Рішення', 'Переваги', 'Недоліки'], [
   ['Duolingo', 'Гейміфікація', 'Немає 1:1 викладача'],
   ['Google Classroom', 'Матеріали', 'Слабкий словник'],
-  ['SoEnglish', 'Уроки+слова+квізи+чат', 'Потрібне розгортання'],
+  ['Arvilio', 'Уроки+слова+квізи+чат', 'Потрібне розгортання'],
 ])}
 
 ### 1.4. Архітектура
 
-Monorepo: apps/web, apps/api, packages/backend/modules/*, Prisma.
+Monorepo: apps/campus, apps/api, packages/backend/modules/*, Prisma.
 
 ${fig(2)}
 
@@ -304,5 +304,5 @@ ${e.code}
 ).join('\n')}
 `;
 
-fs.writeFileSync(path.join(OUT, 'Курсова_SoEnglish.md'), md, 'utf8');
-console.log('Written:', path.join(OUT, 'Курсова_SoEnglish.md'));
+fs.writeFileSync(path.join(OUT, 'Курсова_Arvilio.md'), md, 'utf8');
+console.log('Written:', path.join(OUT, 'Курсова_Arvilio.md'));

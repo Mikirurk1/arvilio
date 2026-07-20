@@ -1,4 +1,4 @@
-import type { AuthUserDto, WebRequestSessionDto } from '@pkg/types';
+import { stripLocalePrefix, type AuthUserDto, type WebRequestSessionDto } from '@pkg/types';
 
 export type AuthRoleKey = AuthUserDto['role'];
 export type RouteSurface = 'public' | 'school-app' | 'platform-app';
@@ -27,25 +27,19 @@ const PUBLIC_ROUTES = new Set([
   '/mascot-preview',
   '/privacy',
   '/status',
+  '/offer',
+  '/legal/terms',
+  '/legal/payment-refund',
+  '/legal/contacts',
 ]);
-const CMS_ROUTE_PREFIX = '/cms-admin';
+const PUBLIC_ROUTE_PREFIXES = ['/legal', '/cms-proxy'];
 const AUTH_REDIRECT_ROUTES = new Set(['/login', '/signup']);
 
 const ROUTE_RULES: RouteRule[] = [
   {
-    match: (pathname) => matchesPath(pathname, CMS_ROUTE_PREFIX),
-    route: {
-      surface: 'public',
-      shell: 'auth',
-      isPublic: true,
-      redirectAuthenticatedTo: null,
-      requiredScope: null,
-      allowedRoles: null,
-      deniedRedirectTo: '/dashboard',
-    },
-  },
-  {
-    match: (pathname) => PUBLIC_ROUTES.has(pathname),
+    match: (pathname) =>
+      PUBLIC_ROUTES.has(pathname) ||
+      PUBLIC_ROUTE_PREFIXES.some((prefix) => matchesPath(pathname, prefix)),
     route: {
       surface: 'public',
       shell: 'auth',
@@ -179,7 +173,7 @@ const ROUTE_RULES: RouteRule[] = [
 ];
 
 export function classifyRouteAccess(pathname: string): RouteAccessDescriptor {
-  const normalized = normalizePathname(pathname);
+  const normalized = normalizePathname(stripLocalePrefix(pathname).pathname);
   const matched = ROUTE_RULES.find((rule) => rule.match(normalized));
   if (matched) {
     if (matched.route.isPublic && matched.route.redirectAuthenticatedTo === '/dashboard') {

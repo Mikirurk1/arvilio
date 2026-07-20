@@ -14,10 +14,12 @@ const unitProjects = [
   '<rootDir>/packages/backend/modules/module-materials/jest.config.cjs',
   '<rootDir>/packages/backend/modules/module-notifications/jest.config.cjs',
   '<rootDir>/packages/backend/modules/module-progress/jest.config.cjs',
+  '<rootDir>/packages/backend/modules/module-assistant/jest.config.cjs',
   '<rootDir>/packages/backend/modules/module-platform-admin/jest.config.cjs',
   '<rootDir>/packages/backend/modules/module-mail/jest.config.cjs',
   '<rootDir>/packages/backend/modules/module-billing/jest.config.cjs',
-  '<rootDir>/apps/web/jest.config.cjs',
+  '<rootDir>/apps/campus/jest.config.cjs',
+  '<rootDir>/apps/hub/jest.config.cjs',
 ];
 
 /** @type {import('jest').Config} */

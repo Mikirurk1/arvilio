@@ -1,0 +1,25 @@
+- main [ref=e4]:
+  - generic [ref=e6]:
+    - generic "Arvilio" [ref=e8]:
+      - generic [ref=e12]:
+        - generic [ref=e13]: Arvilio
+        - generic [ref=e14]: Campus
+    - generic [ref=e15]:
+      - heading "Sign in" [level=1] [ref=e16]
+      - paragraph [ref=e17]: Welcome back. Pick up your lessons, practice, and messages in one place.
+    - link "Continue with Google" [ref=e18] [cursor=pointer]:
+      - /url: /api/auth/google
+    - generic [ref=e24]: or
+    - generic [ref=e25]:
+      - generic [ref=e26]:
+        - generic [ref=e27]: Email
+        - textbox "Email" [ref=e28]
+      - generic [ref=e29]:
+        - generic [ref=e30]: Password
+        - generic [ref=e31]:
+          - textbox "Password" [ref=e32]
+          - button "Show password" [ref=e33] [cursor=pointer]
+      - link "Forgot password?" [ref=e38] [cursor=pointer]:
+        - /url: /forgot-password
+      - button "Sign in" [ref=e39] [cursor=pointer]
+    - paragraph [ref=e40]: Need an account? Contact your administrator.

@@ -1,4 +1,4 @@
-# SoEnglish Redesign v2 — «Editorial Paper»
+# Arvilio Redesign v2 — «Editorial Paper»
 
 > **Це головний план редизайну.** Попередній `plan.md` — заархівований (superseded).
 > Кожен крок має ID. Після виконання кроку — онови `Status` і дату.
@@ -84,7 +84,7 @@ senior-команда великого продукту. Конкретні оз
 
 ## 2. Дизайн-токени v2 (фаза V0)
 
-Усе нижче — у `apps/web/src/styles/tokens/`, в обидві теми (light/dark).
+Усе нижче — у `apps/campus/src/styles/tokens/`, в обидві теми (light/dark).
 
 ### 2.1 Типографіка — editorial scale
 
@@ -188,7 +188,7 @@ senior-команда великого продукту. Конкретні оз
 |---|---|---|---|---|
 | V0-01 | Motion-токени: `tokens/_motion.scss`, підключити в `global.scss`; видалити/замінити слабкі keyframes у `_animations.scss` | `styles/tokens/_motion.scss`, `styles/global.scss`, `styles/_animations.scss` | done | 2026-06-11 |
 | V0-02 | Editorial type scale: `--fs-display-xl`, `--fs-display`, ролі Lora/sans; tabular-nums helper | `styles/tokens/_typography.scss`, `styles/_typography.scss` | done | 2026-06-11 |
-| V0-03 | Встановити `gsap` у `apps/web`; створити `lib/motion/` (gsap context helper + reduced-motion hook) | `apps/web/package.json`, `src/lib/motion/*` | done | 2026-06-11 |
+| V0-03 | Встановити `gsap` у `apps/campus`; створити `lib/motion/` (gsap context helper + reduced-motion hook) | `apps/campus/package.json`, `src/lib/motion/*` | done | 2026-06-11 |
 | V0-04 | Button v2: press-scale, кастомні easing, loading-морфінг із blur-маскою | `components/ui/Button.tsx`, `ui.module.scss` | done | 2026-06-11 |
 | V0-05 | Popover/Tooltip v2: origin-aware, instant-наступні tooltips, нові durations | `components/ui/Tooltip.tsx`, `PickerPopover.tsx`, `picker.module.scss` | done | 2026-06-11 |
 | V0-06 | Modal recipe v2: enter від scale(0.96)+opacity, exit швидший, backdrop fade | `styles/_modal-recipe.scss` | done | 2026-06-11 |

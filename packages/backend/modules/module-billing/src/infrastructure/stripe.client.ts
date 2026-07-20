@@ -15,11 +15,13 @@ export function getStripeWebhookSecret(secret: string | undefined): string | nul
   return secret?.trim() || null;
 }
 
-/** Platform (Layer-B) Stripe account — single env-configured account, not per-school. */
-export function getPlatformStripeClient(): Stripe | null {
-  return getStripeClient(process.env['STRIPE_PLATFORM_SECRET_KEY']?.trim());
+/** Platform (Layer-B) Stripe account — env fallback; prefer DB via PlatformBillingRailsService. */
+export function getPlatformStripeClient(secretKey?: string | null): Stripe | null {
+  return getStripeClient(secretKey?.trim() || process.env['STRIPE_PLATFORM_SECRET_KEY']?.trim());
 }
 
-export function getPlatformStripeWebhookSecret(): string | null {
-  return getStripeWebhookSecret(process.env['STRIPE_PLATFORM_WEBHOOK_SECRET']);
+export function getPlatformStripeWebhookSecret(webhookSecret?: string | null): string | null {
+  return getStripeWebhookSecret(
+    webhookSecret?.trim() || process.env['STRIPE_PLATFORM_WEBHOOK_SECRET'],
+  );
 }

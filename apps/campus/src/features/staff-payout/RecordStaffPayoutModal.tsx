@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { Banknote, X } from 'lucide-react';
 import type { PaymentCurrencyCode } from '@pkg/types';
 import { BodyPortal, Button } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import { RecordStaffPayoutForm, type RecordStaffPayoutFormValues } from './RecordStaffPayoutForm';
 import styles from './staff-payout.module.scss';
 
@@ -34,6 +35,7 @@ export function RecordStaffPayoutModal({
   paidAtMax,
   outstandingLabel = null,
 }: RecordStaffPayoutModalProps) {
+  const t = useCampusT();
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -68,11 +70,16 @@ export function RecordStaffPayoutModal({
               </span>
               <div>
                 <h2 id="record-payout-title" className={styles.payoutModalTitle}>
-                  Record payout
+                  {t('staffPayout.record.title')}
                 </h2>
                 <p className={styles.payoutModalSubtitle}>
-                  Fix a manual payout for <strong>{staffDisplayName}</strong>
-                  {outstandingLabel ? <> · Outstanding {outstandingLabel}</> : null}
+                  {t('staffPayout.record.subtitle', { name: staffDisplayName })}
+                  {outstandingLabel ? (
+                    <>
+                      {' '}
+                      · {t('staffPayout.record.outstanding', { amount: outstandingLabel })}
+                    </>
+                  ) : null}
                 </p>
               </div>
             </div>
@@ -80,7 +87,7 @@ export function RecordStaffPayoutModal({
               type="button"
               variant="ghost"
               className={styles.payoutModalClose}
-              aria-label="Close"
+              aria-label={t('staffPayout.close')}
               disabled={saving}
               onClick={onClose}
             >

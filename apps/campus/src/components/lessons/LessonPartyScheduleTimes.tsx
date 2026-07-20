@@ -8,6 +8,7 @@ import {
   type LessonWallClock,
 } from '../../lib/lessonTime';
 import { useViewerTimezone } from '../../hooks/use-viewer-timezone';
+import { useCampusT } from '../../lib/cms';
 import styles from './LessonPartyScheduleTimes.module.scss';
 
 type Props = {
@@ -29,6 +30,7 @@ export function LessonPartyScheduleTimes({
   studentName,
   className,
 }: Props) {
+  const t = useCampusT();
   const viewer = useViewerTimezone();
   const lessonIana = getIanaForTimeZoneId(wall.timezoneId);
   const teacherIana = teacherTimezoneIana?.trim() || lessonIana;
@@ -43,10 +45,16 @@ export function LessonPartyScheduleTimes({
       ? formatLessonWallClockInZone(wall, secondaryIana)
       : null;
 
-  const primaryHeading = isStudent ? 'Your time' : 'Lesson time';
+  const primaryHeading = isStudent
+    ? t('lessonDetail.schedule.yourTime')
+    : t('lessonDetail.schedule.lessonTime');
   const secondaryHeading = isStudent
-    ? `Teacher${teacherName ? ` · ${teacherName}` : ''}`
-    : `Student${studentName ? ` · ${studentName}` : ''}`;
+    ? teacherName
+      ? t('lessonDetail.schedule.teacherNamed', { name: teacherName })
+      : t('lessonDetail.schedule.teacher')
+    : studentName
+      ? t('lessonDetail.schedule.studentNamed', { name: studentName })
+      : t('lessonDetail.schedule.student');
 
   return (
     <div className={`${styles.root} ${className ?? ''}`.trim()}>

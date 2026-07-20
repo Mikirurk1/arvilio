@@ -14,7 +14,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button, PageHeader, SurfaceCard } from '../../components/ui';
-import { USER_ROLE, type UserRole } from '../../mocks';
+import { useCampusI18n, useCampusT } from '../../lib/cms';
+import { USER_ROLE, type UserRoleId } from '@pkg/types';
 import { useActiveUser } from '../../lib/active-user';
 import {
   fromBackendLessons,
@@ -30,10 +31,12 @@ import { LessonsListPanel } from '../../components/lessons/LessonsListPanel';
 import { useLessonsStore } from '../../stores/lessons-store';
 import styles from './page.module.scss';
 
-function statusLabel(statusId: ScheduledLessonDto['statusId']) {
-  if (statusId === LESSON_STATUS.planned.id) return 'Planned';
-  if (statusId === LESSON_STATUS.completed.id) return 'Completed';
-  return 'Cancelled';
+type Translate = ReturnType<typeof useCampusT>;
+
+function statusLabel(statusId: ScheduledLessonDto['statusId'], t: Translate) {
+  if (statusId === LESSON_STATUS.planned.id) return t('dashboard.lessonStatus.planned');
+  if (statusId === LESSON_STATUS.completed.id) return t('dashboard.lessonStatus.completed');
+  return t('dashboard.lessonStatus.cancelled');
 }
 
 type HomeworkHighlightVariant = 'success' | 'info' | 'warning' | 'danger';
@@ -47,7 +50,11 @@ function lessonHasHomework(lesson: ScheduledLessonDto): boolean {
  * Homework badge for highlight cards: do not use danger (red) when submission
  * is not available yet (e.g. planned lesson) — same rule as canStudentSubmitHomework.
  */
-function homeworkHighlightStatus(lesson: ScheduledLessonDto, viewerRole: UserRole): {
+function homeworkHighlightStatus(
+  lesson: ScheduledLessonDto,
+  viewerRole: UserRoleId,
+  t: Translate,
+): {
   label: string;
   variant: HomeworkHighlightVariant;
   showAlertIcon: boolean;
@@ -61,32 +68,38 @@ function homeworkHighlightStatus(lesson: ScheduledLessonDto, viewerRole: UserRol
 
   if (lesson.statusId !== LESSON_STATUS.completed.id) {
     if (!hasHomework) {
-      return { label: 'No homework assigned', variant: 'info', showAlertIcon: false };
+      return { label: t('lessons.hw.noneAssigned'), variant: 'info', showAlertIcon: false };
     }
     const label =
-      viewerRole === USER_ROLE.student.id ? 'Opens after the lesson' : 'Pending (lesson not completed)';
+      viewerRole === USER_ROLE.student.id
+        ? t('lessons.hw.opensAfter')
+        : t('lessons.hw.pendingLesson');
     return { label, variant: 'info', showAlertIcon: false };
   }
 
   if (!hasHomework) {
-    return { label: 'No homework', variant: 'info', showAlertIcon: false };
+    return { label: t('lessons.hw.none'), variant: 'info', showAlertIcon: false };
   }
 
   if (responseStatus === 'accepted') {
-    return { label: 'Accepted', variant: 'success', showAlertIcon: false };
+    return { label: t('lessons.hw.accepted'), variant: 'success', showAlertIcon: false };
   }
   if (responseStatus === 'submitted') {
-    return { label: 'Submitted', variant: 'info', showAlertIcon: false };
+    return { label: t('lessons.hw.submitted'), variant: 'info', showAlertIcon: false };
   }
   if (responseStatus === 'needs_rework') {
-    return { label: 'Needs rework', variant: 'warning', showAlertIcon: true };
+    return { label: t('lessons.hw.needsRework'), variant: 'warning', showAlertIcon: true };
   }
-  return { label: 'Not submitted', variant: 'danger', showAlertIcon: true };
+  return { label: t('lessons.hw.notSubmitted'), variant: 'danger', showAlertIcon: true };
 }
 
-function formatShortDate(isoDate: string) {
+function formatShortDate(isoDate: string, locale: string) {
   const d = new Date(`${isoDate}T12:00:00`);
-  return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  return d.toLocaleDateString(locale === 'uk' ? 'uk-UA' : 'en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
 }
 
 function toStartTimeMs(lesson: ScheduledLessonDto): number {
@@ -102,6 +115,8 @@ export default function LessonsPage() {
 }
 
 function LessonsPageInner() {
+  const t = useCampusT();
+  const { locale } = useCampusI18n();
   const router = useRouter();
   const activeUser = useActiveUser();
   const role = activeUser.role;
@@ -192,12 +207,12 @@ function LessonsPageInner() {
   );
 
   const nextLessonHomework = useMemo(
-    () => (nextLesson ? homeworkHighlightStatus(nextLesson, role) : null),
-    [nextLesson, role],
+    () => (nextLesson ? homeworkHighlightStatus(nextLesson, role, t) : null),
+    [nextLesson, role, t],
   );
   const previousLessonHomework = useMemo(
-    () => (previousLesson ? homeworkHighlightStatus(previousLesson, role) : null),
-    [previousLesson, role],
+    () => (previousLesson ? homeworkHighlightStatus(previousLesson, role, t) : null),
+    [previousLesson, role, t],
   );
   const lessonStats = useMemo(() => {
     const planned = visibleLessons.filter((lesson) => lesson.statusId === LESSON_STATUS.planned.id).length;
@@ -213,19 +228,23 @@ function LessonsPageInner() {
           className={styles.pageHeader}
           titleClassName={styles.pageTitle}
           subtitleClassName={styles.pageSub}
-          title="Lessons"
-          subtitle="Your course schedule — upcoming and past lessons in one place."
+          title={t('lessons.title')}
+          subtitle={t('lessons.subtitle')}
           actions={
             <Button variant="primary" href="/calendar" className={styles.openCalendarBtn}>
-              Open calendar
+              {t('lessons.openCalendar')}
             </Button>
           }
         />
 
-        <section className={styles.scheduleSection} aria-label="Lesson highlights">
+        <section
+          className={styles.scheduleSection}
+          aria-label={t('lessons.highlights.aria')}
+          data-tour-anchor="lessons-highlights"
+        >
           <div className={styles.sectionHead}>
-            <h2 className={styles.sectionHeading}>Highlights</h2>
-            <span className={styles.sectionHint}>Next and previous checkpoints</span>
+            <h2 className={styles.sectionHeading}>{t('lessons.highlights.title')}</h2>
+            <span className={styles.sectionHint}>{t('lessons.highlights.hint')}</span>
           </div>
           <div className={styles.highlightsGrid}>
         <SurfaceCard
@@ -242,12 +261,12 @@ function LessonsPageInner() {
           }}
         >
           <div className={styles.highlightHead}>
-            <h3 className={styles.highlightTitle}>Your next lesson</h3>
+            <h3 className={styles.highlightTitle}>{t('lessons.next.title')}</h3>
             {nextLesson ? (
               <span
                 className={`${styles.statusPill} ${nextLesson.statusId === LESSON_STATUS.planned.id ? styles.statusPlanned : ''} ${nextLesson.statusId === LESSON_STATUS.completed.id ? styles.statusCompleted : ''} ${nextLesson.statusId === LESSON_STATUS.cancelled.id ? styles.statusCancelled : ''}`}
               >
-                {statusLabel(nextLesson.statusId)}
+                {statusLabel(nextLesson.statusId, t)}
               </span>
             ) : null}
           </div>
@@ -261,11 +280,11 @@ function LessonsPageInner() {
               <div className={styles.lessonMetaRow}>
                 <span className={styles.metaItem}>
                   <Calendar size={14} aria-hidden />
-                  {formatShortDate(nextLesson.date)}
+                  {formatShortDate(nextLesson.date, locale)}
                 </span>
                 <span className={styles.metaItem}>
                   <Clock size={14} aria-hidden />
-                  –{nextLesson.endTime} · {nextLesson.duration} min
+                  –{nextLesson.endTime} · {t('lessons.durationMin', { duration: nextLesson.duration })}
                 </span>
                 <span className={styles.metaItem}>
                   <Users size={14} aria-hidden />
@@ -275,12 +294,12 @@ function LessonsPageInner() {
                 </span>
               </div>
               <p className={styles.highlightDescription}>
-                {nextLesson.lessonPlan || nextLesson.notes || 'No lesson notes yet.'}
+                {nextLesson.lessonPlan || nextLesson.notes || t('lessons.noNotes')}
               </p>
               <div className={styles.highlightFooter}>
                 <div className={styles.highlightExtraRow}>
                   <span className={styles.highlightExtraIcon}><BookOpen size={13} /></span>
-                  <strong>Materials:</strong> {nextLesson.materials?.length ?? 0}
+                  <strong>{t('lessons.materials')}</strong> {nextLesson.materials?.length ?? 0}
                 </div>
                 <div className={styles.highlightExtraRow}>
                   <span className={styles.highlightExtraIcon}>
@@ -290,7 +309,7 @@ function LessonsPageInner() {
                       <CheckCircle2 size={13} aria-hidden />
                     )}
                   </span>
-                  <strong>Homework status:</strong>
+                  <strong>{t('lessons.homeworkStatus')}</strong>
                   <span
                     className={`${styles.homeworkStatusBadge} ${styles[`homeworkStatus${nextLessonHomework?.variant}`]}`}
                   >
@@ -301,16 +320,16 @@ function LessonsPageInner() {
             </>
           ) : (
             <div className={styles.emptyHighlight}>
-              <p className={styles.emptyHighlightTitle}>No upcoming lessons</p>
+              <p className={styles.emptyHighlightTitle}>{t('lessons.empty.nextTitle')}</p>
               {canManageLessons ? (
                 <>
-                  <p className={styles.emptyHighlightHint}>Schedule the next lesson to keep the momentum going.</p>
+                  <p className={styles.emptyHighlightHint}>{t('lessons.empty.nextHintStaff')}</p>
                   <Button type="button" variant="primary" className={styles.emptyHighlightCta} onClick={() => openCreateModal(new Date().toISOString().slice(0, 10))}>
-                    Schedule a lesson
+                    {t('lessons.empty.scheduleCta')}
                   </Button>
                 </>
               ) : (
-                <p className={styles.emptyHighlightHint}>Your teacher hasn&apos;t scheduled the next lesson yet. Check back soon.</p>
+                <p className={styles.emptyHighlightHint}>{t('lessons.empty.nextHintStudent')}</p>
               )}
             </div>
           )}
@@ -332,12 +351,12 @@ function LessonsPageInner() {
           }}
         >
           <div className={styles.highlightHead}>
-            <h3 className={styles.highlightTitle}>Your previous lesson</h3>
+            <h3 className={styles.highlightTitle}>{t('lessons.prev.title')}</h3>
             {previousLesson ? (
               <span
                 className={`${styles.statusPill} ${previousLesson.statusId === LESSON_STATUS.planned.id ? styles.statusPlanned : ''} ${previousLesson.statusId === LESSON_STATUS.completed.id ? styles.statusCompleted : ''} ${previousLesson.statusId === LESSON_STATUS.cancelled.id ? styles.statusCancelled : ''}`}
               >
-                {statusLabel(previousLesson.statusId)}
+                {statusLabel(previousLesson.statusId, t)}
               </span>
             ) : null}
           </div>
@@ -347,11 +366,12 @@ function LessonsPageInner() {
               <div className={styles.lessonMetaRow}>
                 <span className={styles.metaItem}>
                   <Calendar size={14} aria-hidden />
-                  {formatShortDate(previousLesson.date)}
+                  {formatShortDate(previousLesson.date, locale)}
                 </span>
                 <span className={styles.metaItem}>
                   <Clock size={14} aria-hidden />
-                  {previousLesson.startTime}–{previousLesson.endTime} · {previousLesson.duration} min
+                  {previousLesson.startTime}–{previousLesson.endTime} ·{' '}
+                  {t('lessons.durationMin', { duration: previousLesson.duration })}
                 </span>
                 <span className={styles.metaItem}>
                   <Users size={14} aria-hidden />
@@ -361,12 +381,12 @@ function LessonsPageInner() {
                 </span>
               </div>
               <p className={styles.highlightDescription}>
-                {previousLesson.lessonPlan || previousLesson.notes || 'No lesson notes yet.'}
+                {previousLesson.lessonPlan || previousLesson.notes || t('lessons.noNotes')}
               </p>
               <div className={styles.highlightFooter}>
                 <div className={styles.highlightExtraRow}>
                   <span className={styles.highlightExtraIcon}><BookOpen size={13} /></span>
-                  <strong>Materials:</strong> {previousLesson.materials?.length ?? 0}
+                  <strong>{t('lessons.materials')}</strong> {previousLesson.materials?.length ?? 0}
                 </div>
                 <div className={styles.highlightExtraRow}>
                   <span className={styles.highlightExtraIcon}>
@@ -376,7 +396,7 @@ function LessonsPageInner() {
                       <CheckCircle2 size={13} aria-hidden />
                     )}
                   </span>
-                  <strong>Homework status:</strong>
+                  <strong>{t('lessons.homeworkStatus')}</strong>
                   <span
                     className={`${styles.homeworkStatusBadge} ${styles[`homeworkStatus${previousLessonHomework?.variant}`]}`}
                   >
@@ -387,40 +407,44 @@ function LessonsPageInner() {
             </>
           ) : (
             <div className={styles.emptyHighlight}>
-              <p className={styles.emptyHighlightTitle}>No lessons yet</p>
-              <p className={styles.emptyHighlightHint}>Your first completed lesson will appear here.</p>
+              <p className={styles.emptyHighlightTitle}>{t('lessons.empty.prevTitle')}</p>
+              <p className={styles.emptyHighlightHint}>{t('lessons.empty.prevHint')}</p>
             </div>
           )}
         </SurfaceCard>
           </div>
         </section>
 
-        <section className={styles.overviewStrip} aria-label="Lesson workspace overview">
+        <section className={styles.overviewStrip} aria-label={t('lessons.overview.aria')}>
           <SurfaceCard className={styles.kpiCard}>
             <div className={styles.kpiGrid}>
               <div className={styles.kpiItem}>
-                <span className={styles.kpiLabel}>Planned</span>
+                <span className={styles.kpiLabel}>{t('dashboard.lessonStatus.planned')}</span>
                 <span className={styles.kpiValue}>{lessonStats.planned}</span>
               </div>
               <div className={styles.kpiItem}>
-                <span className={styles.kpiLabel}>Completed</span>
+                <span className={styles.kpiLabel}>{t('dashboard.lessonStatus.completed')}</span>
                 <span className={styles.kpiValue}>{lessonStats.completed}</span>
               </div>
               <div className={styles.kpiItem}>
-                <span className={styles.kpiLabel}>Cancelled</span>
+                <span className={styles.kpiLabel}>{t('dashboard.lessonStatus.cancelled')}</span>
                 <span className={styles.kpiValue}>{lessonStats.cancelled}</span>
               </div>
             </div>
           </SurfaceCard>
         </section>
 
-        <section className={styles.listSection} aria-labelledby="lessons-list-heading">
+        <section
+          className={styles.listSection}
+          aria-labelledby="lessons-list-heading"
+          data-tour-anchor="lessons-list"
+        >
           <div className={styles.listSectionHead}>
             <h2 id="lessons-list-heading" className={styles.sectionTitle}>
-              All lessons
+              {t('lessons.list.title')}
             </h2>
             <Link href="/calendar" className={styles.listSectionLink}>
-              Calendar view →
+              {t('lessons.list.calendarView')}
             </Link>
           </div>
           <LessonsListPanel

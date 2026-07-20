@@ -11,12 +11,11 @@ import { mockUsers } from './entities';
 import { mockScheduledLessons } from './lessons';
 import { mockPracticeSessionLog } from './practice-sessions';
 
-export type StatsRange = 'week' | 'month' | 'quarter' | 'year';
+import type { ProfileStats } from '../../lib/achievements';
+import { getRangeBounds, type DateRange, type StatsRange } from '../../lib/stats-range';
 
-export type DateRange = {
-  from: string;
-  to: string;
-};
+export type { DateRange, StatsRange } from '../../lib/stats-range';
+export { getRangeBounds } from '../../lib/stats-range';
 
 export type PracticeSummaryMetric = {
   id: number;
@@ -105,23 +104,9 @@ function addDays(date: Date, days: number): Date {
   return next;
 }
 
-export function getRangeBounds(range: StatsRange, now: Date = MOCK_NOW): DateRange {
-  const end = now;
-  if (range === 'week') {
-    const start = startOfDay(addDays(now, -6));
-    return { from: start.toISOString(), to: end.toISOString() };
-  }
-  if (range === 'month') {
-    const start = startOfDay(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)));
-    return { from: start.toISOString(), to: end.toISOString() };
-  }
-  if (range === 'quarter') {
-    const quarterStartMonth = Math.floor(now.getUTCMonth() / 3) * 3;
-    const start = startOfDay(new Date(Date.UTC(now.getUTCFullYear(), quarterStartMonth, 1)));
-    return { from: start.toISOString(), to: end.toISOString() };
-  }
-  const start = startOfDay(new Date(Date.UTC(now.getUTCFullYear(), 0, 1)));
-  return { from: start.toISOString(), to: end.toISOString() };
+// getRangeBounds imported from lib/stats-range; MOCK_NOW kept for mock-only dashboard helpers.
+function getRangeBoundsMock(range: StatsRange, now: Date = MOCK_NOW): DateRange {
+  return getRangeBounds(range, now);
 }
 
 function inRange(iso: string, range: DateRange): boolean {
@@ -227,7 +212,7 @@ export function getTrendComparison(studentId: number, range: DateRange, previous
 }
 
 export function getPracticeSummaryForPresetRange(studentId: number, preset: StatsRange): PracticeSummaryResult {
-  return getPracticeSummaryForRange(studentId, getRangeBounds(preset));
+  return getPracticeSummaryForRange(studentId, getRangeBoundsMock(preset));
 }
 
 function previousRangeOf(range: DateRange): DateRange {
@@ -366,7 +351,7 @@ export function getRoleStatisticsDashboard(params: {
   subjectStudentId?: number;
 }): StatisticsDashboardData {
   const { roleId, userId, rangePreset, subjectStudentId } = params;
-  const range = getRangeBounds(rangePreset);
+  const range = getRangeBoundsMock(rangePreset);
   const previousRange = previousRangeOf(range);
   const targetStudentId = subjectStudentId ?? userId;
   const summary = getPracticeSummaryForRange(targetStudentId, range);

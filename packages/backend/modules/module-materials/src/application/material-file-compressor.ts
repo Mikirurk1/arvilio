@@ -186,7 +186,7 @@ function buildGhostscriptPdfArgs(
 }
 
 async function withTempDir<T>(fn: (dir: string) => Promise<T>): Promise<T> {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'soenglish-material-'));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'arvilio-material-'));
   try {
     return await fn(dir);
   } finally {

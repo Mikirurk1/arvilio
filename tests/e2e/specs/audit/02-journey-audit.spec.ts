@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
 import { shot, expectNoA11yViolations, consoleGuard, expectArvi } from '../../helpers/a11y';
 
 const DIR = '02-journey';
-const RUN_EMAIL = `e2e-journey-${Date.now()}@soenglish.test`;
+const RUN_EMAIL = `e2e-journey-${Date.now()}@arvilio.test`;
 const PASSWORD = 'JourneyPass123!';
 
 test.describe.configure({ mode: 'serial' });
@@ -77,6 +77,9 @@ test('2.11 golden path: signup → wizard → dashboard → tour', async ({ page
   await tour.getByRole('button', { name: /next/i }).click();
   await page.waitForTimeout(400);
   await shot(page, `${DIR}/2-9-tour-step-2`);
+  // 2.9 element-anchored spotlight on sidebar nav (dashboard step)
+  await expect(page.locator('[data-tour-spotlight]')).toBeVisible({ timeout: 4_000 });
+  await expect(page.locator('[data-tour-nav="/dashboard"]')).toBeVisible();
   // Back повертає
   const backBtn = tour.getByRole('button', { name: /back/i });
   if (await backBtn.isVisible({ timeout: 2_000 }).catch(() => false)) {

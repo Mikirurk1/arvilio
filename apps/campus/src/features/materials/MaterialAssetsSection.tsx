@@ -3,6 +3,7 @@
 import { ExternalLink, FileUp, FolderOpen, Layers, Link2, Plus, Trash2, Upload, X } from 'lucide-react';
 import Link from 'next/link';
 import { Button, Field } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import uiStyles from '../../components/ui/ui.module.scss';
 import {
   formatMaterialMaxFileSize,
@@ -49,6 +50,7 @@ export function MaterialAssetsSection({
   kind, assets, compressLevel, compressLevelHint, isBusy, roleOptions,
   setAssets, setCompressLevel, setLocalError, updateAsset,
 }: MaterialAssetsSectionProps) {
+  const t = useCampusT();
   return (
     <section className={styles.assetsSection} aria-labelledby="material-assets-heading">
       <div className={styles.assetsHead}>
@@ -58,7 +60,7 @@ export function MaterialAssetsSection({
           </span>
           <div className={styles.sectionHeadText}>
             <h3 id="material-assets-heading" className={styles.sectionTitle}>
-              Assets
+              {t('materials.form.assetsTitle')}
             </h3>
             <p className={styles.sectionHint}>
               {kind === 'book'
@@ -311,16 +313,17 @@ export function MaterialAssetsSection({
                                   <ExternalLink size={12} aria-hidden />
                                 </Link>
                               ) : internalId && isMedia ? (
-                                <button
+                                <Button
+                                  variant="bare"
                                   type="button"
                                   className={styles.fileChipOpen}
                                   aria-label={`Open ${entry.fileName ?? 'file'}`}
                                   onClick={() => openMediaViewer(internalId)}
                                 >
                                   <ExternalLink size={12} aria-hidden />
-                                </button>
+                                </Button>
                               ) : externalHref ? (
-                                <a
+                                <Link
                                   href={externalHref}
                                   target="_blank"
                                   rel="noopener noreferrer"
@@ -328,7 +331,7 @@ export function MaterialAssetsSection({
                                   aria-label={`Open ${entry.fileName ?? 'file'}`}
                                 >
                                   <ExternalLink size={12} aria-hidden />
-                                </a>
+                                </Link>
                               ) : null}
                               <Button
                                 type="button"

@@ -15,10 +15,12 @@ export default function MascotCanvas({
   pose,
   src,
   size,
+  onReady,
 }: {
   pose: MascotPose;
   src: string;
   size: number;
+  onReady?: () => void;
 }) {
   const [active, setActive] = useState(true);
   useEffect(() => {
@@ -39,7 +41,7 @@ export default function MascotCanvas({
       <directionalLight position={[3, 5, 4]} intensity={1.1} />
       <Suspense fallback={null}>
         <Center>
-          <MascotModel pose={pose} src={src} />
+          <MascotModel pose={pose} src={src} onReady={onReady} />
         </Center>
       </Suspense>
     </Canvas>

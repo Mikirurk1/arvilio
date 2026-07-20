@@ -1,11 +1,16 @@
 'use client';
 
-import type { AuthUserDto } from '@pkg/types';
+import type { AuthUserDto, Locale } from '@pkg/types';
 import { ReactNode, Suspense, useEffect } from 'react';
 import { AuthProvider } from '../lib/auth-context';
 import { AnalyticsProvider } from '../components/analytics/AnalyticsProvider';
 import { ConfirmDialogHost } from '../features/confirm';
 import { ToastViewport } from '../features/notifications/ToastViewport';
+import { ArviProvider } from '../components/mascot/useArvi';
+import { GlobalArviSlot } from '../components/mascot/GlobalArviSlot';
+import { ArviChatProvider } from '../components/assistant/useArviChat';
+import { ArviChatPanel } from '../components/assistant/ArviChatPanel';
+import { CampusI18nProvider } from '../lib/cms';
 import { useUiStore } from '../stores/ui-store';
 import {
   applyAppearanceToElement,
@@ -16,6 +21,8 @@ import {
 type ProviderProps = {
   children: ReactNode;
   initialAuthUser: AuthUserDto | null;
+  initialLocale?: Locale;
+  initialCampusStrings?: Record<string, string>;
 };
 
 type AppearanceSyncProps = {
@@ -47,18 +54,31 @@ function AppearanceSync({ children }: AppearanceSyncProps) {
   return children;
 }
 
-export function AppProviders({ children, initialAuthUser }: ProviderProps) {
+export function AppProviders({
+  children,
+  initialAuthUser,
+  initialLocale,
+  initialCampusStrings,
+}: ProviderProps) {
   return (
     <AuthProvider initialUser={initialAuthUser}>
-      <AppearanceSync>
-        <Suspense>
-          <AnalyticsProvider>
-            {children}
-            <ToastViewport />
-            <ConfirmDialogHost />
-          </AnalyticsProvider>
-        </Suspense>
-      </AppearanceSync>
+      <CampusI18nProvider initialLocale={initialLocale} initialStrings={initialCampusStrings}>
+        <ArviProvider>
+          <ArviChatProvider>
+            <AppearanceSync>
+              <Suspense>
+                <AnalyticsProvider>
+                  {children}
+                  <GlobalArviSlot />
+                  <ArviChatPanel />
+                  <ToastViewport />
+                  <ConfirmDialogHost />
+                </AnalyticsProvider>
+              </Suspense>
+            </AppearanceSync>
+          </ArviChatProvider>
+        </ArviProvider>
+      </CampusI18nProvider>
     </AuthProvider>
   );
 }

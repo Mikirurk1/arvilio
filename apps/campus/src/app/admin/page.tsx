@@ -3,6 +3,7 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { Users, UserCheck, GraduationCap } from 'lucide-react';
 import { PageHeader } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import { useActiveRoleKey } from '../../lib/active-user';
 import { useOptionalAuth } from '../../lib/auth-context';
 import type { AdminUserSummaryDto } from '@pkg/types';
@@ -22,10 +23,10 @@ type CreatableRole = 'student' | 'teacher' | 'admin';
 const TEACHING_ROLES = new Set<AdminUserSummaryDto['role']>(['teacher', 'admin', 'super_admin']);
 
 const ROLE_LABEL: Record<string, string> = {
-  student: 'Student',
-  teacher: 'Teacher',
-  admin: 'Admin',
-  super_admin: 'Super admin',
+  student: 'admin.role.student',
+  teacher: 'admin.role.teacher',
+  admin: 'admin.role.admin',
+  super_admin: 'admin.role.superAdmin',
 };
 
 const emptyForm = (): CreateAccountFormValues => ({
@@ -43,6 +44,7 @@ const emptyForm = (): CreateAccountFormValues => ({
 });
 
 export default function AdminUsersPage() {
+  const t = useCampusT();
   const roleKey = useActiveRoleKey();
   const auth = useOptionalAuth();
   const canCreateAdmin = roleKey === 'super_admin';
@@ -118,13 +120,24 @@ export default function AdminUsersPage() {
         teacherId: form.role === 'student' && form.teacherId ? form.teacherId : null,
       });
       const emailNote = result.welcomeEmailSent
-        ? ' A welcome email with login credentials was sent.'
-        : ' Welcome email was not sent (check SMTP / Mailtrap settings).';
-      setFormSuccess(`Created ${ROLE_LABEL[form.role] ?? form.role} ${form.email}.${emailNote}`);
+        ? t('admin.success.emailSent')
+        : t('admin.success.emailNotSent');
+      const roleLabelKey = ROLE_LABEL[form.role] ?? 'admin.role.student';
+      setFormSuccess(
+        t('admin.success.created', {
+          role: t(roleLabelKey),
+          email: form.email,
+          emailNote,
+        }),
+      );
       setForm(emptyForm());
     } catch (err) {
       const message =
-        err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Failed to create user';
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : t('admin.error.createFailed');
       setFormError(message);
     }
   };
@@ -132,13 +145,13 @@ export default function AdminUsersPage() {
   const onDelete = async (id: string, label: string, userRole: string) => {
     const lessonNote =
       userRole === 'student' || userRole === 'teacher'
-        ? ' Their scheduled lessons will also be removed.'
+        ? t('admin.delete.lessonNote')
         : '';
     const ok = await confirmDialog({
-      title: 'Delete this account?',
-      message: `Are you sure you want to delete ${label}? This cannot be undone.${lessonNote}`,
-      confirmLabel: 'Delete account',
-      cancelLabel: 'Cancel',
+      title: t('admin.delete.title'),
+      message: t('admin.delete.message', { label, lessonNote }),
+      confirmLabel: t('admin.delete.confirm'),
+      cancelLabel: t('admin.delete.cancel'),
       variant: 'danger',
     });
     if (!ok) return;
@@ -146,8 +159,12 @@ export default function AdminUsersPage() {
       await deleteUser(id);
     } catch (err) {
       const message =
-        err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Failed to delete user';
-      toast.error('Could not delete user', message);
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : t('admin.error.deleteFailed');
+      toast.error(t('admin.error.deleteToastTitle'), message);
     }
   };
 
@@ -157,37 +174,37 @@ export default function AdminUsersPage() {
         className={styles.pageHeader}
         titleClassName={styles.pageTitle}
         subtitleClassName={styles.pageSub}
-        title="Account administration"
+        title={t('admin.title')}
         subtitle={
           canCreateAdmin
-            ? 'Create student, teacher and admin accounts. A temporary password is generated and emailed automatically. SUPER_ADMIN accounts use the CLI only.'
-            : 'Create student accounts. Login credentials are emailed to the user.'
+            ? t('admin.subtitle.super')
+            : t('admin.subtitle.studentOnly')
         }
       />
 
-      <section className={styles.metricsGrid} aria-label="Accounts overview">
+      <section className={styles.metricsGrid} aria-label={t('admin.accountsOverview')}>
         <article className={styles.metricCard}>
           <span className={styles.metricIcon} aria-hidden>
             <Users size={16} />
           </span>
-          <p className={styles.metricLabel}>All accounts</p>
+          <p className={styles.metricLabel}>{t('admin.metric.allAccounts')}</p>
           <p className={styles.metricValue}>{users.length}</p>
         </article>
         <article className={styles.metricCard}>
           <span className={styles.metricIcon} aria-hidden>
             <GraduationCap size={16} />
           </span>
-          <p className={styles.metricLabel}>Students</p>
+          <p className={styles.metricLabel}>{t('admin.metric.students')}</p>
           <p className={styles.metricValue}>{studentCount}</p>
         </article>
         <article className={styles.metricCard}>
           <span className={styles.metricIcon} aria-hidden>
             <UserCheck size={16} />
           </span>
-          <p className={styles.metricLabel}>Active accounts</p>
+          <p className={styles.metricLabel}>{t('admin.metric.activeAccounts')}</p>
           <p className={styles.metricValue}>{activeCount}</p>
           <p className={styles.metricSub}>
-            {teacherCount} teaching users (teachers and admins)
+            {t('admin.metric.teachingUsers', { count: teacherCount })}
           </p>
         </article>
       </section>

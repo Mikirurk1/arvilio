@@ -1,8 +1,9 @@
-# LiveKit server configuration for SoEnglish
-# Used by docker-compose.livekit.yml
+# LiveKit server configuration for Arvilio
+# Used by infra/docker/docker-compose.yml (service: livekit)
 #
 # IMPORTANT: change the key/secret before deploying to production.
-# Format: "apikey: apisecret" (one or more, space after colon)
+# Format: "apikey: apisecret" (secret must be ≥ 32 characters)
+# Must match LIVEKIT_API_KEY / LIVEKIT_API_SECRET (and System → Connections → LiveKit).
 
 port: 7880
 rtc:
@@ -10,9 +11,10 @@ rtc:
   udp_port: 7882
   use_external_ip: true   # auto-detect public IP for STUN/TURN candidates
 
-# API keys — must match System → Connections → LiveKit in the admin UI
+# API keys — must match app credentials (env or System → Connections → LiveKit)
 keys:
-  devkey: devsecret
+  # Local/dev only. Secret ≥ 32 chars (LiveKit rejects shorter secrets).
+  devkey: arvilio-local-livekit-dev-secret-do-not-use-in-prod
 
 logging:
   level: info

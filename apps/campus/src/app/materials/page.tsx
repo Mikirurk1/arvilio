@@ -11,6 +11,7 @@ import {
   SegmentedControl,
   SurfaceCard,
 } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import { confirmDialog } from '../../features/confirm';
 import { MaterialCard } from '../../features/materials/MaterialCard';
 import { MaterialFormModal } from '../../features/materials/MaterialFormModal';
@@ -26,6 +27,7 @@ import styles from './page.module.scss';
 const emptyLibraryItems: LibraryMaterialDto[] = [];
 
 export default function MaterialsPage() {
+  const t = useCampusT();
   const list = useMaterialsStore((s) => s.list);
   const listKind = useMaterialsStore((s) => s.listKind);
   const listSearch = useMaterialsStore((s) => s.listSearch);
@@ -91,9 +93,9 @@ export default function MaterialsPage() {
   const onDelete = useCallback(
     async (material: LibraryMaterialDto) => {
       const confirmed = await confirmDialog({
-        title: 'Delete material?',
-        message: `“${material.title}” will be removed from the library. Lessons that already reference it keep the link until you detach it.`,
-        confirmLabel: 'Delete',
+        title: t('materials.delete.title'),
+        message: t('materials.delete.message', { title: material.title }),
+        confirmLabel: t('materials.delete.confirm'),
         variant: 'danger',
       });
       if (!confirmed) return;
@@ -104,7 +106,7 @@ export default function MaterialsPage() {
         setDeletingId(null);
       }
     },
-    [deleteMaterial],
+    [deleteMaterial, t],
   );
 
   const openCreate = () => {
@@ -143,12 +145,12 @@ export default function MaterialsPage() {
         className={styles.pageHeader}
         titleClassName={styles.pageTitle}
         subtitleClassName={styles.pageSub}
-        title="Materials"
-        subtitle="School library of boards, presentations, books, and reusable lesson resources."
+        title={t('materials.title')}
+        subtitle={t('materials.subtitle')}
         actions={
-          <Button type="button" onClick={openCreate}>
+          <Button type="button" onClick={openCreate} data-tour-anchor="materials-create">
             <Plus size={16} aria-hidden />
-            Add material
+            {t('materials.add')}
           </Button>
         }
       />
@@ -156,18 +158,15 @@ export default function MaterialsPage() {
       {pendingRecovery ? (
         <SurfaceCard className={styles.recoveryBanner} padding="compact">
           <div className={styles.recoveryText}>
-            <strong>Interrupted upload</strong>
-            <p>
-              Saving “{pendingRecovery.title}” was not finished. Open the material and attach any
-              remaining files.
-            </p>
+            <strong>{t('materials.recovery.title')}</strong>
+            <p>{t('materials.recovery.body', { title: pendingRecovery.title })}</p>
           </div>
           <div className={styles.recoveryActions}>
             <Button type="button" onClick={() => void continuePendingSave()}>
-              Continue editing
+              {t('materials.recovery.continue')}
             </Button>
             <Button type="button" variant="ghost" onClick={dismissPendingSave}>
-              Dismiss
+              {t('materials.recovery.dismiss')}
             </Button>
           </div>
         </SurfaceCard>
@@ -176,13 +175,14 @@ export default function MaterialsPage() {
       {kindCounts ? (
         <div className={styles.statsRow}>
           {([
-            { key: 'all', label: 'Total', count: kindCounts.all, tone: styles.statCardAll },
-            { key: 'board', label: 'Boards', count: kindCounts.board, tone: styles.statCardBoard },
-            { key: 'presentation', label: 'Presentations', count: kindCounts.presentation, tone: styles.statCardPresentation },
-            { key: 'book', label: 'Books', count: kindCounts.book, tone: styles.statCardBook },
+            { key: 'all', label: t('materials.stat.total'), count: kindCounts.all, tone: styles.statCardAll },
+            { key: 'board', label: t('materials.stat.boards'), count: kindCounts.board, tone: styles.statCardBoard },
+            { key: 'presentation', label: t('materials.stat.presentations'), count: kindCounts.presentation, tone: styles.statCardPresentation },
+            { key: 'book', label: t('materials.stat.books'), count: kindCounts.book, tone: styles.statCardBook },
           ] as const).map(({ key, label, count, tone }) => (
-            <button
+            <Button
               key={key}
+              variant="bare"
               type="button"
               onClick={() => onKindChange(key)}
               className={[
@@ -193,7 +193,7 @@ export default function MaterialsPage() {
             >
               <span className={styles.statValue}>{count}</span>
               <span className={styles.statLabel}>{label}</span>
-            </button>
+            </Button>
           ))}
         </div>
       ) : null}
@@ -208,44 +208,50 @@ export default function MaterialsPage() {
               type="search"
               value={searchDraft}
               onChange={(event) => setSearchDraft(event.target.value)}
-              placeholder="Search materials…"
-              aria-label="Search materials"
+              placeholder={t('materials.searchPlaceholder')}
+              aria-label={t('materials.searchAria')}
             />
           </div>
 
           <SegmentedControl
-            ariaLabel="View mode"
+            ariaLabel={t('materials.viewModeAria')}
             value={viewMode}
             onValueChange={setViewMode}
             options={[
-              { value: 'grid', label: 'Grid', icon: <Grid3x3 size={14} aria-hidden /> },
-              { value: 'list', label: 'List', icon: <List size={14} aria-hidden /> },
+              { value: 'grid', label: t('materials.view.grid'), icon: <Grid3x3 size={14} aria-hidden /> },
+              { value: 'list', label: t('materials.view.list'), icon: <List size={14} aria-hidden /> },
             ]}
           />
         </div>
 
       </SurfaceCard>
 
-      {isInitialLoading ? <p className={styles.loadingHint}>Loading materials…</p> : null}
-      {isRefreshing ? <p className={styles.refreshingHint}>Refreshing library…</p> : null}
+      {isInitialLoading ? <p className={styles.loadingHint}>{t('materials.loading')}</p> : null}
+      {isRefreshing ? <p className={styles.refreshingHint}>{t('materials.refreshing')}</p> : null}
       {isError ? (
-        <EmptyStateCard title="Could not load materials" description={list.error ?? 'Unknown error'} />
+        <EmptyStateCard
+          title={t('materials.loadError')}
+          description={list.error ?? t('materials.unknownError')}
+        />
       ) : null}
 
       {!isInitialLoading && !isError && items.length === 0 ? (
         <EmptyStateCard
-          title="No materials yet"
-          description="Add your first board, presentation, or book to build the school library."
+          title={t('materials.emptyTitle')}
+          description={t('materials.emptyDesc')}
           action={
             <Button type="button" onClick={openCreate}>
-              Add material
+              {t('materials.add')}
             </Button>
           }
         />
       ) : null}
 
       {items.length > 0 ? (
-        <div className={viewMode === 'grid' ? styles.grid : styles.list}>
+        <div
+          className={viewMode === 'grid' ? styles.grid : styles.list}
+          data-tour-anchor="materials-grid"
+        >
           {items.map((material) => (
             <MaterialCard
               key={material.id}
@@ -265,10 +271,10 @@ export default function MaterialsPage() {
             type="button"
             variant="ghost"
             loading={isRefreshing}
-            loadingLabel="Loading…"
+            loadingLabel={t('materials.loadingShort')}
             onClick={() => void fetchList({ cursor: list.data?.nextCursor, append: true, force: true })}
           >
-            Load more
+            {t('materials.loadMore')}
           </Button>
         </div>
       ) : null}

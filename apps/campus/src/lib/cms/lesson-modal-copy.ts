@@ -1,0 +1,115 @@
+import type { TranslateFn } from './nav-i18n';
+
+/** Shape previously provided by `siteContent.calendar.lessonModal`. */
+export function buildLessonModalCopy(t: TranslateFn) {
+  return {
+    titleCreate: t('lessonModal.titleCreate'),
+    titleEdit: t('lessonModal.titleEdit'),
+    subtitle: t('lessonModal.subtitle'),
+    sections: {
+      setup: t('lessonModal.section.setup'),
+      content: t('lessonModal.section.content'),
+    },
+    fields: {
+      title: t('lessonModal.field.title'),
+      date: t('lessonModal.field.date'),
+      startTime: t('lessonModal.field.startTime'),
+      duration: t('lessonModal.field.duration'),
+      recurrence: t('lessonModal.field.recurrence'),
+      status: t('lessonModal.field.status'),
+      cancelReason: t('lessonModal.field.cancelReason'),
+      credited: t('lessonModal.field.credited'),
+      weekDays: t('lessonModal.field.weekDays'),
+      lessonType: t('lessonModal.field.lessonType'),
+      studentGroup: t('lessonModal.field.studentGroup'),
+      students: t('lessonModal.field.students'),
+      student: t('lessonModal.field.student'),
+      lessonPlan: t('lessonModal.field.lessonPlan'),
+      materials: t('lessonModal.field.materials'),
+      homework: t('lessonModal.field.homework'),
+      studentResponse: t('lessonModal.field.studentResponse'),
+      homeworkReview: t('lessonModal.field.homeworkReview'),
+      teacherHomeworkFeedback: t('lessonModal.field.teacherHomeworkFeedback'),
+    },
+    options: {
+      noRepeat: t('lessonModal.opt.noRepeat'),
+      daily: t('lessonModal.opt.daily'),
+      weekly: t('lessonModal.opt.weekly'),
+      monthly: t('lessonModal.opt.monthly'),
+      planned: t('lessonModal.opt.planned'),
+      completed: t('lessonModal.opt.completed'),
+      cancelled: t('lessonModal.opt.cancelled'),
+      studentAbsent: t('lessonModal.opt.studentAbsent'),
+      studentRequestedCancel: t('lessonModal.opt.studentRequestedCancel'),
+      teacherAbsent: t('lessonModal.opt.teacherAbsent'),
+      credited: t('lessonModal.opt.credited'),
+      notCredited: t('lessonModal.opt.notCredited'),
+      individualLesson: t('lessonModal.opt.individual'),
+      groupLesson: t('lessonModal.opt.group'),
+    },
+    hints: {
+      recurrenceFixedOnly: t('lessonModal.hint.recurrenceFixedOnly'),
+    },
+    weekDays: {
+      mon: t('lessonModal.day.mon'),
+      tue: t('lessonModal.day.tue'),
+      wed: t('lessonModal.day.wed'),
+      thu: t('lessonModal.day.thu'),
+      fri: t('lessonModal.day.fri'),
+      sat: t('lessonModal.day.sat'),
+      sun: t('lessonModal.day.sun'),
+    },
+    materialTypes: {
+      text: t('lessonModal.material.text'),
+      photo: t('lessonModal.material.photo'),
+      test: t('lessonModal.material.test'),
+      file: t('lessonModal.material.file'),
+      presentation: t('lessonModal.material.presentation'),
+      book: t('lessonModal.material.book'),
+      board: t('lessonModal.material.board'),
+    },
+    actions: {
+      addFile: t('lessonModal.action.addFile'),
+      saveMaterial: t('lessonModal.action.saveMaterial'),
+      cancel: t('lessonModal.action.cancel'),
+      saveLesson: t('lessonModal.action.saveLesson'),
+      updateLesson: t('lessonModal.action.updateLesson'),
+      sendChangeRequest: t('lessonModal.action.sendChangeRequest'),
+      markHomeworkChecked: t('lessonModal.action.markHomeworkChecked'),
+    },
+    placeholders: {
+      addText: t('lessonModal.placeholder.addText'),
+    },
+    messages: {
+      blockedUnsafeFiles: t('lessonModal.msg.blockedUnsafeFiles'),
+      rejectedFiles: t('lessonModal.msg.rejectedFiles'),
+    },
+    homeworkCheckedStatus: t('lessonModal.homeworkChecked'),
+    materialsHint: t('lessonModal.materialsHint'),
+    noMaterials: t('lessonModal.noMaterials'),
+    fallbackMaterialLabel: t('lessonModal.fallbackMaterial'),
+    aria: {
+      sections: t('lessonModal.aria.sections'),
+      unlinkSeries: t('lessonModal.aria.unlinkSeries'),
+      deleteSeries: t('lessonModal.aria.deleteSeries'),
+      deleteLesson: t('lessonModal.aria.deleteLesson'),
+      closeModal: t('lessonModal.aria.closeModal'),
+      removeFile: t('lessonModal.aria.removeFile'),
+      removeMaterial: t('lessonModal.aria.removeMaterial'),
+      closeImagePreview: t('lessonModal.aria.closeImagePreview'),
+    },
+    imagePreviewAlt: t('lessonModal.imagePreviewAlt'),
+  };
+}
+
+export function buildCalendarSeriesCopy(t: TranslateFn) {
+  return {
+    detachTitle: t('calendar.series.detachTitle'),
+    detachBody: t('calendar.series.detachBody'),
+    detachConfirm: t('calendar.series.detachConfirm'),
+    applyAllTitle: t('calendar.series.applyAllTitle'),
+    applyAllBody: t('calendar.series.applyAllBody'),
+    applyAllConfirm: t('calendar.series.applyAllConfirm'),
+    cancel: t('calendar.series.cancel'),
+  };
+}

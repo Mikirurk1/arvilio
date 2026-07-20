@@ -54,6 +54,6 @@ export const useLanguagesStore = create<LanguagesState>()(
       englishLanguageId: () =>
         get().languages.data?.find((l: LanguageDto) => l.code === 'en')?.id,
     }),
-    { name: 'soenglish/languages' },
+    { name: 'arvilio/languages' },
   ),
 );

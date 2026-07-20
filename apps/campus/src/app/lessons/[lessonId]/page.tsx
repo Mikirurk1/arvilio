@@ -4,8 +4,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { LESSON_STATUS } from '@pkg/types';
 import { PageHeader } from '../../../components/ui';
-import { canSchedule, siteContent, USER_ROLE } from '../../../mocks';
+import { canSchedule } from '../../../lib/roles';
+import { USER_ROLE } from '@pkg/types';
 import { useActiveUser } from '../../../lib/active-user';
+import { buildLessonModalCopy, useCampusI18n, useCampusT } from '../../../lib/cms';
 import { useOptionalAuth } from '../../../lib/auth-context';
 import { calculateEndTime, fromLessonFormState, toLessonFormState } from '../../../features/calendar/adapters/lessonCalendarAdapter';
 import { useScheduledLessons } from '../../../features/lesson-modal';
@@ -31,6 +33,9 @@ import { ArrowLeft } from 'lucide-react';
 import styles from './page.module.scss';
 
 export default function LessonPage() {
+  const t = useCampusT();
+  const { locale } = useCampusI18n();
+  const text = useMemo(() => buildLessonModalCopy(t), [t]);
   const params = useParams<{ lessonId: string }>();
   const rawLessonId = params?.lessonId;
   const lessonIdNum = rawLessonId !== undefined && rawLessonId !== '' ? Number(rawLessonId) : Number.NaN;
@@ -117,7 +122,12 @@ export default function LessonPage() {
 
   if (!lesson || !draft) return null;
 
-  const statusLabel = draft.statusId === LESSON_STATUS.planned.id ? 'Planned' : draft.statusId === LESSON_STATUS.completed.id ? 'Completed' : 'Cancelled';
+  const statusLabel =
+    draft.statusId === LESSON_STATUS.planned.id
+      ? t('dashboard.lessonStatus.planned')
+      : draft.statusId === LESSON_STATUS.completed.id
+        ? t('dashboard.lessonStatus.completed')
+        : t('dashboard.lessonStatus.cancelled');
   const viewerIsLessonStudent = draft.studentId === viewerPartyNumericId || (draft.participantIds?.includes(viewerPartyNumericId ?? -1) ?? false);
   const canStudentSubmitHomework = role === USER_ROLE.student.id && viewerIsLessonStudent && draft.statusId === LESSON_STATUS.completed.id;
 
@@ -129,7 +139,6 @@ export default function LessonPage() {
       .sort((a, b) => `${b.date}T${b.startTime}`.localeCompare(`${a.date}T${a.startTime}`))[0] ?? null;
   })();
 
-  const text = siteContent.calendar.lessonModal;
   const materialKinds = LESSON_MATERIAL_KIND_OPTIONS.map((option) => ({
     ...option,
     label: text.materialTypes[option.value as keyof typeof text.materialTypes] ?? option.label,
@@ -199,7 +208,10 @@ export default function LessonPage() {
     const form = toLessonFormState({ ...draft, endTime: calculateEndTime(draft.startTime, draft.duration) });
     const candidate = fromLessonFormState(form, { ...draft, endTime: calculateEndTime(draft.startTime, draft.duration) });
     const backendId = getLessonBackendId(lesson);
-    if (!backendId) { toast.error('Could not save lesson', 'Lesson is not linked to the server yet. Refresh and try again.'); return; }
+    if (!backendId) {
+      toast.error(t('lessonDetail.toast.saveFail'), t('lessonDetail.toast.notLinked'));
+      return;
+    }
     try {
       const persisted = await persistUpdate({ ...candidate, backendId }, { ...lesson, backendId });
       if (persisted) {
@@ -208,14 +220,14 @@ export default function LessonPage() {
         setSavedMaterialPreviews(buildMaterialPreviewsFromLesson(persisted.materials));
         setHomeworkPreviews(buildFilePreviewsFromLinks(persisted.homework?.files ?? [], persisted.homework?.fileLinks));
         setStudentResponsePreviews(buildFilePreviewsFromLinks(persisted.studentResponse?.files ?? [], persisted.studentResponse?.fileLinks));
-        toast.success('Lesson saved');
+        toast.success(t('lessonDetail.toast.saveOk'));
         return;
       }
-      toast.error('Could not save lesson', 'Lesson is not linked to the server yet. Refresh and try again.');
+      toast.error(t('lessonDetail.toast.saveFail'), t('lessonDetail.toast.notLinked'));
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to save lesson';
+      const message = err instanceof Error ? err.message : t('lessonDetail.toast.saveFailed');
       setFileError(message);
-      toast.error('Could not save lesson', message);
+      toast.error(t('lessonDetail.toast.saveFail'), message);
     }
   };
 
@@ -224,21 +236,24 @@ export default function LessonPage() {
     const form = toLessonFormState({ ...draft, endTime: calculateEndTime(draft.startTime, draft.duration), studentResponse: { ...draft.studentResponse, text: draft.studentResponse?.text ?? '', files: [...(draft.studentResponse?.files ?? [])], status: 'submitted' as const } });
     const candidate = fromLessonFormState(form, { ...draft, endTime: calculateEndTime(draft.startTime, draft.duration) });
     const backendId = getLessonBackendId(lesson);
-    if (!backendId) { toast.error('Could not save response', 'Lesson is not linked to the server yet. Refresh and try again.'); return; }
+    if (!backendId) {
+      toast.error(t('lessonDetail.toast.responseFail'), t('lessonDetail.toast.notLinked'));
+      return;
+    }
     try {
       const persisted = await persistUpdate({ ...candidate, backendId }, { ...lesson, backendId });
       if (persisted) {
         setLessons((prev) => prev.map((item) => (item.id === persisted.id ? persisted : item)));
         setDraft(persisted);
         setStudentResponsePreviews(buildFilePreviewsFromLinks(persisted.studentResponse?.files ?? [], persisted.studentResponse?.fileLinks));
-        toast.success('Response submitted');
+        toast.success(t('lessonDetail.toast.responseOk'));
         return;
       }
-      toast.error('Could not save response', 'Lesson is not linked to the server yet. Refresh and try again.');
+      toast.error(t('lessonDetail.toast.responseFail'), t('lessonDetail.toast.notLinked'));
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to save response';
+      const message = err instanceof Error ? err.message : t('lessonDetail.toast.responseFailed');
       setFileError(message);
-      toast.error('Could not save response', message);
+      toast.error(t('lessonDetail.toast.responseFail'), message);
     }
   };
 
@@ -248,7 +263,12 @@ export default function LessonPage() {
   };
 
   const calendarHref = `/calendar?${new URLSearchParams({ date: draft.date, lessonId: String(draft.id), focus: '1' }).toString()}`;
-  const pageSubtitle = lessonPageSubtitle(draft, statusLabel, canManageLessons);
+  const pageSubtitle = lessonPageSubtitle(
+    draft,
+    statusLabel,
+    canManageLessons ? t('lessonDetail.hub.staff') : t('lessonDetail.hub.student'),
+    locale,
+  );
 
   return (
     <div className={`${styles.page} container container--page`}>
@@ -258,7 +278,7 @@ export default function LessonPage() {
         subtitleClassName={styles.pageSub}
         title={
           <span className={styles.pageTitleRow}>
-            <Link href="/lessons" className={styles.backLink} aria-label="Back to lessons">
+            <Link href="/lessons" className={styles.backLink} aria-label={t('lessonDetail.backAria')}>
               <ArrowLeft size={16} aria-hidden />
             </Link>
             <span className={styles.pageTitleText}>{draft.title}</span>

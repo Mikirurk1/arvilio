@@ -5,8 +5,19 @@ import { Repeat } from 'lucide-react';
 import type { ScheduledLessonDto } from '@pkg/types';
 import { readLessonDragPayload, writeLessonDragPayload } from '../../features/calendar/dnd/dragPayload';
 import { lessonStartTimeInZone } from '../../lib/lessonTime';
-import { DAYS, type StudentColor } from './calendarUtils';
+import { useCampusT } from '../../lib/cms';
+import { type StudentColor } from './calendarUtils';
 import styles from './page.module.scss';
+
+const WEEKDAY_KEYS = [
+  'lessonModal.day.mon',
+  'lessonModal.day.tue',
+  'lessonModal.day.wed',
+  'lessonModal.day.thu',
+  'lessonModal.day.fri',
+  'lessonModal.day.sat',
+  'lessonModal.day.sun',
+] as const;
 
 interface CalendarMonthViewProps {
   year: number;
@@ -40,10 +51,11 @@ export function CalendarMonthView({
   lessonsOnDate, getLessonColor, colorHexFromStudentId, lessonColorStyles,
   openCreateModal, openEditModal, moveLesson, viewerIana,
 }: CalendarMonthViewProps) {
+  const t = useCampusT();
   return (
     <div className={styles.monthGrid}>
-      {DAYS.map((day) => (
-        <div key={day} className={styles.dayName}>{day}</div>
+      {WEEKDAY_KEYS.map((key) => (
+        <div key={key} className={styles.dayName}>{t(key)}</div>
       ))}
       {Array.from({ length: firstDow }).map((_, i) => (
         <div key={`e${i}`} className={styles.emptyCell} />

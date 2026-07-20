@@ -2,26 +2,44 @@
 
 ## Goal
 
-Покращення security posture SoEnglish — виправлення вразливостей залежностей, додавання HTTP захистів, перевірка коду на атаки.
+**Control Plane Billing region matrix** — done. Plan: [`docs/tmp-plans/04-platform-billing-region-matrix.md`](tmp-plans/04-platform-billing-region-matrix.md). ADR-010 amended.
+
+Also: E2E suite still partially red; onboarding TZ polish optional.
 
 ## Current status of the project
 
-- **Dependency CVEs** — оновлено `next 16.1.7→16.2.9`, `turbo →2.9.18`, overrides для `ws ^8.21.0`, `fast-uri ^4.0.0`, `brace-expansion ^2.0.1`. Залишились 3 HIGH через `@payloadcms→drizzle-kit→esbuild` (dev build tools, не runtime). Done.
-- **Helmet** — додано в `apps/api/src/main.ts` (`contentSecurityPolicy: false` для GraphQL). Done.
-- **ValidationPipe** — `whitelist: true, transform: true` глобально в NestJS. Done.
-- **ThrottlerModule** — 120 req/60s на IP, `ThrottlerGuard` глобально. Done.
-- **Next.js security headers** — `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `X-XSS-Protection` для всіх маршрутів. Done.
-- **File upload MIME filter** — `materialFileFilter` в `material-files.controller.ts` дозволяє тільки image/\*, audio/\*, video/\*, PDF, Office documents. Done.
-- **ADR statusline fix** — додано `docs/adr` в список директорій `statusline.cjs`, виправлено `CWD` на `CLAUDE_PROJECT_DIR || process.cwd()`, очищено застарілий кеш. Done.
-- **Security scan files** — `.claude/security-scans/` заповнено 3 JSON файлами → ruflo показує `Security ●CLEAN`.
+**Control Plane:**
+- Login + Editorial console + learner allowlist (Settings)
+- **Billing:** `/billing/rails`, `/billing/campus-plans` (default + country overrides); `School.billingCountry` (CP-only)
+
+**Campus:** `apps/campus`. Dev: `npm run dev:campus` / `dev:platform` / `dev:api`.
 
 ## Files you're working on
 
-- `tests/e2e/specs/audit/03-student-audit.spec.ts` — Stage 3 STUDENT audit (29 passed)
-- `docs/e2e-improvements/03-student.md` — improvement doc Етап 3
-- `apps/web/src/styles/tokens/_theme.scss` — контраст-токени
+- `apps/platform/` — Billing + campus detail
+- `@be/billing` `PlatformBillingRailsService` + `platform-billing-products`
+- `docs/adr/ADR-010-platform-payment-rails.md`
 
-## What has changed (latest: P0 БАГ — ValidationPipe whitelist ламав УСІ GraphQL-мутації — виправлено 2026-07-09)
+## Next step
+
+1. Smoke `:4300/billing/campus-plans` + set campus billing country
+2. Optional: UA Layer B checkout adapters; Connect fee products; MRR
+
+### Hook handler JSON output (2026-07-09)
+- `hook-handler.cjs`: `pre-bash` → `{"permission":"allow"|"deny"}`, `pre-edit` → `{"continue":true,"file":"..."}`, `post-bash` → `{"continue":true}`; warnings лише на stderr. Розблоковано Cursor PreToolUse hooks.
+
+### Multi-tenant execution plan closeout (2026-07-09)
+- `docs/multi-tenant-execution-plan.md`: status header + Gate 1 full; G40/G44 partial; G45/Phase 6/pen-test deferred; child tables N/A parent-scoped; Phase 4.5.4 tour ☑; promo checkout ☑.
+- `tenant-scope.ts`: comment block for parent-scoped models.
+- Product tour spotlight: `navHref` in steps, `data-tour-nav` on sidebar links, `ProductTour` box-shadow cutout.
+- Wiki `concepts/multi-tenancy.md` refreshed to shipped state.
+
+### B4/B5/B6 E2E specs (2026-07-09)
+- 16 нових audit specs за патернами `05-billing-mock` / `04-delete-material` (route-mock + file fixtures + self-cleanup де потрібно).
+- `seed.ts`: `quizAssignment` upsert для jest-student.
+- План оновлено: B4/B5/B6 частково ☑; Arvi-пози N/A B7.
+
+## Previous (B2 кластер закрито — 2026-07-09)
 
 ### P0: whitelist stripping всіх GraphQL inputs (2026-07-09)
 - **Корінь (не той, що здавався спершу):** глобальний `ValidationPipe({ whitelist: true })` (доданий під час security-hardening) вирізає кожне поле input-класу без class-validator декоратора. Наші GraphQL `@InputType` — це **класи**, і в них 0 class-validator декораторів (усі 67), тож whitelist **тихо вирізав усі поля кожного input**. REST не постраждав, бо його DTO — TS-`type` (не класи → pipe їх пропускає, тобто whitelist для REST не давав НІЧОГО).
@@ -100,9 +118,9 @@
 
 ### Focus-trap reuse + стабілізація dev-стека (2026-07-04)
 - **`LessonModal.tsx`**: інлайн-трап замінено на існуючий `hooks/use-focus-trap.ts` (його вже юзають MaterialFormModal, MediaViewerModal, LibraryMaterialPicker, MobileNavDrawer). Додано focus-trap тест для MaterialFormModal у `10-a11y-audit.spec.ts`. Все зелене: 17 passed.
-- **КОРІНЬ dev-падінь: `.next` кеш розрісся до 10GB** → Turbopack OOM'ився (heap limit навіть на 8GB) → web креш → API SIGKILL → каскад ERR_ABORTED/500 у тестах. Лік: `rm -rf apps/web/.next`. Після чистки — 12.7s на 17 тестів, нуль крешів.
+- **КОРІНЬ dev-падінь: `.next` кеш розрісся до 10GB** → Turbopack OOM'ився (heap limit навіть на 8GB) → web креш → API SIGKILL → каскад ERR_ABORTED/500 у тестах. Лік: `rm -rf apps/campus/.next`. Після чистки — 12.7s на 17 тестів, нуль крешів.
 - Супутні укріплення: web dev тепер із `--max-old-space-size=8192` (package.json); `LoginPage` — ретрай goto при ERR_ABORTED і fill-цикл проти hydration-race (контрольовані інпути стирали значення, заповнені до гідрації → "Email is required" без POST); auth.setup timeout 90s.
-- Якщо dev знову дуріє: перевір розмір `apps/web/.next` і чисть.
+- Якщо dev знову дуріє: перевір розмір `apps/campus/.next` і чисть.
 
 ## Previous (expectArvi() хелпер — Етап 0 закрито 2026-07-03)
 
@@ -255,8 +273,8 @@
 
 - **Prisma:** `School.brandColor String?` + `logoUrl String?` (migration `20260627222341_add_school_branding`).
 - **Backend:** `SchoolBrandingService` (`@be/auth/application`) — `get(schoolId)` / `update(schoolId, patch)` з hex-валідацією. `SchoolBrandingController` (`GET /api/school/branding` — public, `PATCH` — ADMIN-only). Зареєстровано в `AuthModule`.
-- **Web:** `BrandingPanel` (`apps/web/src/app/system/BrandingPanel.tsx`) — System → Branding таб: color picker + live preview + logo URL + Button loading state. Додано таб + `Palette` іконка в `system/page.tsx`.
-- **Layout:** `BrandingBootstrap` (`apps/web/src/components/layout/BrandingBootstrap.tsx`) — fetch `/api/school/branding` при монтуванні → CSS custom properties `--accent-primary`, `--accent-primary-hover`, `--accent-primary-muted`. Вбудовано в root `layout.tsx`.
+- **Web:** `BrandingPanel` (`apps/campus/src/app/system/BrandingPanel.tsx`) — System → Branding таб: color picker + live preview + logo URL + Button loading state. Додано таб + `Palette` іконка в `system/page.tsx`.
+- **Layout:** `BrandingBootstrap` (`apps/campus/src/components/layout/BrandingBootstrap.tsx`) — fetch `/api/school/branding` при монтуванні → CSS custom properties `--accent-primary`, `--accent-primary-hover`, `--accent-primary-muted`. Вбудовано в root `layout.tsx`.
 - TS: 0 помилок в нових файлах. Plan: рядок Phase 6 G18 оновлено → ☑.
 
 ## G6 Object Storage + G42 AI Rate Cap — DONE ✅
@@ -289,8 +307,8 @@
 ## What has changed (latest: /privacy page + Stripe proration confirmed done)
 
 ### /privacy page (2026-06-27)
-- `apps/web/src/app/privacy/page.tsx` — повна privacy policy сторінка (RSC, `export const metadata`). Секції: хто ми, що збираємо, як використовуємо, cookies/analytics (згадує PostHog consent), sharing (Stripe/PostHog/hosting), GDPR права, retention, контакт.
-- `apps/web/src/app/privacy/page.module.scss` — стилі статичної сторінки (max-width 720px, surface-0 фон)
+- `apps/campus/src/app/privacy/page.tsx` — повна privacy policy сторінка (RSC, `export const metadata`). Секції: хто ми, що збираємо, як використовуємо, cookies/analytics (згадує PostHog consent), sharing (Stripe/PostHog/hosting), GDPR права, retention, контакт.
+- `apps/campus/src/app/privacy/page.module.scss` — стилі статичної сторінки (max-width 720px, surface-0 фон)
 - Cookie consent banner (`/privacy` лінк) тепер веде на реальну сторінку
 
 ### Stripe proration — вже реалізовано (підтверджено)
@@ -301,9 +319,9 @@
 ## What has changed (latest: Cookie consent banner — G15 GDPR remaining)
 
 ### Cookie consent banner (2026-06-27)
-- `apps/web/src/lib/cookie-consent.ts` — `getConsentChoice()`, `setConsentChoice()`, `hasAnalyticsConsent()` — читає/пише `localStorage['cookie_consent']` (`'accepted'|'declined'`)
-- `apps/web/src/components/ui/CookieConsentBanner.tsx` — fixed-bottom dialog-like banner: "Accept" → `setConsentChoice('accepted')` + `onConsent(true)`, "Decline" → `setConsentChoice('declined')` + `onConsent(false)`. Показується тільки якщо consent ще не збережено (`null`). Link до `/privacy`.
-- `apps/web/src/components/ui/CookieConsentBanner.module.scss` — стилі банеру
+- `apps/campus/src/lib/cookie-consent.ts` — `getConsentChoice()`, `setConsentChoice()`, `hasAnalyticsConsent()` — читає/пише `localStorage['cookie_consent']` (`'accepted'|'declined'`)
+- `apps/campus/src/components/ui/CookieConsentBanner.tsx` — fixed-bottom dialog-like banner: "Accept" → `setConsentChoice('accepted')` + `onConsent(true)`, "Decline" → `setConsentChoice('declined')` + `onConsent(false)`. Показується тільки якщо consent ще не збережено (`null`). Link до `/privacy`.
+- `apps/campus/src/components/ui/CookieConsentBanner.module.scss` — стилі банеру
 - `AnalyticsProvider.tsx` — `initAnalytics()` тепер викликається тільки якщо `hasAnalyticsConsent()` при монтуванні, або одразу при виборі "Accept" через `handleConsent` callback. `CookieConsentBanner` вмонтовано всередині провайдера.
 - `components/ui/index.ts` — `CookieConsentBanner` додано до експортів
 
@@ -311,7 +329,7 @@
 
 ### featureBlocked in 403 response + UpgradePrompt integration (2026-06-27)
 - `entitlements.service.ts` — `assertFeature` and `assertAiCredit` now throw `ForbiddenException({ message, featureBlocked })` so the frontend can distinguish plan-blocks from regular 403s
-- `apps/web/src/lib/api.ts` — `ApiError` extended with `featureBlocked?: string`; parser extracts `featureBlocked` from the JSON body
+- `apps/campus/src/lib/api.ts` — `ApiError` extended with `featureBlocked?: string`; parser extracts `featureBlocked` from the JSON body
 - `UpgradePrompt.tsx` — added `isFeatureBlockedError(e)` helper (checks `e instanceof ApiError && status===403 && featureBlocked`); exported from `components/ui/index.ts`
 - `MediaViewerShell.tsx` — "Generate captions" button: calls `triggerMaterialCaptionGeneration`, on `isFeatureBlockedError` → shows `UpgradePrompt` ("AI-assisted captions require the Pro plan."), on success → "Captions generation started…", on other error → shows error text
 - `media-viewer.module.scss` — added `.captionsRow`, `.captionOk`, `.captionErr`
@@ -326,10 +344,10 @@
 ## What has changed (latest: EntitlementsWidget, G39 ✅)
 
 ### EntitlementsWidget — compact usage meter on admin dashboard (2026-06-27)
-- `apps/web/src/components/ui/EntitlementsWidget.tsx` — new client component; fetches `GET /api/billing/entitlements`; renders storage + seats gauges (green/amber at >80%/red at 100%); shows plan name + "Manage plan" link to `/billing`; renders nothing while loading or on error
-- `apps/web/src/components/ui/EntitlementsWidget.module.scss` — CSS-variable-based styles
-- `apps/web/src/components/ui/index.ts` — export added
-- `apps/web/src/app/dashboard/page.tsx` — imported `EntitlementsWidget`; inserted after `DashboardQuickActions`, gated on `roleKey === 'admin' || roleKey === 'super_admin'`
+- `apps/campus/src/components/ui/EntitlementsWidget.tsx` — new client component; fetches `GET /api/billing/entitlements`; renders storage + seats gauges (green/amber at >80%/red at 100%); shows plan name + "Manage plan" link to `/billing`; renders nothing while loading or on error
+- `apps/campus/src/components/ui/EntitlementsWidget.module.scss` — CSS-variable-based styles
+- `apps/campus/src/components/ui/index.ts` — export added
+- `apps/campus/src/app/dashboard/page.tsx` — imported `EntitlementsWidget`; inserted after `DashboardQuickActions`, gated on `roleKey === 'admin' || roleKey === 'super_admin'`
 
 ### G39 — Tenant-aware notifications ✅ (2026-06-27 assessment)
 All 4 cron jobs (`lesson-reminder`, `streak-alert`, `weekly-report`, `new-vocab`) already filter `school: { status: { not: 'SUSPENDED' } }` and pass `schoolName` — G4 multi-tenant pattern fully implemented. No changes needed. Per-school Telegram bot + in-app push deferred (Phase 6).
@@ -341,7 +359,7 @@ All 4 cron jobs (`lesson-reminder`, `streak-alert`, `weekly-report`, `new-vocab`
 - `packages/backend/modules/module-auth/src/application/captcha.service.ts` — new `CaptchaService`; verifies Turnstile token via `https://challenges.cloudflare.com/turnstile/v0/siteverify`; disabled (pass-through) when `CAPTCHA_SECRET` not set; fails open on network errors
 - `auth.module.ts` — `CaptchaService` registered as provider
 - `auth.controller.ts` — TODO(G37) replaced; `captcha.verify()` called before `registerSchool()`; throws `BadRequestException` on failure
-- `apps/web/src/app/(auth)/signup/page.tsx` — Turnstile widget added (conditional on `NEXT_PUBLIC_TURNSTILE_SITE_KEY`); token passed in POST body; submit disabled until verified; widget resets on error
+- `apps/campus/src/app/(auth)/signup/page.tsx` — Turnstile widget added (conditional on `NEXT_PUBLIC_TURNSTILE_SITE_KEY`); token passed in POST body; submit disabled until verified; widget resets on error
 - New env vars: `CAPTCHA_SECRET` (backend), `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (frontend)
 
 ### docs/runbooks/secret-rotation.md (2026-06-27)
@@ -357,7 +375,7 @@ All 4 cron jobs (`lesson-reminder`, `streak-alert`, `weekly-report`, `new-vocab`
 - Додано `ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }])`
 - Додано `{ provide: APP_GUARD, useClass: ThrottlerGuard }` глобально
 
-### `apps/web/next.config.mjs`
+### `apps/campus/next.config.mjs`
 - Додано `securityHeaders` масив і `async headers()` для всіх маршрутів (`/(.*)`):
   `X-DNS-Prefetch-Control`, `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`, `X-XSS-Protection`
 
@@ -389,9 +407,9 @@ All 4 cron jobs (`lesson-reminder`, `streak-alert`, `weekly-report`, `new-vocab`
 
 | # | Файл | Було | Стало |
 |---|------|------|-------|
-| CRITICAL | `module-auth/src/shared/auth-cookies.ts:14` | `?? 'soenglish-dev-secret'` | throws `Error: JWT_SECRET env var is required` |
+| CRITICAL | `module-auth/src/shared/auth-cookies.ts:14` | `?? 'arvilio-dev-secret'` | throws `Error: JWT_SECRET env var is required` |
 | HIGH | `platform-integration.config.util.ts:385-386` | `|| 'devkey'` / `|| 'devsecret'` | `|| null` (fail-secure null guard) |
-| MEDIUM | `module-lessons/livekit.service.ts:64` | `|| 'soenglish-livekit-room-fallback'` | throws if key missing |
+| MEDIUM | `module-lessons/livekit.service.ts:64` | `|| 'arvilio-livekit-room-fallback'` | throws if key missing |
 
 Також оновлено тест `auth-cookies.spec.ts` — тепер перевіряє throw замість старого fallback.
 
@@ -415,7 +433,7 @@ All 4 cron jobs (`lesson-reminder`, `streak-alert`, `weekly-report`, `new-vocab`
 - Ізоляція: shared DB + row-level `schoolId` + `TenantPrismaService` (ADR-005)
 - Identity: **один глобальний User** + `SchoolMembership` (ADR-006)
 - Словник: **спільний платформний** (Word/WordDefinition без schoolId)
-- Домени: `slug.soenglish.app` + кастомні через **Cloudflare for SaaS** (ADR-007)
+- Домени: `slug.arvilio.app` + кастомні через **Cloudflare for SaaS** (ADR-007)
 - Сесії+ролі: JWT `{ sub, schoolId, membershipRole, platformRole? }`, `PlatformOperator` axis (ADR-008)
 - Білінг: 3 шари (student→school, school→platform, commission) (ADR-008)
 - Платформна адмінка: `@be/platform-admin`, cross-tenant + impersonation + audit (ADR-009)
@@ -463,7 +481,7 @@ All 4 cron jobs (`lesson-reminder`, `streak-alert`, `weekly-report`, `new-vocab`
 ## Design skills (для сервісів, не адмінки)
 
 - Встановлено глобально `~/.claude/skills/emil-design-eng` — авторитетний скіл Emil Kowalski (смак, анімації, «invisible details»), verbatim з github.com/emilkowalski/skill.
-- Створено project `.claude/skills/soenglish-service-design` — конкретний Design.md (палітра/тип/спейсинг/моушн з реальних токенів `styles/tokens/`, метод refero «система за скріншотом», профілі щільності по сервісах: learner/school/marketplace/recruiting/wizard/assistant). Посилається на emil-design-eng для craft-шару.
+- Створено project `.claude/skills/arvilio-service-design` — конкретний Design.md (палітра/тип/спейсинг/моушн з реальних токенів `styles/tokens/`, метод refero «система за скріншотом», профілі щільності по сервісах: learner/school/marketplace/recruiting/wizard/assistant). Посилається на emil-design-eng для craft-шару.
 - Бенчмарк: наша motion-система вже збігається з принципами Emil (≤300ms, кастомні криві, transform/opacity, reduced-motion).
 - MCP «хиксвел» = **Higgsfield** (higgsfield.ai, AI image/video gen). Підключено remote HTTP MCP `https://mcp.higgsfield.ai/mcp` на user-scope (`~/.claude.json`). **Потребує:** одноразова OAuth-авторизація через `/mcp` → higgsfield → Authenticate. Юзкейс: аватар асистента, візуали лендінга/маркетплейсу.
 - Execution plan оновлено: доданий наскрізний **Design & UX workstream** (обидва скіли + Higgsfield), вшитий у Phase 4.5 (wizard + аватар асистента), Phase 6 (візуали маркетплейсу; white-label = override токенів, не per-page hex).
@@ -476,7 +494,7 @@ All 4 cron jobs (`lesson-reminder`, `streak-alert`, `weekly-report`, `new-vocab`
 
 ## Назва платформи: arvilio (зафіксовано)
 
-Робоча назва — **`arvilio`**. Домени `arvilio.com/.io/.org/.app/.ai` вільні (RDAP, 2026-06-16) — треба зареєструвати (Porkbun/Cloudflare). `SoEnglish` стає першою школою/tenant на платформі arvilio. Назву записано в execution plan, business-model, wiki.
+Робоча назва — **`arvilio`**. Домени `arvilio.com/.io/.org/.app/.ai` вільні (RDAP, 2026-06-16) — треба зареєструвати (Porkbun/Cloudflare). `Arvilio` стає першою школою/tenant на платформі arvilio. Назву записано в execution plan, business-model, wiki.
 Перевірка доменів: надійний метод — **RDAP** (`curl rdap.verisign.com/com/v1/domain/NAME.com`, 404=вільний), бо whois ловить rate-limit після ~150 запитів.
 
 ## Віртуальний асистент = 3D-персонаж
@@ -530,7 +548,7 @@ All 4 cron jobs (`lesson-reminder`, `streak-alert`, `weekly-report`, `new-vocab`
 
 **Файли:** `data-access-prisma/src/lib/{prisma.service.ts(новий),be-prisma.ts(розбито),tenant-scope.ts,tenant-prisma.service.ts,*.spec.ts}`, `src/index.ts`; `schema.prisma` (нові моделі); `be-prisma.spec.ts` (мок +$extends, TenantModule).
 
-**1.2 — частково ЗРОБЛЕНО ✅ (БД: docker `soenglish-postgres` 5432):**
+**1.2 — частково ЗРОБЛЕНО ✅ (БД: docker `arvilio-postgres` 5432):**
 - Міграція `20260616113940_add_tenancy_models` застосована (additive: 5 таблиць+6 enums+FK/індекси; наявні таблиці не чіпає; БД була в синхроні).
 - Identity backfill `prisma/backfill-tenancy.ts` (ідемпотентний, `npm run prisma:backfill:tenancy`): `school_default` (tenant #1) + ACTIVE sub; `SchoolMembership` на кожного юзера; `SUPER_ADMIN`→`PlatformOperator`. Перевірено 1/6/2.
 
@@ -559,7 +577,7 @@ All 4 cron jobs (`lesson-reminder`, `streak-alert`, `weekly-report`, `new-vocab`
 
 **Фінансова вертикаль ✅ (5-та) — `Payment` + `StudentLessonBalance` + `LessonBalanceLedger` + `StaffCompensationProfile`:**
 - Схема: `schoolId` required + FK на School (Cascade) + `@@index([schoolId])` на всіх 4; back-relations у School. `prisma validate`+`generate` чисті.
-- Міграція `20260618224101_financial_models_school_required` (expand/contract: nullable → `UPDATE … = 'school_default'` × 4 → SET NOT NULL → індекси → FK). Застосована через `migrate deploy` (БД docker `soenglish-postgres` 5432). ⚠️ prisma тепер вимагає запуску **з кореня репо** (config у `prisma.config.ts`, datasource.url), не з пакета.
+- Міграція `20260618224101_financial_models_school_required` (expand/contract: nullable → `UPDATE … = 'school_default'` × 4 → SET NOT NULL → індекси → FK). Застосована через `migrate deploy` (БД docker `arvilio-postgres` 5432). ⚠️ prisma тепер вимагає запуску **з кореня репо** (config у `prisma.config.ts`, datasource.url), не з пакета.
 - Зареєстровано всі 4 в `TENANT_SCOPED_MODELS`.
 - Create/upsert-сайти проштамповано `schoolId: this.tenant.schoolId ?? DEFAULT_SCHOOL_ID` (інʼєкція `TenantContextService`):
   - 7 checkout-сервісів (stripe/liqpay/paypal/paddle/wayforpay/monopay/lemonsqueezy) — `payment.create`.
@@ -689,8 +707,8 @@ Guardrail зловив 1 **реальне** порушення — `lessons.serv
 
 ## Phase 2 — web tenant routing ✅ (2026-06-23)
 
-- `apps/web/src/lib/tenant-host.ts` — pure `classifyTenantHost(host)`: apex/www/reserved(`www/app/api/admin/platform`)/localhost/IP → `platform`; single-label `*.ROOT_DOMAIN` → `{subdomain, slug}`; інше → `{custom, hostname}`. `ROOT_DOMAIN` з `NEXT_PUBLIC_ROOT_DOMAIN` (default `arvilio.app`). +9 тестів (`tenant-host.test.ts`).
-- `apps/web/src/middleware.ts` — прокидає `x-school-slug`/`x-school-host` бекенду; **без редіректів/блокувань** (single-school dev не ламається).
+- `apps/campus/src/lib/tenant-host.ts` — pure `classifyTenantHost(host)`: apex/www/reserved(`www/app/api/admin/platform`)/localhost/IP → `platform`; single-label `*.ROOT_DOMAIN` → `{subdomain, slug}`; інше → `{custom, hostname}`. `ROOT_DOMAIN` з `NEXT_PUBLIC_ROOT_DOMAIN` (default `arvilio.app`). +9 тестів (`tenant-host.test.ts`).
+- `apps/campus/src/middleware.ts` — прокидає `x-school-slug`/`x-school-host` бекенду; **без редіректів/блокувань** (single-school dev не ламається).
 - Backend `TenantResolutionMiddleware` — пріоритет `x-school-slug`→`School.slug` (cached, **виключає SUSPENDED**) → `x-school-host`/`Host`→verified `SchoolDomain` (cached).
 - unit **1096/1096**, integration **82/82**, typecheck чистий (мої файли; у web є передіснуючі непов'язані TS-помилки — StudentDetailsPage тощо).
 
@@ -737,7 +755,7 @@ Guardrail зловив 1 **реальне** порушення — `lessons.serv
 - **Gate 4:** ✅ list → suspend(offline) → impersonate(banner-claim+audit+auto-expire) → усе в audit log.
 
 ## Phase 4D — impersonation banner UI ✅ (2026-06-25)
-- `ImpersonationBanner` (`apps/web/src/components/layout/`) рендериться в root `layout.tsx`, коли сесія має impersonation-claim. Claim проходить server-side: `WebRequestSessionDto.impersonation` → `proxy.ts` state → header `x-soenglish-impersonation` → `readRequestAuthState` → layout. Кнопка "Stop impersonating" → POST `/api/auth/impersonate/stop` + reload.
+- `ImpersonationBanner` (`apps/campus/src/components/layout/`) рендериться в root `layout.tsx`, коли сесія має impersonation-claim. Claim проходить server-side: `WebRequestSessionDto.impersonation` → `proxy.ts` state → header `x-arvilio-impersonation` → `readRequestAuthState` → layout. Кнопка "Stop impersonating" → POST `/api/auth/impersonate/stop` + reload.
 - Banner у **школьному** застосунку (не в консолі) — бо impersonation логінить оператора в school-app як school-user.
 - unit **1125/1125** ✅, web request-session roundtrip оновлено, typecheck моїх файлів чистий.
 
@@ -788,12 +806,12 @@ Guardrail зловив 1 **реальне** порушення — `lessons.serv
 - **Лишилось 4.5.3:** web wizard UI + side-effects кроків (payments→allowlist, invites, sample-content seed).
 
 ## Phase 4.5.1 — trial-countdown banner ✅ (2026-06-25)
-- `WebRequestSessionDto.trial = {trialEndsAt, daysLeft}` через `AuthSessionService.resolveTrialInfo` (null якщо active-school не TRIAL або без trialEndsAt; daysLeft ≥0). Проброшено SSR (proxy → header `x-soenglish-trial` → `readRequestAuthState` → layout).
-- `TrialBanner` (`apps/web/src/components/layout/`) — countdown; warning-стиль при 0 / "trial ended".
+- `WebRequestSessionDto.trial = {trialEndsAt, daysLeft}` через `AuthSessionService.resolveTrialInfo` (null якщо active-school не TRIAL або без trialEndsAt; daysLeft ≥0). Проброшено SSR (proxy → header `x-arvilio-trial` → `readRequestAuthState` → layout).
+- `TrialBanner` (`apps/campus/src/components/layout/`) — countdown; warning-стиль при 0 / "trial ended".
 - +9 тестів (resolveTrialInfo unit, request-session roundtrip, integration: web-session показує trial після signup). unit **1159/1159**, integration **93/93**, typecheck 0.
 
 ## Phase 4.5.3 — onboarding wizard UI ✅ (2026-06-25)
-- `apps/web/app/onboarding/page.tsx` — 5-кроковий wizard (`Field`/`Button`/`SurfaceCard`): GET `/api/onboarding`, **resume** на крок після `currentStep`, Save&continue → PATCH step, Skip, Finish → complete → `/dashboard`; якщо вже completed → редірект `/dashboard`. Signup тепер веде на `/onboarding`.
+- `apps/campus/app/onboarding/page.tsx` — 5-кроковий wizard (`Field`/`Button`/`SurfaceCard`): GET `/api/onboarding`, **resume** на крок після `currentStep`, Save&continue → PATCH step, Skip, Finish → complete → `/dashboard`; якщо вже completed → редірект `/dashboard`. Signup тепер веде на `/onboarding`.
 - typecheck + lint чисті; unit **1159/1159** (UI без нових unit-тестів).
 - **Лишилось 4.5.3:** side-effects кроків (payments→allowlist, реальні invites, seed sample content).
 
@@ -808,7 +826,7 @@ Guardrail зловив 1 **реальне** порушення — `lessons.serv
 - **Лишилось 4.5.4 (design-gated):** persona + 3D-маскот (Blender/Meshy→glTF, react-three-fiber, ≤1.5MB, fallback), tour-UI (driver.js/react-joyride, data-driven tourSteps), replay-trigger. **Потребує рішення по персоні/візуалу від користувача.**
 
 ## Phase 4.5.4 — tour UI (data-driven) ✅ (2026-06-25)
-- `apps/web/components/tour`: `TOUR_STEPS` (config — welcome/dashboard/calendar/lessons/students/billing/done) + `ProductTour` overlay (gated `GET /api/onboarding/tour`; Next/Back/Skip/Finish → `POST .../complete`); змонтовано в root layout для авторизованих. 2D placeholder-маскот (`data-mascot` 🦊) — готовий до заміни на 3D.
+- `apps/campus/components/tour`: `TOUR_STEPS` (config — welcome/dashboard/calendar/lessons/students/billing/done) + `ProductTour` overlay (gated `GET /api/onboarding/tour`; Next/Back/Skip/Finish → `POST .../complete`); змонтовано в root layout для авторизованих. 2D placeholder-маскот (`data-mascot` 🦊) — готовий до заміни на 3D.
 - dependency-free (без driver.js/joyride); typecheck+lint чисті; unit **1163/1163**.
 - **Лишилось 4.5.4 (design-gated):** element-anchored highlighting, 3D-маскот (персона/візуал — рішення користувача), replay з Help-меню.
 
@@ -820,24 +838,24 @@ Guardrail зловив 1 **реальне** порушення — `lessons.serv
 
 ## Mascot persona — «Arvi» the Speaker-puff (2026-06-25, decided)
 - Концепт-driven маскот = голос/звук (не тваринка → ownable; дорослим+дітям). Кругле яйцеподібне тільце, велика голова, великі очі, тепла усмішка, два округлі «вушка» як звукова хвиля/навушники, крихітні ручки/ніжки. Бренд-зелений `--green` + біле личко/животик. Тон: теплий коуч.
-- Пози туру: idle/greet/point/celebrate. Asset target: `apps/web/public/mascot/arvi.glb` (GLB+Draco ≤1.5MB).
+- Пози туру: idle/greet/point/celebrate. Asset target: `apps/campus/public/mascot/arvi.glb` (GLB+Draco ≤1.5MB).
 - **Meshy.ai prompt:** `A cute stylized cartoon mascot named Arvi, a small round soft creature representing friendly voice and sound, egg-shaped chubby body, big expressive friendly eyes, warm gentle smile, two small rounded ears shaped like soundwave headphone cushions, tiny short arms and little feet, smooth matte surface, mint-green body with soft white face and belly, chibi proportions with a big head, standing in a neutral A-pose with arms slightly away from the body, symmetrical, modern and approachable, mascot character design, game-ready, full body, single character, plain background, soft studio lighting`  | negative: `realistic fur, scary, sharp teeth, weapons, text, watermark, multiple characters, extra limbs, cluttered background` | Meshy: Stylized, A-pose, symmetry on, ~10–20k quad, PBR 1K, GLB+Draco.
-- **Render-острів ГОТОВО (2026-06-25):** `apps/web/components/mascot/` — `<Mascot pose size>` lazy R3F (`@react-three/fiber@9`+`drei`+`three`, next/dynamic ssr:false), вантажить `public/mascot/arvi.glb` (`useGLTF`/`useAnimations`), грає кліп по позі або procedural idle-bob; **2D SVG fallback** (no-WebGL / reduced-motion / нема GLB через error-boundary); пауза на hidden tab. Підключено в тур (поза на крок), 🦊 замінено на Arvi.
-  - **Постав будь-який `arvi.glb` у `apps/web/public/mascot/` зараз → працює; заміниш тим самим іменем пізніше.** Деталі в `public/mascot/README.md`.
+- **Render-острів ГОТОВО (2026-06-25):** `apps/campus/components/mascot/` — `<Mascot pose size>` lazy R3F (`@react-three/fiber@9`+`drei`+`three`, next/dynamic ssr:false), вантажить `public/mascot/arvi.glb` (`useGLTF`/`useAnimations`), грає кліп по позі або procedural idle-bob; **2D SVG fallback** (no-WebGL / reduced-motion / нема GLB через error-boundary); пауза на hidden tab. Підключено в тур (поза на крок), 🦊 замінено на Arvi.
+  - **Постав будь-який `arvi.glb` у `apps/campus/public/mascot/` зараз → працює; заміниш тим самим іменем пізніше.** Деталі в `public/mascot/README.md`.
   - **Залежності додано:** `three`, `@react-three/fiber@^9`, `@react-three/drei@^10`, `@types/three`.
   - web jest **549/549**, typecheck(мої файли)+lint чисті.
   - ✅ **middleware→proxy блокер виправлено (2026-06-25):** логіку tenant-hint (`x-school-slug`/`x-school-host` з `classifyTenantHost`) змержено у `proxy.ts` (`withTenantHint`), `middleware.ts` видалено. proxy тепер також ранить на `/api`+`/payload-api` (early-return лише hint, без session/route-логіки); matcher розширено (виключає _next/static+файли). web jest **549/549**.
-  - ✅ **build:web ЗЕЛЕНИЙ (2026-06-25):** виправлено всі **17 передіснуючих** web TS-помилок (білд був червоний ще до сесії; @types/react не мінявся — підтверджено через git lockfile diff):
+  - ✅ **build:campus ЗЕЛЕНИЙ (2026-06-25):** виправлено всі **17 передіснуючих** web TS-помилок (білд був червоний ще до сесії; @types/react не мінявся — підтверджено через git lockfile diff):
     - role-id: `useStudentHeroData`/`useStudentProfileSave` `activeUserRole: string` → `UserRoleId` (id числові: student=1…superAdmin=4); `lessonFormat: string` → `StudentLessonFormat`.
     - polymorphic UI primitives (`SurfaceCard`/`PanelCard`/`StatTile`/`TabPanelCard`/`PageHeader`): React-19 `ElementType` колапсив `children:never` → перевів динамічний тег на `createElement`.
     - `AnnotationLayer.tsx`: додав відсутні імпорти `MaterialPageAnnotation` (@pkg/types) + `normPoint` (annotation-layer-utils).
     - `StatisticsDashboardCharts`: `studentScope={view.studentScope ?? ''}`.
     - `LessonSetupTab`: `resolvedStudent?.fullName` (LessonPartyOption не має displayName).
-  - `build:web` + web jest **549/549** + tsc(web)=0 + lint чисті.
+  - `build:campus` + web jest **549/549** + tsc(web)=0 + lint чисті.
 
 ## Де подивитись Arvi (2026-06-26)
 - **Тур:** залогінься (або `/signup`) → first-login тур відкривається, якщо `User.tourCompletedAt = null` (маскот у картці). Повторно показати = очистити `tourCompletedAt`.
-- **Preview-сторінка:** `/mascot-preview` (public route) — рендерить Arvi у всіх позах (idle/greet/point/celebrate) + розмірах. Поки нема `arvi.glb` → 2D-fallback; поклади `apps/web/public/mascot/arvi.glb` → 3D.
+- **Preview-сторінка:** `/mascot-preview` (public route) — рендерить Arvi у всіх позах (idle/greet/point/celebrate) + розмірах. Поки нема `arvi.glb` → 2D-fallback; поклади `apps/campus/public/mascot/arvi.glb` → 3D.
 - Запуск: `npm run dev` (web :4200, api :3000) → `http://localhost:4200/mascot-preview`.
 
 ## Phase 5 — storage accounting + enforcement (materials vertical) ✅ (2026-06-25)
@@ -861,9 +879,9 @@ Guardrail зловив 1 **реальне** порушення — `lessons.serv
 - **Лишилось Layer-B:** proration/upgrade-downgrade, повний dunning-розклад + auto-suspend в кінці grace, Stripe Tax/VAT, invoices/refunds, promo PERCENT_OFF/FIXED_OFF, billing UI.
 
 ## Phase 5 — billing UI ✅ (2026-06-26)
-- `apps/web/app/billing` сторінка (admin-only: route-policy `/billing` → admin/super_admin; sidebar "Subscription" у секції Account). Показує поточний план, метри storage + students (бари), плани Starter/Pro з кнопкою checkout → `POST /api/billing/subscription/checkout` → редірект на Stripe. Банери success/cancel з `?billing=`.
+- `apps/campus/app/billing` сторінка (admin-only: route-policy `/billing` → admin/super_admin; sidebar "Subscription" у секції Account). Показує поточний план, метри storage + students (бари), плани Starter/Pro з кнопкою checkout → `POST /api/billing/subscription/checkout` → редірект на Stripe. Банери success/cancel з `?billing=`.
 - `GET /api/billing/entitlements` живить метри. Suspense-wrap (useSearchParams).
-- typecheck + lint + build:web чисті (роут `/billing`), web jest **549/549**.
+- typecheck + lint + build:campus чисті (роут `/billing`), web jest **549/549**.
 
 ## Phase 5 — dunning auto-suspend ✅ (2026-06-26)
 - `TrialLifecycleService.suspendOverdueSubscriptions` (платформ-admin, daily `@Cron` поряд із expireTrials): suspendує ACTIVE-школи, чия підписка `PAST_DUE` довше за `DUNNING_GRACE_DAYS=7` (маркер PAST_DUE = subscription `updatedAt`). +3 тести (unit + integration; integration бекдейтить updatedAt через raw SQL, бо Prisma `@updatedAt` ігнорує ручні значення).
@@ -906,7 +924,7 @@ Guardrail зловив 1 **реальне** порушення — `lessons.serv
 - `PlatformSubscriptionService.createPortalSession(schoolId)` — перевіряє наявність Stripe customer (DB-first, до ініціалізації Stripe клієнта), відкриває Stripe Billing Portal Session (`billingPortal.sessions.create`); return_url → `/billing`. Stripe Portal сам обробляє proration upgrade/downgrade, зміну картки, скасування.
 - `POST /api/billing/subscription/portal` (admin-only, AuthGuard + role check в контролері).
 - Billing page UI: якщо план = STARTER або PRO (`isSubscribed`) — показує "Manage subscription" → portal (з `loadingLabel`); plan picker приховується (лише для нових/trial-школ). Over-quota hint виводиться під storage bar.
-- `UpgradePrompt` компонент (`apps/web/src/components/ui/`): amber banner з "Upgrade your plan →" Link до `/billing`; `isStorageQuotaError(e)` helper (перевіряє message на 413/quota). Експортовано з `components/ui/index.ts`.
+- `UpgradePrompt` компонент (`apps/campus/src/components/ui/`): amber banner з "Upgrade your plan →" Link до `/billing`; `isStorageQuotaError(e)` helper (перевіряє message на 413/quota). Експортовано з `components/ui/index.ts`.
 - `MaterialFormModal`: відстежує `localErrorRaw` (оригінальний об'єкт помилки); при 413 показує `UpgradePrompt` замість generic `<p>`.
 - +2 тести (portal: no-subscription 400, no-Stripe-key 400). unit **1199/1199**, typecheck 0.
 

@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { Button } from '../ui';
 import { useBreakpoint } from '../../hooks/use-breakpoint';
 import { SidebarNav } from './sidebar-nav';
+import { LocaleSwitcher } from '../i18n/LocaleSwitcher';
 import styles from './Sidebar.module.scss';
 
-const STORAGE_KEY = 'soenglish.sidebarCollapsed';
+const STORAGE_KEY = 'arvilio.sidebarCollapsed';
 
 export default function Sidebar() {
   const { isMobile, isTablet } = useBreakpoint();
@@ -59,6 +60,7 @@ export default function Sidebar() {
     <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ''}`}>
       <SidebarNav collapsed={collapsed} variant="rail" />
       <div className={styles.toolbar}>
+        <Suspense fallback={null}><LocaleSwitcher compact={collapsed} className={styles.localeSwitcher} /></Suspense>
         <Button
           type="button"
           variant="ghost"

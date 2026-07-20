@@ -1,10 +1,7 @@
 import type { ScheduledLessonDto } from '@pkg/types';
-import { mockScheduledLessons } from '../../../mocks';
 
 export function getInitialLessons(): ScheduledLessonDto[] {
-  return [...mockScheduledLessons].sort((a, b) =>
-    `${a.date} ${a.startTime}`.localeCompare(`${b.date} ${b.startTime}`),
-  );
+  return [];
 }
 
 export function getLessonsByStudent(

@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { Check, Save, UserRound } from 'lucide-react';
 import { Badge, Button } from '../ui';
+import { useCampusT } from '../../lib/cms';
 import { selectLanguagesList, useLanguagesStore } from '../../stores/languages-store';
 import { useSchoolGroupLessons } from '../../hooks/use-school-group-lessons';
 import { isFieldVisible, sectionHasVisibleFields } from './profile-field-policy';
@@ -59,6 +60,7 @@ export function UnifiedProfilePanel({
   idPrefix = 'profile',
   teacherOptions = [],
 }: UnifiedProfilePanelProps) {
+  const t = useCampusT();
   const languages = useLanguagesStore(selectLanguagesList);
   const fetchLanguages = useLanguagesStore((s) => s.fetchLanguages);
   const { enabled: groupLessonsFromHook } = useSchoolGroupLessons();
@@ -80,11 +82,11 @@ export function UnifiedProfilePanel({
   }, [fetchLanguages, resolvedContext]);
 
   if (loading) {
-    return <p className={styles.profileLoading}>Loading profile…</p>;
+    return <p className={styles.profileLoading}>{t('common.loading')}</p>;
   }
 
-  const summary = buildProfileSummary(values, resolvedContext);
-  const intro = profileIntro(resolvedContext);
+  const summary = buildProfileSummary(values, resolvedContext, t);
+  const intro = profileIntro(resolvedContext, t);
 
   const patch = (next: Partial<UnifiedProfileFormValues>) => onChange(next);
 
@@ -96,7 +98,7 @@ export function UnifiedProfilePanel({
 
   return (
     <div className={styles.profilePanel}>
-      <section className={styles.profileSummary} aria-label="Profile overview">
+      <section className={styles.profileSummary} aria-label={t('profile.overviewAria')}>
         <div className={styles.profileSummaryIntro}>
           <span className={styles.profileSummaryIcon} aria-hidden>
             <UserRound size={18} />
@@ -165,10 +167,10 @@ export function UnifiedProfilePanel({
           {feedback ? <p className={styles.profileFeedback}>{feedback}</p> : null}
           {saved && !saveError ? (
             resolvedContext.subjectKind === 'student' ? (
-              <Badge variant="green">Saved</Badge>
+              <Badge variant="green">{t('profile.saved')}</Badge>
             ) : (
               <span className={styles.profileSaved}>
-                <Check size={14} aria-hidden /> Changes saved
+                <Check size={14} aria-hidden /> {t('profile.changesSaved')}
               </span>
             )
           ) : null}
@@ -179,15 +181,15 @@ export function UnifiedProfilePanel({
           onClick={onSave}
           disabled={!resolvedContext.canEdit || fieldsDisabled}
           loading={saving}
-          loadingLabel="Saving…"
+          loadingLabel={t('profile.saving')}
         >
           {resolvedContext.subjectKind === 'staff' ? (
             <>
               <Save size={14} aria-hidden />
-              {saveLabel}
+              {saveLabel ?? t('profile.saveProfile')}
             </>
           ) : (
-            saveLabel
+            saveLabel ?? t('profile.saveProfile')
           )}
         </Button>
       </footer>

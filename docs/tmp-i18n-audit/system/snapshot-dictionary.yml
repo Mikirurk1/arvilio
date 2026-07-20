@@ -1,0 +1,283 @@
+- generic [ref=f28e1]:
+  - button "Open Next.js Dev Tools" [ref=f28e7] [cursor=pointer]
+  - alert [ref=f28e11]
+  - generic [ref=f28e12]:
+    - link "Перейти до основного вмісту" [ref=f28e13] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f28e14]:
+      - link "Arvilio — go to dashboard" [ref=f28e16] [cursor=pointer]:
+        - /url: /dashboard
+        - generic [ref=f28e20]:
+          - generic [ref=f28e21]: Arvilio
+          - generic [ref=f28e22]: Campus
+      - search [ref=f28e25]:
+        - combobox "Пошук уроків, слів, учнів…" [ref=f28e29]
+        - generic: ⌘K
+      - generic [ref=f28e30]:
+        - button "Створити урок" [ref=f28e31] [cursor=pointer]
+        - 'link "Мої: 0 сьогодні · 0 лишилось" [ref=f28e32] [cursor=pointer]':
+          - /url: /lessons
+          - generic [ref=f28e36]: "Мої: 0 сьогодні"
+          - generic [ref=f28e37]: · 0 лишилось
+        - link [ref=f28e38] [cursor=pointer]:
+          - /url: /profile
+    - generic [ref=f28e39]:
+      - complementary [ref=f28e40]:
+        - navigation "Головна навігація" [ref=f28e41]:
+          - generic [ref=f28e42]:
+            - generic [ref=f28e43]: Навчання
+            - link "Дашборд" [ref=f28e45] [cursor=pointer]:
+              - /url: /dashboard
+            - link "Уроки" [ref=f28e55] [cursor=pointer]:
+              - /url: /lessons
+            - link "Практика 1" [ref=f28e62] [cursor=pointer]:
+              - /url: /practice
+              - generic [ref=f28e69]: Практика
+              - generic [ref=f28e70]: "1"
+            - link "Матеріали" [ref=f28e72] [cursor=pointer]:
+              - /url: /materials
+          - generic [ref=f28e78]:
+            - generic [ref=f28e79]: Розклад
+            - link "Календар" [ref=f28e81] [cursor=pointer]:
+              - /url: /calendar
+          - generic [ref=f28e87]:
+            - generic [ref=f28e88]: Звʼязок
+            - link "Чат" [ref=f28e90] [cursor=pointer]:
+              - /url: /chat
+            - link "Учні та групи" [ref=f28e97] [cursor=pointer]:
+              - /url: /students
+            - link "Персонал" [ref=f28e107] [cursor=pointer]:
+              - /url: /staff
+          - generic [ref=f28e123]:
+            - generic [ref=f28e124]: Акаунт
+            - link "Фінанси" [ref=f28e126] [cursor=pointer]:
+              - /url: /finance
+            - link "Підписка" [ref=f28e134] [cursor=pointer]:
+              - /url: /billing
+            - link "Профіль і налаштування" [ref=f28e142] [cursor=pointer]:
+              - /url: /profile
+          - generic [ref=f28e149]:
+            - generic [ref=f28e150]: Платформа
+            - link "Адмін" [ref=f28e152] [cursor=pointer]:
+              - /url: /admin
+            - link "Система" [ref=f28e160] [cursor=pointer]:
+              - /url: /system
+        - generic [ref=f28e167]:
+          - button "Мова інтерфейсу" [ref=f28e169] [cursor=pointer]:
+            - generic [ref=f28e170]: Українська
+          - button "Collapse sidebar" [expanded] [ref=f28e173] [cursor=pointer]
+      - main [ref=f28e177]:
+        - generic [ref=f28e180]:
+          - generic [ref=f28e181]:
+            - heading "Система" [level=1] [ref=f28e184]
+            - paragraph [ref=f28e185]: Інтеграції, оплати та словники школи.
+          - region "Огляд системи" [ref=f28e186]:
+            - article [ref=f28e187]:
+              - paragraph [ref=f28e192]: Область супер-адміна
+              - paragraph [ref=f28e193]: Зміни тут впливають на всю робочу область школи. Оновлюйте обережно й перевіряйте кожен розділ після збереження.
+            - article [ref=f28e194]:
+              - paragraph [ref=f28e199]: Спочатку діагностика
+              - paragraph [ref=f28e200]: Спочатку перевірте Email і Словник, перш ніж змінювати платіжних провайдерів — це зменшить розбіжності інтеграцій.
+          - generic [ref=f28e201]:
+            - tablist "Розділи системи" [ref=f28e202]:
+              - tab [ref=f28e203] [cursor=pointer]
+              - tab [ref=f28e208] [cursor=pointer]
+              - tab [active] [selected] [ref=f28e213] [cursor=pointer]
+              - tab [ref=f28e217] [cursor=pointer]
+              - tab [ref=f28e222] [cursor=pointer]
+              - tab [ref=f28e226] [cursor=pointer]
+              - tab [ref=f28e231] [cursor=pointer]
+              - tab [ref=f28e236] [cursor=pointer]
+              - tab [ref=f28e244] [cursor=pointer]
+            - tabpanel "Словник слів" [ref=f28e816]:
+              - generic [ref=f28e817]:
+                - generic [ref=f28e821]:
+                  - generic [ref=f28e822]: Словник слів
+                  - paragraph [ref=f28e823]: Англійські визначення та переклади при додаванні слів. Зміни стосуються нових запитів; існуючі слова зберігають дані до повторного збагачення.
+                - status [ref=f28e824]:
+                  - generic [ref=f28e825]: Wiktionary (Wikimedia)
+                  - generic [ref=f28e826]: LibreTranslate
+                  - generic [ref=f28e827]: "Цільовий контекст: UK"
+                  - button "Оновити" [ref=f28e829] [cursor=pointer]
+                - generic [ref=f28e836]:
+                  - region [ref=f28e837]:
+                    - generic [ref=f28e838]:
+                      - heading "Джерело словника" [level=2] [ref=f28e839]
+                      - paragraph [ref=f28e840]: "Структурований англійський запис: фонетика, частина мови, визначення."
+                    - generic [ref=f28e841]:
+                      - generic [ref=f28e842]:
+                        - generic [ref=f28e843] [cursor=pointer]:
+                          - radio "Free Dictionary API dictionaryapi.dev — structured English entries with phonetics, audio, synonyms, and multiple parts of speech. Based on Wiktionary data via a simple JSON API. Документація" [ref=f28e844]
+                          - generic [ref=f28e845]:
+                            - generic [ref=f28e846]: Free Dictionary API
+                            - paragraph [ref=f28e848]: dictionaryapi.dev — structured English entries with phonetics, audio, synonyms, and multiple parts of speech. Based on Wiktionary data via a simple JSON API.
+                            - link "Документація" [ref=f28e849]:
+                              - /url: https://dictionaryapi.dev/
+                        - generic [ref=f28e854] [cursor=pointer]:
+                          - radio "Reverso Context English entries from Free Dictionary API plus Reverso context translations and examples (HTTP API at api.reverso.net). Configure Reverso in Translation service below. Документація" [ref=f28e855]
+                          - generic [ref=f28e856]:
+                            - generic [ref=f28e857]: Reverso Context
+                            - paragraph [ref=f28e859]: English entries from Free Dictionary API plus Reverso context translations and examples (HTTP API at api.reverso.net). Configure Reverso in Translation service below.
+                            - link "Документація" [ref=f28e860]:
+                              - /url: https://www.reverso.net/text-translation
+                        - generic [ref=f28e865] [cursor=pointer]:
+                          - radio "Wiktionary (Wikimedia) Активний Official Wiktionary REST API — English definitions and examples directly from Wikimedia. No pronunciation audio in this integration. Документація" [checked] [ref=f28e866]
+                          - generic [ref=f28e867]:
+                            - generic [ref=f28e868]:
+                              - generic [ref=f28e869]: Wiktionary (Wikimedia)
+                              - generic [ref=f28e870]: Активний
+                            - paragraph [ref=f28e871]: Official Wiktionary REST API — English definitions and examples directly from Wikimedia. No pronunciation audio in this integration.
+                            - link "Документація" [ref=f28e872]:
+                              - /url: https://en.wiktionary.org/api/rest_v1/
+                      - complementary "Інструкції з налаштування провайдера" [ref=f28e877]:
+                        - paragraph [ref=f28e878]: Official Wikimedia REST API for English definitions.
+                        - paragraph [ref=f28e879]:
+                          - strong [ref=f28e880]: "Ціни:"
+                          - text: Free — set a descriptive User-Agent.
+                        - generic [ref=f28e881]:
+                          - generic [ref=f28e882]: Змінні середовища
+                          - list [ref=f28e883]:
+                            - listitem [ref=f28e884]:
+                              - code [ref=f28e885]: WIKTIONARY_API_URL
+                              - text: — English definition endpoint.
+                            - listitem [ref=f28e886]:
+                              - code [ref=f28e887]: WIKTIONARY_USER_AGENT
+                              - text: — Required by Wikimedia bot policy.
+                        - list [ref=f28e888]:
+                          - listitem [ref=f28e889]:
+                            - text: No API key. On miss, Arvilio falls back to Free Dictionary API.
+                            - generic [ref=f28e890]:
+                              - link "MediaWiki REST API" [ref=f28e891] [cursor=pointer]:
+                                - /url: https://www.mediawiki.org/wiki/API:REST_API
+                              - link "Definition endpoint" [ref=f28e896] [cursor=pointer]:
+                                - /url: https://en.wiktionary.org/api/rest_v1/#/Page%20content/get_page_definition__term_
+                          - listitem [ref=f28e901]:
+                            - text: "Example: GET …/page/definition/{term}"
+                            - link "Try hello" [ref=f28e903] [cursor=pointer]:
+                              - /url: https://en.wiktionary.org/api/rest_v1/page/definition/hello
+                      - complementary "Інструкції з налаштування провайдера" [ref=f28e908]:
+                        - paragraph [ref=f28e909]: Always queried alongside the dictionary — synonyms, antonyms, phrase gloss fallback.
+                        - paragraph [ref=f28e910]:
+                          - strong [ref=f28e911]: "Ціни:"
+                          - text: Free — no API key (up to 100,000 requests/day).
+                        - list [ref=f28e912]:
+                          - listitem [ref=f28e913]:
+                            - text: No configuration in System UI.
+                            - link "Datamuse API" [ref=f28e915] [cursor=pointer]:
+                              - /url: https://www.datamuse.com/api/
+                      - button "Зберегти провайдера" [disabled] [ref=f28e921]
+                  - region [ref=f28e922]:
+                    - generic [ref=f28e923]:
+                      - heading "Джерело перекладу" [level=2] [ref=f28e924]
+                      - paragraph [ref=f28e925]: Основний провайдер перекладу; інші йдуть у фіксованому fallback-порядку при помилці.
+                    - generic [ref=f28e926]:
+                      - generic [ref=f28e927]:
+                        - generic [ref=f28e928] [cursor=pointer]:
+                          - radio "DeepL Потрібна платна підписка на сервіс High-quality neural translation. Best for natural-sounding glosses and lesson content. Документація" [ref=f28e929]
+                          - generic [ref=f28e930]:
+                            - generic [ref=f28e931]:
+                              - generic [ref=f28e932]: DeepL
+                              - generic [ref=f28e933]: Потрібна платна підписка на сервіс
+                            - paragraph [ref=f28e934]: High-quality neural translation. Best for natural-sounding glosses and lesson content.
+                            - link "Документація" [ref=f28e935]:
+                              - /url: https://www.deepl.com/pro-api
+                        - generic [ref=f28e940] [cursor=pointer]:
+                          - radio "Google Cloud Translation Потрібна платна підписка на сервіс Broad language coverage via Google Cloud Translation API v2. Документація" [ref=f28e941]
+                          - generic [ref=f28e942]:
+                            - generic [ref=f28e943]:
+                              - generic [ref=f28e944]: Google Cloud Translation
+                              - generic [ref=f28e945]: Потрібна платна підписка на сервіс
+                            - paragraph [ref=f28e946]: Broad language coverage via Google Cloud Translation API v2.
+                            - link "Документація" [ref=f28e947]:
+                              - /url: https://cloud.google.com/translate/docs
+                        - generic [ref=f28e952] [cursor=pointer]:
+                          - radio "Microsoft Translator Потрібна платна підписка на сервіс Azure AI Translator — cost-effective at higher volumes. Документація" [ref=f28e953]
+                          - generic [ref=f28e954]:
+                            - generic [ref=f28e955]:
+                              - generic [ref=f28e956]: Microsoft Translator
+                              - generic [ref=f28e957]: Потрібна платна підписка на сервіс
+                            - paragraph [ref=f28e958]: Azure AI Translator — cost-effective at higher volumes.
+                            - link "Документація" [ref=f28e959]:
+                              - /url: https://learn.microsoft.com/azure/ai-services/translator/
+                        - generic [ref=f28e964] [cursor=pointer]:
+                          - radio "Reverso Context Context-aware translation via api.reverso.net — word lemmas, glosses, and optional example sentences. Документація" [ref=f28e965]
+                          - generic [ref=f28e966]:
+                            - generic [ref=f28e967]: Reverso Context
+                            - paragraph [ref=f28e969]: Context-aware translation via api.reverso.net — word lemmas, glosses, and optional example sentences.
+                            - link "Документація" [ref=f28e970]:
+                              - /url: https://www.reverso.net/text-translation
+                        - generic [ref=f28e975] [cursor=pointer]:
+                          - radio "MyMemory Free translation API with higher quota when a contact email is configured. Default primary when no paid API is selected. Документація" [ref=f28e976]
+                          - generic [ref=f28e977]:
+                            - generic [ref=f28e978]: MyMemory
+                            - paragraph [ref=f28e980]: Free translation API with higher quota when a contact email is configured. Default primary when no paid API is selected.
+                            - link "Документація" [ref=f28e981]:
+                              - /url: https://mymemory.translated.net/doc/spec.php
+                        - generic [ref=f28e986] [cursor=pointer]:
+                          - radio "LibreTranslate Активний Self-hosted or public open-source translation server (LibreTranslate). Документація" [checked] [ref=f28e987]
+                          - generic [ref=f28e988]:
+                            - generic [ref=f28e989]:
+                              - generic [ref=f28e990]: LibreTranslate
+                              - generic [ref=f28e991]: Активний
+                            - paragraph [ref=f28e992]: Self-hosted or public open-source translation server (LibreTranslate).
+                            - link "Документація" [ref=f28e993]:
+                              - /url: https://docs.libretranslate.com/
+                        - generic [ref=f28e998] [cursor=pointer]:
+                          - radio "Google Translate (GTX, unofficial) Unofficial Google Translate fallback — no API key; used when earlier providers in the chain fail. Документація" [ref=f28e999]
+                          - generic [ref=f28e1000]:
+                            - generic [ref=f28e1001]: Google Translate (GTX, unofficial)
+                            - paragraph [ref=f28e1003]: Unofficial Google Translate fallback — no API key; used when earlier providers in the chain fail.
+                            - link "Документація" [ref=f28e1004]:
+                              - /url: https://translate.google.com/
+                      - button "Зберегти провайдера перекладу" [disabled] [ref=f28e1010]
+                  - region [ref=f28e1011]:
+                    - generic [ref=f28e1012]:
+                      - heading "Налаштування провайдера" [level=2] [ref=f28e1013]
+                      - paragraph [ref=f28e1014]: Налаштування для LibreTranslate.
+                    - generic [ref=f28e1015]:
+                      - complementary "Інструкції з налаштування провайдера" [ref=f28e1016]:
+                        - paragraph [ref=f28e1017]: Open-source Argos Translate server — self-host locally or use paid libretranslate.com.
+                        - paragraph [ref=f28e1018]:
+                          - strong [ref=f28e1019]: "Ціни:"
+                          - text: "Self-hosted: free. Managed libretranslate.com requires a paid API key."
+                        - generic [ref=f28e1020]:
+                          - generic [ref=f28e1021]: Змінні середовища
+                          - list [ref=f28e1022]:
+                            - listitem [ref=f28e1023]:
+                              - code [ref=f28e1024]: LIBRETRANSLATE_URL
+                              - text: — Base URL, e.g. http://127.0.0.1:5001 (port 5001 — macOS uses 5000 for AirPlay).
+                            - listitem [ref=f28e1025]:
+                              - code [ref=f28e1026]: LIBRETRANSLATE_API_KEY
+                              - text: — Only if your instance requires API keys.
+                        - list [ref=f28e1027]:
+                          - listitem [ref=f28e1028]:
+                            - text: "Recommended for dev: start the bundled Docker service, then set LIBRETRANSLATE_URL."
+                            - generic [ref=f28e1029]:
+                              - link "LibreTranslate docs" [ref=f28e1030] [cursor=pointer]:
+                                - /url: https://docs.libretranslate.com/
+                              - link "Self-host install" [ref=f28e1035] [cursor=pointer]:
+                                - /url: https://docs.libretranslate.com/guides/installation/
+                          - listitem [ref=f28e1040]: "From repo root: npm run docker:libretranslate — first start downloads en/uk models (~few min)."
+                          - listitem [ref=f28e1041]: "Add to .env: LIBRETRANSLATE_URL=http://127.0.0.1:5001 — restart API (npm run dev:api). Port 5001 avoids macOS AirPlay on 5000."
+                          - listitem [ref=f28e1042]:
+                            - text: "Test: POST {url}/translate with q, source=en, target=uk."
+                            - link "API reference" [ref=f28e1044] [cursor=pointer]:
+                              - /url: https://docs.libretranslate.com/api/
+                          - listitem [ref=f28e1049]:
+                            - text: "Managed cloud (paid): get key at portal.libretranslate.com — not required for self-host."
+                            - link "LibreTranslate portal" [ref=f28e1051] [cursor=pointer]:
+                              - /url: https://portal.libretranslate.com/
+                      - generic [ref=f28e1056]:
+                        - generic [ref=f28e1057]:
+                          - generic [ref=f28e1058]: LibreTranslate URL
+                          - link "http://127.0.0.1:5001" [ref=f28e1059] [cursor=pointer]:
+                            - /url: http://127.0.0.1:5001
+                        - generic [ref=f28e1065]:
+                          - generic [ref=f28e1066]:
+                            - generic [ref=f28e1067]: LibreTranslate API key
+                            - generic [ref=f28e1068]:
+                              - textbox "LibreTranslate API key" [ref=f28e1069]:
+                                - /placeholder: Введіть нове значення
+                              - button "Show password" [ref=f28e1070] [cursor=pointer]
+                          - status [ref=f28e1074]: Не задано
+                      - button "Зберегти мовні налаштування" [ref=f28e1076] [cursor=pointer]

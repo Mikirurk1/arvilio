@@ -1,0 +1,144 @@
+/* Control Plane — Editorial Paper (ops register) */
+
+@mixin light-theme {
+  --text-primary: #1a1a2e;
+  --text-secondary: #3d3d55;
+  --text-tertiary: #656586;
+  --text-muted: #656586;
+  --text-faint: #b4b4cc;
+
+  --green: #12825f;
+  --green-dark: #0e6b4e;
+  --green-light: #e6f5f0;
+  --blue: #3b6fd4;
+  --blue-light: #e8eefb;
+  --amber: #e8942e;
+  --rose: #d95674;
+  --rose-light: #fce8ee;
+  --red: var(--rose);
+
+  --accent-primary: var(--green);
+  --accent-primary-hover: var(--green-dark);
+  --accent: var(--green);
+  --accent-info: var(--blue);
+  --accent-danger: var(--rose);
+  --accent-danger-muted: var(--rose-light);
+
+  --fill-strong: #1a1a2e;
+  --fill-strong-hover: #2e2e48;
+  --on-inverse: #ffffff;
+
+  --surface: #f0f2f5;
+  --surface-raised: #f5f6f8;
+  --card: #ffffff;
+  --field-bg: var(--card);
+
+  --border: rgba(26, 26, 80, 0.12);
+  --border-strong: rgba(26, 26, 80, 0.22);
+
+  --shadow-xs: 0 1px 2px rgba(26, 26, 46, 0.06);
+  --shadow-sm: 0 10px 24px rgba(26, 26, 46, 0.12), 0 3px 10px rgba(26, 26, 46, 0.06);
+  --shadow-md: 0 22px 52px rgba(26, 26, 46, 0.15), 0 8px 24px rgba(26, 26, 46, 0.09);
+  --shadow-lg: 0 40px 96px rgba(26, 26, 46, 0.2), 0 14px 34px rgba(26, 26, 46, 0.11);
+  --shadow-focus: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 24%, transparent);
+
+  --table-zebra: rgba(26, 26, 80, 0.03);
+  --table-hover: rgba(26, 26, 80, 0.05);
+
+  color-scheme: light;
+}
+
+/* Cooler ink surfaces — ops register, not Campus warm paper */
+@mixin dark-theme {
+  --text-primary: #e8eaf0;
+  --text-secondary: #b4b8c8;
+  --text-tertiary: #8a90a4;
+  --text-muted: #8a90a4;
+  --text-faint: #5c6378;
+
+  --green: #3dba8c;
+  --green-dark: #2a9a72;
+  --green-light: rgba(61, 186, 140, 0.16);
+  --blue: #6b9aef;
+  --blue-light: rgba(107, 154, 239, 0.16);
+  --amber: #e8a84a;
+  --rose: #f07894;
+  --rose-light: rgba(240, 120, 148, 0.16);
+  --red: var(--rose);
+
+  --accent-primary: var(--green);
+  --accent-primary-hover: #4ecfa0;
+  --accent: var(--green);
+  --accent-info: var(--blue);
+  --accent-danger: var(--rose);
+  --accent-danger-muted: var(--rose-light);
+
+  --fill-strong: #e8eaf0;
+  --fill-strong-hover: #ffffff;
+  --on-inverse: #12141c;
+
+  --surface: #0e1016;
+  --surface-raised: #161922;
+  --card: #161922;
+  --field-bg: #1c1f2a;
+
+  --border: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.2);
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0 10px 24px rgba(0, 0, 0, 0.4), 0 3px 10px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 22px 52px rgba(0, 0, 0, 0.45), 0 8px 24px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 40px 96px rgba(0, 0, 0, 0.5), 0 14px 34px rgba(0, 0, 0, 0.35);
+  --shadow-focus: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 32%, transparent);
+
+  --table-zebra: rgba(255, 255, 255, 0.03);
+  --table-hover: rgba(255, 255, 255, 0.06);
+
+  color-scheme: dark;
+}
+
+:root {
+  @include light-theme;
+
+  --dur-fast: 160ms;
+  --dur-press: 120ms;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  --fs-13: 0.8125rem;
+  --fs-14: 0.875rem;
+  --fs-15: 0.9375rem;
+  --fs-16: 1rem;
+  --fs-18: 1.125rem;
+  --fs-22: 1.375rem;
+  --fs-26: 1.625rem;
+
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  --lh-tight: 1.2;
+  --lh-body: 1.5;
+
+  --font-sans: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Lora", "Georgia", serif;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --sidebar-width: 240px;
+
+  --content-pad-x: 32px;
+  --content-pad-y: 28px;
+  --section-gap: 24px;
+  --page-stack-gap: var(--section-gap);
+}
+
+[data-theme='light'] {
+  @include light-theme;
+}
+
+[data-theme='dark'] {
+  @include dark-theme;
+}

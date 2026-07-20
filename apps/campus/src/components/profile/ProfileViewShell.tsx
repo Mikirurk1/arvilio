@@ -13,6 +13,7 @@ import {
   type TabsItem,
 } from '../ui';
 import type { ProfileHeroAction } from '../../lib/profile-hero-highlights';
+import { useCampusT } from '../../lib/cms';
 import styles from './ProfileViewShell.module.scss';
 
 type ProfileAchievement = {
@@ -55,6 +56,8 @@ export type ProfileViewShellProps<T extends string> = {
    * chunks — hidden lazy trees break React Suspense boundaries on navigation.
    */
   keepMountedTabs?: boolean;
+  /** Overrides default `profile.tabsAria` when set (e.g. student detail page). */
+  tabsAriaLabel?: string;
 };
 
 function heroActionToneClass(
@@ -89,7 +92,10 @@ export function ProfileViewShell<T extends string>({
   onTabChange,
   tabs,
   keepMountedTabs = true,
+  tabsAriaLabel,
 }: ProfileViewShellProps<T>) {
+  const t = useCampusT();
+
   return (
     <div className={`${styles.page} container container--page`}>
       <PageHeader
@@ -218,7 +224,7 @@ export function ProfileViewShell<T extends string>({
             id="profile-recent-achievements"
             className={styles.achievementsSectionTitle}
           >
-            Recent achievements
+            {t('profile.recentAchievements')}
           </h2>
           <div className={styles.achievementsRow}>
             {achievements.map((achievement) => (
@@ -243,7 +249,7 @@ export function ProfileViewShell<T extends string>({
       <Tabs
         value={tab}
         onValueChange={onTabChange}
-        ariaLabel="Profile tabs"
+        ariaLabel={tabsAriaLabel ?? t('profile.tabsAria')}
         listClassName={styles.tabsRow}
         triggerClassName={styles.tabBtn}
         activeTriggerClassName={styles.tabActive}

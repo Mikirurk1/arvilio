@@ -540,6 +540,10 @@ export function parsePaymentConfig(raw: unknown): PaymentConfigDto {
           id: String(p['id'] ?? ''),
           lessons: Number(p['lessons'] ?? 0),
           label: String(p['label'] ?? ''),
+          description:
+            p['description'] != null && String(p['description']).trim()
+              ? String(p['description']).trim()
+              : undefined,
           currency: p['currency'] != null ? String(p['currency']) : undefined,
           amountMinor: p['amountMinor'] != null ? Number(p['amountMinor']) : undefined,
           creditTrack: p['creditTrack'] === 'group' ? ('group' as const) : ('individual' as const),
@@ -585,10 +589,11 @@ export function parsePaymentConfig(raw: unknown): PaymentConfigDto {
     : [];
 
   return finalizePaymentConfig({
-    packages: packages.map(({ id, lessons, label, currency, creditTrack }) => ({
+    packages: packages.map(({ id, lessons, label, description, currency, creditTrack }) => ({
       id,
       lessons,
       label,
+      description,
       currency:
         currency && isPaymentCurrencyCode(currency.toUpperCase())
           ? currency.toUpperCase()

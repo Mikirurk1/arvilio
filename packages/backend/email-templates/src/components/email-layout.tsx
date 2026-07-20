@@ -47,7 +47,7 @@ export function EmailLayout({ preview, children }: EmailLayoutProps) {
                 color: brand.blue,
               }}
             >
-              SoEnglish
+              Arvilio
             </Text>
             {children}
             <Text
@@ -58,7 +58,7 @@ export function EmailLayout({ preview, children }: EmailLayoutProps) {
                 color: brand.faint,
               }}
             >
-              — SoEnglish
+              — Arvilio
             </Text>
           </Section>
         </Container>

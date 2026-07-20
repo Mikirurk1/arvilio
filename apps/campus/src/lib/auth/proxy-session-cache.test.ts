@@ -17,6 +17,8 @@ const session: WebRequestSessionDto = {
   impersonation: null,
   trial: null,
   locale: 'uk',
+  preferredLocale: 'uk',
+  enabledLocales: ['uk', 'en'],
   user: mockAuthUser(),
 };
 

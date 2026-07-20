@@ -1,12 +1,12 @@
 ---
-description: Reuse Next.js and apps/web UI primitives instead of raw HTML elements.
-globs: apps/web/**/*
+description: Reuse Next.js and apps/campus UI primitives instead of raw HTML elements.
+globs: apps/campus/**/*
 alwaysApply: false
 ---
 
 # Web UI — reuse primitives
 
-In **`apps/web`**, do not reach for bare HTML when the project already provides a component. Check nearby files and [`apps/web/src/components/ui/index.ts`](apps/web/src/components/ui/index.ts) first.
+In **`apps/campus`**, do not reach for bare HTML when the project already provides a component. Check nearby files and [`apps/campus/src/components/ui/index.ts`](apps/campus/src/components/ui/index.ts) first.
 
 ## Required mappings
 
@@ -43,7 +43,7 @@ In **`apps/web`**, do not reach for bare HTML when the project already provides 
 | Third-party scripts | `next/script` | raw `<script>` in pages |
 | Server data in RSC | `async` Server Components + `fetch` / Prisma in `app/` | fetching in `useEffect` when RSC fits |
 
-App config: [`apps/web/next.config.mjs`](apps/web/next.config.mjs) (`rewrites` for `/api`, redirects). Auth cookies go through same-origin `/api` in the browser.
+App config: [`apps/campus/next.config.mjs`](apps/campus/next.config.mjs) (`rewrites` for `/api`, redirects). Auth cookies go through same-origin `/api` in the browser.
 
 ## Rare exceptions (justify in code only if needed)
 

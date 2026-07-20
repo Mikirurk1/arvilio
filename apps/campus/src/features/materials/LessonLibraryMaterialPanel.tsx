@@ -3,7 +3,7 @@
 import type { LibraryMaterialAssetDto, LibraryMaterialDto, LibraryMaterialKindName } from '@pkg/types';
 import { FileText, Link2, Play, Video, Volume2 } from 'lucide-react';
 import Link from 'next/link';
-import { Badge, Button } from '../../components/ui';
+import { Badge, Button, Field } from '../../components/ui';
 import {
   materialAssetPrimaryName,
   materialAssetSecondaryHint,
@@ -155,27 +155,29 @@ function MediaPickerRow({
 
   return (
     <div className={styles.mediaPickerRow}>
-      <label className={styles.mediaPickerMain}>
-        <input
-          type="checkbox"
-          className={styles.mediaPickerCheck}
-          checked={shared}
-          onChange={(event) => {
-            const base = effectiveSharedLibraryAssetIds(assets, share);
-            const next = event.target.checked
-              ? [...base, asset.id]
-              : base.filter((id) => id !== asset.id);
-            onSharedLibraryAssetIdsChange([...new Set(next)]);
-          }}
-        />
-        <span className={styles.mediaPickerIcon}>
-          <AssetIcon asset={asset} />
-        </span>
-        <span className={styles.mediaPickerText}>
-          <span className={styles.mediaPickerName}>{name}</span>
-          {secondary ? <span className={styles.mediaPickerHint}>{secondary}</span> : null}
-        </span>
-      </label>
+      <Field
+        as="checkbox"
+        checked={shared}
+        rootClassName={styles.mediaPickerMain}
+        onChange={(event) => {
+          const base = effectiveSharedLibraryAssetIds(assets, share);
+          const next = event.target.checked
+            ? [...base, asset.id]
+            : base.filter((id) => id !== asset.id);
+          onSharedLibraryAssetIdsChange([...new Set(next)]);
+        }}
+        label={
+          <span className={styles.mediaPickerTextWrap}>
+            <span className={styles.mediaPickerIcon}>
+              <AssetIcon asset={asset} />
+            </span>
+            <span className={styles.mediaPickerText}>
+              <span className={styles.mediaPickerName}>{name}</span>
+              {secondary ? <span className={styles.mediaPickerHint}>{secondary}</span> : null}
+            </span>
+          </span>
+        }
+      />
       <span
         className={[
           styles.mediaPickerStatus,

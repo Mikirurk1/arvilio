@@ -2,7 +2,7 @@
 
 - **Status:** proposed
 - **Date:** 2026-06-16
-- **Authors:** SoEnglish engineering
+- **Authors:** Arvilio engineering
 - **Supersedes:** —
 - **Superseded-by:** —
 - **Amends:** —
@@ -12,7 +12,7 @@
 
 Multi-tenancy introduces two new concerns the current design does not separate:
 
-1. **Operator axis.** Today roles are `STUDENT/TEACHER/ADMIN/SUPER_ADMIN` on `User`. There is no distinction between *platform* operators (SoEnglish staff who see all schools) and *school* operators (a school's own admins). `SUPER_ADMIN` must not be conflated with a platform operator.
+1. **Operator axis.** Today roles are `STUDENT/TEACHER/ADMIN/SUPER_ADMIN` on `User`. There is no distinction between *platform* operators (Arvilio staff who see all schools) and *school* operators (a school's own admins). `SUPER_ADMIN` must not be conflated with a platform operator.
 
 2. **Billing.** All money today is one layer (student → school via `Payment`/`StudentLessonBalance`). SaaS needs three layers (ADR-004 rule #3).
 

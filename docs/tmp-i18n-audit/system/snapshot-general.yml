@@ -1,0 +1,120 @@
+- generic [active] [ref=f28e1]:
+  - button "Open Next.js Dev Tools" [ref=f28e7] [cursor=pointer]
+  - alert [ref=f28e11]
+  - generic [ref=f28e12]:
+    - link "Перейти до основного вмісту" [ref=f28e13] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f28e14]:
+      - link "Arvilio — go to dashboard" [ref=f28e16] [cursor=pointer]:
+        - /url: /dashboard
+        - generic [ref=f28e20]:
+          - generic [ref=f28e21]: Arvilio
+          - generic [ref=f28e22]: Campus
+      - search [ref=f28e25]:
+        - combobox "Пошук уроків, слів, учнів…" [ref=f28e29]
+        - generic: ⌘K
+      - generic [ref=f28e30]:
+        - button "Створити урок" [ref=f28e31] [cursor=pointer]
+        - 'link "Мої: 0 сьогодні · 0 лишилось" [ref=f28e32] [cursor=pointer]':
+          - /url: /lessons
+          - generic [ref=f28e36]: "Мої: 0 сьогодні"
+          - generic [ref=f28e37]: · 0 лишилось
+        - link [ref=f28e38] [cursor=pointer]:
+          - /url: /profile
+    - generic [ref=f28e39]:
+      - complementary [ref=f28e40]:
+        - navigation "Головна навігація" [ref=f28e41]:
+          - generic [ref=f28e42]:
+            - generic [ref=f28e43]: Навчання
+            - link "Дашборд" [ref=f28e45] [cursor=pointer]:
+              - /url: /dashboard
+            - link "Уроки" [ref=f28e55] [cursor=pointer]:
+              - /url: /lessons
+            - link "Практика 1" [ref=f28e62] [cursor=pointer]:
+              - /url: /practice
+              - generic [ref=f28e69]: Практика
+              - generic [ref=f28e70]: "1"
+            - link "Матеріали" [ref=f28e72] [cursor=pointer]:
+              - /url: /materials
+          - generic [ref=f28e78]:
+            - generic [ref=f28e79]: Розклад
+            - link "Календар" [ref=f28e81] [cursor=pointer]:
+              - /url: /calendar
+          - generic [ref=f28e87]:
+            - generic [ref=f28e88]: Звʼязок
+            - link "Чат" [ref=f28e90] [cursor=pointer]:
+              - /url: /chat
+            - link "Учні та групи" [ref=f28e97] [cursor=pointer]:
+              - /url: /students
+            - link "Персонал" [ref=f28e107] [cursor=pointer]:
+              - /url: /staff
+          - generic [ref=f28e123]:
+            - generic [ref=f28e124]: Акаунт
+            - link "Фінанси" [ref=f28e126] [cursor=pointer]:
+              - /url: /finance
+            - link "Підписка" [ref=f28e134] [cursor=pointer]:
+              - /url: /billing
+            - link "Профіль і налаштування" [ref=f28e142] [cursor=pointer]:
+              - /url: /profile
+          - generic [ref=f28e149]:
+            - generic [ref=f28e150]: Платформа
+            - link "Адмін" [ref=f28e152] [cursor=pointer]:
+              - /url: /admin
+            - link "Система" [ref=f28e160] [cursor=pointer]:
+              - /url: /system
+        - generic [ref=f28e167]:
+          - button "Мова інтерфейсу" [ref=f28e169] [cursor=pointer]:
+            - generic [ref=f28e170]: Українська
+          - button "Collapse sidebar" [expanded] [ref=f28e173] [cursor=pointer]
+      - main [ref=f28e177]:
+        - generic [ref=f28e180]:
+          - generic [ref=f28e181]:
+            - heading "Система" [level=1] [ref=f28e184]
+            - paragraph [ref=f28e185]: Інтеграції, оплати та словники школи.
+          - region "Огляд системи" [ref=f28e186]:
+            - article [ref=f28e187]:
+              - paragraph [ref=f28e192]: Область супер-адміна
+              - paragraph [ref=f28e193]: Зміни тут впливають на всю робочу область школи. Оновлюйте обережно й перевіряйте кожен розділ після збереження.
+            - article [ref=f28e194]:
+              - paragraph [ref=f28e199]: Спочатку діагностика
+              - paragraph [ref=f28e200]: Спочатку перевірте Email і Словник, перш ніж змінювати платіжних провайдерів — це зменшить розбіжності інтеграцій.
+          - generic [ref=f28e201]:
+            - tablist "Розділи системи" [ref=f28e202]:
+              - tab [selected] [ref=f28e203] [cursor=pointer]
+              - tab [ref=f28e208] [cursor=pointer]
+              - tab [ref=f28e213] [cursor=pointer]
+              - tab [ref=f28e217] [cursor=pointer]
+              - tab [ref=f28e222] [cursor=pointer]
+              - tab [ref=f28e226] [cursor=pointer]
+              - tab [ref=f28e231] [cursor=pointer]
+              - tab [ref=f28e236] [cursor=pointer]
+              - tab [ref=f28e244] [cursor=pointer]
+            - tabpanel "Загальне" [ref=f28e250]:
+              - generic [ref=f28e251]:
+                - generic [ref=f28e256]:
+                  - generic [ref=f28e257]: Загальне
+                  - paragraph [ref=f28e258]: Загальні налаштування продукту школи. Інші розділи зʼявлятимуться тут у міру розширення кімнати керування.
+                - region "Функції" [ref=f28e259]:
+                  - heading "Функції" [level=3] [ref=f28e260]
+                  - article [ref=f28e261]:
+                    - generic [ref=f28e262]:
+                      - generic [ref=f28e269]:
+                        - generic [ref=f28e270]: Групові уроки
+                        - paragraph [ref=f28e271]: Увімкнює навчальні групи, групове планування та UI групової оплати для викладачів і адмінів. Правила групової оплати за замовчуванням — в Оплати → Групові оплати.
+                      - generic [ref=f28e272]: Увімк.
+                    - generic [ref=f28e273]:
+                      - generic [ref=f28e274]: Увімкнути групові уроки для цієї школи
+                      - button "Увімкнути групові уроки для цієї школи" [pressed] [ref=f28e276] [cursor=pointer]
+                - region "Відеозустрічі" [ref=f28e278]:
+                  - generic [ref=f28e279]:
+                    - heading "Відеозустрічі" [level=2] [ref=f28e280]
+                    - paragraph [ref=f28e284]:
+                      - text: Оберіть провайдера для посилань на відеозустрічі в нових запланованих уроках. Облікові дані Zoom і Google Meet налаштовуються в
+                      - strong [ref=f28e285]: Підключення
+                      - text: . Вбудований (LiveKit) працює через Docker і не потребує додаткового налаштування тут.
+                    - generic [ref=f28e286]:
+                      - radiogroup "Провайдер відеозустрічей" [ref=f28e287]:
+                        - radio "Вбудований (LiveKit)" [checked] [ref=f28e288] [cursor=pointer]
+                        - radio "Zoom" [ref=f28e289] [cursor=pointer]
+                        - radio "Google Meet" [ref=f28e290] [cursor=pointer]
+                      - button "Зберегти" [ref=f28e292] [cursor=pointer]

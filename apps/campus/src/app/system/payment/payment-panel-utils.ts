@@ -6,6 +6,7 @@ import {
   type PaymentMethodKindDto,
   type PaymentSettingsDto,
 } from '@pkg/types';
+import type { TranslateFn } from '../../../lib/cms/nav-i18n';
 
 export function newPackageId(): string {
   return `pkg-${Date.now().toString(36)}`;
@@ -15,11 +16,27 @@ export function formatMoney(minor: number, currency: string): string {
   return `${(minor / 100).toFixed(2)} ${currency}`;
 }
 
-export function groupBillingModeLabel(mode: 'per_member' | 'fixed_total'): string {
+export function groupBillingModeLabel(
+  mode: 'per_member' | 'fixed_total',
+  t?: TranslateFn,
+): string {
+  if (t) {
+    return mode === 'per_member'
+      ? t('students.groups.billing.perMember')
+      : t('students.groups.billing.fixedTotal');
+  }
   return mode === 'per_member' ? 'Per member (lesson credits)' : 'Fixed total per lesson';
 }
 
-export function groupSplitModeLabel(mode: 'equal_split' | 'single_payer'): string {
+export function groupSplitModeLabel(
+  mode: 'equal_split' | 'single_payer',
+  t?: TranslateFn,
+): string {
+  if (t) {
+    return mode === 'equal_split'
+      ? t('students.groups.editor.splitEqual')
+      : t('students.groups.editor.splitSinglePayer');
+  }
   return mode === 'equal_split' ? 'Split equally' : 'Single payer';
 }
 
@@ -52,10 +69,14 @@ export function syncDraftPricing(
   };
 }
 
-export function getProviderCurrencyHint(method: PaymentMethodKindDto): string {
-  if (method === 'manual_invoice') return 'Any currency';
-  if (method === 'lemonsqueezy') return 'Variant currency in Lemon Squeezy';
-  return 'UAH, USD, EUR';
+export function getProviderCurrencyHint(method: PaymentMethodKindDto, t?: TranslateFn): string {
+  if (method === 'manual_invoice') {
+    return t?.('system.payments.hint.anyCurrency') ?? 'Any currency';
+  }
+  if (method === 'lemonsqueezy') {
+    return t?.('system.payments.hint.lemonVariantCurrency') ?? 'Variant currency in Lemon Squeezy';
+  }
+  return t?.('system.payments.hint.standardCurrencies') ?? 'UAH, USD, EUR';
 }
 
 export function getFeaturedPackageId(packages: Array<{ id: string; lessons: number }>): string | null {

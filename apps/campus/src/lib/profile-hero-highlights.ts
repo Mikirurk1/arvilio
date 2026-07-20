@@ -1,5 +1,6 @@
 import type { ScheduledLessonBackendDto, ScheduledLessonDto, TimeZoneId } from '@pkg/types';
 import { LESSON_STATUS, formatTimeZoneOptionLabel, getTimeZoneById } from '@pkg/types';
+import type { TranslateFn } from './cms/nav-i18n';
 import { formatLessonTime12h } from './dashboard-hero';
 import { lessonStartUtc } from './lessonTime';
 
@@ -7,9 +8,13 @@ function backendLessonStartMs(lesson: ScheduledLessonBackendDto): number {
   return new Date(`${lesson.date}T${lesson.startTime}`).getTime();
 }
 
-export function formatLessonWhenLabel(date: string, startTime: string): string {
+export function formatLessonWhenLabel(
+  date: string,
+  startTime: string,
+  locale?: string,
+): string {
   const anchor = new Date(`${date}T12:00:00`);
-  const dateLabel = new Intl.DateTimeFormat(undefined, {
+  const dateLabel = new Intl.DateTimeFormat(locale, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -100,13 +105,15 @@ export function buildProfileHeroAction(input: {
   reviewCount?: number;
   isStudent: boolean;
   now?: number;
+  t?: TranslateFn;
+  locale?: string;
 }): ProfileHeroAction | null {
   const nextLesson = pickNextPlannedBackendLesson(input.lessons, input.now);
   if (nextLesson) {
     return {
-      eyebrow: 'Next on schedule',
+      eyebrow: input.t?.('profile.hero.nextOnSchedule') ?? 'Next on schedule',
       title: nextLesson.title,
-      subtitle: formatLessonWhenLabel(nextLesson.date, nextLesson.startTime),
+      subtitle: formatLessonWhenLabel(nextLesson.date, nextLesson.startTime, input.locale),
       href: `/lessons/${nextLesson.id}`,
       tone: 'blue',
     };
@@ -115,9 +122,11 @@ export function buildProfileHeroAction(input: {
   if (input.isStudent && (input.reviewCount ?? 0) > 0) {
     const count = input.reviewCount!;
     return {
-      eyebrow: 'Vocabulary',
-      title: 'Review due',
-      subtitle: `${count} word${count === 1 ? '' : 's'} to review`,
+      eyebrow: input.t?.('profile.hero.vocabulary') ?? 'Vocabulary',
+      title: input.t?.('profile.hero.reviewDue') ?? 'Review due',
+      subtitle:
+        input.t?.('profile.hero.wordsToReview', { count }) ??
+        `${count} word${count === 1 ? '' : 's'} to review`,
       href: '/practice/vocabulary',
       tone: 'green',
     };
@@ -130,13 +139,15 @@ export function buildStudentHeroAction(
   lessons: ScheduledLessonDto[] | undefined,
   lessonHref: (lesson: ScheduledLessonDto) => string,
   now = Date.now(),
+  t?: TranslateFn,
+  locale?: string,
 ): ProfileHeroAction | null {
   const nextLesson = pickNextPlannedLessonDto(lessons, now);
   if (!nextLesson) return null;
   return {
-    eyebrow: 'Next on schedule',
+    eyebrow: t?.('profile.hero.nextOnSchedule') ?? 'Next on schedule',
     title: nextLesson.title,
-    subtitle: formatLessonWhenLabel(nextLesson.date, nextLesson.startTime),
+    subtitle: formatLessonWhenLabel(nextLesson.date, nextLesson.startTime, locale),
     href: lessonHref(nextLesson),
     tone: 'blue',
   };

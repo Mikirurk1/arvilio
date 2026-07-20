@@ -3,18 +3,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ScheduledLessonDto } from '@pkg/types';
 import { LESSON_STATUS } from '@pkg/types';
-import { USER_ROLE, type UserRole } from '../../../mocks';
-import { getInitialLessons } from '../services/lessonCalendarService';
+import { USER_ROLE, type UserRoleId } from '@pkg/types';
 import { useLessonsStore } from '../../../stores/lessons-store';
 import { fromBackendLessons } from '../../lesson-modal/scheduledLessonsBackendAdapter';
 
-export function useLessonCalendarState(activeRole: UserRole, activeStudentId: number) {
+export function useLessonCalendarState(activeRole: UserRoleId, activeStudentId: number) {
   const today = new Date();
   const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(
     today.getDate(),
   ).padStart(2, '0')}`;
-  const [lessons, setLessons] = useState<ScheduledLessonDto[]>(getInitialLessons);
-  const [role, setRole] = useState<UserRole>(activeRole);
+  const [lessons, setLessons] = useState<ScheduledLessonDto[]>([]);
+  const [role, setRole] = useState<UserRoleId>(activeRole);
   const [view, setView] = useState<'month' | 'week'>('week');
   const [selectedDate, setSelectedDate] = useState<string | null>(todayIso);
 

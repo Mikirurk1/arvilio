@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Patches РГР_SoEnglish.docx: abbreviations after annotation, Appendix Г, updateFields.
+ * Patches РГР_Arvilio.docx: abbreviations after annotation, Appendix Г, updateFields.
  * Run: node scripts/patch-rgr-docx.mjs [source.docx] [output.docx]
  */
 import fs from 'fs';
@@ -13,10 +13,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
 
 const DEFAULT_SRC =
-  '/Users/mikirurk/Downloads/Telegram Desktop/РГР_SoEnglish.docx';
+  '/Users/mikirurk/Downloads/Telegram Desktop/РГР_Arvilio.docx';
 const DEFAULT_OUT = path.join(
   ROOT,
-  'docs/coursework/РГР_SoEnglish_оновлено.docx',
+  'docs/coursework/РГР_Arvilio_оновлено.docx',
 );
 
 const ABBREVIATIONS = [
@@ -76,7 +76,7 @@ if (r.status !== 0) process.exit(r.status ?? 1);
 
 const downloadsCopy = path.join(
   path.dirname(src),
-  'РГР_SoEnglish_оновлено.docx',
+  'РГР_Arvilio_оновлено.docx',
 );
 if (path.resolve(downloadsCopy) !== path.resolve(out)) {
   fs.copyFileSync(out, downloadsCopy);

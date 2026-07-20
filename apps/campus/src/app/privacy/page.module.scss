@@ -3,7 +3,8 @@
   display: flex;
   justify-content: center;
   padding: 48px 20px;
-  background: var(--surface-0, #f9fafb);
+  background: var(--surface);
+  color: var(--text-primary);
 }
 
 .article {
@@ -11,15 +12,18 @@
   width: 100%;
 
   h1 {
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 4px;
+    font-family: var(--font-display);
+    font-size: var(--fs-28, 28px);
+    font-weight: var(--fw-semibold, 600);
+    line-height: var(--lh-tight, 1.2);
+    letter-spacing: var(--tracking-tight);
+    margin: 0 0 4px;
     color: var(--text-primary);
   }
 
   h2 {
-    font-size: 17px;
-    font-weight: 600;
+    font-size: var(--fs-17, 17px);
+    font-weight: var(--fw-semibold, 600);
     margin-top: 32px;
     margin-bottom: 10px;
     color: var(--text-primary);
@@ -27,9 +31,14 @@
 
   p,
   li {
-    font-size: 15px;
+    font-size: var(--fs-15, 15px);
     line-height: 1.65;
     color: var(--text-secondary);
+  }
+
+  strong {
+    color: var(--text-primary);
+    font-weight: var(--fw-semibold, 600);
   }
 
   ul {
@@ -41,13 +50,16 @@
   }
 
   a {
-    color: var(--green);
+    color: var(--accent-primary, var(--green));
     text-decoration: underline;
+    text-underline-offset: 2px;
   }
 
   code {
-    font-family: monospace;
-    background: var(--surface-2);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    background: var(--surface-inset, color-mix(in srgb, var(--surface) 70%, var(--card)));
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle, var(--border));
     padding: 1px 5px;
     border-radius: 4px;
     font-size: 13px;
@@ -55,7 +67,7 @@
 }
 
 .meta {
-  font-size: 13px;
+  font-size: var(--fs-13, 13px);
   color: var(--text-tertiary, var(--text-secondary));
-  margin-bottom: 32px;
+  margin: 0 0 32px;
 }

@@ -21,7 +21,7 @@ Stored on `User` (Prisma booleans, default on):
 
 GraphQL: `myProfile.notificationPrefs`, `updateMyProfile(input: { notificationPrefs })`.
 
-Web: `profile-store.updateNotificationPrefs` → debounced save on Profile → Notifications tab (`apps/web/src/app/profile/page.tsx`).
+Web: `profile-store.updateNotificationPrefs` → debounced save on Profile → Notifications tab (`apps/campus/src/app/profile/page.tsx`).
 
 ## Delivery (`@be/notifications`)
 
@@ -41,7 +41,7 @@ HTML via React Email (`@be/email-templates`). SMTP unset → email skipped. Tele
 
 - Prisma `TeacherMessage` (`teacherId`, `studentId`, `body`).
 - GraphQL `sendTeacherMessage` — staff only; teachers limited to assigned students.
-- Web compose: `apps/web/src/app/students/[studentId]/TeacherMessageCompose.tsx` on student profile tab.
+- Web compose: `apps/campus/src/app/students/[studentId]/TeacherMessageCompose.tsx` on student profile tab.
 
 ## Related
 

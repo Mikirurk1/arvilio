@@ -17,12 +17,18 @@ export class LoginPage {
       }
     }
     // Dismiss cookie consent banner — it appears after hydration and blocks login redirect.
+    await this.dismissCookieBanner();
+  }
+
+  private async dismissCookieBanner() {
     const banner = this.page.getByRole('dialog', { name: /cookie/i });
-    const visible = await banner.isVisible({ timeout: 3_000 }).catch(() => false);
-    if (visible) {
-      const btn = banner.getByRole('button', { name: /accept|decline/i }).first();
-      await btn.click();
-      await banner.waitFor({ state: 'hidden', timeout: 3_000 }).catch(() => {});
+    try {
+      // Wait up to 4 s for the banner; if it never appears, we're fine.
+      await banner.waitFor({ state: 'visible', timeout: 4_000 });
+      await banner.getByRole('button', { name: /accept|decline/i }).first().click();
+      await banner.waitFor({ state: 'hidden', timeout: 4_000 });
+    } catch {
+      // banner never appeared or already gone
     }
   }
 
@@ -48,13 +54,9 @@ export class LoginPage {
         }
       }
 
-      // Dismiss banner again in case it appeared after form fill (async hydration).
-      const banner = this.page.getByRole('dialog', { name: /cookie/i });
-      const bannerVisible = await banner.isVisible({ timeout: 500 }).catch(() => false);
-      if (bannerVisible) {
-        await banner.getByRole('button', { name: /accept|decline/i }).first().click();
-        await banner.waitFor({ state: 'hidden', timeout: 3_000 }).catch(() => {});
-      }
+      // Ensure cookie banner is gone before clicking Sign in — it can appear
+      // asynchronously after hydration and intercept the click.
+      await this.dismissCookieBanner();
 
       const loginResponse = this.page.waitForResponse(
         (res) =>

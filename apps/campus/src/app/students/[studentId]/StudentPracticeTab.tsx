@@ -8,6 +8,7 @@ import { countIncompleteAssignedQuizzes } from '../../../lib/practice-pending';
 import { useActiveUser } from '../../../lib/active-user';
 import { useQuizzesStore } from '../../../stores/quizzes-store';
 import { useVocabularyStore } from '../../../stores/vocabulary-store';
+import { useCampusT } from '../../../lib/cms';
 import { StudentSpeakingTab } from './StudentSpeakingTab';
 import { StudentQuizTab } from './StudentQuizTab';
 import { StudentVocabularyTab } from './StudentVocabularyTab';
@@ -19,26 +20,30 @@ export type StudentPracticeSection = 'vocabulary' | 'quiz' | 'speaking';
 
 type PracticeSectionConfig = {
   value: StudentPracticeSection;
-  label: string;
+  labelKey: 'students.detail.practice.vocabulary' | 'students.detail.practice.quiz' | 'students.detail.practice.speaking';
   Icon: typeof BookOpen;
 };
-
-export const STUDENT_PRACTICE_SECTIONS: PracticeSectionConfig[] = [
-  { value: 'vocabulary', label: 'Vocabulary', Icon: BookOpen },
-  { value: 'quiz', label: 'Quiz', Icon: Brain },
-  { value: 'speaking', label: 'Speaking', Icon: Mic },
-];
 
 type Props = {
   studentId: string;
 };
 
 export function StudentPracticeTab({ studentId }: Props) {
+  const t = useCampusT();
   const activeUser = useActiveUser();
   const isStaff = canEdit('quiz', activeUser.role);
   const [section, setSection] = useState<StudentPracticeSection>('vocabulary');
   const [visitedSections, setVisitedSections] = useState(
     () => new Set<StudentPracticeSection>(['vocabulary']),
+  );
+
+  const practiceSections = useMemo(
+    (): PracticeSectionConfig[] => [
+      { value: 'vocabulary', labelKey: 'students.detail.practice.vocabulary', Icon: BookOpen },
+      { value: 'quiz', labelKey: 'students.detail.practice.quiz', Icon: Brain },
+      { value: 'speaking', labelKey: 'students.detail.practice.speaking', Icon: Mic },
+    ],
+    [],
   );
 
   const fetchCards = useVocabularyStore((s) => s.fetchCards);
@@ -81,18 +86,18 @@ export function StudentPracticeTab({ studentId }: Props) {
 
   const segmentOptions = useMemo(
     () =>
-      STUDENT_PRACTICE_SECTIONS.map((entry) => {
+      practiceSections.map((entry) => {
         const badge = badges[entry.value];
         const badgeLabel =
           entry.value === 'vocabulary'
-            ? `${badge} in mistakes work`
-            : `${badge} incomplete`;
+            ? t('students.detail.practice.badgeMistakes', { count: badge ?? 0 })
+            : t('students.detail.practice.badgeIncomplete', { count: badge ?? 0 });
         return {
           value: entry.value,
           label: (
             <span className={styles.segmentLabel}>
               <entry.Icon size={15} aria-hidden />
-              {entry.label}
+              {t(entry.labelKey)}
               {badge != null ? (
                 <span className={styles.segmentBadge} aria-label={badgeLabel}>
                   {badge}
@@ -102,22 +107,22 @@ export function StudentPracticeTab({ studentId }: Props) {
           ),
         };
       }),
-    [badges],
+    [badges, practiceSections, t],
   );
 
   return (
     <SurfaceCard className={`${pageStyles.tabCard} ${styles.practiceTab}`}>
-      <h2 className={pageStyles.tabSectionTitle}>Practice</h2>
+      <h2 className={pageStyles.tabSectionTitle}>{t('students.detail.practice.title')}</h2>
       <p className={styles.practiceIntro}>
         {isStaff
-          ? 'Vocabulary and quizzes for this student — generate assignments, track progress, and preview as staff.'
-          : 'Your vocabulary and assigned quizzes in one place.'}
+          ? t('students.detail.practice.introStaff')
+          : t('students.detail.practice.introStudent')}
       </p>
 
       <SegmentedControl
         className={styles.practiceSubNav}
         optionClassName={styles.practiceSegmentOption}
-        ariaLabel="Practice areas"
+        ariaLabel={t('students.detail.practice.areasAria')}
         value={section}
         onValueChange={onSectionChange}
         options={segmentOptions}

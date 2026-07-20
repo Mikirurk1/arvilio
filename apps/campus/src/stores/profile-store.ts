@@ -105,6 +105,6 @@ export const useProfileStore = create<ProfileState>()(
         }
       },
     }),
-    { name: 'soenglish/profile' },
+    { name: 'arvilio/profile' },
   ),
 );

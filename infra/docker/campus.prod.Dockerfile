@@ -1,4 +1,4 @@
-# Production Web image (Next.js standalone). Build context: repository root.
+# Production Campus image (Next.js standalone). Build context: repository root.
 FROM node:22-alpine AS builder
 
 RUN corepack enable && corepack prepare npm@11.6.2 --activate
@@ -15,7 +15,7 @@ COPY packages packages
 
 RUN npm ci
 
-RUN npm run build -w @app/web
+RUN npm run build -w @app/campus
 
 FROM node:22-alpine AS runner
 
@@ -24,13 +24,13 @@ ENV NODE_ENV=production
 ENV PORT=4200
 ENV HOSTNAME=0.0.0.0
 
-RUN addgroup -S soenglish && adduser -S soenglish -G soenglish
+RUN addgroup -S arvilio && adduser -S arvilio -G arvilio
 
-COPY --from=builder /app/apps/web/public ./apps/web/public
-COPY --from=builder /app/apps/web/.next/standalone ./
-COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder /app/apps/campus/public ./apps/campus/public
+COPY --from=builder /app/apps/campus/.next/standalone ./
+COPY --from=builder /app/apps/campus/.next/static ./apps/campus/.next/static
 
-USER soenglish
+USER arvilio
 EXPOSE 4200
 
-CMD ["node", "apps/web/server.js"]
+CMD ["node", "apps/campus/server.js"]

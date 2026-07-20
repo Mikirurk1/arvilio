@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { StudentGroupDto, StudentSummaryBackendDto } from '@pkg/types';
 import { Plus, Users } from 'lucide-react';
 import { Badge, Button, SurfaceCard, EmptyStateCard } from '../../components/ui';
-import { isAdminOrSuper } from '../../mocks';
+import { useCampusT } from '../../lib/cms';
+import { isAdminOrSuper } from '../../lib/roles';
 import { useActiveUser } from '../../lib/active-user';
 import { useStudentsStore } from '../../stores/students-store';
 import {
@@ -27,6 +28,7 @@ import { GroupEditorCard } from './GroupEditorCard';
 import styles from './page.module.scss';
 
 export function StudentsGroupsPanel() {
+  const t = useCampusT();
   const activeUser = useActiveUser();
   const studentsSlice = useStudentsStore((s) => s.list);
   const fetchStudents = useStudentsStore((s) => s.fetchStudents);
@@ -51,11 +53,11 @@ export function StudentsGroupsPanel() {
       const data = await graphqlRequest<{ studentGroups: StudentGroupDto[] }>(STUDENT_GROUPS);
       setGroups(data.studentGroups);
     } catch (err) {
-      setLoadError(err instanceof ApiError ? err.message : 'Failed to load groups');
+      setLoadError(err instanceof ApiError ? err.message : t('students.groups.loadFailed'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -87,11 +89,11 @@ export function StudentsGroupsPanel() {
         const student = allStudents.find((row) => row.id === id);
         return {
           id,
-          displayName: student?.displayName ?? 'Unknown student',
+          displayName: student?.displayName ?? t('students.groups.unknownStudent'),
           email: student?.email ?? '',
         };
       }),
-    [allStudents, draft.memberUserIds],
+    [allStudents, draft.memberUserIds, t],
   );
 
   const startCreate = () => {
@@ -124,7 +126,7 @@ export function StudentsGroupsPanel() {
   };
 
   const onSave = async () => {
-    const validationError = validateDraft(draft);
+    const validationError = validateDraft(draft, t);
     if (validationError) {
       setSaveError(validationError);
       return;
@@ -142,20 +144,20 @@ export function StudentsGroupsPanel() {
       closeEditor();
       await loadGroups();
     } catch (err) {
-      setSaveError(err instanceof ApiError ? err.message : 'Save failed');
+      setSaveError(err instanceof ApiError ? err.message : t('students.groups.saveFailed'));
     } finally {
       setSaving(false);
     }
   };
 
   const onDelete = async (id: string) => {
-    if (!window.confirm('Delete this group?')) return;
+    if (!window.confirm(t('students.groups.deleteConfirm'))) return;
     try {
       await graphqlRequest(DELETE_STUDENT_GROUP, { id });
       if (editingId === id) closeEditor();
       await loadGroups();
     } catch (err) {
-      setLoadError(err instanceof ApiError ? err.message : 'Delete failed');
+      setLoadError(err instanceof ApiError ? err.message : t('students.groups.deleteFailed'));
     }
   };
 
@@ -182,8 +184,8 @@ export function StudentsGroupsPanel() {
   if (!isAdmin) {
     return (
       <EmptyStateCard
-        title="Groups are managed by admins"
-        description="Your administrator configures learning groups, members, and group payment rules."
+        title={t('students.groups.adminOnlyTitle')}
+        description={t('students.groups.adminOnlyDesc')}
       />
     );
   }
@@ -192,23 +194,22 @@ export function StudentsGroupsPanel() {
     <div className={styles.groupsPanel}>
       <div className={styles.groupsToolbar}>
         <div className={styles.groupsToolbarCopy}>
-          <p className={styles.groupsIntro}>
-            Configure group billing and members. Teachers pick a group by name when scheduling — they
-            do not set prices here.
-          </p>
+          <p className={styles.groupsIntro}>{t('students.groups.intro')}</p>
           {!loading ? (
             <p className={styles.groupsMeta}>
-              {groups.length} {groups.length === 1 ? 'group' : 'groups'}
+              {groups.length === 1
+                ? t('students.groups.countOne')
+                : t('students.groups.countMany', { count: groups.length })}
             </p>
           ) : null}
         </div>
         <Button type="button" startIcon={<Plus size={16} />} onClick={startCreate}>
-          New group
+          {t('students.groups.new')}
         </Button>
       </div>
 
       {loadError ? <p className={styles.groupsLoadError}>{loadError}</p> : null}
-      {loading ? <p className={styles.loadingHint}>Loading groups…</p> : null}
+      {loading ? <p className={styles.loadingHint}>{t('students.groups.loading')}</p> : null}
 
       {editingId ? (
         <GroupEditorCard
@@ -233,8 +234,8 @@ export function StudentsGroupsPanel() {
 
       {!editingId && groups.length === 0 && !loading ? (
         <EmptyStateCard
-          title="No groups yet"
-          description="Create a learning group so teachers can schedule shared lessons with the right members and billing defaults."
+          title={t('students.groups.emptyTitle')}
+          description={t('students.groups.emptyDesc')}
         />
       ) : null}
 
@@ -249,21 +250,21 @@ export function StudentsGroupsPanel() {
                 <div className={styles.groupCardHeadCopy}>
                   <h3 className={styles.groupCardTitle}>{group.name}</h3>
                   <p className={styles.groupCardMeta}>
-                    {group.teacherName ? group.teacherName : 'No teacher assigned'}
+                    {group.teacherName ? group.teacherName : t('students.groups.noTeacher')}
                   </p>
                 </div>
-                <Badge variant="neutral">{billingModeLabel(group.groupBillingMode)}</Badge>
+                <Badge variant="neutral">{billingModeLabel(group.groupBillingMode, t)}</Badge>
               </div>
 
               <div className={styles.groupCardStats}>
-                <span>{group.members.length} students</span>
+                <span>{t('students.groups.membersCount', { count: group.members.length })}</span>
                 {group.groupBillingMode === 'fixed_total' && group.groupPriceMinor != null ? (
                   <span>
-                    {(group.groupPriceMinor / 100).toFixed(2)} {group.groupCurrency ?? 'UAH'} /
-                    lesson
+                    {(group.groupPriceMinor / 100).toFixed(2)} {group.groupCurrency ?? 'UAH'}
+                    {t('students.groups.perLesson')}
                   </span>
                 ) : (
-                  <span>1 credit / member</span>
+                  <span>{t('students.groups.creditPerMember')}</span>
                 )}
               </div>
 
@@ -273,16 +274,18 @@ export function StudentsGroupsPanel() {
                     .slice(0, 4)
                     .map((member) => member.displayName)
                     .join(' · ')}
-                  {group.members.length > 4 ? ` +${group.members.length - 4} more` : ''}
+                  {group.members.length > 4
+                    ? ` ${t('students.groups.moreMembers', { count: group.members.length - 4 })}`
+                    : ''}
                 </p>
               ) : null}
 
               <div className={styles.groupCardActions}>
                 <Button type="button" variant="default" onClick={() => startEdit(group)}>
-                  Edit
+                  {t('students.groups.edit')}
                 </Button>
                 <Button type="button" variant="ghost" onClick={() => void onDelete(group.id)}>
-                  Delete
+                  {t('students.groups.delete')}
                 </Button>
               </div>
             </SurfaceCard>

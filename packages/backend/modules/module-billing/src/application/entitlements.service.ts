@@ -24,6 +24,11 @@ export interface EntitlementsSummaryDto {
   seatsRemaining: number | null;
   features: { customDomain: boolean; aiAssist: boolean; recordings: boolean };
   storage: StorageUsageDto;
+  /**
+   * True when the school has a Stripe customer for Layer-B billing (portal works).
+   * False for trial / grandfathered legacy schools that only have entitlements.
+   */
+  billingManaged: boolean;
 }
 
 /**
@@ -186,13 +191,21 @@ export class EntitlementsService {
 
   /** Full entitlements + usage snapshot for the meter UI (plan, seats, storage). */
   async getSummary(schoolId: string): Promise<EntitlementsSummaryDto> {
-    const [ent, storage, activeStudentCount] = await Promise.all([
+    const [ent, storage, activeStudentCount, subscription] = await Promise.all([
       this.resolveForSchool(schoolId),
       this.getStorageUsage(schoolId),
       this.activeStudentCount(schoolId),
+      this.prisma.schoolSubscription.findUnique({
+        where: { schoolId },
+        select: { stripeCustomerId: true, stripeSubscriptionId: true, plan: true },
+      }),
     ]);
     const seatsRemaining =
       ent.maxActiveStudents == null ? null : Math.max(0, ent.maxActiveStudents - activeStudentCount);
+    const billingManaged = Boolean(
+      subscription?.stripeCustomerId &&
+        (subscription.stripeSubscriptionId || paidPlanKey(subscription.plan)),
+    );
     return {
       plan: ent.key,
       maxActiveStudents: ent.maxActiveStudents,
@@ -200,6 +213,7 @@ export class EntitlementsService {
       seatsRemaining,
       features: ent.features,
       storage,
+      billingManaged,
     };
   }
 }

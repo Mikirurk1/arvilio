@@ -11,7 +11,10 @@ import {
 } from '@pkg/types';
 import { syncGroupLessonsEnabled } from '../../lib/group-lessons-feature';
 import { ApiError } from '../../lib/api';
+import { useCampusT } from '../../lib/cms';
 import { VideoMeetingsPanel } from './VideoMeetingsPanel';
+import { LanguagesSection } from './LanguagesSection';
+import { TeachingPrefsSection } from './TeachingPrefsSection';
 import styles from './page.module.scss';
 
 export function GeneralPanel({
@@ -19,6 +22,7 @@ export function GeneralPanel({
 }: {
   onOpenConnections?: () => void;
 } = {}) {
+  const t = useCampusT();
   const fetchPaymentSettings = useBillingStore((s) => s.fetchPaymentSettings);
   const updatePaymentSettings = useBillingStore((s) => s.updatePaymentSettings);
   const slice = useBillingStore((s) => s.paymentSettings);
@@ -54,17 +58,17 @@ export function GeneralPanel({
           config: next.config as PaymentConfigDto,
         });
         setDraft(next);
-        setSuccess('Saved.');
+        setSuccess(t('common.saved'));
         void refreshGroupLessonsFlag();
         window.setTimeout(() => setSuccess(null), 2000);
       } catch (err) {
-        setError(err instanceof ApiError ? err.message : 'Failed to save settings');
+        setError(err instanceof ApiError ? err.message : t('common.saveFailed'));
         void fetchPaymentSettings(true);
       } finally {
         setSaving(false);
       }
     },
-    [refreshGroupLessonsFlag, updatePaymentSettings],
+    [refreshGroupLessonsFlag, t, updatePaymentSettings],
   );
 
   const handleGroupLessonsChange = (enabled: boolean) => {
@@ -79,33 +83,31 @@ export function GeneralPanel({
       <header className={styles.panelHeader}>
         <Settings2 size={18} aria-hidden />
         <div>
-          <div className={styles.panelTitle}>General</div>
-          <p className={styles.hint}>
-            School-wide product settings. More sections will be grouped here as the control room
-            grows.
-          </p>
+          <div className={styles.panelTitle}>{t('system.general.title')}</div>
+          <p className={styles.hint}>{t('system.general.hint')}</p>
         </div>
       </header>
 
-      {loading ? <p className={styles.hint}>Loading…</p> : null}
+      {loading ? <p className={styles.hint}>{t('common.loading')}</p> : null}
 
       {draft ? (
         <>
-          <section className={styles.generalSection} aria-label="Features">
-            <h3 className={styles.sectionTitle}>Features</h3>
+          <section className={styles.generalSection} aria-label={t('system.general.features.aria')}>
+            <h3 className={styles.sectionTitle}>{t('system.general.features.title')}</h3>
             <article className={styles.generalFeatureCard}>
               <div className={styles.generalFeatureHead}>
                 <span className={styles.generalFeatureIcon} aria-hidden>
                   <Users size={16} />
                 </span>
                 <div>
-                  <div className={styles.generalFeatureTitle}>Group lessons</div>
-                  <p className={styles.hint}>
-                    Turns on learning groups, group scheduling, and group billing UI for teachers and
-                    admins. Default group payment rules live under Payments → Group payments.
-                  </p>
+                  <div className={styles.generalFeatureTitle}>{t('system.general.groupLessons.title')}</div>
+                  <p className={styles.hint}>{t('system.general.groupLessons.hint')}</p>
                 </div>
-                {groupEnabled ? <Badge variant="green">On</Badge> : <Badge variant="amber">Off</Badge>}
+                {groupEnabled ? (
+                  <Badge variant="green">{t('common.on')}</Badge>
+                ) : (
+                  <Badge variant="amber">{t('common.off')}</Badge>
+                )}
               </div>
               <SettingsToggleRow
                 className={styles.generalToggleRow}
@@ -114,7 +116,7 @@ export function GeneralPanel({
                 toggleClassName={styles.generalSwitch}
                 toggleOnClassName={styles.generalSwitchOn}
                 thumbClassName={styles.generalSwitchThumb}
-                label="Enable group lessons for this school"
+                label={t('system.general.groupLessons.toggle')}
                 checked={groupEnabled}
                 disabled={saving}
                 onChange={handleGroupLessonsChange}
@@ -129,9 +131,17 @@ export function GeneralPanel({
         </>
       ) : null}
 
+      <section style={{ marginTop: 24 }}>
+        <LanguagesSection />
+      </section>
+
+      <section style={{ marginTop: 24 }}>
+        <TeachingPrefsSection />
+      </section>
+
       <section
         className={styles.generalSection}
-        aria-label="Video meetings"
+        aria-label={t('system.general.videoMeetings.title')}
         style={{ marginTop: 24 }}
       >
         <VideoMeetingsPanel onOpenConnections={onOpenConnections} />

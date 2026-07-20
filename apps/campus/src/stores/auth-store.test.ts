@@ -29,7 +29,7 @@ const sampleUser = mockAuthUser({
 describe('auth-store', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    window.__SOENGLISH_AUTH__ = undefined;
+    window.__ARVILIO_AUTH__ = undefined;
     useAuthStore.setState({
       user: null,
       initialized: false,

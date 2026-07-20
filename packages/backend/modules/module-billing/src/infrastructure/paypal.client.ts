@@ -126,7 +126,7 @@ export async function createPayPalOrder({
       payment_source: {
         paypal: {
           experience_context: {
-            brand_name: 'SoEnglish',
+            brand_name: 'Arvilio',
             user_action: 'PAY_NOW',
             return_url: returnUrl,
             cancel_url: cancelUrl,

@@ -267,7 +267,7 @@ export const deepPracticeGoalVariants = [
   },
   {
     id: 'deep-study-block',
-    text: 'Do a 20-minute study block in SoEnglish',
+    text: 'Do a 20-minute study block in Arvilio',
     criteria: { mode: 'total_minutes', targetMinutes: 20 },
   },
 ] satisfies GoalVariant[];

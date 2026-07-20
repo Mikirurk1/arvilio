@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { Metadata } from 'next';
+import { Button } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import styles from './page.module.scss';
 
 interface HealthData {
@@ -17,16 +19,18 @@ type LoadState = 'loading' | 'ok' | 'error';
 void (null as unknown as Metadata);
 
 function StatusBadge({ value }: { value: 'ok' | 'error' | 'degraded' | null }) {
+  const t = useCampusT();
   if (value === null) {
-    return <span className={`${styles.badge} ${styles.unknown}`}><span className={styles.dot} />Checking…</span>;
+    return <span className={`${styles.badge} ${styles.unknown}`}><span className={styles.dot} />{t('status.checking')}</span>;
   }
   if (value === 'ok') {
-    return <span className={`${styles.badge} ${styles.ok}`}><span className={styles.dot} />Operational</span>;
+    return <span className={`${styles.badge} ${styles.ok}`}><span className={styles.dot} />{t('status.operational')}</span>;
   }
-  return <span className={`${styles.badge} ${styles.degraded}`}><span className={styles.dot} />{value === 'degraded' ? 'Degraded' : 'Error'}</span>;
+  return <span className={`${styles.badge} ${styles.degraded}`}><span className={styles.dot} />{value === 'degraded' ? t('status.degraded') : t('status.error')}</span>;
 }
 
 export default function StatusPage() {
+  const t = useCampusT();
   const [data, setData] = useState<HealthData | null>(null);
   const [state, setState] = useState<LoadState>('loading');
 
@@ -54,32 +58,30 @@ export default function StatusPage() {
   return (
     <main className={styles.page}>
       <div className={styles.inner}>
-        <h1 className={styles.heading}>System Status</h1>
-        <p className={styles.subtitle}>
-          SoEnglish platform — live component health. Auto-refreshes every 60 seconds.
-        </p>
+        <h1 className={styles.heading}>{t('status.title')}</h1>
+        <p className={styles.subtitle}>{t('status.subtitle')}</p>
 
         <div className={styles.card}>
           <div className={styles.row}>
-            <span className={styles.service}>API</span>
+            <span className={styles.service}>{t('status.api')}</span>
             <StatusBadge value={state === 'loading' ? null : overallStatus} />
           </div>
         </div>
 
         <div className={styles.card}>
           <div className={styles.row}>
-            <span className={styles.service}>Database</span>
+            <span className={styles.service}>{t('status.database')}</span>
             <StatusBadge value={state === 'loading' ? null : (state === 'error' ? 'error' : (data?.db ?? null))} />
           </div>
         </div>
 
-        <button type="button" className={styles.refreshBtn} onClick={() => void check()}>
-          Refresh now
-        </button>
+        <Button type="button" className={styles.refreshBtn} onClick={() => void check()}>
+          {t('status.refresh')}
+        </Button>
 
         {data?.ts && (
           <p className={styles.ts}>
-            Last checked: {new Date(data.ts).toLocaleString()}
+            {t('status.lastChecked', { time: new Date(data.ts).toLocaleString() })}
           </p>
         )}
       </div>

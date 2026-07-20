@@ -4,9 +4,9 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const OUT = path.join(ROOT, 'apps/web/public/brand');
+const OUT = path.join(ROOT, 'apps/campus/public/brand');
 const ASSETS =
-  '/Users/mikirurk/.cursor/projects/Users-mikirurk-Programming-SoEnglish/assets';
+  '/Users/mikirurk/.cursor/projects/Users-mikirurk-Programming-Arvilio/assets';
 
 function isExportBackdrop(r, g, b) {
   return r > 60 && r < 90 && g > 100 && g < 125 && b > 65 && b < 95;
@@ -84,10 +84,10 @@ async function process(src, dst, targetW, { flood = true } = {}) {
 }
 
 const jobs = [
-  [path.join(ROOT, 'apps/web/public/brand/soenglish-logo.png'), 'soenglish-logo-on-light.png', 2048, { flood: true }],
-  [path.join(ROOT, 'apps/web/public/brand/soenglish-logo-mark.png'), 'soenglish-logo-mark-on-light.png', 1024, { flood: false }],
-  [path.join(ASSETS, 'soenglish-logo-on-dark.png'), 'soenglish-logo-on-dark.png', 2048, { flood: true }],
-  [path.join(ASSETS, 'soenglish-logo-mark-on-dark.png'), 'soenglish-logo-mark-on-dark.png', 1024, { flood: false }],
+  [path.join(ROOT, 'apps/campus/public/brand/arvilio-logo.png'), 'arvilio-logo-on-light.png', 2048, { flood: true }],
+  [path.join(ROOT, 'apps/campus/public/brand/arvilio-logo-mark.png'), 'arvilio-logo-mark-on-light.png', 1024, { flood: false }],
+  [path.join(ASSETS, 'arvilio-logo-on-dark.png'), 'arvilio-logo-on-dark.png', 2048, { flood: true }],
+  [path.join(ASSETS, 'arvilio-logo-mark-on-dark.png'), 'arvilio-logo-mark-on-dark.png', 1024, { flood: false }],
 ];
 
 for (const [src, dst, w, opts] of jobs) {

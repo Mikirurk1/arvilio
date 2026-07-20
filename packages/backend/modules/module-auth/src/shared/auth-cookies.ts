@@ -6,11 +6,18 @@ export const REFRESH_TOKEN_TTL_SECONDS = 60 * 60 * 24 * 30;
 /** Impersonation sessions are deliberately short-lived (ADR-009). */
 export const IMPERSONATION_TOKEN_TTL_SECONDS = 60 * 15;
 
-export const ACCESS_COOKIE = 'soenglish_at';
-export const REFRESH_COOKIE = 'soenglish_rt';
+export const ACCESS_COOKIE = 'arvilio_at';
+export const REFRESH_COOKIE = 'arvilio_rt';
+/**
+ * Control Plane–only session cookies (ADR-009). Separate from Campus `arvilio_at` /
+ * `arvilio_rt` so localhost Campus (:4200) and Platform (:4300) do not collide
+ * (cookies are host-only and ignore port).
+ */
+export const PLATFORM_ACCESS_COOKIE = 'arvilio_pat';
+export const PLATFORM_REFRESH_COOKIE = 'arvilio_prt';
 /** Set when starting GET /auth/google/link; read on OAuth callback. */
-export const GOOGLE_OAUTH_INTENT_COOKIE = 'soenglish_google_intent';
-export const GOOGLE_OAUTH_USER_COOKIE = 'soenglish_google_uid';
+export const GOOGLE_OAUTH_INTENT_COOKIE = 'arvilio_google_intent';
+export const GOOGLE_OAUTH_USER_COOKIE = 'arvilio_google_uid';
 
 export function getJwtSecret(): string {
   const secret = process.env['JWT_SECRET'];
@@ -46,6 +53,53 @@ export function clearAuthCookies(res: Response): void {
   const common = cookieOptions();
   res.clearCookie(ACCESS_COOKIE, common);
   res.clearCookie(REFRESH_COOKIE, common);
+}
+
+/** Control Plane login cookies — do not touch Campus `arvilio_at` / `arvilio_rt`. */
+export function setPlatformAuthCookies(
+  res: Response,
+  tokens: { accessToken: string; refreshToken: string },
+): void {
+  const common = cookieOptions();
+  res.cookie(PLATFORM_ACCESS_COOKIE, tokens.accessToken, {
+    ...common,
+    maxAge: ACCESS_TOKEN_TTL_SECONDS * 1000,
+  });
+  res.cookie(PLATFORM_REFRESH_COOKIE, tokens.refreshToken, {
+    ...common,
+    maxAge: REFRESH_TOKEN_TTL_SECONDS * 1000,
+  });
+}
+
+export function clearPlatformAuthCookies(res: Response): void {
+  const common = cookieOptions();
+  res.clearCookie(PLATFORM_ACCESS_COOKIE, common);
+  res.clearCookie(PLATFORM_REFRESH_COOKIE, common);
+}
+
+/** Prefer Control Plane cookies when both Campus + Platform jars exist (localhost). */
+export function readAccessTokenFromCookies(
+  cookies?: Record<string, string> | null,
+): string | null {
+  const platform = cookies?.[PLATFORM_ACCESS_COOKIE]?.trim();
+  if (platform) return platform;
+  const campus = cookies?.[ACCESS_COOKIE]?.trim();
+  return campus || null;
+}
+
+export function readRefreshTokenFromCookies(
+  cookies?: Record<string, string> | null,
+): string | null {
+  const platform = cookies?.[PLATFORM_REFRESH_COOKIE]?.trim();
+  if (platform) return platform;
+  const campus = cookies?.[REFRESH_COOKIE]?.trim();
+  return campus || null;
+}
+
+export function isPlatformRefreshCookie(
+  cookies?: Record<string, string> | null,
+): boolean {
+  return Boolean(cookies?.[PLATFORM_REFRESH_COOKIE]?.trim());
 }
 
 /**
@@ -110,8 +164,8 @@ export function readGoogleLinkUserId(req: {
   return userId || null;
 }
 
-export const FACEBOOK_OAUTH_INTENT_COOKIE = 'soenglish_facebook_intent';
-export const FACEBOOK_OAUTH_USER_COOKIE = 'soenglish_facebook_uid';
+export const FACEBOOK_OAUTH_INTENT_COOKIE = 'arvilio_facebook_intent';
+export const FACEBOOK_OAUTH_USER_COOKIE = 'arvilio_facebook_uid';
 
 export function setFacebookLinkCookies(res: Response, userId: string): void {
   const common = cookieOptions();
@@ -120,8 +174,8 @@ export function setFacebookLinkCookies(res: Response, userId: string): void {
   res.cookie(FACEBOOK_OAUTH_USER_COOKIE, userId, { ...common, maxAge });
 }
 
-export const ZOOM_OAUTH_INTENT_COOKIE = 'soenglish_zoom_intent';
-export const ZOOM_OAUTH_USER_COOKIE = 'soenglish_zoom_uid';
+export const ZOOM_OAUTH_INTENT_COOKIE = 'arvilio_zoom_intent';
+export const ZOOM_OAUTH_USER_COOKIE = 'arvilio_zoom_uid';
 
 export function setZoomLinkCookies(res: Response, userId: string): void {
   const common = cookieOptions();
@@ -149,7 +203,7 @@ export function readZoomLinkUserId(req: {
  * so the issued token targets the correct school (not just the first membership).
  * Written before the OAuth redirect, read on callback, cleared in all exit paths.
  */
-export const OAUTH_SCHOOL_COOKIE = 'soenglish_oauth_school';
+export const OAUTH_SCHOOL_COOKIE = 'arvilio_oauth_school';
 
 export function setOAuthSchoolCookie(res: Response, schoolId: string): void {
   res.cookie(OAUTH_SCHOOL_COOKIE, schoolId, { ...cookieOptions(), maxAge: 10 * 60 * 1000 });

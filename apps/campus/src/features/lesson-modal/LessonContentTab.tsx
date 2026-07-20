@@ -6,10 +6,12 @@ import { type VocabularyWordStatusName, type WordCardDto } from '@pkg/types';
 import { LESSON_STATUS } from '@pkg/types';
 import { X } from 'lucide-react';
 import { Button, Field } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import type { LessonFormState } from './types';
 import type { LessonModalText, MaterialKind, MaterialKindOption } from './tabTypes';
 import { LESSON_MATERIAL_KIND_OPTIONS } from './lesson-material-kinds';
-import { canReviewHomework, type UserRole, USER_ROLE } from '../../mocks';
+import { canReviewHomework } from '../../lib/roles';
+import { USER_ROLE, type UserRoleId } from '@pkg/types';
 import { useViewerLanguageIds } from '../../hooks/use-viewer-language-ids';
 import { useVocabularyStore } from '../../stores/vocabulary-store';
 import { lessonFileDisplayName, lessonFilePreviewUrl } from '../../lib/lesson-file-links';
@@ -23,7 +25,7 @@ import styles from './LessonModal.module.scss';
 type Props = {
   text: LessonModalText;
   canEdit: boolean;
-  role: UserRole;
+  role: UserRoleId;
   form: LessonFormState;
   materialKinds: MaterialKindOption[];
   materialDraft: { kind: MaterialKind; text: string; files: string[] };
@@ -64,6 +66,7 @@ export function LessonContentTab({
   onSaveStudentResponse, hideStudentSaveButton = false,
   lessonBackendId = null, studentBackendId = null,
 }: Props) {
+  const t = useCampusT();
   const pathname = usePathname();
   const canStudentSubmitResponse = role === USER_ROLE.student.id && form.statusId === LESSON_STATUS.completed.id;
   const canEditStudentResponse = canEdit || canStudentSubmitResponse;
@@ -113,9 +116,12 @@ export function LessonContentTab({
 
   return (
     <div className={styles.modalContentLayout}>
-      <div className={`${styles.fieldGroup} ${styles.fieldGroupFull} ${styles.modalSectionCard} ${styles.lessonPlanCard}`}>
+      <div
+        className={`${styles.fieldGroup} ${styles.fieldGroupFull} ${styles.modalSectionCard} ${styles.lessonPlanCard}`}
+        data-tour-anchor="lesson-plan"
+      >
         <label className={styles.fieldLabel}>{text.fields.lessonPlan}</label>
-        <p className={styles.sectionHint}>Keep this concise so student goals, activities, and expected outcomes are easy to scan.</p>
+        <p className={styles.sectionHint}>{t('lessonModal.hint.lessonPlan')}</p>
         <Field as="textarea" className={styles.fieldInput} rows={4} value={form.lessonPlan} readOnly={!canEdit} onChange={(e) => onChange({ ...form, lessonPlan: e.target.value })} />
       </div>
       <div className={styles.modalContentColumns}>
@@ -132,9 +138,12 @@ export function LessonContentTab({
           libraryAssetAudience={libraryAssetAudience} studentBackendId={studentBackendId}
           pathname={pathname} text={text}
         />
-        <div className={`${styles.fieldGroup} ${styles.fieldGroupFull} ${styles.modalSectionCard} ${styles.homeworkCard}`}>
+        <div
+          className={`${styles.fieldGroup} ${styles.fieldGroupFull} ${styles.modalSectionCard} ${styles.homeworkCard}`}
+          data-tour-anchor="lesson-homework"
+        >
           <label className={styles.fieldLabel}>{text.fields.homework}</label>
-          <p className={styles.sectionHint}>Focus on one clear action for the student and attach only files needed for completion.</p>
+          <p className={styles.sectionHint}>{t('lessonModal.hint.homework')}</p>
           <Field as="textarea" className={styles.fieldInput} rows={4} value={form.homeworkText} readOnly={!canEditHomework} onChange={(e) => onChange({ ...form, homeworkText: e.target.value })} />
           {canEditHomework ? (
             <Field as="file-button" className={styles.fileButton} buttonLabel={text.actions.addFile} multiple disabled={!canEditHomework} onFilesSelected={onHomeworkFilesSelected} />

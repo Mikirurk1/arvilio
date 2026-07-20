@@ -1,4 +1,4 @@
-/** Shared SoEnglish logomark (book + progress line). Keep in sync with `public/brand/logo-mark.svg`. */
+/** Shared Arvilio logomark (book + progress line). Keep in sync with `public/brand/logo-mark.svg`. */
 export function LogoMarkSvg({
   className,
   accentClassName,

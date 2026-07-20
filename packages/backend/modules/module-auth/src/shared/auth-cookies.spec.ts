@@ -1,19 +1,26 @@
 import {
   ACCESS_COOKIE,
   ACCESS_TOKEN_TTL_SECONDS,
+  PLATFORM_ACCESS_COOKIE,
+  PLATFORM_REFRESH_COOKIE,
   REFRESH_COOKIE,
   REFRESH_TOKEN_TTL_SECONDS,
   clearAuthCookies,
   clearFacebookOAuthCookies,
   clearGoogleOAuthCookies,
+  clearPlatformAuthCookies,
   generateRefreshToken,
   getJwtSecret,
   hashRefreshToken,
+  isPlatformRefreshCookie,
+  readAccessTokenFromCookies,
   readFacebookLinkUserId,
   readGoogleLinkUserId,
+  readRefreshTokenFromCookies,
   setAuthCookies,
   setFacebookLinkCookies,
   setGoogleLinkCookies,
+  setPlatformAuthCookies,
 } from './auth-cookies';
 
 describe('auth-cookies', () => {
@@ -63,17 +70,56 @@ describe('auth-cookies', () => {
     }
   });
 
-  it('clearAuthCookies clears both cookies', () => {
+  it('setPlatformAuthCookies sets Control Plane cookies only', () => {
     const res = { cookie: jest.fn(), clearCookie: jest.fn() };
-    clearAuthCookies(res as never);
-    expect(res.clearCookie).toHaveBeenCalledWith(ACCESS_COOKIE, expect.any(Object));
-    expect(res.clearCookie).toHaveBeenCalledWith(REFRESH_COOKIE, expect.any(Object));
+    setPlatformAuthCookies(res as never, { accessToken: 'pat', refreshToken: 'prt' });
+    expect(res.cookie).toHaveBeenCalledWith(
+      PLATFORM_ACCESS_COOKIE,
+      'pat',
+      expect.objectContaining({ httpOnly: true }),
+    );
+    expect(res.cookie).toHaveBeenCalledWith(
+      PLATFORM_REFRESH_COOKIE,
+      'prt',
+      expect.objectContaining({ httpOnly: true }),
+    );
+    expect(res.cookie).not.toHaveBeenCalledWith(ACCESS_COOKIE, expect.anything(), expect.anything());
+  });
+
+  it('clearPlatformAuthCookies clears platform cookies only', () => {
+    const res = { cookie: jest.fn(), clearCookie: jest.fn() };
+    clearPlatformAuthCookies(res as never);
+    expect(res.clearCookie).toHaveBeenCalledWith(PLATFORM_ACCESS_COOKIE, expect.any(Object));
+    expect(res.clearCookie).toHaveBeenCalledWith(PLATFORM_REFRESH_COOKIE, expect.any(Object));
+    expect(res.clearCookie).not.toHaveBeenCalledWith(ACCESS_COOKIE, expect.any(Object));
+  });
+
+  it('readAccessTokenFromCookies prefers platform over campus', () => {
+    expect(
+      readAccessTokenFromCookies({
+        [ACCESS_COOKIE]: 'campus',
+        [PLATFORM_ACCESS_COOKIE]: 'platform',
+      }),
+    ).toBe('platform');
+    expect(readAccessTokenFromCookies({ [ACCESS_COOKIE]: 'campus' })).toBe('campus');
+    expect(readAccessTokenFromCookies({})).toBeNull();
+  });
+
+  it('readRefreshTokenFromCookies prefers platform over campus', () => {
+    expect(
+      readRefreshTokenFromCookies({
+        [REFRESH_COOKIE]: 'campus-rt',
+        [PLATFORM_REFRESH_COOKIE]: 'platform-rt',
+      }),
+    ).toBe('platform-rt');
+    expect(isPlatformRefreshCookie({ [PLATFORM_REFRESH_COOKIE]: 'x' })).toBe(true);
+    expect(isPlatformRefreshCookie({ [REFRESH_COOKIE]: 'x' })).toBe(false);
   });
 
   it('readGoogleLinkUserId returns user id when intent is link', () => {
     expect(
       readGoogleLinkUserId({
-        cookies: { soenglish_google_intent: 'link', soenglish_google_uid: 'user-1' },
+        cookies: { arvilio_google_intent: 'link', arvilio_google_uid: 'user-1' },
       }),
     ).toBe('user-1');
     expect(readGoogleLinkUserId({ cookies: {} })).toBeNull();
@@ -90,7 +136,7 @@ describe('auth-cookies', () => {
     setFacebookLinkCookies(res as never, 'uid-2');
     expect(
       readFacebookLinkUserId({
-        cookies: { soenglish_facebook_intent: 'link', soenglish_facebook_uid: 'uid-2' },
+        cookies: { arvilio_facebook_intent: 'link', arvilio_facebook_uid: 'uid-2' },
       }),
     ).toBe('uid-2');
   });
@@ -145,7 +191,7 @@ describe('auth-cookies', () => {
   it('readGoogleLinkUserId returns null when uid cookie empty', () => {
     expect(
       readGoogleLinkUserId({
-        cookies: { soenglish_google_intent: 'link', soenglish_google_uid: '  ' },
+        cookies: { arvilio_google_intent: 'link', arvilio_google_uid: '  ' },
       }),
     ).toBeNull();
   });

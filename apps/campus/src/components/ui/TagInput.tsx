@@ -3,6 +3,7 @@
 import { useId, useMemo, useRef, useState } from 'react';
 import type { ClipboardEvent, KeyboardEvent } from 'react';
 import { X } from 'lucide-react';
+import { Button } from './Button';
 import {
   addTag,
   filterTagSuggestions,
@@ -120,7 +121,8 @@ export function TagInput({
         {value.map((tag) => (
           <span key={tag} className={styles.chip}>
             <span className={styles.chipLabel}>{tag}</span>
-            <button
+            <Button
+              variant="bare"
               type="button"
               className={styles.chipRemove}
               aria-label={`Remove tag ${tag}`}
@@ -131,7 +133,7 @@ export function TagInput({
               }}
             >
               <X size={12} aria-hidden />
-            </button>
+            </Button>
           </span>
         ))}
 
@@ -156,8 +158,9 @@ export function TagInput({
       {visibleSuggestions.length > 0 ? (
         <div className={styles.suggestions} role="listbox" aria-label="Suggested tags">
           {visibleSuggestions.map((tag) => (
-            <button
+            <Button
               key={tag}
+              variant="bare"
               type="button"
               role="option"
               className={styles.suggestion}
@@ -165,7 +168,7 @@ export function TagInput({
               onClick={() => onChange(addTag(value, tag))}
             >
               {tag}
-            </button>
+            </Button>
           ))}
         </div>
       ) : null}

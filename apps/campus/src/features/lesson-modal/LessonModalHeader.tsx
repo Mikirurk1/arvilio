@@ -5,11 +5,11 @@ import { Button } from '../../components/ui';
 import styles from './LessonModal.module.scss';
 import type { LessonModalMode } from './types';
 import type { LessonModalText } from './tabTypes';
-import { USER_ROLE, type UserRole } from '../../mocks';
+import { USER_ROLE, type UserRoleId } from '@pkg/types';
 
 type Props = {
   mode: LessonModalMode;
-  role: UserRole;
+  role: UserRoleId;
   text: LessonModalText;
   canUnlinkSeries: boolean;
   onUnlinkSeries: () => void;

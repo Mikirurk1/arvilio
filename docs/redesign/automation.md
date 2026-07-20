@@ -59,7 +59,7 @@ REDESIGN_LOOP_INTERVAL_SEC=600 ./scripts/redesign-loop.sh
 ```text
 /loop 1h
 Прочитай docs/redesign/plan.md. Знайди перший крок з status todo.
-Виконай його повністю (soenglish-redesign + redesign-existing-projects skills).
+Виконай його повністю (arvilio-redesign + redesign-existing-projects skills).
 Познач done. Не бери другий крок у тому ж run — лише один ID.
 ```
 
@@ -101,5 +101,5 @@ REDESIGN_LOOP_INTERVAL_SEC=600 ./scripts/redesign-loop.sh
 ## Пов’язані файли
 
 - План: [`plan.md`](./plan.md)
-- Skill: [`.cursor/skills/soenglish-redesign/SKILL.md`](../../.cursor/skills/soenglish-redesign/SKILL.md)
+- Skill: [`.cursor/skills/arvilio-redesign/SKILL.md`](../../.cursor/skills/arvilio-redesign/SKILL.md)
 - Smoke tour: [`scripts/agent-browser-all-pages.sh`](../../scripts/agent-browser-all-pages.sh)

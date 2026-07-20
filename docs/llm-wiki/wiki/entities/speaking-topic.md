@@ -45,8 +45,8 @@ GraphQL: `createSpeakingTopic`, `deleteSpeakingTopic`, `mySpeakingTopics`, `stud
 
 ## Frontend
 
-- `apps/web/src/features/speaking/` — word chips, picker, create card, record session, review panel
-- `apps/web/src/stores/speaking-store.ts`
+- `apps/campus/src/features/speaking/` — word chips, picker, create card, record session, review panel
+- `apps/campus/src/stores/speaking-store.ts`
 - `/practice/speaking` — student/teacher topic list + record
 - `/students/[studentId]` → Practice → Speaking — assign + review
 

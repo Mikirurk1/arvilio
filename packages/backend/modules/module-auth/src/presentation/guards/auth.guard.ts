@@ -8,7 +8,7 @@ import {
 import type { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { TenantContextService } from '@be/tenant';
-import { ACCESS_COOKIE, getJwtSecret } from '../../shared/auth-cookies';
+import { ACCESS_COOKIE, PLATFORM_ACCESS_COOKIE, getJwtSecret } from '../../shared/auth-cookies';
 import { getReqRes } from '../../shared/auth-request.util';
 import { AuthSessionService } from '../../application/auth-session.service';
 
@@ -87,9 +87,12 @@ export type AuthenticatedRequest = Request & {
 export function extractAccessToken(req: AuthenticatedRequest): string | null {
   const header = req.headers.authorization;
   if (header?.startsWith('Bearer ')) return header.slice(7);
-  const cookie = req.cookies?.[ACCESS_COOKIE];
-  if (cookie) return cookie;
-  return null;
+  // Prefer Control Plane cookie when both Campus + Platform cookies exist on localhost.
+  return (
+    req.cookies?.[PLATFORM_ACCESS_COOKIE] ||
+    req.cookies?.[ACCESS_COOKIE] ||
+    null
+  );
 }
 
 export function verifyAccessToken(token: string): { sub: string } & JwtTenantClaims {

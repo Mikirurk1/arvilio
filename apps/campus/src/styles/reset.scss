@@ -1,6 +1,5 @@
 /**
- * Baseline reset — wrapped in @layer base so that Payload (@layer payload-default)
- * and unlayered app styles take precedence over these resets.
+ * Baseline reset — wrapped in @layer base so unlayered app styles take precedence.
  */
 
 @layer base {

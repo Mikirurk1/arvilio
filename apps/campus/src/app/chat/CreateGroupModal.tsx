@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { UsersRound } from 'lucide-react';
 import type { ChatUserDto } from '@pkg/types';
 import { Button, Field } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import styles from './page.module.scss';
 
 export function CreateGroupModal({
@@ -15,6 +16,7 @@ export function CreateGroupModal({
   onClose: () => void;
   onCreate: (title: string, memberIds: string[]) => Promise<void>;
 }) {
+  const t = useCampusT();
   const [title, setTitle] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -46,29 +48,29 @@ export function CreateGroupModal({
         <div className={styles.modalHeader}>
           <span className={styles.modalBadge}>
             <UsersRound size={14} aria-hidden />
-            Group chat
+            {t('chat.group.badge')}
           </span>
           <h2 id="create-group-title" className={styles.modalTitle}>
-            Create group chat
+            {t('chat.group.title')}
           </h2>
-          <p className={styles.modalHint}>
-            Add a title and choose members. You can adjust participants later.
-          </p>
+          <p className={styles.modalHint}>{t('chat.group.hint')}</p>
         </div>
         <div className={styles.fieldGroup}>
           <label className={styles.fieldLabel} htmlFor="group-chat-title">
-            Group name
+            {t('chat.group.nameLabel')}
           </label>
           <Field
             id="group-chat-title"
             className={styles.fieldInput}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Study group"
+            placeholder={t('chat.group.namePlaceholder')}
           />
         </div>
         <p className={styles.threadPeerRole}>
-          Select members{selected.length > 0 ? ` (${selected.length})` : ''}
+          {selected.length > 0
+            ? t('chat.group.selectMembersCount', { count: selected.length })
+            : t('chat.group.selectMembers')}
         </p>
         <div className={styles.contactList}>
           {contacts.map((contact) => {
@@ -92,12 +94,12 @@ export function CreateGroupModal({
             );
           })}
           {contacts.length === 0 ? (
-            <p className={styles.modalEmpty}>No contacts available for a group yet.</p>
+            <p className={styles.modalEmpty}>{t('chat.group.emptyContacts')}</p>
           ) : null}
         </div>
         <div className={styles.modalActions}>
           <Button type="button" variant="ghost" onClick={onClose}>
-            Cancel
+            {t('chat.group.cancel')}
           </Button>
           <Button
             type="button"
@@ -105,7 +107,7 @@ export function CreateGroupModal({
             loading={saving}
             onClick={() => void handleSubmit()}
           >
-            Create
+            {t('chat.group.create')}
           </Button>
         </div>
       </div>

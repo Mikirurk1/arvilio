@@ -3,22 +3,39 @@ import type { PlanKey } from './subscription-plans';
 
 /**
  * Platform (Layer-B) subscription helpers — school → platform billing on the
- * platform's own Stripe account (env-configured), distinct from the per-school
- * Layer-A PSP. Pure + env-driven so the webhook state machine stays testable.
+ * platform's own Stripe account (DB → env), distinct from the per-school
+ * Layer-A PSP. Pure helpers stay testable.
  */
 
-/** Purchasable plans → Stripe price id (from env). TRIAL is not purchasable. */
-export function priceIdForPlan(plan: PlanKey): string | null {
-  if (plan === 'STARTER') return process.env['STRIPE_PRICE_STARTER']?.trim() || null;
-  if (plan === 'PRO') return process.env['STRIPE_PRICE_PRO']?.trim() || null;
+export type PlatformStripePriceOverrides = {
+  starter?: string | null;
+  pro?: string | null;
+};
+
+/** Purchasable plans → Stripe price id (override → env). TRIAL is not purchasable. */
+export function priceIdForPlan(
+  plan: PlanKey,
+  prices?: PlatformStripePriceOverrides,
+): string | null {
+  if (plan === 'STARTER') {
+    return prices?.starter?.trim() || process.env['STRIPE_PRICE_STARTER']?.trim() || null;
+  }
+  if (plan === 'PRO') {
+    return prices?.pro?.trim() || process.env['STRIPE_PRICE_PRO']?.trim() || null;
+  }
   return null;
 }
 
 /** Reverse map a Stripe price id back to a plan key (for subscription.updated). */
-export function planForPriceId(priceId: string | null | undefined): PlanKey | null {
+export function planForPriceId(
+  priceId: string | null | undefined,
+  prices?: PlatformStripePriceOverrides,
+): PlanKey | null {
   if (!priceId) return null;
-  if (priceId === process.env['STRIPE_PRICE_STARTER']?.trim()) return 'STARTER';
-  if (priceId === process.env['STRIPE_PRICE_PRO']?.trim()) return 'PRO';
+  const starter = prices?.starter?.trim() || process.env['STRIPE_PRICE_STARTER']?.trim();
+  const pro = prices?.pro?.trim() || process.env['STRIPE_PRICE_PRO']?.trim();
+  if (priceId === starter) return 'STARTER';
+  if (priceId === pro) return 'PRO';
   return null;
 }
 

@@ -102,8 +102,9 @@ export function LibraryMaterialPicker({ open, onClose, onConfirm, excludeIds = [
           {items.map((item) => {
             const checked = selectedIds.includes(item.id);
             return (
-              <button
+              <Button
                 key={item.id}
+                variant="bare"
                 type="button"
                 className={[styles.row, checked ? styles.rowSelected : ''].filter(Boolean).join(' ')}
                 onClick={() => toggle(item.id)}
@@ -113,7 +114,7 @@ export function LibraryMaterialPicker({ open, onClose, onConfirm, excludeIds = [
                   {LIBRARY_KIND_LABELS[item.kind]}
                   {item.assets.length > 0 ? ` · ${item.assets.length} assets` : ''}
                 </span>
-              </button>
+              </Button>
             );
           })}
         </div>

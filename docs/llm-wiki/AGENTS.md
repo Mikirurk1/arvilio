@@ -1,11 +1,11 @@
-# SoEnglish LLM Wiki — Agent Schema
+# Arvilio LLM Wiki — Agent Schema
 
-You maintain a **persistent, compounding knowledge base** for the SoEnglish monorepo. You write and update `wiki/`; humans curate `raw/` and direct analysis. Read this file at the start of any **ingest**, **query**, or **lint** operation.
+You maintain a **persistent, compounding knowledge base** for the Arvilio monorepo. You write and update `wiki/`; humans curate `raw/` and direct analysis. Read this file at the start of any **ingest**, **query**, or **lint** operation.
 
 ## Project context (code layout)
 
-- **Monorepo:** npm workspaces + Turborepo (`turbo run dev|build|lint|typecheck`, filters `@app/web`, `@app/api`)
-- **`apps/web`** — Next.js frontend
+- **Monorepo:** npm workspaces + Turborepo (`turbo run dev|build|lint|typecheck`, filters `@app/campus`, `@app/api`)
+- **`apps/campus`** — Next.js frontend
 - **`apps/api`** — NestJS + GraphQL API
 - **`packages/backend/modules/`** — domain modules: `module-auth`, `module-lessons`, `module-progress`, `module-vocabulary`, `module-flashcards`
 - **`packages/backend/data-access/data-access-prisma/`** — Prisma schema (PostgreSQL)
@@ -60,7 +60,7 @@ updated: 2026-05-16
 
 ### 0. Continuous updates (automatic)
 
-**Trigger:** Any Cursor session where you implement, debug, or explain something **durable** about SoEnglish (default: always unless the user says **skip wiki**).
+**Trigger:** Any Cursor session where you implement, debug, or explain something **durable** about Arvilio (default: always unless the user says **skip wiki**).
 
 **Update when:**
 
@@ -155,7 +155,7 @@ updated: 2026-05-16
 
 ### Entity page (`wiki/entities/<name>.md`)
 
-- What it is in SoEnglish
+- What it is in Arvilio
 - Fields/relationships (align with Prisma when applicable)
 - Related code paths (`apps/`, `packages/`)
 - Related concepts and sources
@@ -221,4 +221,4 @@ At small scale, `index.md` + grep is enough. If the human adds `qmd` or a search
 
 ## Co-evolution
 
-Humans may edit this `AGENTS.md` when workflows change. Propose schema updates when you hit repeated friction. Keep rules actionable and specific to SoEnglish.
+Humans may edit this `AGENTS.md` when workflows change. Propose schema updates when you hit repeated friction. Keep rules actionable and specific to Arvilio.

@@ -9,6 +9,7 @@ import { canEdit } from '../../../lib/roles';
 import { useActiveUser } from '../../../lib/active-user';
 import { useSpeakingStore } from '../../../stores/speaking-store';
 import { EmptyStateCard, SurfaceCard } from '../../../components/ui';
+import { useCampusT } from '../../../lib/cms';
 import styles from './StudentSpeakingTab.module.scss';
 
 type Props = {
@@ -17,6 +18,7 @@ type Props = {
 };
 
 export function StudentSpeakingTab({ studentId, embedded = false }: Props) {
+  const t = useCampusT();
   const activeUser = useActiveUser();
   const isStaff = canEdit('quiz', activeUser.role);
 
@@ -41,9 +43,9 @@ export function StudentSpeakingTab({ studentId, embedded = false }: Props) {
 
   const handleDelete = async (topicId: string) => {
     const ok = await confirmDialog({
-      title: 'Delete speaking topic?',
-      message: 'This topic will be removed for this student.',
-      confirmLabel: 'Delete',
+      title: t('students.detail.speaking.deleteTitle'),
+      message: t('students.detail.speaking.deleteMessage'),
+      confirmLabel: t('calendar.series.delete'),
       variant: 'danger',
     });
     if (!ok) return;
@@ -64,14 +66,14 @@ export function StudentSpeakingTab({ studentId, embedded = false }: Props) {
       ) : null}
 
       <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Assigned topics</h3>
+        <h3 className={styles.sectionTitle}>{t('students.detail.speaking.assignedTopics')}</h3>
         {studentTopics.status === 'loading' && topics.length === 0 ? (
-          <SurfaceCard className={styles.loading}>Loading topics…</SurfaceCard>
+          <SurfaceCard className={styles.loading}>{t('students.detail.speaking.loadingTopics')}</SurfaceCard>
         ) : null}
         {studentTopics.status === 'success' && topics.length === 0 ? (
           <EmptyStateCard
-            title="No speaking topics"
-            description="Create a discussion topic with optional vocabulary words for this student."
+            title={t('students.detail.speaking.emptyTopics')}
+            description={t('students.detail.speaking.emptyTopicsDesc')}
           />
         ) : null}
         <div className={styles.topicList}>
@@ -81,7 +83,6 @@ export function StudentSpeakingTab({ studentId, embedded = false }: Props) {
               topic={topic}
               canDelete={isStaff}
               onDelete={() => void handleDelete(topic.id)}
-              studentIdForWords={studentId}
             />
           ))}
         </div>
@@ -89,14 +90,14 @@ export function StudentSpeakingTab({ studentId, embedded = false }: Props) {
 
       {isStaff ? (
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Recordings to review</h3>
+          <h3 className={styles.sectionTitle}>{t('students.detail.speaking.recordingsTitle')}</h3>
           {studentSubmissions.status === 'loading' && submissions.length === 0 ? (
-            <SurfaceCard className={styles.loading}>Loading submissions…</SurfaceCard>
+            <SurfaceCard className={styles.loading}>{t('students.detail.speaking.loadingSubmissions')}</SurfaceCard>
           ) : null}
           {studentSubmissions.status === 'success' && submissions.length === 0 ? (
             <EmptyStateCard
-              title="No submissions yet"
-              description="When the student records a response, it will appear here for review."
+              title={t('students.detail.speaking.emptySubmissions')}
+              description={t('students.detail.speaking.emptySubmissionsDesc')}
             />
           ) : null}
           <div className={styles.reviewList}>

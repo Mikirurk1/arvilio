@@ -10,7 +10,7 @@ export function EmailVerificationEmail({
   expiresInHours,
 }: EmailVerificationEmailProps) {
   return (
-    <EmailLayout preview="Confirm your SoEnglish email address">
+    <EmailLayout preview="Confirm your Arvilio email address">
       <Heading
         as="h1"
         style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 600, color: brand.text }}
@@ -18,7 +18,7 @@ export function EmailVerificationEmail({
         Confirm your email address
       </Heading>
       <Text style={{ margin: '0 0 16px', fontSize: 15, lineHeight: '22px', color: brand.muted }}>
-        Hi {displayName}, please confirm your email address to activate your SoEnglish school.
+        Hi {displayName}, please confirm your email address to activate your Arvilio school.
       </Text>
       <DetailBox>
         <Text style={{ margin: '0 0 12px', fontSize: 14, lineHeight: '21px', color: brand.text }}>
@@ -46,7 +46,7 @@ export function EmailVerificationEmail({
         </Text>
       </DetailBox>
       <Text style={{ margin: 0, fontSize: 13, lineHeight: '20px', color: brand.faint }}>
-        If you did not create a SoEnglish account, you can safely ignore this email.
+        If you did not create a Arvilio account, you can safely ignore this email.
       </Text>
     </EmailLayout>
   );

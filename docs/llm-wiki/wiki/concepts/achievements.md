@@ -64,11 +64,11 @@ Catalog in `packages/shared/types/src/lib/achievements.ts`:
 
 ## Web
 
-- `/profile` loads live stats through `apps/web/src/hooks/use-achievement-stats.ts`
+- `/profile` loads live stats through `apps/campus/src/hooks/use-achievement-stats.ts`
 - `/students/[studentId]` loads the same server query for staff-visible student achievements
 - `/practice/speaking` — create topics, record voice (`SpeakingRecordSession`), optional vocab word chips; teacher reviews all student submissions on student Practice tab
 - Speaking practice time still uses `usePracticeSessionTracker` (`kind: speaking`, wall-clock while recording)
-- Frontend catalog wrapper stays in `apps/web/src/mocks/domains/achievements.ts`, but it now consumes shared definitions instead of owning separate live logic
+- Frontend achievement card builder: `apps/campus/src/lib/achievements.ts` (`buildProfileAchievements`); `mocks/domains/achievements.ts` re-exports for tests only
 
 ## Notes
 

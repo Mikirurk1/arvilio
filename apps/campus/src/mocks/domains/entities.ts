@@ -14,66 +14,28 @@ import {
   USER_ROLE,
   VOCABULARY_WORD_STATUS_IDS,
 } from '@pkg/types';
-import type { ProfileStats } from './achievements';
-import { computeUnlockedAchievementIdsFromCounters } from './achievements';
-import { buildLinkedAccounts, type LinkedAccountLink } from './linked-accounts';
+import { computeUnlockedAchievementIdsFromCounters, type ProfileStats } from './achievements';
+import { buildLinkedAccounts } from './linked-accounts';
 import {
   DEFAULT_APPEARANCE_PREFS,
   DEFAULT_NOTIFICATION_PREFS,
-  type ProfileAppearancePrefs,
-  type ProfileNotificationPrefs,
 } from './user-preferences';
+import type {
+  MockUser,
+  ProfileAppearancePrefs,
+  UserAvatar,
+  UserRole,
+} from '../../lib/user-models';
+import type { ProfileNotificationPrefs } from '@pkg/types';
 
-export type { LinkedAccountLink } from './linked-accounts';
-
-export type UserRole = UserRoleId;
-
-/**
- * Avatar payload: when both `url` and `objectKey` are absent, UI shows initials from `fullName`.
- */
-export type UserAvatar = {
-  url?: string;
-  objectKey?: string;
-};
-
-/**
- * Mock users — numeric ids only.
- * Legacy string ids → number: student-1→1, teacher-1→2, student-2→3, student-3→4,
- * teacher-2→5, admin-1→6, super-admin-1→7.
- */
-export type MockUser = {
-  id: number;
-  role: UserRole;
-  fullName: string;
-  email: string;
-  avatar: UserAvatar;
-  /** References `PROFICIENCY_LEVEL` ids. */
-  proficiencyLevelId: ProficiencyLevelId;
-  telegram: string;
-  phone: string;
-  /** References `TIME_ZONE` ids; used to show scheduled times in the user’s zone. */
-  timezoneId: TimeZoneId;
-  nativeLanguage: string;
-  bio: string;
-  /** Students only — references `USER_ACCOUNT_STATUS` ids. */
-  statusId?: UserAccountStatusId;
-  /** Students only — `true` fixed schedule, `false` flexible. */
-  scheduleType?: boolean;
-  /** Students only — individual/group/mixed lesson participation mode. */
-  lessonFormat?: import('@pkg/types').StudentLessonFormat;
-  /** Assigned teacher user id; `0` = none. */
-  teacherId: number;
-  /** Calendar strip color (HEX); students only in mock. */
-  color?: string;
-  vocabulary: ProfileVocabularyEntry[];
-  stats?: ProfileStats;
-  /** Profile → Notifications; defaults from `DEFAULT_NOTIFICATION_PREFS`. */
-  notificationPrefs: ProfileNotificationPrefs;
-  /** Profile → Appearance; defaults from `DEFAULT_APPEARANCE_PREFS`. */
-  appearancePrefs: ProfileAppearancePrefs;
-  /** Google / Facebook / Telegram links for notifications & calendar (mock). */
-  linkedAccounts: LinkedAccountLink[];
-};
+export type {
+  LinkedAccountLink,
+} from '../../lib/linked-accounts';
+export type {
+  MockUser,
+  UserAvatar,
+  UserRole,
+} from '../../lib/user-models';
 
 function statsWithUnlocked(
   counters: Partial<Omit<ProfileStats, 'unlockedAchievementIds'>>,
@@ -383,7 +345,7 @@ export const mockUsers: MockUser[] = [
     linkedAccounts: buildLinkedAccounts({
       google: { linked: true, connectedAs: 'owner@example.com' },
       facebook: { linked: true, connectedAs: 'Platform Owner' },
-      telegram: { linked: true, connectedAs: '@soenglish_owner' },
+      telegram: { linked: true, connectedAs: '@arvilio_owner' },
     }),
   },
 ];

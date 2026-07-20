@@ -17,6 +17,10 @@ describe('request-session', () => {
   });
 
   it('classifies auth pages as public shell-less routes', () => {
+    expect(classifyRouteAccess('/uk/login')).toMatchObject({
+      surface: 'public',
+      isPublic: true,
+    });
     expect(classifyRouteAccess('/login')).toEqual({
       surface: 'public',
       shell: 'auth',
@@ -26,6 +30,15 @@ describe('request-session', () => {
       allowedRoles: null,
       deniedRedirectTo: '/dashboard',
     });
+  });
+
+  it('classifies merchant compliance pages as public', () => {
+    for (const path of ['/offer', '/legal/terms', '/legal/payment-refund', '/legal/contacts', '/privacy']) {
+      const route = classifyRouteAccess(path);
+      expect(route.isPublic).toBe(true);
+      expect(route.shell).toBe('auth');
+      expect(route.redirectAuthenticatedTo).toBeNull();
+    }
   });
 
   it('keeps password recovery pages public without forced redirect', () => {
@@ -92,6 +105,7 @@ describe('request-session', () => {
       tenantKey: null,
       impersonation: { actorUserId: 'op-1', schoolId: 'school_a' },
       trial: { trialEndsAt: '2026-07-01T00:00:00.000Z', daysLeft: 6 },
+      locale: 'uk',
       user,
     });
 
@@ -112,13 +126,14 @@ describe('request-session', () => {
       tenantKey: null,
       impersonation: { actorUserId: 'op-1', schoolId: 'school_a' },
       trial: { trialEndsAt: '2026-07-01T00:00:00.000Z', daysLeft: 6 },
+      locale: 'uk',
       user,
     });
   });
 
   it('defaults public routes to auth shell when shell header is absent', () => {
     const headers = new Headers();
-    headers.set('x-soenglish-route-surface', 'public');
+    headers.set('x-arvilio-route-surface', 'public');
 
     expect(readRequestAuthState(headers).route.shell).toBe('auth');
   });

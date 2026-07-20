@@ -10,14 +10,9 @@ import { filterLessonsForStudent } from '../../../lib/student-live-stats';
 import { useAchievementStats } from '../../../hooks/use-achievement-stats';
 import { useStudentLiveStats } from '../../../hooks/use-student-live-stats';
 import { useLessonsStore } from '../../../stores/lessons-store';
-import {
-  isAdminOrSuper,
-  isTeacherAdminOrSuper,
-  mockUsers,
-  USER_ACCOUNT_STATUS,
-  USER_ROLE,
-  type MockStudent,
-} from '../../../mocks';
+import { isAdminOrSuper, isTeacherAdminOrSuper } from '../../../lib/roles';
+import { USER_ACCOUNT_STATUS, USER_ROLE } from '@pkg/types';
+import type { MockStudent } from '../../../lib/user-models';
 import { useActiveUser } from '../../../lib/active-user';
 import { useOptionalAuth } from '../../../lib/auth-context';
 import {
@@ -34,13 +29,14 @@ import {
   formatContactMetaLine,
 } from '../../../lib/profile-hero-highlights';
 import { splitStudentBillingTracks } from '../../../lib/billing/student-billing-tracks';
+import { useCampusI18n, useCampusT } from '../../../lib/cms';
 import { ArrowLeft, MessageCircle } from 'lucide-react';
 import styles from './page.module.scss';
 import { StudentPageSkeleton } from './StudentPageSkeleton';
 import { createLazyPanel } from '../../../lib/client/lazy-panel';
 import { TabPanelLoading } from './TabPanelLoading';
-import { useStudentHeroData } from './useStudentHeroData';
 import { useStudentProfileSave } from './useStudentProfileSave';
+import { useStudentHeroData } from './useStudentHeroData';
 
 const StudentProfileTab = createLazyPanel(
   () => import('./StudentProfileTab').then((module) => module.StudentProfileTab),
@@ -85,6 +81,8 @@ const EMPTY_STUDENT: MockStudent = {
 };
 
 export default function StudentDetailsPage() {
+  const t = useCampusT();
+  const { locale } = useCampusI18n();
   const params = useParams<{ studentId: string }>();
   const studentId = params?.studentId ?? '';
   const activeUser = useActiveUser();
@@ -160,6 +158,7 @@ export default function StudentDetailsPage() {
       activeUserRole: activeUser.role,
       studentForm,
       lessonFormat,
+      t,
     });
 
   const { savedProfile, saveError, onSave } = useStudentProfileSave({
@@ -175,8 +174,15 @@ export default function StudentDetailsPage() {
   });
 
   const heroAction = useMemo(
-    () => buildStudentHeroAction(lessons, (lesson) => `/lessons/${getLessonBackendId(lesson)}`),
-    [lessons],
+    () =>
+      buildStudentHeroAction(
+        lessons,
+        (lesson) => `/lessons/${getLessonBackendId(lesson)}`,
+        undefined,
+        t,
+        locale,
+      ),
+    [lessons, locale, t],
   );
 
   const heroMetaExtra = useMemo(
@@ -193,8 +199,8 @@ export default function StudentDetailsPage() {
   if (!resolved) {
     return (
       <EmptyStateCard
-        title="Student not found"
-        description="Check the student link and try again."
+        title={t('students.detail.notFoundTitle')}
+        description={t('students.detail.notFoundDesc')}
       />
     );
   }
@@ -208,33 +214,36 @@ export default function StudentDetailsPage() {
 
   if (!canManage) {
     return (
-      <EmptyStateCard title="No permission" description="You cannot manage this student." />
+      <EmptyStateCard
+        title={t('students.detail.noPermissionTitle')}
+        description={t('students.detail.noPermissionDesc')}
+      />
     );
   }
 
   const avatarUrl = resolved.avatarUrl;
-  const mockAvatar = mockUsers.find((row) => row.id === studentForm.id)?.avatar.url;
 
   return (
     <ProfileViewShell
       keepMountedTabs={false}
+      tabsAriaLabel={t('students.detail.tabsAria')}
       back={
-        <Link href="/students" className={styles.backLink} aria-label="Back to students">
+        <Link href="/students" className={styles.backLink} aria-label={t('students.detail.backAria')}>
           <ArrowLeft size={18} aria-hidden />
         </Link>
       }
-      title="Student profile"
-      subtitle="Overview, progress, billing, and lesson history"
+      title={t('students.detail.title')}
+      subtitle={t('students.detail.subtitle')}
       avatar={
         <UserAvatar
           size="xl"
-          src={avatarUrl ?? mockAvatar}
+          src={avatarUrl}
           name={studentForm.fullName}
           email={studentForm.email}
         />
       }
       name={studentForm.fullName}
-      meta={`Teacher: ${studentForm.teacherName}`}
+      meta={t('students.card.teacher', { name: studentForm.teacherName })}
       metaExtra={heroMetaExtra}
       badges={profileBadges}
       heroAction={heroAction}
@@ -244,8 +253,9 @@ export default function StudentDetailsPage() {
           <Link
             href={`/chat?peer=${encodeURIComponent(studentBackendId)}`}
             className={styles.heroChatBtn}
-            aria-label={`Open chat with ${studentForm.fullName}`}
-            title="Open chat"
+            data-tour-anchor="student-hero-chat"
+            aria-label={t('students.detail.openChatAria', { name: studentForm.fullName })}
+            title={t('students.detail.openChatTitle')}
           >
             <MessageCircle size={20} aria-hidden />
           </Link>
@@ -264,7 +274,7 @@ export default function StudentDetailsPage() {
       tabs={[
         {
           value: 'profile',
-          label: 'Profile',
+          label: t('profile.tab.profile'),
           panel: (
             <StudentProfileTab
               student={studentForm}
@@ -288,26 +298,27 @@ export default function StudentDetailsPage() {
         },
         {
           value: 'statistics',
-          label: 'Statistics',
+          label: t('profile.tab.statistics'),
           panel: studentBackendId && (tab === 'statistics' || visitedTabs.has('statistics')) ? (
             <StudentStatisticsTab studentId={studentBackendId} />
           ) : studentBackendId ? null : (
             <EmptyStateCard
-              title="Statistics unavailable"
-              description="Link this student to a backend account first."
+              title={t('students.detail.unavailable.title', { feature: t('profile.tab.statistics') })}
+              description={t('students.detail.unavailable.linkBackend')}
             />
           ),
         },
         {
           value: 'lessons',
-          label: 'Lessons',
+          label: t('students.detail.tab.lessons'),
           panel: tab === 'lessons' || visitedTabs.has('lessons') ? (
             <StudentLessonsTab lessons={lessons} groupLessonsEnabled={groupLessonsEnabled} />
           ) : null,
         },
         {
           value: 'billing',
-          label: 'Billing',
+          label: t('students.detail.tab.billing'),
+          dataAttrs: { 'data-tour-anchor': 'student-billing-tab' },
           panel: studentBackendId && (tab === 'billing' || visitedTabs.has('billing')) ? (
             <StudentBillingTab
               studentBackendId={studentBackendId}
@@ -317,27 +328,28 @@ export default function StudentDetailsPage() {
             />
           ) : studentBackendId ? null : (
             <EmptyStateCard
-              title="Billing unavailable"
-              description="Link this student to a backend account first."
+              title={t('students.detail.unavailable.title', { feature: t('students.detail.tab.billing') })}
+              description={t('students.detail.unavailable.linkBackend')}
             />
           ),
         },
         {
           value: 'achievements',
-          label: 'Achievements',
+          label: t('profile.tab.achievements'),
           panel: tab === 'achievements' || visitedTabs.has('achievements') ? (
             <StudentAchievementsTab achievements={studentAchievements} />
           ) : null,
         },
         {
           value: 'practice',
-          label: 'Practice',
+          label: t('students.detail.tab.practice'),
+          dataAttrs: { 'data-tour-anchor': 'student-practice-tab' },
           panel: resolved.backendId && (tab === 'practice' || visitedTabs.has('practice')) ? (
             <StudentPracticeTab studentId={resolved.backendId} />
           ) : resolved.backendId ? null : (
             <EmptyStateCard
-              title="Practice unavailable"
-              description="Link this student to a backend account first."
+              title={t('students.detail.unavailable.title', { feature: t('students.detail.tab.practice') })}
+              description={t('students.detail.unavailable.linkBackend')}
             />
           ),
         },

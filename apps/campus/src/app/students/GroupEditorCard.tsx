@@ -5,6 +5,7 @@ import type { StudentSummaryBackendDto } from '@pkg/types';
 import { UserPlus, Users, X } from 'lucide-react';
 import { Badge, Button, Field, SurfaceCard } from '../../components/ui';
 import { StudentSelectField } from '../../components/students';
+import { useCampusT } from '../../lib/cms';
 import type { GroupDraft } from './group-utils';
 import { isGroupEligibleStudent } from './group-utils';
 import styles from './page.module.scss';
@@ -33,6 +34,8 @@ export function GroupEditorCard({
   showAddMember, setShowAddMember, addMemberKey,
   saveError, setSaveError, saving, onSave, onClose, onAddMember, onRemoveMember,
 }: GroupEditorCardProps) {
+  const t = useCampusT();
+
   return (
     <SurfaceCard className={styles.groupEditorCard}>
       <div className={styles.groupEditorHeader}>
@@ -41,12 +44,11 @@ export function GroupEditorCard({
         </div>
         <div>
           <h2 className={styles.groupEditorTitle}>
-            {editingId === 'new' ? 'New learning group' : 'Edit learning group'}
+            {editingId === 'new'
+              ? t('students.groups.editor.createTitle')
+              : t('students.groups.editor.editTitle')}
           </h2>
-          <p className={styles.groupEditorSubtitle}>
-            Name the group, assign a teacher, set billing defaults, and add at least two
-            students.
-          </p>
+          <p className={styles.groupEditorSubtitle}>{t('students.groups.editor.subtitle')}</p>
         </div>
       </div>
 
@@ -58,17 +60,17 @@ export function GroupEditorCard({
 
       <div className={styles.groupEditorBody}>
         <section className={styles.groupEditorSection}>
-          <h3 className={styles.groupEditorSectionTitle}>Basics</h3>
+          <h3 className={styles.groupEditorSectionTitle}>{t('students.groups.editor.basics')}</h3>
           <div className={styles.groupEditorFieldGrid}>
             <div className={styles.groupEditorField}>
               <label className={styles.groupEditorLabel} htmlFor="group-name">
-                Group name
+                {t('students.groups.editor.nameLabel')}
               </label>
               <Field
                 id="group-name"
                 className={styles.groupEditorInput}
                 value={draft.name}
-                placeholder="e.g. B1 Evening cohort"
+                placeholder={t('students.groups.editor.namePlaceholder')}
                 onChange={(e) => {
                   setSaveError(null);
                   setDraft((prev) => ({ ...prev, name: e.target.value }));
@@ -77,7 +79,7 @@ export function GroupEditorCard({
             </div>
             <div className={styles.groupEditorField}>
               <label className={styles.groupEditorLabel} htmlFor="group-teacher">
-                Assigned teacher
+                {t('students.groups.editor.teacherLabel')}
               </label>
               <Field
                 id="group-teacher"
@@ -89,7 +91,7 @@ export function GroupEditorCard({
                   setDraft((prev) => ({ ...prev, teacherId: e.target.value }));
                 }}
               >
-                <option value="">— No teacher —</option>
+                <option value="">{t('students.groups.editor.noTeacherOption')}</option>
                 {teachers.map((teacher) => (
                   <option key={teacher.id} value={teacher.id}>
                     {teacher.displayName}
@@ -101,14 +103,14 @@ export function GroupEditorCard({
         </section>
 
         <section className={styles.groupEditorSection}>
-          <h3 className={styles.groupEditorSectionTitle}>Billing defaults</h3>
-          <p className={styles.groupEditorSectionHint}>
-            Copied onto new group lessons. Teachers cannot change prices when scheduling.
-          </p>
+          <h3 className={styles.groupEditorSectionTitle}>
+            {t('students.groups.editor.billingTitle')}
+          </h3>
+          <p className={styles.groupEditorSectionHint}>{t('students.groups.editor.billingHint')}</p>
           <div className={styles.groupEditorFieldGrid}>
             <div className={styles.groupEditorField}>
               <label className={styles.groupEditorLabel} htmlFor="group-billing-mode">
-                Billing mode
+                {t('students.groups.editor.billingModeLabel')}
               </label>
               <Field
                 id="group-billing-mode"
@@ -117,18 +119,21 @@ export function GroupEditorCard({
                 value={draft.groupBillingMode}
                 onChange={(e) => {
                   setSaveError(null);
-                  setDraft((prev) => ({ ...prev, groupBillingMode: e.target.value as GroupDraft['groupBillingMode'] }));
+                  setDraft((prev) => ({
+                    ...prev,
+                    groupBillingMode: e.target.value as GroupDraft['groupBillingMode'],
+                  }));
                 }}
               >
-                <option value="per_member">1 lesson credit per member</option>
-                <option value="fixed_total">Fixed amount per lesson</option>
+                <option value="per_member">{t('students.groups.editor.billingPerMemberOption')}</option>
+                <option value="fixed_total">{t('students.groups.editor.billingFixedOption')}</option>
               </Field>
             </div>
             {draft.groupBillingMode === 'fixed_total' ? (
               <>
                 <div className={styles.groupEditorField}>
                   <label className={styles.groupEditorLabel} htmlFor="group-price">
-                    Amount (minor units)
+                    {t('students.groups.editor.amountLabel')}
                   </label>
                   <Field
                     id="group-price"
@@ -143,12 +148,12 @@ export function GroupEditorCard({
                         groupPriceMinor: Math.max(0, Number(e.target.value) || 0),
                       }));
                     }}
-                    placeholder="45000 = 450.00"
+                    placeholder={t('students.groups.editor.amountPlaceholder')}
                   />
                 </div>
                 <div className={styles.groupEditorField}>
                   <label className={styles.groupEditorLabel} htmlFor="group-currency">
-                    Currency
+                    {t('students.groups.editor.currencyLabel')}
                   </label>
                   <Field
                     id="group-currency"
@@ -162,7 +167,7 @@ export function GroupEditorCard({
                 </div>
                 <div className={styles.groupEditorField}>
                   <label className={styles.groupEditorLabel} htmlFor="group-split">
-                    Split mode
+                    {t('students.groups.editor.splitLabel')}
                   </label>
                   <Field
                     id="group-split"
@@ -171,22 +176,27 @@ export function GroupEditorCard({
                     value={draft.groupSplitMode}
                     onChange={(e) => {
                       setSaveError(null);
-                      setDraft((prev) => ({ ...prev, groupSplitMode: e.target.value as GroupDraft['groupSplitMode'] }));
+                      setDraft((prev) => ({
+                        ...prev,
+                        groupSplitMode: e.target.value as GroupDraft['groupSplitMode'],
+                      }));
                     }}
                   >
-                    <option value="equal_split">Split equally</option>
-                    <option value="single_payer">Single payer</option>
+                    <option value="equal_split">{t('students.groups.editor.splitEqual')}</option>
+                    <option value="single_payer">{t('students.groups.editor.splitSinglePayer')}</option>
                   </Field>
                 </div>
                 {draft.groupSplitMode === 'single_payer' ? (
                   <div className={styles.groupEditorField}>
-                    <label className={styles.groupEditorLabel}>Payer</label>
+                    <label className={styles.groupEditorLabel}>
+                      {t('students.groups.editor.payerLabel')}
+                    </label>
                     <StudentSelectField
                       className={styles.groupEditorInput}
                       value={draft.groupPayerUserId}
                       staticStudents={payerCandidates}
-                      placeholder="Select payer"
-                      searchPlaceholder="Search members…"
+                      placeholder={t('students.groups.editor.payerPlaceholder')}
+                      searchPlaceholder={t('students.groups.editor.searchMembersPlaceholder')}
                       onValueChange={(nextValue) => {
                         setSaveError(null);
                         setDraft((prev) => ({ ...prev, groupPayerUserId: nextValue }));
@@ -202,16 +212,20 @@ export function GroupEditorCard({
         <section className={styles.groupEditorSection}>
           <div className={styles.groupMembersHead}>
             <div>
-              <h3 className={styles.groupEditorSectionTitle}>Members</h3>
+              <h3 className={styles.groupEditorSectionTitle}>
+                {t('students.groups.editor.membersTitle')}
+              </h3>
               <p className={styles.groupEditorSectionHint}>
-                Only students with group or mixed lesson format. Minimum two students.
+                {t('students.groups.editor.membersHint')}
               </p>
             </div>
             <Badge
               variant={draft.memberUserIds.length >= 2 ? 'green' : 'neutral'}
               size="sm"
             >
-              {draft.memberUserIds.length} selected
+              {t('students.groups.editor.membersSelected', {
+                count: draft.memberUserIds.length,
+              })}
             </Badge>
           </div>
 
@@ -223,19 +237,24 @@ export function GroupEditorCard({
                   {member.email ? (
                     <span className={styles.groupMemberChipMeta}>{member.email}</span>
                   ) : null}
-                  <button
+                  <Button
+                    variant="bare"
                     type="button"
                     className={styles.groupMemberChipRemove}
-                    aria-label={`Remove ${member.displayName}`}
+                    aria-label={t('students.groups.editor.removeMemberAria', {
+                      name: member.displayName,
+                    })}
                     onClick={() => onRemoveMember(member.id)}
                   >
                     <X size={14} aria-hidden />
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
           ) : (
-            <div className={styles.groupMembersEmpty}>No students added yet.</div>
+            <div className={styles.groupMembersEmpty}>
+              {t('students.groups.editor.membersEmpty')}
+            </div>
           )}
 
           {showAddMember ? (
@@ -244,8 +263,8 @@ export function GroupEditorCard({
                 key={addMemberKey}
                 className={styles.groupEditorInput}
                 value=""
-                placeholder="Search and select a student…"
-                searchPlaceholder="Search students…"
+                placeholder={t('students.groups.editor.addMemberPlaceholder')}
+                searchPlaceholder={t('students.groups.editor.searchStudentsPlaceholder')}
                 filter={(student) =>
                   isGroupEligibleStudent(student) &&
                   !draft.memberUserIds.includes(student.id)
@@ -259,7 +278,7 @@ export function GroupEditorCard({
                 variant="ghost"
                 onClick={() => setShowAddMember(false)}
               >
-                Cancel
+                {t('students.groups.editor.cancel')}
               </Button>
             </div>
           ) : (
@@ -270,7 +289,7 @@ export function GroupEditorCard({
               startIcon={<UserPlus size={16} />}
               onClick={() => setShowAddMember(true)}
             >
-              Add student
+              {t('students.groups.editor.addMember')}
             </Button>
           )}
         </section>
@@ -278,10 +297,14 @@ export function GroupEditorCard({
 
       <div className={styles.groupEditorFooter}>
         <Button type="button" disabled={saving} onClick={onSave}>
-          {saving ? 'Saving…' : editingId === 'new' ? 'Create group' : 'Save changes'}
+          {saving
+            ? t('students.groups.editor.saving')
+            : editingId === 'new'
+              ? t('students.groups.editor.createAction')
+              : t('students.groups.editor.saveAction')}
         </Button>
         <Button type="button" variant="default" disabled={saving} onClick={onClose}>
-          Cancel
+          {t('students.groups.editor.cancel')}
         </Button>
       </div>
     </SurfaceCard>

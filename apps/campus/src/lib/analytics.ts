@@ -53,9 +53,84 @@ export type AnalyticsEvent =
   | { name: 'signup_completed'; schoolId: string }
   | { name: 'wizard_step_completed'; step: string; schoolId: string }
   | { name: 'wizard_completed'; schoolId: string }
-  | { name: 'tour_step_viewed'; stepIndex: number }
-  | { name: 'tour_completed' }
-  | { name: 'tour_skipped'; stepIndex: number }
+  | {
+      name: 'tour_step_viewed';
+      stepIndex: number;
+      track?: string;
+      role?: string;
+      stepId?: string;
+    }
+  | { name: 'tour_completed'; track?: string; role?: string; stepId?: string }
+  | {
+      name: 'tour_skipped';
+      stepIndex: number;
+      track?: string;
+      role?: string;
+      stepId?: string;
+    }
+  | {
+      name: 'tour_quest_viewed';
+      questIndex: number;
+      track?: string;
+      role?: string;
+      questId?: string;
+    }
+  | {
+      name: 'tour_quest_completed';
+      questIndex: number;
+      track?: string;
+      role?: string;
+      questId?: string;
+    }
+  | {
+      name: 'tour_quest_skipped';
+      questIndex: number;
+      track?: string;
+      role?: string;
+      questId?: string;
+    }
+  | {
+      name: 'tour_chapter_started';
+      track?: string;
+      role?: string;
+      chapterId: string;
+    }
+  | {
+      name: 'tour_chapter_completed';
+      track?: string;
+      role?: string;
+      chapterId: string;
+    }
+  | {
+      name: 'tour_chapter_skipped';
+      track?: string;
+      role?: string;
+      chapterId: string;
+    }
+  | {
+      name: 'tour_chapter_replayed';
+      track?: string;
+      role?: string;
+      chapterId: string;
+    }
+  | {
+      name: 'tour_contextual_opened';
+      track?: string;
+      role?: string;
+      stepId?: string;
+    }
+  | {
+      name: 'tour_contextual_closed';
+      track?: string;
+      role?: string;
+      stepId?: string;
+    }
+  | {
+      name: 'tour_contextual_skipped';
+      track?: string;
+      role?: string;
+      stepId?: string;
+    }
   | { name: 'first_lesson_created'; schoolId: string }
   | { name: 'trial_checkout_started'; plan: string; schoolId: string }
   | { name: 'trial_converted'; plan: string; schoolId: string }

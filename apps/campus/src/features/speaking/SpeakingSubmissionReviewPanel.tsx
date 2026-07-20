@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import type { SpeakingSubmissionDto } from '@pkg/types';
 import { Button, Field } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import { speakingSubmissionAudioHref } from '../../lib/speaking-upload';
 import { useSpeakingStore } from '../../stores/speaking-store';
 import styles from './SpeakingSubmissionReviewPanel.module.scss';
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export function SpeakingSubmissionReviewPanel({ submission }: Props) {
+  const t = useCampusT();
   const reviewSubmission = useSpeakingStore((s) => s.reviewSubmission);
   const [feedback, setFeedback] = useState(submission.teacherFeedback ?? '');
   const [saving, setSaving] = useState(false);
@@ -28,7 +30,7 @@ export function SpeakingSubmissionReviewPanel({ submission }: Props) {
         teacherFeedback: feedback.trim(),
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save feedback');
+      setError(err instanceof Error ? err.message : t('speaking.review.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -50,7 +52,9 @@ export function SpeakingSubmissionReviewPanel({ submission }: Props) {
             submission.status === 'reviewed' ? styles.badgeReviewed : styles.badgePending,
           ].join(' ')}
         >
-          {submission.status === 'reviewed' ? 'Reviewed' : 'Pending'}
+          {submission.status === 'reviewed'
+            ? t('speaking.status.reviewed')
+            : t('speaking.status.pending')}
         </span>
       </div>
 
@@ -61,22 +65,26 @@ export function SpeakingSubmissionReviewPanel({ submission }: Props) {
           <track kind="captions" />
         </audio>
       ) : (
-        <p className={styles.missing}>No audio uploaded yet.</p>
+        <p className={styles.missing}>{t('speaking.review.noAudio')}</p>
       )}
 
       <form className={styles.form} onSubmit={onSubmit} noValidate>
         <Field
-          label="Teacher comment"
+          label={t('speaking.review.teacherComment')}
           as="textarea"
           rows={3}
           value={feedback}
           onChange={(event) => setFeedback(event.target.value)}
-          placeholder="Share pronunciation notes, grammar tips, or encouragement…"
+          placeholder={t('speaking.review.commentPlaceholder')}
           disabled={saving}
         />
         {error ? <p className={styles.error}>{error}</p> : null}
         <Button type="submit" disabled={saving || !feedback.trim()}>
-          {saving ? 'Saving…' : submission.status === 'reviewed' ? 'Update feedback' : 'Save feedback'}
+          {saving
+            ? t('speaking.review.saving')
+            : submission.status === 'reviewed'
+              ? t('speaking.review.update')
+              : t('speaking.review.save')}
         </Button>
       </form>
     </div>

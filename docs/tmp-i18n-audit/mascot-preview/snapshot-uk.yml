@@ -1,0 +1,22 @@
+- generic [active] [ref=f30e1]:
+  - generic [ref=f30e3]:
+    - heading "Arvi — попередній перегляд" [level=1] [ref=f30e4]
+    - paragraph [ref=f30e5]: "Покладіть public/mascot/arvi.glb, щоб побачити 3D-модель. Без файлу (або з reduced-motion / без WebGL) показується 2D fallback. Пози B7: think, encourage, sleep, wave."
+    - heading "Пози @ 140px" [level=2] [ref=f30e6]
+    - generic [ref=f30e7]:
+      - figure "idle" [ref=f30e8]
+      - figure "greet" [ref=f30e21]
+      - figure "point" [ref=f30e34]
+      - figure "celebrate" [ref=f30e48]
+      - figure "think" [ref=f30e61]
+      - figure "encourage" [ref=f30e77]
+      - figure "sleep" [ref=f30e90]
+      - figure "wave" [ref=f30e103]
+    - heading "Розміри (idle)" [level=2] [ref=f30e117]
+    - generic [ref=f30e118]:
+      - generic [ref=f30e119]: 40px
+      - generic [ref=f30e131]: 56px
+      - generic [ref=f30e143]: 72px
+      - generic [ref=f30e155]: 120px
+  - button "Open Next.js Dev Tools" [ref=f30e172] [cursor=pointer]
+  - alert [ref=f30e176]

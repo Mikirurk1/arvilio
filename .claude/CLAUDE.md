@@ -1,11 +1,11 @@
-# SoEnglish — Claude Code Guidelines
+# Arvilio — Claude Code Guidelines
 
 ## Project overview
 
-SoEnglish is a **single-school** English learning platform (Next.js + NestJS + GraphQL + Prisma). Today it serves one school; it is being built with seams for future **multi-tenant SaaS + marketplace**.
+Arvilio is a **single-school** English learning platform (Next.js + NestJS + GraphQL + Prisma). Today it serves one school; it is being built with seams for future **multi-tenant SaaS + marketplace**.
 
 Monorepo structure:
-- `apps/web` — Next.js frontend
+- `apps/campus` — Next.js frontend
 - `apps/api` — NestJS API gateway
 - `packages/backend/` — `@be/*` domain modules
 - `docs/llm-wiki/wiki/` — compiled knowledge base (always update after durable changes)
@@ -98,9 +98,9 @@ User opt-out: **skip wiki** only.
 
 ---
 
-## Web UI — reuse primitives (`apps/web`)
+## Web UI — reuse primitives (`apps/campus`)
 
-Do not reach for bare HTML when the project already provides a component. Check `apps/web/src/components/ui/index.ts` first.
+Do not reach for bare HTML when the project already provides a component. Check `apps/campus/src/components/ui/index.ts` first.
 
 | Avoid | Use instead |
 |-------|-------------|
@@ -119,7 +119,7 @@ Also reuse: `PageHeader`, `SurfaceCard`, `EmptyStateCard`, `Badge`, `Tabs`, `Seg
 
 ---
 
-## Web async actions (`apps/web/**/*.tsx`)
+## Web async actions (`apps/campus/**/*.tsx`)
 
 For any button that triggers backend work:
 

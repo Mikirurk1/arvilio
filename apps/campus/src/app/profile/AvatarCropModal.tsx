@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { UserRound, X } from 'lucide-react';
 import { Button } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import { getAvatarFallbackInitials } from '../../lib/avatar';
 import styles from './page.module.scss';
 
@@ -23,6 +24,7 @@ interface AvatarCropModalProps {
 }
 
 export function AvatarCropModal({ open, avatarUrl, userName, onClose, onCropApply, onRemove }: AvatarCropModalProps) {
+  const t = useCampusT();
   const [cropSource, setCropSource] = useState<string | null>(null);
   const [cropRect, setCropRect] = useState<CropRect>({ x: 40, y: 40, size: 180 });
   const [dragMode, setDragMode] = useState<'move' | 'resize' | null>(null);
@@ -132,11 +134,11 @@ export function AvatarCropModal({ open, avatarUrl, userName, onClose, onCropAppl
       <div role="dialog" aria-modal="true" aria-labelledby="avatar-modal-title" className={styles.avatarModal} onClick={(event) => event.stopPropagation()}>
         <div className={styles.avatarModalHead}>
           <div className={styles.avatarModalHeadText}>
-            <span className={styles.avatarModalBadge}><UserRound size={14} />Profile media</span>
-            <div id="avatar-modal-title" className={styles.avatarModalTitle}>Profile avatar</div>
-            <div className={styles.avatarModalText}>Choose an image, move and scale square crop area, then apply compressed avatar.</div>
+            <span className={styles.avatarModalBadge}><UserRound size={14} />{t('profile.avatar.badge')}</span>
+            <div id="avatar-modal-title" className={styles.avatarModalTitle}>{t('profile.avatar.title')}</div>
+            <div className={styles.avatarModalText}>{t('profile.avatar.hint')}</div>
           </div>
-          <Button type="button" variant="ghost" className={styles.avatarModalClose} aria-label="Close avatar modal" onClick={onClose}>
+          <Button type="button" variant="ghost" className={styles.avatarModalClose} aria-label={t('profile.avatar.closeAria')} onClick={onClose}>
             <X size={16} />
           </Button>
         </div>
@@ -149,21 +151,21 @@ export function AvatarCropModal({ open, avatarUrl, userName, onClose, onCropAppl
         </div>
         <input ref={avatarInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif" className={styles.avatarFileInput} onChange={handleAvatarFileChange} />
         {cropSource ? (
-          <div className={styles.cropWorkspace} aria-label="Avatar crop workspace">
+          <div className={styles.cropWorkspace} aria-label={t('profile.avatar.cropAria')}>
             <Image ref={cropImageRef} src={cropSource} alt="" width={360} height={360} className={styles.cropImage} unoptimized />
             <div className={styles.cropRect} style={{ width: `${cropRect.size}px`, height: `${cropRect.size}px`, transform: `translate(${cropRect.x}px, ${cropRect.y}px)` }} onPointerDown={(event) => startDrag('move', event)}>
-              <span className={styles.cropRectHint}>Drag</span>
-              <button type="button" className={styles.cropResizeHandle} onPointerDown={(event) => startDrag('resize', event)} aria-label="Resize crop square" />
+              <span className={styles.cropRectHint}>{t('profile.avatar.drag')}</span>
+              <Button variant="bare" type="button" className={styles.cropResizeHandle} onPointerDown={(event) => startDrag('resize', event)} aria-label={t('profile.avatar.resizeAria')} />
             </div>
           </div>
         ) : null}
         <div className={styles.avatarModalActions}>
-          <Button type="button" variant="primary" onClick={() => avatarInputRef.current?.click()}>Choose image</Button>
+          <Button type="button" variant="primary" onClick={() => avatarInputRef.current?.click()}>{t('profile.avatar.choose')}</Button>
           {cropSource ? (
-            <Button type="button" variant="primary" disabled={isProcessingAvatar} loading={isProcessingAvatar} loadingLabel="Processing…" onClick={() => void applyAvatarCrop()}>Apply crop</Button>
+            <Button type="button" variant="primary" disabled={isProcessingAvatar} loading={isProcessingAvatar} loadingLabel={t('profile.avatar.processing')} onClick={() => void applyAvatarCrop()}>{t('profile.avatar.apply')}</Button>
           ) : null}
           {avatarUrl ? (
-            <Button type="button" variant="default" onClick={onRemove}>Remove</Button>
+            <Button type="button" variant="default" onClick={onRemove}>{t('profile.avatar.remove')}</Button>
           ) : null}
         </div>
       </div>

@@ -69,14 +69,15 @@ export function MediaViewerShell({
         <h2 className={styles.modalTitle} id="media-viewer-title">
           {meta.fileName}
         </h2>
-        <button
+        <Button
+          variant="bare"
           type="button"
           className={styles.modalCloseBtn}
           aria-label="Close player"
           onClick={() => void onClose()}
         >
           <X size={18} aria-hidden />
-        </button>
+        </Button>
       </header>
       <div className={styles.modalBody}>
         <div className={styles.playerColumn}>

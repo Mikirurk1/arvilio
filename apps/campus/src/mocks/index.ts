@@ -22,7 +22,6 @@ export {
 } from '@pkg/types';
 export * from './session';
 export * from './roles';
-export * from './content/site-content';
 export * from './domains/lessons';
 export * from './domains/vocabulary';
 export * from './domains/quiz';

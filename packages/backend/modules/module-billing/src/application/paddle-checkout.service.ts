@@ -71,7 +71,7 @@ export class PaddleCheckoutService {
       amountMinor: pkg.amountMinor,
       currency: pkg.currency,
       title: pkg.label,
-      description: `${pkg.lessons} lessons for SoEnglish balance top-up`,
+      description: `${pkg.lessons} lessons for Arvilio balance top-up`,
       redirectUrl: `${webBase}/payment?status=success`,
       customData: {
         paymentId: payment.id,

@@ -1,7 +1,10 @@
+'use client';
+
 import type { StudentLessonFormat } from '@pkg/types';
 import { GraduationCap } from 'lucide-react';
 import { Field } from '../ui';
-import { isAdminOrSuper } from '../../mocks';
+import { useCampusT } from '../../lib/cms';
+import { isAdminOrSuper } from '../../lib/roles';
 import { isFieldVisible } from './profile-field-policy';
 import { LessonFormatField } from './LessonFormatField';
 import { UserColorPicker } from './UserColorPicker';
@@ -19,6 +22,7 @@ interface SchoolSectionProps {
 }
 
 export function SchoolSection({ values, resolvedContext, fieldsDisabled, idPrefix, patch, teacherOptions }: SchoolSectionProps) {
+  const t = useCampusT();
   const canAssignTeacher = isAdminOrSuper(resolvedContext.viewerRole);
   return (
     <section className={styles.profileSection}>
@@ -27,9 +31,9 @@ export function SchoolSection({ values, resolvedContext, fieldsDisabled, idPrefi
           <GraduationCap size={16} />
         </span>
         <div>
-          <h4 className={styles.profileSectionTitle}>School settings</h4>
+          <h4 className={styles.profileSectionTitle}>{t('profile.school.title')}</h4>
           <p className={styles.profileSectionText}>
-            Scheduling, lesson format, teacher assignment, and calendar color.
+            {t('profile.school.hint')}
           </p>
         </div>
       </header>
@@ -37,7 +41,7 @@ export function SchoolSection({ values, resolvedContext, fieldsDisabled, idPrefi
         {isFieldVisible('assignedTeacher', resolvedContext) ? (
           <div className={styles.fieldGroup}>
             <label className={styles.label} htmlFor={`${idPrefix}-teacher`}>
-              Assigned teacher
+              {t('profile.school.assignedTeacher')}
             </label>
             <Field
               as="select"
@@ -62,7 +66,7 @@ export function SchoolSection({ values, resolvedContext, fieldsDisabled, idPrefi
         {isFieldVisible('scheduleType', resolvedContext) ? (
           <div className={styles.fieldGroup}>
             <label className={styles.label} htmlFor={`${idPrefix}-schedule`}>
-              Schedule type
+              {t('profile.school.scheduleType')}
             </label>
             <Field
               as="select"
@@ -74,19 +78,19 @@ export function SchoolSection({ values, resolvedContext, fieldsDisabled, idPrefi
                 patch({ scheduleType: event.target.value === 'true' })
               }
             >
-              <option value="true">Fixed schedule</option>
-              <option value="false">Flexible schedule</option>
+              <option value="true">{t('profile.school.scheduleFixed')}</option>
+              <option value="false">{t('profile.school.scheduleFlexible')}</option>
             </Field>
           </div>
         ) : null}
 
         {isFieldVisible('lessonFormat', resolvedContext) ? (
           <div className={`${styles.fieldGroup} ${styles.fieldGroupWide}`}>
-            <label className={styles.label}>Lesson format</label>
+            <label className={styles.label}>{t('profile.school.lessonFormat')}</label>
             <p className={styles.fieldHint}>
               {canAssignTeacher
-                ? 'Which lesson types this student can take.'
-                : 'How this student participates in individual and group lessons.'}
+                ? t('profile.school.lessonFormatHintAdmin')
+                : t('profile.school.lessonFormatHintViewer')}
             </p>
             <LessonFormatField
               value={values.lessonFormat}
@@ -98,7 +102,7 @@ export function SchoolSection({ values, resolvedContext, fieldsDisabled, idPrefi
 
         {isFieldVisible('userColor', resolvedContext) ? (
           <div className={styles.fieldGroup}>
-            <label className={styles.label}>User color</label>
+            <label className={styles.label}>{t('profile.school.userColor')}</label>
             <UserColorPicker
               value={values.userColor ?? ''}
               disabled={fieldDisabled('userColor', resolvedContext, fieldsDisabled)}

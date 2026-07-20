@@ -93,6 +93,7 @@ const LESSON_BALANCE_FIELDS = `
     id
     lessons
     label
+    description
     currency
     amountMinor
     pricePerLessonMinor
@@ -188,7 +189,7 @@ const PAYMENT_CONFIG_FIELDS = `
     defaultCurrency
     allowedCurrencies
     minPackageLessons
-    packages { id lessons label currency creditTrack }
+    packages { id lessons label description currency creditTrack }
     manualInvoiceMethods {
       id
       kind

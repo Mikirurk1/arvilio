@@ -78,8 +78,9 @@ export function AnnotationToolbar({
           </div>
           <div className={styles.toolGroup} aria-label="Colors">
             {COLORS.map((swatch) => (
-              <button
+              <Button
                 key={swatch}
+                variant="bare"
                 type="button"
                 className={[styles.colorSwatch, color === swatch ? styles.colorSwatchActive : ''].join(' ')}
                 style={{ backgroundColor: swatch }}

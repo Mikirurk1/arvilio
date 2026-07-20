@@ -1,4 +1,4 @@
-# SoEnglish — план редизайну UI
+# Arvilio — план редизайну UI
 
 > **⚠️ SUPERSEDED (2026-06-11):** цей план заархівовано. Актуальний план — [`redesign-v2.md`](./redesign-v2.md) («Editorial Paper», CSS + GSAP). Нижче — лише історичний контекст.
 
@@ -15,7 +15,7 @@
 
 ```text
 Виконай крок <ID> з docs/redesign/plan.md.
-Skills: .agents/skills/redesign-existing-projects, .cursor/skills/soenglish-redesign.
+Skills: .agents/skills/redesign-existing-projects, .cursor/skills/arvilio-redesign.
 Reuse: §1.4 — спочатку components/ui і існуючі feature blocks; не переписуй сторінку з нуля.
 Scope: лише файли з рядка кроку. Не чіпай інші ID.
 Можеш не лише «достилізувати», а й запропонувати кращу структуру/UX, якщо вона ясніша для навчання (§1.5).
@@ -33,7 +33,7 @@ Scope: лише файли з рядка кроку. Не чіпай інші ID
 |----------|----------------------------------|
 | **Preply** | Спокійна «дорога» палітра, великі заголовки, чіткий next step, довіра (урок / оплата / прогрес), мінімум візуального шуму |
 | **Edvibe** | Класна кімната: урок → матеріали → завдання; ролі; календар і списки зрозумілі з першого погляду |
-| **SoEnglish** | Lora wordmark, ink-navy `#1a1a2e`, warm surface `#f7f6f3`, зелений прогрес — **не** purple-gradient AI look |
+| **Arvilio** | Lora wordmark, ink-navy `#1a1a2e`, warm surface `#f7f6f3`, зелений прогрес — **не** purple-gradient AI look |
 
 ### Принципи (обов’язкові для кожного кроку)
 
@@ -43,7 +43,7 @@ Scope: лише файли з рядка кроку. Не чіпай інші ID
 4. **Одна школа зараз, SaaS пізніше** — один tone of voice і один візуальний каркас; `/system` і billing — platform-зони, але **той самий shell і тема**, не «інший продукт». Не ховати school-дані в глобальні singleton-стилі; семантичні токени (`--surface`, `--text-primary`), щоб пізніше можна було підмінити палітру на школу.
 5. **Спільна тема** — light/dark/auto через `data-theme` на `<html>`; кольори лише з CSS-змінних теми, не хардкод у page SCSS (див. §1.1).
 6. **Читабельний SCSS** — вкладеність через `&`, breakpoints через константи + `@include respond-to(...)`; без magic numbers у media queries (див. §1.2).
-7. **Стек не змінюємо** — SCSS modules, `components/ui`, токени `styles/tokens/`. Без Tailwind/shadcn у `apps/web`.
+7. **Стек не змінюємо** — SCSS modules, `components/ui`, токени `styles/tokens/`. Без Tailwind/shadcn у `apps/campus`.
 8. **Референси read-only** — `materials/fluent/` (layout/SCSS), `materials/figma_design/` (композиція; не копіювати Tailwind).
 9. **Рух обмежено** — це **навчальна платформа**, не showcase; анімація підтримує фокус і feedback, не відволікає (див. §1.3).
 10. **Структура й reuse** — дизайн **шаровий**; на кожному кроці **компонувати** існуюче, не малювати сторінку з нуля (див. §1.4).
@@ -67,7 +67,7 @@ Scope: лише файли з рядка кроку. Не чіпай інші ID
 
 | Шар | Де | Роль |
 |-----|-----|------|
-| Semantic tokens | `apps/web/src/styles/tokens/_theme.scss` | `--text-*`, `--surface`, `--card`, `--border`, accents; mixins `light-theme` / `dark-theme` |
+| Semantic tokens | `apps/campus/src/styles/tokens/_theme.scss` | `--text-*`, `--surface`, `--card`, `--border`, accents; mixins `light-theme` / `dark-theme` |
 | Layout tokens | `styles/tokens/_layout.scss` | padding, drawer width, containers |
 | Typography | `styles/tokens/_typography.scss` | `--font-sans`, `--font-display`, `--fs-*` |
 | Застосування | `:root`, `[data-theme='light']`, `[data-theme='dark']` у `_theme.scss` | Default + explicit modes |
@@ -81,7 +81,7 @@ Scope: лише файли з рядка кроку. Не чіпай інші ID
 - Нові кольори → спочатку в `_theme.scss` (обидві теми), потім `var(--…)` у модулях.
 - Page/module SCSS: `[data-theme='dark'] { … }` лише для винятків; уникати дублювання палітри.
 - Компоненти UI: тягнути семантику з теми, не `#hex` у `page.module.scss`.
-- **SaaS-ready:** токени називати за роллю (`--surface`, `--text-primary`), не за школою (`--soenglish-blue`); майбутній school theme = підміна набору змінних, не перепис усіх сторінок.
+- **SaaS-ready:** токени називати за роллю (`--surface`, `--text-primary`), не за школою (`--arvilio-blue`); майбутній school theme = підміна набору змінних, не перепис усіх сторінок.
 
 ### 1.2 SCSS — читабельність і breakpoints
 
@@ -131,7 +131,7 @@ Scope: лише файли з рядка кроку. Не чіпай інші ID
 
 **GSAP (дозволено за потреби):**
 
-- Додавати залежність у `@app/web` лише коли крок плану реально потребує motion (`npm i gsap` у workspace web).
+- Додавати залежність у `@app/campus` лише коли крок плану реально потребує motion (`npm i gsap` у workspace web).
 - Один `useGsap` / `gsap.context()` на компонент; `cleanup` у `useEffect` return.
 - Тривалість UI: ~150–350ms; marketing hero: до ~800ms.
 - Поважати `prefers-reduced-motion: reduce` — скоротити або вимкнути timeline.
@@ -159,7 +159,7 @@ Scope: лише файли з рядка кроку. Не чіпай інші ID
 | Calendar drag | GSAP лише якщо вже є interaction; інакше CSS |
 | Modals | CSS transform + opacity; GSAP для shared timeline якщо уніфікуємо F6 |
 
-**Крок F0 (опційно):** `R-00-07` — motion guidelines + `prefers-reduced-motion` у `_base.scss`; додати `gsap` / `three` у `apps/web/package.json` тільки під час першого кроку, що їх використовує.
+**Крок F0 (опційно):** `R-00-07` — motion guidelines + `prefers-reduced-motion` у `_base.scss`; додати `gsap` / `three` у `apps/campus/package.json` тільки під час першого кроку, що їх використовує.
 
 ### 1.4 Структура UI та перевикористання
 
@@ -403,7 +403,7 @@ container container--page
 ```text
 Крок R-20-01 з docs/redesign/plan.md.
 Дизайн: Preply clarity + Edvibe learning focus + premium (docs/redesign/plan.md §1).
-Обмеження: .cursor/skills/soenglish-redesign.md.
+Обмеження: .cursor/skills/arvilio-redesign.md.
 Після: agent-browser /dashboard як student; Status → done.
 ```
 
@@ -445,7 +445,7 @@ REDESIGN_LOOP_MODE=chain ./scripts/redesign-loop.sh
 - [ ] Модалки виглядають однією сім’єю (F6)
 - [ ] `agent-browser-all-pages.sh` без unexpected redirect/login failures
 - [ ] Wiki `ui-design-system` відображає фінальні токени
-- [ ] Немає нових Tailwind/shadcn у `apps/web`
+- [ ] Немає нових Tailwind/shadcn у `apps/campus`
 - [ ] Спільна тема: нові стилі через токени; light/dark паритет
 - [ ] SCSS: breakpoints через `respond-to`, без розсипаних magic media queries у змінених файлах
 - [ ] Motion: learning-first; GSAP/Three лише за §1.3; reduced-motion поважається

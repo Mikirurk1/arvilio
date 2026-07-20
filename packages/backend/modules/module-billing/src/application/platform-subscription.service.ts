@@ -13,6 +13,8 @@ import {
   schoolStatusForSubscription,
 } from '../shared/platform-subscription.util';
 import type { PlanKey } from '../shared/subscription-plans';
+import { PlatformBillingRailsService } from './platform-billing-rails.service';
+import { planPriceFromOffer } from '../shared/platform-billing-products';
 
 // Loose shapes for webhook payloads — avoids coupling to evolving Stripe types
 // and keeps `applySubscriptionEvent` unit-testable with plain objects.
@@ -53,10 +55,17 @@ interface SubscriptionUpdate {
  */
 @Injectable()
 export class PlatformSubscriptionService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly billingRails: PlatformBillingRailsService,
+  ) {}
 
-  private stripe(): Stripe {
-    const client = getPlatformStripeClient();
+  private async stripe(): Promise<Stripe> {
+    const cfg = await this.billingRails.resolvePlatformStripe();
+    if (!cfg.enabled) {
+      throw new BadRequestException('Platform Stripe billing is disabled');
+    }
+    const client = getPlatformStripeClient(cfg.secretKey);
     if (!client) throw new BadRequestException('Platform billing is not configured');
     return client;
   }
@@ -66,9 +75,31 @@ export class PlatformSubscriptionService {
     plan: PlanKey,
     promoCode?: string | null,
   ): Promise<{ url: string }> {
-    const priceId = priceIdForPlan(plan);
-    if (!priceId) throw new BadRequestException(`Plan "${plan}" is not available for purchase`);
-    const stripe = this.stripe();
+    const offer = await this.billingRails.resolveCampusSubscriptionOffer(schoolId);
+    if (offer.railId !== 'stripe_platform') {
+      throw new BadRequestException(
+        `Campus subscription checkout via "${offer.railId}" is not available yet — use Stripe or contact support`,
+      );
+    }
+
+    const cfg = await this.billingRails.resolvePlatformStripe();
+    if (!cfg.enabled) {
+      throw new BadRequestException('Platform Stripe billing is disabled');
+    }
+
+    const planPrice = planPriceFromOffer(offer, plan);
+    const stripePriceId =
+      planPrice?.stripePriceId?.trim() ||
+      (plan === 'STARTER' ? cfg.priceStarter : plan === 'PRO' ? cfg.pricePro : null) ||
+      priceIdForPlan(plan, { starter: cfg.priceStarter, pro: cfg.pricePro });
+    const amountMinor = planPrice?.amountMinor ?? null;
+    const currency = offer.currency.toLowerCase();
+
+    if (!stripePriceId && !(amountMinor && currency)) {
+      throw new BadRequestException(`Plan "${plan}" is not available for purchase`);
+    }
+
+    const stripe = await this.stripe();
 
     const school = await this.prisma.school.findUnique({
       where: { id: schoolId },
@@ -97,12 +128,32 @@ export class PlatformSubscriptionService {
       process.env['PLATFORM_APP_URL']?.trim() ||
       process.env['WEB_APP_URL']?.trim() ||
       'http://localhost:4200';
+
+    const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = stripePriceId
+      ? { price: stripePriceId, quantity: 1 }
+      : {
+          quantity: 1,
+          price_data: {
+            currency,
+            unit_amount: amountMinor!,
+            recurring: { interval: 'month' },
+            product_data: { name: `Arvilio Campus ${plan}` },
+          },
+        };
+
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: [lineItem],
       client_reference_id: schoolId,
-      subscription_data: { metadata: { schoolId, plan } },
+      subscription_data: {
+        metadata: {
+          schoolId,
+          plan,
+          billingCountry: offer.billingCountry ?? '',
+          offerSource: offer.source,
+        },
+      },
       metadata: { schoolId, plan },
       success_url: `${base}/settings?billing=success`,
       cancel_url: `${base}/settings?billing=cancelled`,
@@ -125,7 +176,7 @@ export class PlatformSubscriptionService {
     if (!sub?.stripeCustomerId) {
       throw new BadRequestException('No active subscription found — use checkout to subscribe first');
     }
-    const stripe = this.stripe();
+    const stripe = await this.stripe();
     const base =
       process.env['PLATFORM_APP_URL']?.trim() ||
       process.env['WEB_APP_URL']?.trim() ||
@@ -191,8 +242,10 @@ export class PlatformSubscriptionService {
   }
 
   async handleWebhook(rawBody: Buffer, signature: string | undefined): Promise<void> {
-    const stripe = this.stripe();
-    const secret = getPlatformStripeWebhookSecret();
+    const cfg = await this.billingRails.resolvePlatformStripe();
+    const stripe = getPlatformStripeClient(cfg.secretKey);
+    if (!stripe) throw new BadRequestException('Platform billing is not configured');
+    const secret = getPlatformStripeWebhookSecret(cfg.webhookSecret);
     if (!secret) throw new BadRequestException('Platform webhook secret is not configured');
     let event: Stripe.Event;
     try {
@@ -205,6 +258,8 @@ export class PlatformSubscriptionService {
 
   /** Webhook → DB state machine (the testable core). */
   async applySubscriptionEvent(event: Stripe.Event): Promise<void> {
+    const cfg = await this.billingRails.resolvePlatformStripe();
+    const prices = { starter: cfg.priceStarter, pro: cfg.pricePro };
     const obj = event.data.object as unknown;
     switch (event.type) {
       case 'checkout.session.completed': {
@@ -229,7 +284,7 @@ export class PlatformSubscriptionService {
           customerId: refId(sub.customer),
         });
         if (!schoolId) return;
-        const plan = planForPriceId(sub.items?.data?.[0]?.price?.id);
+        const plan = planForPriceId(sub.items?.data?.[0]?.price?.id, prices);
         await this.updateSubscription(schoolId, {
           status: mapStripeSubscriptionStatus(sub.status),
           plan: plan ?? undefined,

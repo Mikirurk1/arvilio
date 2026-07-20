@@ -51,7 +51,7 @@ export function WeeklyReportEmail({
           textDecoration: 'none',
         }}
       >
-        Open SoEnglish
+        Open Arvilio
       </Link>
     </EmailLayout>
   );

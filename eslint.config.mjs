@@ -62,7 +62,25 @@ export default [
     },
   },
   {
-    files: ['apps/web/**/*.{ts,tsx,js,jsx}', 'packages/frontend/**/*.{ts,tsx,js,jsx}'],
+    files: ['apps/campus/**/*.{tsx,jsx}', 'apps/platform/**/*.{tsx,jsx}'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "JSXOpeningElement[name.name='button']",
+          message:
+            'Use <Button> from @fe/ui (Campus: @/components/ui) instead of raw <button>. Use variant="bare" for custom-styled hit targets.',
+        },
+        {
+          selector: "JSXOpeningElement[name.name='select']",
+          message:
+            'Use <Field as="select"> or as="advancedSelect" from @fe/ui instead of raw <select>.',
+        },
+      ],
+    },
+  },
+  {
+    files: ['apps/campus/**/*.{ts,tsx,js,jsx}', 'packages/frontend/**/*.{ts,tsx,js,jsx}'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -73,7 +91,7 @@ export default [
     },
   },
   {
-    files: ['apps/web/src/mocks/**/*.{ts,tsx,js,jsx}'],
+    files: ['apps/campus/src/mocks/**/*.{ts,tsx,js,jsx}'],
     rules: {
       '@typescript-eslint/no-unused-vars': 'off',
     },

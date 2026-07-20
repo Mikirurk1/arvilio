@@ -10,7 +10,7 @@ updated: 2026-05-26
 ```mermaid
 flowchart TB
   Browser["Browser Next.js :4200"]
-  WebApp["apps/web"]
+  WebApp["apps/campus"]
   Proxy["Next rewrite /api"]
   API["apps/api Nest :3000"]
   GQL["GraphQL /api/graphql"]
@@ -36,7 +36,7 @@ flowchart TB
 
 | Layer | Location | Responsibility |
 |-------|----------|----------------|
-| Presentation | `apps/web` | Pages, components, Zustand stores, GraphQL operations |
+| Presentation | `apps/campus` | Pages, components, Zustand stores, GraphQL operations |
 | API gateway | `apps/api` | `GraphQLModule` bootstrap, global `/api` prefix, imports `@be/*` |
 | Domain | `packages/backend/modules/*` | Business logic, REST controllers, GraphQL resolvers (`presentation/`) |
 | Shared GraphQL types | `packages/backend/shared/graphql` (`@be/graphql`) | Code-first ObjectTypes / Inputs |
@@ -87,10 +87,10 @@ flowchart LR
 
 ## Web architecture
 
-- App Router under `apps/web/src/app/`
-- Shared UI primitives: `apps/web/src/components/ui/` — [[concepts/ui-design-system]]
-- Feature modules: `apps/web/src/features/` (lesson-modal, calendar)
-- Auth routing is request-time now: `apps/web/src/proxy.ts` classifies route surfaces, asks backend `GET /api/auth/web-session`, redirects anonymous protected requests before render, performs coarse role/scope gating for top-level route surfaces, and forwards normalized auth headers into the server render pass.
+- App Router under `apps/campus/src/app/`
+- Shared UI primitives: `apps/campus/src/components/ui/` — [[concepts/ui-design-system]]
+- Feature modules: `apps/campus/src/features/` (lesson-modal, calendar)
+- Auth routing is request-time now: `apps/campus/src/proxy.ts` classifies route surfaces, asks backend `GET /api/auth/web-session`, redirects anonymous protected requests before render, performs coarse role/scope gating for top-level route surfaces, and forwards normalized auth headers into the server render pass.
 - The same request-time path now carries account-status denial codes (`account_paused`, `account_leaved`, `account_blocked`) from backend `web-session` to middleware redirects, so blocked sessions land on `/login` with a specific reason instead of a generic auth failure.
 - Root layout reads that request auth state and chooses shell structure server-side (`auth` pages render without `AppShell`; protected routes render inside it), so layout ownership no longer depends on pathname checks inside a client shell component.
 - Client auth remains a UI cache/store seeded from server-resolved session data; it still owns explicit `login/logout/refresh` actions but not first navigation access control.

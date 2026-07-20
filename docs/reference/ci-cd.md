@@ -1,6 +1,6 @@
 # CI/CD
 
-GitHub Actions pipelines for the SoEnglish monorepo.
+GitHub Actions pipelines for the Arvilio monorepo.
 
 ## Pipelines
 
@@ -24,7 +24,7 @@ build ◄─── quality (needs)
 - **quality** — `npm run lint`, `npm run typecheck` (`build:email-templates` runs first — path alias points at `dist/index.d.ts`)
 - **unit** — `npm run test:unit`
 - **integration** — Postgres service, `prisma migrate deploy`, `npm run test:integration`
-- **build** — `build:api` + `build:web` (validates release artifacts)
+- **build** — `build:api` + `build:campus` (validates release artifacts)
 
 PRs must pass **ci-success** before merge (branch protection).
 
@@ -39,16 +39,16 @@ Requires: migrate + `npm run seed:test-users` (see `.env.test.example` for Playw
 Images:
 
 - `ghcr.io/<owner>/<repo>/api:<tag>`
-- `ghcr.io/<owner>/<repo>/web:<tag>`
+- `ghcr.io/<owner>/<repo>/campus:<tag>`
 
 Tags: branch name, git SHA, `latest` on `main`, semver on `v*` tags.
 
 Dockerfiles:
 
 - `infra/docker/api.prod.Dockerfile` — compiled NestJS (`dist/apps/api/...`)
-- `infra/docker/web.prod.Dockerfile` — Next.js `output: 'standalone'`
+- `infra/docker/campus.prod.Dockerfile` — Next.js `output: 'standalone'`
 
-Local dev (hot reload) still uses `infra/docker/api.Dockerfile` + `web.Dockerfile` via `docker-compose.yml`.
+Local dev (hot reload) still uses `infra/docker/api.Dockerfile` + `campus.Dockerfile` via `docker-compose.yml`.
 
 ### Deploy (your infrastructure)
 
@@ -59,7 +59,7 @@ CD publishes images only. **Deploy** is wired through GitHub **Environments**:
 3. Extend `deploy-staging` / `deploy-production` jobs in `cd.yml`, or use `infra/docker/docker-compose.prod.yml` on the server:
 
 ```bash
-export GHCR_OWNER=your-org/SoEnglish
+export GHCR_OWNER=your-org/Arvilio
 export IMAGE_TAG=main
 export POSTGRES_PASSWORD=...
 export DATABASE_URL=postgresql://...
@@ -114,12 +114,12 @@ npm run prisma:migrate:deploy   # needs Postgres
 npm run lint && npm run typecheck
 npm run test:unit
 RUN_INTEGRATION_TESTS=1 npm run test:integration
-npm run build:api && npm run build:web
+npm run build:api && npm run build:campus
 ```
 
 ## Future improvements
 
 - Turborepo remote cache in CI
-- Path filters (run web jobs only when `apps/web/**` changes)
+- Path filters (run web jobs only when `apps/campus/**` changes)
 - PR-required E2E with `workflow_run` + label `run-e2e`
 - Kubernetes manifests / Helm chart under `infra/k8s/`

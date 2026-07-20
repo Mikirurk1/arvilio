@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from 'react';
-import { USER_ROLE } from '../../mocks';
+import { USER_ROLE } from '@pkg/types';
 import { LessonModal } from './LessonModal';
 import { ScheduledLessonsProvider } from './ScheduledLessonsProvider';
 import { useLessonEditor } from './useLessonEditor';

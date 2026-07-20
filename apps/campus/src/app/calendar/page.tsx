@@ -4,10 +4,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { ScheduledLessonDto } from '@pkg/types';
 import { PageHeader } from '../../components/ui';
-import {
-  canSchedule, getVisibleProfiles, isAdminOrSuper, siteContent, USER_ROLE,
-} from '../../mocks';
+import { USER_ROLE } from '@pkg/types';
+import { canSchedule, isAdminOrSuper } from '../../lib/roles';
+import { partyNumericId } from '../../features/lesson-modal/scheduledLessonsBackendAdapter';
 import { useActiveUser } from '../../lib/active-user';
+import { useCampusI18n, useCampusT } from '../../lib/cms';
 import { useOptionalAuth } from '../../lib/auth-context';
 import { resolveStudentTeacherChatPeerId } from '../../lib/student-teacher-chat';
 import { useLessonPartyOptions } from '../../hooks/use-lesson-party-options';
@@ -28,10 +29,12 @@ import { CalendarDialogs } from './CalendarDialogs';
 import { useCalendarColors } from './useCalendarColors';
 import { useCalendarLessonActions } from './useCalendarLessonActions';
 import { useCalendarResize } from './useCalendarResize';
-import { MONTHS, PX_PER_MINUTE, START_HOUR, toDateString } from './calendarUtils';
+import { PX_PER_MINUTE, START_HOUR, toDateString } from './calendarUtils';
 import styles from './page.module.scss';
 
 export default function CalendarPage() {
+  const t = useCampusT();
+  const { locale } = useCampusI18n();
   const searchParams = useSearchParams();
   const activeUser = useActiveUser();
   const auth = useOptionalAuth();
@@ -47,7 +50,14 @@ export default function CalendarPage() {
 
   useEffect(() => { if (isStaffViewer) void fetchStudents(); }, [isStaffViewer, fetchStudents]);
 
-  const visibleStudents = useMemo(() => getVisibleProfiles(role, activeUser.id), [role, activeUser.id]);
+  const visibleStudents = useMemo(
+    () =>
+      (studentsFromApi ?? []).map((row) => ({
+        id: partyNumericId(row.id),
+        color: row.displayColor ?? undefined,
+      })),
+    [studentsFromApi],
+  );
   const { colorHexFromStudentId, colorFromStudentId, getLessonColor, lessonColorStyles } = useCalendarColors(studentsFromApi, visibleStudents);
 
   const [audience, setAudience] = useState<'all' | 'my-students'>('all');
@@ -99,8 +109,20 @@ export default function CalendarPage() {
 
   const { resizeState, setResizeState, resizedRef, suppressDragRef } = useCalendarResize({
     canManage, conflictStrategy, viewerIana, setLessons, lessonsRef: actions.lessonsRef,
-    onConflict: (candidate, excludeLessonId) => setConflictDialog({ open: true, title: 'Time slot is busy', message: conflictStrategy === 'same-teacher-overlap' ? 'This teacher already has a lesson in this time slot.' : 'Another lesson already exists for this time.', candidate, excludeLessonId }),
-    onPastSlot: () => setWarningDialog({ open: true, title: 'Cannot resize into past time', message: 'Lesson duration cannot be changed into a past time slot.' }),
+    onConflict: (candidate, excludeLessonId) => setConflictDialog({
+      open: true,
+      title: t('calendar.conflict.busyTitle'),
+      message: conflictStrategy === 'same-teacher-overlap'
+        ? t('calendar.conflict.teacherBusy')
+        : t('calendar.conflict.slotBusy'),
+      candidate,
+      excludeLessonId,
+    }),
+    onPastSlot: () => setWarningDialog({
+      open: true,
+      title: t('calendar.conflict.pastResizeTitle'),
+      message: t('calendar.conflict.pastResizeBody'),
+    }),
     onSeriesScheduleConfirm: (type, before, next) => setSeriesScheduleConfirm({ type, before, next }),
     persistScheduleChange: (id, b, n) => void actions.persistScheduleChange(id, b, n),
     scheduleUnchanged: actions.scheduleUnchanged,
@@ -194,19 +216,29 @@ export default function CalendarPage() {
 
   const recurrenceAllowed = actions.form ? isRecurrenceAllowedForStudent(actions.form.studentId, studentOptions) : true;
   const studentCount = useMemo(() => new Set(lessons.map((l) => l.studentId)).size, [lessons]);
-  const calendarSubtitle = role === USER_ROLE.student.id ? 'Month and week views of your upcoming lessons' : view === 'week' ? `Week schedule · ${studentCount} student${studentCount === 1 ? '' : 's'} on calendar` : `Month overview · ${studentCount} student${studentCount === 1 ? '' : 's'}`;
+  const countStr = String(studentCount);
+  const calendarSubtitle =
+    role === USER_ROLE.student.id
+      ? t('calendar.subtitle.student')
+      : view === 'week'
+        ? t('calendar.subtitle.week', { count: countStr })
+        : t('calendar.subtitle.month', { count: countStr });
+  const monthLabel = new Date(year, month, 1).toLocaleDateString(
+    locale === 'uk' ? 'uk-UA' : 'en-US',
+    { month: 'long', year: 'numeric' },
+  );
 
   return (
     <div className={`${styles.page} container container--page`}>
       <PageHeader
         className={styles.pageHeader} titleClassName={styles.pageTitle} subtitleClassName={styles.pageSub}
-        title={siteContent.calendar.title} subtitle={calendarSubtitle}
+        title={t('calendar.title')} subtitle={calendarSubtitle}
         actions={<CalendarHeaderControls view={view} setView={setView} showAudienceToggle={showAudienceToggle} audience={audience} setAudience={setAudience} teacherFilter={teacherFilter} setTeacherFilter={setTeacherFilter} teacherOptions={teacherFilterOptions} role={role} onRequestLesson={actions.requestLesson} />}
       />
       <div className={styles.calLayout}>
-        <div className={styles.calMain}>
+        <div className={styles.calMain} data-tour-anchor="calendar-grid">
           <CalendarMonthNavigator
-            monthLabel={`${MONTHS[month]} ${year}`}
+            monthLabel={monthLabel}
             onPrev={() => { if (view === 'week') { shiftWeek(-1); return; } if (month === 0) { setYear((y) => y - 1); setMonth(11); } else setMonth((m) => m - 1); }}
             onNext={() => { if (view === 'week') { shiftWeek(1); return; } if (month === 11) { setYear((y) => y + 1); setMonth(0); } else setMonth((m) => m + 1); }}
           />

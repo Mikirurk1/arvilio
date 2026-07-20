@@ -127,7 +127,7 @@ export class TelegramLinkService implements OnModuleInit, OnModuleDestroy {
     if (startPayload === null || startPayload === '') {
       await sendTelegramBotMessage(
         String(chatId),
-        'To connect SoEnglish, open Profile → Connections on the website, tap «Connect via Telegram», then press Start in the prompt from that link.',
+        'To connect Arvilio, open Profile → Connections on the website, tap «Connect via Telegram», then press Start in the prompt from that link.',
       );
       return;
     }
@@ -145,7 +145,7 @@ export class TelegramLinkService implements OnModuleInit, OnModuleDestroy {
     if (!row || row.expiresAt < new Date()) {
       await sendTelegramBotMessage(
         String(chatId),
-        'This link has expired. Go back to SoEnglish Profile → Connections and tap «Connect via Telegram» again.',
+        'This link has expired. Go back to Arvilio Profile → Connections and tap «Connect via Telegram» again.',
       );
       return;
     }
@@ -164,7 +164,7 @@ export class TelegramLinkService implements OnModuleInit, OnModuleDestroy {
       console.log(`[telegram] linked user ${row.userId} via bot (chat ${chatId})`);
       await sendTelegramBotMessage(
         String(chatId),
-        '✅ SoEnglish connected. You can return to the website — the status will update automatically.',
+        '✅ Arvilio connected. You can return to the website — the status will update automatically.',
       );
     } catch (error) {
       const message =

@@ -1,9 +1,10 @@
+import type { TranslateFn } from './cms/nav-i18n';
 import type { StaffPayoutStatusDto } from '@pkg/types';
 
-export function staffPayoutStatusLabel(status: StaffPayoutStatusDto): string {
-  if (status === 'due') return 'Due';
-  if (status === 'overdue') return 'Overdue';
-  return 'On track';
+export function staffPayoutStatusLabel(status: StaffPayoutStatusDto, t?: TranslateFn): string {
+  if (status === 'due') return t?.('staff.payout.due') ?? 'Due';
+  if (status === 'overdue') return t?.('staff.payout.overdue') ?? 'Overdue';
+  return t?.('staff.payout.onTrack') ?? 'On track';
 }
 
 export function staffPayoutStatusTone(
@@ -23,13 +24,18 @@ export function staffPayoutStatusBadgeVariant(
   return 'green';
 }
 
-export function staffCompensationModeLabel(mode: string): string {
-  if (mode === 'salary') return 'Salary';
-  if (mode === 'mixed') return 'Mixed';
-  return 'Per lesson';
+export function staffCompensationModeLabel(mode: string, t?: TranslateFn): string {
+  if (mode === 'salary') return t?.('staff.compensation.salary') ?? 'Salary';
+  if (mode === 'mixed') return t?.('staff.compensation.mixed') ?? 'Mixed';
+  return t?.('staff.compensation.perLesson') ?? 'Per lesson';
 }
 
-export function staffPayFrequencyLabel(frequency: string): string {
+export function staffPayFrequencyLabel(frequency: string, t?: TranslateFn): string {
+  if (t) {
+    return frequency === 'weekly'
+      ? t('staff.compensation.frequency.weekly')
+      : t('staff.compensation.frequency.monthly');
+  }
   return frequency === 'weekly' ? 'Weekly' : 'Monthly';
 }
 
@@ -37,6 +43,7 @@ export function formatStaffPayDayLabel(
   payFrequency: string,
   payDayOfWeek: number,
   payDayOfMonth: number,
+  t?: TranslateFn,
 ): string {
   if (payFrequency === 'weekly') {
     const weekdays = [
@@ -49,6 +56,9 @@ export function formatStaffPayDayLabel(
       'Saturday',
     ];
     return weekdays[payDayOfWeek] ?? 'Monday';
+  }
+  if (t) {
+    return t('system.payouts.fields.payDayMonthOption', { day: String(payDayOfMonth) });
   }
   return `Day ${payDayOfMonth}`;
 }

@@ -49,6 +49,6 @@ export const useStudentsStore = create<StudentsState>()(
         await get().fetchStudents(true);
       },
     }),
-    { name: 'soenglish/students' },
+    { name: 'arvilio/students' },
   ),
 );

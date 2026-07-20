@@ -6,10 +6,11 @@ import { Button } from '../ui';
 import { BrandLogo } from '../brand/BrandLogo';
 import { useOpenCreateLesson } from '../../features/lesson-modal';
 import { useActiveUser } from '../../lib/active-user';
-import { canSchedule } from '../../mocks';
+import { canSchedule } from '../../lib/roles';
 import { useFocusTrap } from '../../hooks/use-focus-trap';
 import { prefersReducedMotion } from '../../lib/motion';
 import { SidebarNav } from './sidebar-nav';
+import { LocaleSwitcher } from '../i18n/LocaleSwitcher';
 import { useShellNav } from './shell-nav-context';
 import { useDrawerSwipe } from './use-drawer-swipe';
 import navStyles from './Sidebar.module.scss';
@@ -134,13 +135,14 @@ export function MobileNavDrawer() {
           <SidebarNav variant="drawer" onNavigate={closeMobileNav} />
         </div>
 
-        {showCreateLesson ? (
-          <div className={styles.panelFoot}>
+        <div className={styles.panelFoot}>
+          <LocaleSwitcher />
+          {showCreateLesson ? (
             <Button type="button" variant="primary" className={styles.createLessonBtn} onClick={onCreateLesson}>
               Create lesson
             </Button>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
       </div>
     </div>
   );

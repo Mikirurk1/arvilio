@@ -11,16 +11,16 @@
 
 | # | Сторінка/елемент | Вісь | Пріоритет | Опис проблеми | Файл(и) | Статус |
 |---|---|---|---|---|---|---|
-| 1 | `/login` — error banner | UX | P1 | `formError` і `accountError` рендеряться **до** кнопки Google та форми. Помилка "Invalid email" з'являється вище Google-кнопки → виглядає як помилка OAuth, а не поля Email. Потрібно перемістити банер **після** `<div className={divider}>or</div>`, прямо над полями форми. | `apps/web/src/app/(auth)/login/page.tsx:83-92` | ☑ виправлено |
-| 2 | `/login` — empty submit | UX/Func | P1 | При порожніх полях форма відправляє мережевий запит → API повертає "Invalid email". Немає клієнтської валідації `required` на полях. Додати `required` на `<Field>` та `onSubmit`-гард. | `apps/web/src/app/(auth)/login/page.tsx:106-134` | ☑ виправлено |
-| 3 | `/signup` — error banner | UX | P1 | Та сама проблема: глобальний error-банер вгорі картки — "School name is required" з'являється над полем School name (src: `signup-duplicate-email.png`). Перемістити під заголовок або використати `Field error` prop inline. | `apps/web/src/app/(auth)/signup/` | ☐ |
-| 4 | Всі auth-сторінки — cookie banner | UI | P2 | Cookie consent оверлей перекриває ~20% нижньої частини екрана на всіх auth-сторінках (`student-login.png`, `signup.png`, `forgot-password.png`). Зберігається між тестами. UX: приховує "Need an account?" і "Sign in" кнопку. Рішення: зменшити висоту або змінити позицію на `fixed bottom-0` з `z-index` нижче основного контенту. | `apps/web/src/components/cookie-consent/` (або аналог) | ☐ |
-| 5 | `/login` — trust panel | UI | P2 | Trust panel ("Your English classroom, organized") не відображається на viewport 1280px. В `auth-layout.tsx` є `<aside>` але в скріні він відсутній. Перевірити CSS breakpoint — можливо потрібно показувати від 1440px. | `apps/web/src/app/(auth)/layout.tsx` · `auth-layout.module.scss` | ☐ |
-| 6 | Всі auth-сторінки — Arvi | Arvi | P2 | Arvi (`greet` поза) не присутній на `/login` та `/signup`. За планом (e2e-journey-test-plan.md §Arvi) він має з'являтись при завантаженні login/signup. | `apps/web/src/app/(auth)/login/page.tsx` · `signup/` | ☐ |
-| 7 | `/login` — `<main>` landmark | a11y | P2 | Auth-layout використовує `<div data-auth-route>` замість `<main>`. Screen reader не може знайти основний контент через стандартний skip-link. Замінити `<div className={authMain}>` на `<main className={authMain}>`. | `apps/web/src/app/(auth)/layout.tsx:18` | ☑ виправлено |
+| 1 | `/login` — error banner | UX | P1 | `formError` і `accountError` рендеряться **до** кнопки Google та форми. Помилка "Invalid email" з'являється вище Google-кнопки → виглядає як помилка OAuth, а не поля Email. Потрібно перемістити банер **після** `<div className={divider}>or</div>`, прямо над полями форми. | `apps/campus/src/app/(auth)/login/page.tsx:83-92` | ☑ виправлено |
+| 2 | `/login` — empty submit | UX/Func | P1 | При порожніх полях форма відправляє мережевий запит → API повертає "Invalid email". Немає клієнтської валідації `required` на полях. Додати `required` на `<Field>` та `onSubmit`-гард. | `apps/campus/src/app/(auth)/login/page.tsx:106-134` | ☑ виправлено |
+| 3 | `/signup` — error banner | UX | P1 | Та сама проблема: глобальний error-банер вгорі картки — "School name is required" з'являється над полем School name (src: `signup-duplicate-email.png`). Перемістити під заголовок або використати `Field error` prop inline. | `apps/campus/src/app/(auth)/signup/` | ☐ |
+| 4 | Всі auth-сторінки — cookie banner | UI | P2 | Cookie consent оверлей перекриває ~20% нижньої частини екрана на всіх auth-сторінках (`student-login.png`, `signup.png`, `forgot-password.png`). Зберігається між тестами. UX: приховує "Need an account?" і "Sign in" кнопку. Рішення: зменшити висоту або змінити позицію на `fixed bottom-0` з `z-index` нижче основного контенту. | `apps/campus/src/components/cookie-consent/` (або аналог) | ☐ |
+| 5 | `/login` — trust panel | UI | P2 | Trust panel ("Your English classroom, organized") не відображається на viewport 1280px. В `auth-layout.tsx` є `<aside>` але в скріні він відсутній. Перевірити CSS breakpoint — можливо потрібно показувати від 1440px. | `apps/campus/src/app/(auth)/layout.tsx` · `auth-layout.module.scss` | ☐ |
+| 6 | Всі auth-сторінки — Arvi | Arvi | P2 | Arvi (`greet` поза) не присутній на `/login` та `/signup`. За планом (e2e-journey-test-plan.md §Arvi) він має з'являтись при завантаженні login/signup. | `apps/campus/src/app/(auth)/login/page.tsx` · `signup/` | ☐ |
+| 7 | `/login` — `<main>` landmark | a11y | P2 | Auth-layout використовує `<div data-auth-route>` замість `<main>`. Screen reader не може знайти основний контент через стандартний skip-link. Замінити `<div className={authMain}>` на `<main className={authMain}>`. | `apps/campus/src/app/(auth)/layout.tsx:18` | ☑ виправлено |
 | 8 | `/login` error — screenshot timing | Func/Test | P3 | Тест `1A.2` знімає скрін під час стану "Signing in..." — помилка ще не з'явилась. Додати `await expect(page.getByRole('alert')).toBeVisible()` **перед** `shot()`. | `tests/e2e/specs/audit/01-auth-audit.spec.ts:30` | ☑ виправлено |
 | 9 | `/reset-password` | Func | P1 | Сценарії 1D.1–1D.3 не протестовані. Сторінка `/reset-password?token=...` існує — потрібно додати тести з валідним/невалідним токеном. | `tests/e2e/specs/audit/01-auth-audit.spec.ts` | ☐ |
-| 10 | 1A.6 rate-limit | Func | P2 | Тест не написаний. 5+ швидких спроб → очікується 429 або UI-блок. | `apps/web/src/app/(auth)/login/page.tsx` | ☐ |
+| 10 | 1A.6 rate-limit | Func | P2 | Тест не написаний. 5+ швидких спроб → очікується 429 або UI-блок. | `apps/campus/src/app/(auth)/login/page.tsx` | ☐ |
 
 ---
 
@@ -39,7 +39,7 @@
 - **#6**: Додати `<Mascot pose="greet" />` на `/login` та `/signup` — поки Arvi в `mascot-preview` та `ProductTour` тільки. Розмістити в правому нижньому куті або в trust panel.
 
 ### a11y
-- **#7 `<main>` landmark** (P2): auth layout не має `<main>`. Виправити — замінити `<div className={authMain}>` на `<main className={authMain}>` в `apps/web/src/app/(auth)/layout.tsx`.
+- **#7 `<main>` landmark** (P2): auth layout не має `<main>`. Виправити — замінити `<div className={authMain}>` на `<main className={authMain}>` в `apps/campus/src/app/(auth)/layout.tsx`.
 - **axe = 0 violations** на `/login`, `/signup`, `/forgot-password` — ☑.
 
 ### Perf
@@ -60,7 +60,7 @@
 
 ### Fix #1 + #3: перемістити error-банер після Google / полів
 
-**`apps/web/src/app/(auth)/login/page.tsx`** — перемістити блок `{formError}` та `{accountError}` після `<div className={styles.divider}>`:
+**`apps/campus/src/app/(auth)/login/page.tsx`** — перемістити блок `{formError}` та `{accountError}` після `<div className={styles.divider}>`:
 
 ```tsx
 // До:
@@ -92,7 +92,7 @@ const onSubmit = async (e: React.FormEvent) => {
 ### Fix #7: `<main>` в auth layout
 
 ```tsx
-// apps/web/src/app/(auth)/layout.tsx
+// apps/campus/src/app/(auth)/layout.tsx
 <div className={layoutStyles.authMain}>{children}</div>
 // →
 <main className={layoutStyles.authMain}>{children}</main>

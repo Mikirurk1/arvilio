@@ -5,6 +5,7 @@ import type { WordCardDto } from '@pkg/types';
 import { Plus } from 'lucide-react';
 import { WordCardAudioButton } from './WordCardAudioButton';
 import { Button, Field } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import { useViewerLanguageIds } from '../../hooks/use-viewer-language-ids';
 import { pickWordDefinition } from '../../lib/word-definitions';
 import {
@@ -31,6 +32,7 @@ export function LessonVocabularyAddPanel({
   lessonBackendId,
   disabled = false,
 }: Props) {
+  const t = useCampusT();
   const lookupWord = useVocabularyStore((s) => s.lookupWord);
   const addCard = useVocabularyStore((s) => s.addCard);
   const { nativeLanguageId, englishLanguageId } = useViewerLanguageIds();
@@ -76,12 +78,12 @@ export function LessonVocabularyAddPanel({
         }
       } catch (err) {
         setPreview(null);
-        setError(err instanceof Error ? err.message : 'Lookup failed');
+        setError(err instanceof Error ? err.message : t('lessonModal.vocab.lookupFailed'));
       } finally {
         setLoading(false);
       }
     },
-    [lookupWord],
+    [lookupWord, t],
   );
 
   useEffect(() => {
@@ -109,7 +111,7 @@ export function LessonVocabularyAddPanel({
       return;
     }
     if (!studentBackendId) {
-      setError('Lesson student is not available yet. Refresh the page and try again.');
+      setError(t('lessonModal.vocab.studentMissing'));
       return;
     }
     setAdding(true);
@@ -130,7 +132,7 @@ export function LessonVocabularyAddPanel({
       );
       const wordId = card.word.id;
       if (linkedWordIds.includes(wordId)) {
-        setError('This word is already linked to the lesson.');
+        setError(t('lessonModal.vocab.alreadyLinked'));
         return;
       }
       onAddWordId(wordId);
@@ -138,7 +140,7 @@ export function LessonVocabularyAddPanel({
       setPreview(null);
       setFoundInDb(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add word');
+      setError(err instanceof Error ? err.message : t('vocabulary.add.failed'));
     } finally {
       setAdding(false);
     }
@@ -154,15 +156,12 @@ export function LessonVocabularyAddPanel({
 
   return (
     <div className={styles.addPanel}>
-      <p className={styles.hint}>
-        Type a word to look it up in our dictionary (or fetch from external sources). Then add it to
-        this lesson and the student&apos;s vocabulary.
-      </p>
+      <p className={styles.hint}>{t('lessonModal.vocab.hint')}</p>
       <div className={styles.addRow}>
         <Field
           className={`${vocabPageStyles.searchInput} ${styles.addRowField}`}
           type="text"
-          placeholder="English word or phrase, e.g. touch base"
+          placeholder={t('lessonModal.vocab.placeholder')}
           value={lemma}
           disabled={disabled || adding}
           onChange={(e) => setLemma(e.target.value)}
@@ -175,13 +174,13 @@ export function LessonVocabularyAddPanel({
         />
         <Button type="button" disabled={!canAdd} onClick={() => void onAdd()}>
           <Plus size={14} aria-hidden />
-          {adding ? 'Adding…' : 'Add to lesson'}
+          {adding ? t('lessonModal.vocab.adding') : t('lessonModal.vocab.add')}
         </Button>
       </div>
-      {loading ? <p className={styles.hint}>Looking up…</p> : null}
+      {loading ? <p className={styles.hint}>{t('lessonModal.vocab.lookingUp')}</p> : null}
       {preview ? (
         <div className={styles.preview}>
-          {foundInDb ? <span className={styles.previewBadge}>In dictionary</span> : null}
+          {foundInDb ? <span className={styles.previewBadge}>{t('lessonModal.vocab.inDictionary')}</span> : null}
           <div className={styles.previewMeta}>
             {preview.phonetic ? <span>{preview.phonetic}</span> : null}
             <WordCardAudioButton audioUrl={preview.audioUrl} className={styles.previewAudioBtn} />

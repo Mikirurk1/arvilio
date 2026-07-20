@@ -2,7 +2,7 @@
 
 - **Status:** accepted
 - **Date:** 2026-06-15
-- **Authors:** SoEnglish engineering
+- **Authors:** Arvilio engineering
 - **Supersedes:** —
 - **Superseded-by:** —
 - **Amends:** —
@@ -59,5 +59,5 @@ grep -r "Mutation\(\)" packages/backend/modules/module-auth/src --include="*.ts"
 
 ## Links
 
-- Related code: `apps/web/src/lib/api.ts`, `apps/web/src/lib/graphql/`, `apps/api/src/app/app.module.ts`
+- Related code: `apps/campus/src/lib/api.ts`, `apps/campus/src/lib/graphql/`, `apps/api/src/app/app.module.ts`
 - Related ADRs: ADR-002 (module structure), ADR-004 (single-school tenant-ready architecture)

@@ -4,7 +4,7 @@ One shared profile UI for **self** (`/profile`), **student** (`/students/[id]` P
 
 ## Component
 
-`apps/web/src/components/profile/UnifiedProfilePanel.tsx`
+`apps/campus/src/components/profile/UnifiedProfilePanel.tsx`
 
 Layout: blue **summary card** (name, email, key stats) + **section cards** (Identity, Contact & timezone, Learning, School settings, Account & bio) + save footer.
 
@@ -34,7 +34,7 @@ All fields exist in `UnifiedProfileFormValues`; only visibility/editability chan
 
 | Route | Wrapper |
 |-------|---------|
-| `/profile` | `ProfileDetailsPanel` in `apps/web/src/app/profile/panels.tsx` |
+| `/profile` | `ProfileDetailsPanel` in `apps/campus/src/app/profile/panels.tsx` |
 | `/students/[id]` | `StudentProfileTab.tsx` |
 | `/staff/[userId]` | `StaffProfilePanel` in `features/staff-payout/` |
 

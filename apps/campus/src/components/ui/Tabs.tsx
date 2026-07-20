@@ -7,6 +7,8 @@ export type TabsItem<T extends string> = {
   label: ReactNode;
   panel: ReactNode;
   disabled?: boolean;
+  /** Optional DOM attributes (e.g. data-tour-anchor for product tour). */
+  dataAttrs?: Record<string, string | undefined>;
 };
 
 export type TabsProps<T extends string> = {
@@ -75,6 +77,7 @@ export function Tabs<T extends string>({
               .filter(Boolean)
               .join(' ')}
             onClick={() => onValueChange(item.value)}
+            {...item.dataAttrs}
           >
             {item.label}
           </Button>

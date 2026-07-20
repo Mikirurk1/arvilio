@@ -29,7 +29,7 @@ export interface TenantContext {
   platformRole?: PlatformRole | null;
   /**
    * Resolved UI locale for this request (G33). Derived by resolveLocale:
-   * user.locale → school.defaultLocale → Accept-Language → platform default ('uk').
+   * user.locale → school.defaultLocale → Accept-Language → platform default ('en').
    * Null until AuthGuard seeds tenant context.
    */
   locale?: string | null;

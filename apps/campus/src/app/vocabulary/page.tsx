@@ -6,9 +6,9 @@ import type { VocabularyWordStatusName } from '@pkg/types';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { PageHeader } from '../../components/ui';
-import { siteContent } from '../../mocks/content/site-content';
 import { canEdit } from '../../lib/roles';
 import { mapAuthRoleToRoleId } from '../../lib/active-user';
+import { useCampusT } from '../../lib/cms';
 import { usePracticeSessionTracker } from '../../lib/practice-session-tracker';
 import { useAuth } from '../../lib/auth-context';
 import {
@@ -26,6 +26,8 @@ import { toast } from '../../features/notifications';
 import { WordDetailsModal } from '../../features/vocabulary/WordDetailsModal';
 import { useVocabularyStore } from '../../stores/vocabulary-store';
 import { useLessonsStore } from '../../stores/lessons-store';
+import { useArvi } from '../../components/mascot/useArvi';
+import { maybeDispatchVocabFirstWordsGuide } from '../../components/tour/vocab-first-words';
 import {
   VocabularyAddWordBar,
   VocabularyFiltersBar,
@@ -47,6 +49,7 @@ function shuffle<T>(items: T[]): T[] {
 }
 
 export default function VocabularyPage() {
+  const t = useCampusT();
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const roleId = mapAuthRoleToRoleId(user?.role);
@@ -69,6 +72,14 @@ export default function VocabularyPage() {
     void fetchCards();
     void fetchScheduledLessons();
   }, [fetchOverview, fetchCards, fetchScheduledLessons]);
+
+  useEffect(() => {
+    if (cardsSlice.status !== 'success') return;
+    const count = (cardsSlice.data ?? []).length;
+    // Defer so list/add-word anchors paint before the guide opens.
+    const id = window.setTimeout(() => maybeDispatchVocabFirstWordsGuide(count), 400);
+    return () => window.clearTimeout(id);
+  }, [cardsSlice.status, cardsSlice.data]);
 
   const { nativeLanguageId, englishLanguageId } = useViewerLanguageIds();
   const [detailsWordId, setDetailsWordId] = useState<string | null>(null);
@@ -100,6 +111,11 @@ export default function VocabularyPage() {
   const [playScore, setPlayScore] = useState(0);
   const [playPhase, setPlayPhase] = useState<'setup' | 'quiz' | 'result'>('setup');
   usePracticeSessionTracker(user?.id, 'vocabulary', mode === 'play' && playPhase === 'quiz');
+  const { celebrate, encourage } = useArvi();
+
+  useEffect(() => {
+    if (playPhase === 'result') celebrate(2_800);
+  }, [playPhase, celebrate]);
 
   const posFilters = useMemo(() => {
     const seen = new Map<string, string>();
@@ -127,15 +143,15 @@ export default function VocabularyPage() {
         .filter((lessonId): lessonId is string => Boolean(lessonId)),
     );
     return [
-      { value: 'all', label: 'All lessons' },
+      { value: 'all', label: t('vocabulary.filter.allLessons') },
       ...Array.from(lessonIdSet)
         .sort((a, b) => a.localeCompare(b))
         .map((lessonId) => ({
           value: lessonId,
-          label: lessonTitleById.get(lessonId) ?? `Lesson`,
+          label: lessonTitleById.get(lessonId) ?? t('vocabulary.filter.lesson'),
         })),
     ];
-  }, [items, lessonTitleById]);
+  }, [items, lessonTitleById, t]);
 
   const playLessonOptions = useMemo(() => {
     const studentLessons = (backendLessons.data ?? [])
@@ -269,33 +285,35 @@ export default function VocabularyPage() {
   const onDeleteWord = async (cardId: string) => {
     if (!userId) return;
     const ok = await confirmDialog({
-      title: 'Remove word?',
-      message: 'This word will be removed from your vocabulary list.',
-      confirmLabel: 'Remove',
+      title: t('vocabulary.remove.title'),
+      message: t('vocabulary.remove.message'),
+      confirmLabel: t('vocabulary.remove.confirm'),
       variant: 'danger',
     });
     if (!ok) return;
     void deleteCard(cardId, userId).catch((err) => {
-      toast.error(err instanceof Error ? err.message : 'Could not remove word');
+      toast.error(err instanceof Error ? err.message : t('vocabulary.remove.error'));
     });
   };
 
   const pageSubtitle = isLoading
-    ? 'Loading your word library…'
-    : `${totalWords} word${totalWords === 1 ? '' : 's'} · list, flashcards, or practice quiz`;
+    ? t('vocabulary.subtitle.loading')
+    : totalWords === 1
+      ? t('vocabulary.subtitle.countOne', { count: totalWords })
+      : t('vocabulary.subtitle.count', { count: totalWords });
 
   return (
-    <div className={`${styles.page} container container--page`}>
+    <div className={`${styles.page} container container--page`} data-vocab-mode={mode} {...(mode === 'play' ? { 'data-play-phase': playPhase } : {})}>
       <div className={styles.stack}>
       <PageHeader
         className={styles.pageHeader}
         textClassName={styles.pageHeaderText}
         titleClassName={styles.pageTitle}
         subtitleClassName={styles.pageSub}
-        title={`${siteContent.vocabulary.title}${canEditVocab ? '' : ' (read only)'}`}
+        title={`${t('vocabulary.title')}${canEditVocab ? '' : ` ${t('vocabulary.readOnly')}`}`}
         subtitle={pageSubtitle}
         back={
-          <Link href="/practice" className={styles.backLink} aria-label="Back to practice">
+          <Link href="/practice" className={styles.backLink} aria-label={t('vocabulary.backAria')}>
             <ArrowLeft size={16} aria-hidden />
           </Link>
         }
@@ -416,6 +434,8 @@ export default function VocabularyPage() {
             if (isCorrect) setPlayScore((prev) => prev + 1);
             applyStatus(current.cardId, isCorrect ? 'repeated' : 'mistakes_work');
             setPlayShowExplanation(true);
+            if (isCorrect) celebrate();
+            else encourage();
           }}
           onNext={() => {
             if (playIndex + 1 >= playQuestions.length) {

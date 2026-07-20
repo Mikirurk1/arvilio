@@ -3,7 +3,7 @@ import type {
   ScheduledLessonBackendDto,
   VocabularyOverviewDto,
 } from '@pkg/types';
-import type { ProfileStats } from '../mocks/domains/achievements';
+import type { ProfileStats } from './achievements';
 
 export function sumCompletedLessonMinutes(
   lessons: ScheduledLessonBackendDto[] | undefined,

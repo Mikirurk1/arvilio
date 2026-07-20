@@ -10,21 +10,18 @@ import { getChatSocket } from '../../lib/chat-socket';
 import { uploadChatAttachment } from '../../lib/chat-upload';
 import { toast } from '../../features/notifications';
 import { useChatStore } from '../../stores/chat-store';
+import { useCampusI18n, useCampusT } from '../../lib/cms';
 import { ChatEmojiPicker } from './ChatEmojiPicker';
 import { ChatMessageContent } from './ChatMessageContent';
 import styles from './page.module.scss';
 
-const ATTACH_CONFIRM = {
-  title: 'Attach a file?',
-  message:
-    'Files sent in chat are automatically deleted after 24 hours. Everyone in this conversation will lose access after that.',
-  confirmLabel: 'Choose file',
-};
-
 const SCROLL_NEAR_BOTTOM_PX = 120;
 
-function formatMessageTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+function formatMessageTime(iso: string, locale: string): string {
+  return new Date(iso).toLocaleTimeString(locale === 'uk' ? 'uk-UA' : 'en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 function isNearBottom(el: HTMLElement, threshold = SCROLL_NEAR_BOTTOM_PX): boolean {
@@ -42,6 +39,8 @@ export function ChatThread({
   loading: boolean;
   onBack?: () => void;
 }) {
+  const t = useCampusT();
+  const { locale } = useCampusI18n();
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -60,6 +59,12 @@ export function ChatThread({
   const hasMoreOlder = useChatStore((s) => s.hasMoreOlder);
   const loadingOlder = useChatStore((s) => s.loadingOlder);
   const fetchOlderMessages = useChatStore((s) => s.fetchOlderMessages);
+
+  const attachConfirm = {
+    title: t('chat.attach.confirmTitle'),
+    message: t('chat.attach.confirmBody'),
+    confirmLabel: t('chat.attach.confirmLabel'),
+  };
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
     bottomRef.current?.scrollIntoView({ behavior });
@@ -151,13 +156,13 @@ export function ChatThread({
 
   if (!conversation) {
     return (
-      <section className={styles.thread} aria-label="Conversation">
+      <section className={styles.thread} aria-label={t('chat.conversationAria')}>
         <div className={styles.threadEmpty}>
           <span className={styles.threadEmptyIcon} aria-hidden>
             <MessagesSquare size={26} />
           </span>
-          <p className={styles.threadEmptyTitle}>Your messages</p>
-          <p className={styles.threadEmptyHint}>Choose a conversation from the inbox to continue.</p>
+          <p className={styles.threadEmptyTitle}>{t('chat.empty.title')}</p>
+          <p className={styles.threadEmptyHint}>{t('chat.empty.hint')}</p>
         </div>
       </section>
     );
@@ -165,7 +170,7 @@ export function ChatThread({
 
   const subtitle =
     conversation.type === 'group'
-      ? `${conversation.participants?.length ?? 0} members`
+      ? t('chat.members', { count: conversation.participants?.length ?? 0 })
       : (conversation.peer?.roleLabel ?? '');
 
   const handleSend = () => {
@@ -182,14 +187,14 @@ export function ChatThread({
         if (ack?.ok) {
           setInput('');
         } else {
-          toast.error('Could not send message', ack?.error ?? 'Try again');
+          toast.error(t('chat.error.sendTitle'), ack?.error ?? t('chat.error.tryAgain'));
         }
       },
     );
   };
 
   const handleAttachClick = async () => {
-    const ok = await confirmDialog(ATTACH_CONFIRM);
+    const ok = await confirmDialog(attachConfirm);
     if (ok) fileInputRef.current?.click();
   };
 
@@ -198,8 +203,11 @@ export function ChatThread({
     const { safe, rejected, maxFileSizeMb } = filterSafeFiles(files);
     if (rejected.length > 0) {
       toast.error(
-        'Some files were rejected',
-        `Allowed types only, max ${maxFileSizeMb} MB. Rejected: ${rejected.join(', ')}`,
+        t('chat.error.filesRejected'),
+        t('chat.error.filesRejectedDetail', {
+          max: maxFileSizeMb,
+          files: rejected.join(', '),
+        }),
       );
     }
     if (!safe.length) return;
@@ -213,7 +221,10 @@ export function ChatThread({
       appendMessage(message);
       setInput('');
     } catch (error) {
-      toast.error('Could not upload file', error instanceof Error ? error.message : 'Try again');
+      toast.error(
+        t('chat.error.uploadTitle'),
+        error instanceof Error ? error.message : t('chat.error.tryAgain'),
+      );
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -227,14 +238,14 @@ export function ChatThread({
   const showHistoryStart = !loading && messages.length > 0 && !hasMoreOlder;
 
   return (
-    <section className={styles.thread} aria-label={`Chat with ${conversation.title}`}>
+    <section className={styles.thread} aria-label={t('chat.withAria', { name: conversation.title })}>
       <header className={styles.threadHead}>
         {onBack ? (
           <Button
             type="button"
             variant="ghost"
             className={styles.backBtn}
-            aria-label="Back to conversations"
+            aria-label={t('chat.backAria')}
             onClick={onBack}
           >
             <ArrowLeft size={20} aria-hidden />
@@ -254,9 +265,7 @@ export function ChatThread({
         </div>
       </header>
 
-      <p className={styles.retentionBanner}>
-        Files shared in chat are deleted automatically after 24 hours.
-      </p>
+      <p className={styles.retentionBanner}>{t('chat.retentionBanner')}</p>
 
       <div
         ref={scrollContainerRef}
@@ -268,12 +277,12 @@ export function ChatThread({
       >
         <div ref={topSentinelRef} className={styles.historySentinel} aria-hidden />
         {loadingOlder ? (
-          <p className={styles.historyStatus}>Loading older messages…</p>
+          <p className={styles.historyStatus}>{t('chat.loadingOlder')}</p>
         ) : null}
         {showHistoryStart ? (
-          <p className={styles.historyStatus}>Beginning of conversation</p>
+          <p className={styles.historyStatus}>{t('chat.historyStart')}</p>
         ) : null}
-        {loading ? <p className={styles.threadEmpty}>Loading messages…</p> : null}
+        {loading ? <p className={styles.threadEmpty}>{t('chat.loadingMessages')}</p> : null}
         {!loading
           ? messages.map((message) => (
               <div
@@ -297,7 +306,7 @@ export function ChatThread({
                   <div
                     className={`${styles.bubbleTime} ${message.isMine ? styles.bubbleTimeMine : styles.bubbleTimeTheirs}`}
                   >
-                    {formatMessageTime(message.createdAt)}
+                    {formatMessageTime(message.createdAt, locale)}
                   </div>
                 </div>
               </div>
@@ -306,7 +315,7 @@ export function ChatThread({
         <div ref={bottomRef} />
       </div>
 
-      <footer className={styles.composer}>
+      <footer className={styles.composer} data-tour-anchor="chat-composer">
         <input
           ref={fileInputRef}
           type="file"
@@ -318,7 +327,7 @@ export function ChatThread({
           type="button"
           variant="ghost"
           className={styles.iconBtn}
-          aria-label="Attach file"
+          aria-label={t('chat.attach.aria')}
           disabled={uploading || sending}
           onClick={() => void handleAttachClick()}
         >
@@ -326,7 +335,7 @@ export function ChatThread({
         </Button>
         <Field
           className={styles.composerField}
-          placeholder="Type a message..."
+          placeholder={t('chat.composer.placeholder')}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
@@ -335,7 +344,7 @@ export function ChatThread({
               handleSend();
             }
           }}
-          aria-label="Message"
+          aria-label={t('chat.composer.messageAria')}
           disabled={uploading}
         />
         <div className={styles.emojiWrap}>
@@ -343,7 +352,7 @@ export function ChatThread({
             type="button"
             variant="ghost"
             className={styles.iconBtn}
-            aria-label="Insert emoji"
+            aria-label={t('chat.emoji.insertAria')}
             aria-expanded={emojiOpen}
             onClick={() => setEmojiOpen((open) => !open)}
           >
@@ -355,10 +364,10 @@ export function ChatThread({
           type="button"
           variant="primary"
           className={styles.sendBtn}
-          aria-label="Send message"
+          aria-label={t('chat.send.aria')}
           disabled={!input.trim() || sending || uploading}
           loading={sending}
-          loadingLabel="Sending…"
+          loadingLabel={t('chat.sending')}
           onClick={handleSend}
         >
           <Send size={18} aria-hidden />

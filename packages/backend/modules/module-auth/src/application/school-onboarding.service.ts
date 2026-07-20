@@ -2,10 +2,17 @@ import { BadRequestException, ForbiddenException, Injectable, Logger } from '@ne
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@be/prisma';
 import type { UpdatePaymentSettingsRequestDto } from '@pkg/types';
+import { isLocale } from '@pkg/types';
 import { TenantContextService } from '@be/tenant';
 import { PaymentSettingsService } from '@be/billing';
 import { InvitationsService } from './invitations.service';
 import { SampleContentService } from './sample-content.service';
+import { SchoolBrandingService } from './school-branding.service';
+import { SchoolLocaleService } from './school-locale.service';
+import {
+  SchoolTeachingPrefsService,
+  TEACHING_LESSON_FORMATS,
+} from './school-teaching-prefs.service';
 
 /** Wizard steps (Phase 4.5.3, G30). Order drives the UI; backend just validates membership. */
 export const ONBOARDING_STEPS = [
@@ -44,6 +51,16 @@ function parseInviteEmails(raw: unknown): string[] {
     .filter((e) => EMAIL_RE.test(e));
 }
 
+/** Comma/newline-separated language labels from the teaching step. */
+function parseTeachingLanguages(raw: unknown): string[] {
+  if (typeof raw !== 'string') return [];
+  return raw
+    .split(/[\n,]+/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 20);
+}
+
 @Injectable()
 export class SchoolOnboardingService {
   constructor(
@@ -52,6 +69,9 @@ export class SchoolOnboardingService {
     private readonly invitations: InvitationsService,
     private readonly sampleContent: SampleContentService,
     private readonly paymentSettings: PaymentSettingsService,
+    private readonly branding: SchoolBrandingService,
+    private readonly schoolLocale: SchoolLocaleService,
+    private readonly teachingPrefs: SchoolTeachingPrefsService,
   ) {}
 
   private parseState(raw: Prisma.JsonValue | null | undefined): OnboardingStateDto {
@@ -100,23 +120,88 @@ export class SchoolOnboardingService {
       data: { onboardingState: next as unknown as Prisma.InputJsonValue },
     });
 
-    // Side effects — fire-and-forget (wizard state is already persisted above)
+    // Side effects — await so the wizard surfaces validation errors
+    if (step === 'profile') {
+      await this.applyProfileStep(data, schoolId);
+    }
+    if (step === 'teaching') {
+      await this.applyTeachingStep(data, schoolId);
+    }
     if (step === 'invite') {
-      void this.dispatchInvites(data, schoolId);
+      await this.dispatchInvites(data, schoolId);
     }
     if (step === 'sample-content' && data['seed'] !== 'no') {
       const adminUserId = this.tenant.userId;
-      if (adminUserId) void this.sampleContent.seed(schoolId, adminUserId).catch((err) => {
-        logger.warn(`Sample content seed failed for school ${schoolId}: ${String(err)}`);
-      });
+      if (adminUserId) {
+        try {
+          await this.sampleContent.seed(schoolId, adminUserId);
+        } catch (err) {
+          logger.warn(`Sample content seed failed for school ${schoolId}: ${String(err)}`);
+        }
+      }
     }
     if (step === 'payments') {
-      void this.applyPaymentsStep(data).catch((err) => {
-        logger.warn(`Payments step failed for school ${schoolId}: ${String(err)}`);
-      });
+      await this.applyPaymentsStep(data);
     }
 
     return next;
+  }
+
+  /**
+   * Apply profile wizard fields to School + admin User (W1).
+   * Empty strings are no-ops so Skip / blank Continue does not wipe settings.
+   */
+  private async applyProfileStep(
+    data: Record<string, unknown>,
+    schoolId: string,
+  ): Promise<void> {
+    const accent =
+      typeof data['accentColor'] === 'string' ? data['accentColor'].trim() : '';
+    if (accent) {
+      await this.branding.update(schoolId, { brandColor: accent });
+    }
+
+    const localeRaw = typeof data['locale'] === 'string' ? data['locale'].trim() : '';
+    if (localeRaw && isLocale(localeRaw)) {
+      const current = await this.schoolLocale.get(schoolId);
+      const enabled =
+        current.enabledLocales.length > 0
+          ? Array.from(new Set([...current.enabledLocales, localeRaw]))
+          : [localeRaw];
+      await this.schoolLocale.update(schoolId, {
+        defaultLocale: localeRaw,
+        enabledLocales: enabled,
+      });
+    }
+
+    const timezone =
+      typeof data['timezone'] === 'string' ? data['timezone'].trim() : '';
+    const adminUserId = this.tenant.userId;
+    if (timezone && adminUserId) {
+      await this.prisma.user.update({
+        where: { id: adminUserId },
+        data: { timezone },
+      });
+    }
+  }
+
+  /**
+   * Persist teaching step onto `School.teachingPrefs` (W5/W6).
+   */
+  private async applyTeachingStep(
+    data: Record<string, unknown>,
+    schoolId: string,
+  ): Promise<void> {
+    const languages = parseTeachingLanguages(data['languages']);
+    const formatRaw =
+      typeof data['lessonFormat'] === 'string' ? data['lessonFormat'].trim() : '';
+    const lessonFormat = (TEACHING_LESSON_FORMATS as readonly string[]).includes(formatRaw)
+      ? formatRaw
+      : 'online';
+    await this.teachingPrefs.update(schoolId, {
+      languages,
+      lessonFormat,
+    });
   }
 
   /**
@@ -124,6 +209,7 @@ export class SchoolOnboardingService {
    * Each email becomes a TEACHER invitation (the most common onboarding use-case;
    * admins can change role later). Already-member and duplicate emails are silently
    * skipped by `InvitationsService.create` (it throws — we catch per-item).
+   * If emails are provided but the admin email is unverified → BadRequest (W2).
    */
   private async dispatchInvites(data: Record<string, unknown>, schoolId: string): Promise<void> {
     const emails = parseInviteEmails(data['emails']);
@@ -135,8 +221,9 @@ export class SchoolOnboardingService {
       select: { emailVerifiedAt: true },
     });
     if (!admin?.emailVerifiedAt) {
-      logger.warn(`Invite dispatch skipped — admin ${adminUserId} email not verified (schoolId=${schoolId})`);
-      return;
+      throw new BadRequestException(
+        'Verify your email before inviting teammates. Check your inbox for the verification link.',
+      );
     }
     for (const email of emails) {
       try {

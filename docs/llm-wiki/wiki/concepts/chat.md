@@ -55,7 +55,7 @@ Auth: httpOnly cookies on handshake (`AuthSessionService`). Upload dir: `CHAT_UP
 
 ## Web
 
-- `apps/web/src/app/chat/` — UI
+- `apps/campus/src/app/chat/` — UI
 - `stores/chat-store.ts`, `lib/chat-socket.ts`
 - **Message history (web):** initial load = latest 50 (`fetchMessages`); scroll up near top → `fetchOlderMessages` prepends with cursor; scroll position preserved; auto-scroll to bottom only on conversation open, first load, or when user is already near bottom (new socket/send). States: “Loading older messages…”, “Beginning of conversation”.
 - Sidebar **Chat** link + unread badge (`useChatNavBadge`)

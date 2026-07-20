@@ -1,7 +1,10 @@
+'use client';
+
 import { Check } from 'lucide-react';
 import type { ResolvedLessonPackageDto } from '@pkg/types';
-import { Badge, Button } from '../../components/ui';
+import { Badge } from '../../components/ui';
 import { formatCheckoutAmount } from '../../lib/billing/checkout-display';
+import { useCampusT } from '../../lib/cms';
 import styles from './page.module.scss';
 
 export function getFeaturedPackageId(
@@ -13,8 +16,12 @@ export function getFeaturedPackageId(
 }
 
 export function PackageOfferPanel({ pkg }: { pkg: ResolvedLessonPackageDto }) {
+  const t = useCampusT();
   return (
-    <div className={styles.packageOffer} aria-label={`${pkg.label}, ${pkg.lessons} lessons`}>
+    <div
+      className={styles.packageOffer}
+      aria-label={t('payment.packageAria', { label: pkg.label, count: pkg.lessons })}
+    >
       <div className={styles.packageOfferBody}>
         <div className={styles.packageOfferMeta}>
           <Badge variant="blue" size="sm">
@@ -22,20 +29,25 @@ export function PackageOfferPanel({ pkg }: { pkg: ResolvedLessonPackageDto }) {
           </Badge>
           {pkg.lessonsLocked ? (
             <Badge variant="neutral" size="sm">
-              Fixed size
+              {t('payment.fixedSize')}
             </Badge>
           ) : null}
         </div>
         <h3 className={styles.packageOfferTitle}>{pkg.label}</h3>
         <p className={styles.packageOfferLessons}>
-          <strong>{pkg.lessons}</strong> lessons on your balance after payment
+          {pkg.description?.trim()
+            ? pkg.description
+            : t('payment.lessonsPrepaid', { count: pkg.lessons })}
         </p>
         <p className={styles.packageOfferRate}>
-          {formatCheckoutAmount(pkg.pricePerLessonMinor, pkg.currency)} per lesson
+          {t('payment.lessonsPerLesson', {
+            count: pkg.lessons,
+            rate: formatCheckoutAmount(pkg.pricePerLessonMinor, pkg.currency),
+          })}
         </p>
       </div>
       <div className={styles.packageOfferPrice}>
-        <span className={styles.packageOfferPriceLabel}>Total to pay</span>
+        <span className={styles.packageOfferPriceLabel}>{t('payment.totalToPay')}</span>
         <span className={styles.packageOfferAmount}>
           {formatCheckoutAmount(pkg.amountMinor, pkg.currency)}
         </span>
@@ -55,12 +67,13 @@ export function PackageCard({
   selected: boolean;
   onSelect: () => void;
 }) {
+  const t = useCampusT();
   const isFeatured = pkg.id === featuredPackageId;
+  const amount = formatCheckoutAmount(pkg.amountMinor, pkg.currency);
 
   return (
-    <Button
+    <button
       type="button"
-      variant="ghost"
       className={[
         styles.packageCard,
         selected ? styles.packageCardSelected : '',
@@ -70,7 +83,11 @@ export function PackageCard({
         .join(' ')}
       onClick={onSelect}
       aria-pressed={selected}
-      aria-label={`${pkg.label}, ${pkg.lessons} lessons, ${formatCheckoutAmount(pkg.amountMinor, pkg.currency)}`}
+      aria-label={t('payment.packageCardAria', {
+        label: pkg.label,
+        count: pkg.lessons,
+        amount,
+      })}
     >
       <span className={styles.packageCardRadio} aria-hidden>
         {selected ? <Check size={14} strokeWidth={3} /> : null}
@@ -79,22 +96,27 @@ export function PackageCard({
       <div className={styles.packageCardMain}>
         {isFeatured ? (
           <Badge variant="green" size="sm" className={styles.packageCardRibbon}>
-            Most popular
+            {t('payment.mostPopular')}
           </Badge>
         ) : null}
         <h3 className={styles.packageCardTitle}>{pkg.label}</h3>
         <p className={styles.packageCardLessons}>
-          <strong>{pkg.lessons}</strong>{' '}
-          {pkg.creditTrack === 'group' ? 'group lessons' : 'lessons'} · {pkg.currency}
+          {pkg.description?.trim()
+            ? pkg.description
+            : pkg.creditTrack === 'group'
+              ? t('payment.groupLessonsPrepaid', { count: pkg.lessons })
+              : t('payment.lessonsPrepaid', { count: pkg.lessons })}
         </p>
       </div>
 
       <div className={styles.packageCardPriceBlock}>
-        <span className={styles.packageCardPrice}>{formatCheckoutAmount(pkg.amountMinor, pkg.currency)}</span>
+        <span className={styles.packageCardPrice}>{amount}</span>
         <span className={styles.packageCardRate}>
-          {formatCheckoutAmount(pkg.pricePerLessonMinor, pkg.currency)} / lesson
+          {t('payment.perLesson', {
+            rate: formatCheckoutAmount(pkg.pricePerLessonMinor, pkg.currency),
+          })}
         </span>
       </div>
-    </Button>
+    </button>
   );
 }

@@ -11,6 +11,7 @@ import { toLessonFormState } from '../../features/calendar/adapters/lessonCalend
 import { getPlannedLessonsInSeries } from '../../lib/lesson-series';
 import { lessonEndTimeInZone, lessonStartTimeInZone } from '../../lib/lessonTime';
 import type { LessonFormState } from '../../features/calendar/types';
+import { useCampusT } from '../../lib/cms';
 import styles from './page.module.scss';
 
 type ConflictDialog = {
@@ -84,6 +85,7 @@ export function CalendarDialogs({
   confirmDeleteOpen, setConfirmDeleteOpen,
   confirmUnlinkOpen, setConfirmUnlinkOpen, form, persistUpdate, setEditingLesson, setForm,
 }: CalendarDialogsProps) {
+  const t = useCampusT();
   return (
     <>
       <WhenPortaled when={Boolean(conflictDialog?.open)}>
@@ -113,7 +115,7 @@ export function CalendarDialogs({
                 </div>
                 <div className={styles.confirmActions}>
                   <Button type="button" className={styles.confirmPrimary} onClick={() => setConflictDialog(null)}>
-                    Close
+                    {t('calendar.dialog.close')}
                   </Button>
                 </div>
               </div>
@@ -133,7 +135,7 @@ export function CalendarDialogs({
                 <div className={styles.confirmBody}>{dialog.message}</div>
                 <div className={styles.confirmActions}>
                   <Button type="button" className={styles.confirmPrimary} onClick={() => setWarningDialog(null)}>
-                    OK
+                    {t('calendar.dialog.ok')}
                   </Button>
                 </div>
               </div>
@@ -197,18 +199,18 @@ export function CalendarDialogs({
           return (
             <div className={styles.confirmOverlay} onClick={() => setConfirmDeleteSeriesOpen(false)}>
               <div className={styles.confirmModal} onClick={(e) => e.stopPropagation()}>
-                <div className={styles.confirmTitle}>Delete planned lessons in series?</div>
+                <div className={styles.confirmTitle}>{t('calendar.series.deletePlannedTitle')}</div>
                 <div className={styles.confirmBody}>
-                  This will permanently delete {plannedCount} planned lesson{plannedCount === 1 ? '' : 's'}. Completed and cancelled lessons stay.
+                  {t('calendar.series.deletePlannedBody', { count: String(plannedCount) })}
                 </div>
                 <div className={styles.confirmActions}>
                   <Button type="button" className={styles.confirmSecondary} disabled={overlayConfirmBusy} onClick={() => setConfirmDeleteSeriesOpen(false)}>
-                    Cancel
+                    {t('calendar.series.cancel')}
                   </Button>
                   <Button
                     type="button"
                     className={styles.confirmDanger}
-                    loadingLabel="Deleting…"
+                    loadingLabel={t('calendar.series.deleting')}
                     onPendingChange={setOverlayConfirmBusy}
                     onClick={async () => {
                       try {
@@ -218,11 +220,11 @@ export function CalendarDialogs({
                         setConfirmDeleteSeriesOpen(false);
                         closeModal();
                       } catch (error) {
-                        setWarningDialog({ open: true, title: 'Could not delete series', message: persistenceErrorMessage(error) });
+                        setWarningDialog({ open: true, title: t('calendar.warning.couldNotDeleteSeries'), message: persistenceErrorMessage(error) });
                       }
                     }}
                   >
-                    Delete all
+                    {t('calendar.series.deleteAll')}
                   </Button>
                 </div>
               </div>
@@ -235,16 +237,16 @@ export function CalendarDialogs({
         {() => (
           <div className={styles.confirmOverlay} onClick={() => setConfirmDeleteOpen(false)}>
             <div className={styles.confirmModal} onClick={(e) => e.stopPropagation()}>
-              <div className={styles.confirmTitle}>Delete lesson?</div>
-              <div className={styles.confirmBody}>Are you sure you want to delete this lesson? This action cannot be undone.</div>
+              <div className={styles.confirmTitle}>{t('calendar.series.deleteLessonTitle')}</div>
+              <div className={styles.confirmBody}>{t('calendar.series.deleteLessonBody')}</div>
               <div className={styles.confirmActions}>
                 <Button type="button" className={styles.confirmSecondary} disabled={overlayConfirmBusy} onClick={() => setConfirmDeleteOpen(false)}>
-                  Cancel
+                  {t('calendar.series.cancel')}
                 </Button>
                 <Button
                   type="button"
                   className={styles.confirmDanger}
-                  loadingLabel="Deleting…"
+                  loadingLabel={t('calendar.series.deleting')}
                   onPendingChange={setOverlayConfirmBusy}
                   onClick={async () => {
                     if (!editingLesson) return;
@@ -252,7 +254,7 @@ export function CalendarDialogs({
                     try {
                       if (canManage && backendId) await deleteScheduledLesson(backendId);
                     } catch (error) {
-                      setWarningDialog({ open: true, title: 'Could not delete lesson', message: persistenceErrorMessage(error) });
+                      setWarningDialog({ open: true, title: t('calendar.warning.couldNotDeleteLesson'), message: persistenceErrorMessage(error) });
                       return;
                     }
                     setLessons((prev) => prev.filter((lesson) => lesson.id !== editingLesson.id));
@@ -260,7 +262,7 @@ export function CalendarDialogs({
                     closeModal();
                   }}
                 >
-                  Delete
+                  {t('calendar.series.delete')}
                 </Button>
               </div>
             </div>
@@ -272,16 +274,16 @@ export function CalendarDialogs({
         {() => (
           <div className={styles.confirmOverlay} onClick={() => setConfirmUnlinkOpen(false)}>
             <div className={styles.confirmModal} onClick={(e) => e.stopPropagation()}>
-              <div className={styles.confirmTitle}>Unlink this lesson from series?</div>
-              <div className={styles.confirmBody}>Only this lesson will be detached. Other lessons in series will remain unchanged.</div>
+              <div className={styles.confirmTitle}>{t('calendar.series.unlinkTitle')}</div>
+              <div className={styles.confirmBody}>{t('calendar.series.unlinkBody')}</div>
               <div className={styles.confirmActions}>
                 <Button type="button" className={styles.confirmSecondary} disabled={overlayConfirmBusy} onClick={() => setConfirmUnlinkOpen(false)}>
-                  Cancel
+                  {t('calendar.series.cancel')}
                 </Button>
                 <Button
                   type="button"
                   className={styles.confirmPrimary}
-                  loadingLabel="Unlinking…"
+                  loadingLabel={t('calendar.series.unlinking')}
                   onPendingChange={setOverlayConfirmBusy}
                   onClick={async () => {
                     if (!editingLesson || !form) return;
@@ -301,7 +303,7 @@ export function CalendarDialogs({
                         }
                       }
                     } catch (error) {
-                      setWarningDialog({ open: true, title: 'Could not unlink lesson', message: persistenceErrorMessage(error) });
+                      setWarningDialog({ open: true, title: t('calendar.warning.couldNotUnlink'), message: persistenceErrorMessage(error) });
                       return;
                     }
                     setLessons((prev) =>
@@ -312,7 +314,7 @@ export function CalendarDialogs({
                     setConfirmUnlinkOpen(false);
                   }}
                 >
-                  Unlink
+                  {t('calendar.series.unlinkConfirm')}
                 </Button>
               </div>
             </div>

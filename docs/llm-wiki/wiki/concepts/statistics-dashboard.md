@@ -70,7 +70,7 @@ DTO: `StatisticsDashboardDto` in `packages/shared/types/src/lib/statistics-dashb
 
 ## Web
 
-- Hook: `apps/web/src/hooks/use-statistics-dashboard.ts`
+- Hook: `apps/campus/src/hooks/use-statistics-dashboard.ts`
 - UI: `StatisticsDashboard` — student charts vs staff lessons/roster table
 - Profile tab: all roles use the same hook; layout driven by API `layout`
 - Student detail tab: hook with `studentId` → always student layout
@@ -99,7 +99,7 @@ Profile statistics shows **Lessons & payments** / **Learning activity** for all 
 
 Billing data: `StudentLessonBalance`, `Payment` (SUCCEEDED), `LessonBalanceLedger` (PURCHASE/MANUAL_CREDIT), platform `paymentConfig`. Staff earnings: `StaffPayrollService.buildMyEarnings` → `statisticsDashboard.staffEarnings`. See [[concepts/staff-payouts]].
 
-Mapper: `apps/web/src/lib/map-statistics-dashboard.ts`.
+Mapper: `apps/campus/src/lib/map-statistics-dashboard.ts`.
 
 ## Profile tab UI (redesign)
 
@@ -110,7 +110,7 @@ Mapper: `apps/web/src/lib/map-statistics-dashboard.ts`.
 - **Metric sections** — one `StatisticsSection` per KPI category with StatTiles
 - **Chart sections** — same section pattern for trends, pies, roster table, earnings
 
-Component: `apps/web/src/components/statistics/StatisticsSection.tsx`. Styles: `StatisticsDashboard.module.scss` (`statsSummary`, `statsToolbar`, `statsSection*`).
+Component: `apps/campus/src/components/statistics/StatisticsSection.tsx`. Styles: `StatisticsDashboard.module.scss` (`statsSummary`, `statsToolbar`, `statsSection*`).
 
 ## Tenant note
 

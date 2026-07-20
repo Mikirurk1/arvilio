@@ -1,9 +1,11 @@
 'use client';
 
 import { useMemo } from 'react';
-import { mockUsers, mockUsersByRole, type MockUser } from '../mocks/session';
+import type { MockUser } from './user-models';
+import { emptyActiveUserShell } from './active-user-defaults';
 import { ianaToTimeZoneId } from './lessonTime';
 import { useOptionalAuth } from './auth-context';
+import { partyNumericId } from '../features/lesson-modal/scheduledLessonsBackendAdapter';
 import {
   mapAuthRoleToRoleId,
   type AuthRole,
@@ -19,16 +21,9 @@ export {
 } from './active-user-role.util';
 
 /**
- * Compatibility shim: returns a MockUser-shaped object whose identity
- * fields come *only* from the authenticated session (no mock fallback for
- * fullName/email/avatar). Domain extras (timezoneId, vocabulary, stats,
- * notificationPrefs, …) still come from the mock seed for the same role
- * until the corresponding pages migrate to backend APIs.
- *
- * Why no mock fallback for identity: when /auth/me is loading or returns
- * 401 the shim used to silently expose the student-seed ("Mykola
- * Kovalenko"), making the UI look like a logged-in student even for a
- * super-admin or anonymous visitor.
+ * Compatibility shim: MockUser-shaped object whose identity fields come
+ * only from the authenticated session. Domain extras use empty defaults
+ * (not demo seed users); prefer profile/API stores for real prefs & stats.
  */
 export function useActiveUser(): MockUser {
   const auth = useOptionalAuth();
@@ -36,14 +31,15 @@ export function useActiveUser(): MockUser {
 
   return useMemo(() => {
     const roleId = mapAuthRoleToRoleId(user?.role);
-    const seed = mockUsersByRole[roleId] ?? mockUsers[0];
+    const shell = emptyActiveUserShell(roleId);
     return {
-      ...seed,
+      ...shell,
       role: roleId,
       fullName: user?.displayName ?? '',
       email: user?.email ?? '',
       avatar: user?.avatarUrl ? { url: user.avatarUrl } : {},
-      timezoneId: user?.timezone ? ianaToTimeZoneId(user.timezone) : seed.timezoneId,
+      timezoneId: user?.timezone ? ianaToTimeZoneId(user.timezone) : shell.timezoneId,
+      teacherId: user?.teacherId ? partyNumericId(user.teacherId) : 0,
     };
   }, [user]);
 }

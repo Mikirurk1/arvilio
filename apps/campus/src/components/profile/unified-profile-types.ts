@@ -1,6 +1,4 @@
-import type { StudentLessonFormat } from '@pkg/types';
-import type { ProficiencyLevelId, TimeZoneId, UserAccountStatusId } from '@pkg/types';
-import type { UserRole } from '../../mocks';
+import type { StudentLessonFormat, UserRoleId, ProficiencyLevelId, TimeZoneId, UserAccountStatusId } from '@pkg/types';
 
 export type ProfileSubjectKind = 'self' | 'student' | 'staff';
 
@@ -26,9 +24,9 @@ export type FieldMode = 'hidden' | 'view' | 'edit';
 
 export type ProfileFormContext = {
   subjectKind: ProfileSubjectKind;
-  viewerRole: UserRole;
+  viewerRole: UserRoleId;
   /** Role of the profile subject (defaults to viewerRole for self). */
-  subjectRole?: UserRole;
+  subjectRole?: UserRoleId;
   canEdit: boolean;
   groupLessonsEnabled?: boolean;
   showNativeLanguage?: boolean;

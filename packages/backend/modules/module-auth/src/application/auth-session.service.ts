@@ -3,15 +3,17 @@ import { PrismaService } from '@be/prisma';
 import * as jwt from 'jsonwebtoken';
 import type { Request, Response } from 'express';
 import {
-  ACCESS_COOKIE,
   ACCESS_TOKEN_TTL_SECONDS,
   IMPERSONATION_TOKEN_TTL_SECONDS,
-  REFRESH_COOKIE,
   REFRESH_TOKEN_TTL_SECONDS,
   generateRefreshToken,
   getJwtSecret,
   hashRefreshToken,
+  isPlatformRefreshCookie,
+  readAccessTokenFromCookies,
+  readRefreshTokenFromCookies,
   setAuthCookies,
+  setPlatformAuthCookies,
 } from '../shared/auth-cookies';
 import { assertAccountStatusAllowsAuth } from '../shared/auth-account-status.util';
 
@@ -106,7 +108,7 @@ export class AuthSessionService {
   ): Promise<{ userId: string; authStrategy: 'access' | 'refresh' } | null> {
     const header = req.headers.authorization;
     const bearer = header?.startsWith('Bearer ') ? header.slice(7) : null;
-    const access = bearer ?? req.cookies?.[ACCESS_COOKIE] ?? null;
+    const access = bearer ?? readAccessTokenFromCookies(req.cookies) ?? null;
     if (access) {
       let payload: { sub?: string } | null = null;
       try {
@@ -121,7 +123,7 @@ export class AuthSessionService {
       }
     }
 
-    const rawRefresh = req.cookies?.[REFRESH_COOKIE];
+    const rawRefresh = readRefreshTokenFromCookies(req.cookies);
     if (!rawRefresh) return null;
 
     const tokenHash = hashRefreshToken(rawRefresh);
@@ -154,7 +156,7 @@ export class AuthSessionService {
   } | null> {
     const header = req.headers.authorization;
     const bearer = header?.startsWith('Bearer ') ? header.slice(7) : null;
-    const access = bearer ?? req.cookies?.[ACCESS_COOKIE] ?? null;
+    const access = bearer ?? readAccessTokenFromCookies(req.cookies) ?? null;
     if (access) {
       let payload: { sub?: string; imp?: ImpersonationClaim } | null = null;
       try {
@@ -172,7 +174,7 @@ export class AuthSessionService {
       }
     }
 
-    const rawRefresh = req.cookies?.[REFRESH_COOKIE];
+    const rawRefresh = readRefreshTokenFromCookies(req.cookies);
     if (!rawRefresh) return null;
 
     const tokenHash = hashRefreshToken(rawRefresh);
@@ -216,7 +218,7 @@ export class AuthSessionService {
   ): ImpersonationContext | null {
     const header = req.headers.authorization;
     const bearer = header?.startsWith('Bearer ') ? header.slice(7) : null;
-    const access = bearer ?? req.cookies?.[ACCESS_COOKIE] ?? null;
+    const access = bearer ?? readAccessTokenFromCookies(req.cookies) ?? null;
     if (!access) return null;
     try {
       const payload = jwt.verify(access, getJwtSecret()) as { imp?: ImpersonationClaim };
@@ -275,7 +277,7 @@ export class AuthSessionService {
     if (peeked?.authStrategy === 'access') return peeked.userId;
     if (peeked?.authStrategy !== 'refresh') return null;
 
-    const rawRefresh = req.cookies?.[REFRESH_COOKIE];
+    const rawRefresh = readRefreshTokenFromCookies(req.cookies);
     if (!rawRefresh) return null;
     if (!res) return peeked.userId;
 
@@ -284,10 +286,15 @@ export class AuthSessionService {
       ip: req.ip,
     });
     if (rotated) {
-      setAuthCookies(res, {
+      const tokens = {
         accessToken: rotated.accessToken,
         refreshToken: rotated.refreshToken,
-      });
+      };
+      if (isPlatformRefreshCookie(req.cookies)) {
+        setPlatformAuthCookies(res, tokens);
+      } else {
+        setAuthCookies(res, tokens);
+      }
       return rotated.userId;
     }
 
@@ -366,16 +373,24 @@ export class AuthSessionService {
   async resolveUserLocaleData(
     userId: string,
     schoolId: string | null,
-  ): Promise<{ userLocale: string | null; schoolLocale: string | null }> {
+  ): Promise<{
+    userLocale: string | null;
+    schoolLocale: string | null;
+    schoolEnabledLocales: string[];
+  }> {
     const [user, school] = await Promise.all([
       this.prisma.user.findUnique({ where: { id: userId }, select: { locale: true } }),
       schoolId
-        ? this.prisma.school.findUnique({ where: { id: schoolId }, select: { defaultLocale: true } })
+        ? this.prisma.school.findUnique({
+            where: { id: schoolId },
+            select: { defaultLocale: true, enabledLocales: true },
+          })
         : Promise.resolve(null),
     ]);
     return {
       userLocale: user?.locale ?? null,
       schoolLocale: school?.defaultLocale ?? null,
+      schoolEnabledLocales: school?.enabledLocales ?? [],
     };
   }
 }

@@ -29,7 +29,7 @@ export type LessonPriceByCurrencyDto = {
   pricePerLessonMinor: number;
 };
 
-/** Checkout currencies each online provider accepts in SoEnglish today. */
+/** Checkout currencies each online provider accepts in Arvilio today. */
 export const PAYMENT_PROVIDER_CHECKOUT_CURRENCIES: Record<
   Exclude<PaymentMethodKindDto, 'manual_invoice'>,
   readonly PaymentCurrencyCode[] | 'variant'

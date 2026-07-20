@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Generates docs/coursework/Курсова_SoEnglish.docx and Курсова_SoEnglish.md
+ * Generates docs/coursework/Курсова_Arvilio.docx and Курсова_Arvilio.md
  * Run: node scripts/generate-coursework-docx.mjs
  */
 import fs from 'fs';
@@ -258,10 +258,10 @@ function sectionRoadmap() {
   return [
     h1('ШЛЯХИ ПОКРАЩЕННЯ ТА ПЛАН РОЗВИТКУ ПРОЄКТУ'),
     p(
-      'Поточна версія SoEnglish є робочим MVP для демонстрації архітектури та основних сценаріїв навчання. Нижче наведено пріоритетний план подальшого розвитку, узгоджений із технічним боргом репозиторію (відсутність автоматизованих тестів, неповний billing, частковий RBAC на клієнті).',
+      'Поточна версія Arvilio є робочим MVP для демонстрації архітектури та основних сценаріїв навчання. Нижче наведено пріоритетний план подальшого розвитку, узгоджений із технічним боргом репозиторію (відсутність автоматизованих тестів, неповний billing, частковий RBAC на клієнті).',
     ),
     h2('План розвитку проєкту'),
-    p('Таблиця. Етапи розвитку SoEnglish'),
+    p('Таблиця. Етапи розвитку Arvilio'),
     makeTable(['Етап', 'Напрям', 'Зміст робіт'], DEVELOPMENT_PLAN),
     p(''),
     h2('Шляхи технічного покращення'),
@@ -289,7 +289,7 @@ function sectionIntro() {
   const blocks = [
     h1('АНОТАЦІЯ'),
     p(
-      'Курсова робота присвячена проектуванню та практичній реалізації веб-платформи SoEnglish для дистанційного навчання англійської мови. Система охоплює індивідуальні уроки 1:1 з інтеграцією Google Meet, персональний словник із spaced repetition, генерацію та проходження квізів, календар занять, dashboard зі streak і daily goals, а також realtime-чат між учасниками навчального процесу.',
+      'Курсова робота присвячена проектуванню та практичній реалізації веб-платформи Arvilio для дистанційного навчання англійської мови. Система охоплює індивідуальні уроки 1:1 з інтеграцією Google Meet, персональний словник із spaced repetition, генерацію та проходження квізів, календар занять, dashboard зі streak і daily goals, а також realtime-чат між учасниками навчального процесу.',
     ),
     p(
       'Рівень зберігання даних реалізовано на PostgreSQL із ORM Prisma. Серверна частина побудована на NestJS (REST + GraphQL + Socket.IO), клієнтська — на Next.js 16 та React 19. У роботі наведено вимоги, архітектуру monorepo, опис реалізації та результати тестування.',
@@ -303,7 +303,7 @@ function sectionIntro() {
       'Володіння англійською мовою є критичним фактором професійного та академічного успіху. Традиційні формати навчання (лише офлайн-заняття та розрізнені інструменти — месенджери, таблиці, окремі сервіси для слів) ускладнюють координацію між студентом і викладачем та знижують прозорість прогресу.',
     ),
     p(
-      'Метою проєкту SoEnglish є створення єдиного веб-застосунку, який об’єднує розклад уроків, словникову роботу, практику, оцінювання через квізи та комунікацію в чаті. Система підтримує ролі student, teacher, admin і super_admin із різними правами доступу.',
+      'Метою проєкту Arvilio є створення єдиного веб-застосунку, який об’єднує розклад уроків, словникову роботу, практику, оцінювання через квізи та комунікацію в чаті. Система підтримує ролі student, teacher, admin і super_admin із різними правами доступу.',
     ),
     p(
       'Об’єкт дослідження — процес організації дистанційного навчання англійської мови в форматі 1:1. Предмет — методи та засоби проектування інформаційної системи на базі сучасного JavaScript-стеку. Практична значущість полягає у готовому програмному комплексі, який можна розгортати в навчальному закладі або мовній школі.',
@@ -314,7 +314,7 @@ function sectionIntro() {
     p(
       'Структура роботи: план розвитку та перспективи; Розділ 1 — постановка завдання; Розділ 2 — вимоги та інструменти; Розділ 3 — реалізація; Розділ 4 — тестування; додатки містять перелік залежностей і інструкцію запуску.',
     ),
-    ...figure(1, 'Загальна схема системи SoEnglish', FIGURES[0][2]),
+    ...figure(1, 'Загальна схема системи Arvilio', FIGURES[0][2]),
     new Paragraph({ children: [new PageBreak()] }),
   ];
   return blocks;
@@ -339,7 +339,7 @@ function section1() {
     ),
     h2('1.3. Аналіз існуючих рішень'),
     p(
-      'Порівняно з Duolingo (гейміфікація без живого викладача), Google Classroom (класна модель, не 1:1 словник) та зв’язкою Zoom + Google Sheets (відсутність єдиної БД і RBAC). SoEnglish фокусується на парному навчанні з інтегрованим словником, квізами та календарем Meet.',
+      'Порівняно з Duolingo (гейміфікація без живого викладача), Google Classroom (класна модель, не 1:1 словник) та зв’язкою Zoom + Google Sheets (відсутність єдиної БД і RBAC). Arvilio фокусується на парному навчанні з інтегрованим словником, квізами та календарем Meet.',
     ),
     makeTable(
       ['Рішення', 'Переваги', 'Недоліки для 1:1'],
@@ -347,13 +347,13 @@ function section1() {
         ['Duolingo', 'Гейміфікація, мобільність', 'Немає живого викладача та розкладу'],
         ['Google Classroom', 'Завдання, матеріали', 'Слабкий словник і Meet поза системою'],
         ['Zoom + Sheets', 'Простота', 'Розрізнені дані, немає RBAC'],
-        ['SoEnglish', 'Уроки + слова + квізи + чат', 'Потребує розгортання інфраструктури'],
+        ['Arvilio', 'Уроки + слова + квізи + чат', 'Потребує розгортання інфраструктури'],
       ],
     ),
     p(''),
     h2('1.4. Архітектура рішення'),
     p(
-      'Проєкт організовано як npm monorepo (Turborepo): apps/web (Next.js), apps/api (NestJS), packages/backend/modules/* (доменна логіка), packages/shared/types (DTO), data-access-prisma (схема БД). Клієнт звертається до /api через rewrite; GraphQL — /api/graphql; чат — Socket.IO напряму на API :3000.',
+      'Проєкт організовано як npm monorepo (Turborepo): apps/campus (Next.js), apps/api (NestJS), packages/backend/modules/* (доменна логіка), packages/shared/types (DTO), data-access-prisma (схема БД). Клієнт звертається до /api через rewrite; GraphQL — /api/graphql; чат — Socket.IO напряму на API :3000.',
     ),
     ...figure(2, 'Шари архітектури monorepo', FIGURES[1][2]),
     h2('1.5. Вибір і обґрунтування засобів та технологій'),
@@ -407,7 +407,7 @@ function section2() {
     ),
     ...prose(TECH_TYPESCRIPT),
     p(
-      'Monorepo керується npm workspaces і Turborepo (паралельний dev/build). Збірка API: tsc + tsc-alias для path aliases @soenglish/*. ESLint 9 (flat config) і Prettier уніфікують стиль коду.',
+      'Monorepo керується npm workspaces і Turborepo (паралельний dev/build). Збірка API: tsc + tsc-alias для path aliases @arvilio/*. ESLint 9 (flat config) і Prettier уніфікують стиль коду.',
     ),
     h3('2.2.3. NestJS, GraphQL, Socket.IO'),
     ...prose(TECH_NESTJS),
@@ -433,7 +433,7 @@ function section2() {
       'Клієнт-серверна взаємодія побудована за принципом API-first: клієнт не має прямого доступу до БД; усі операції проходять через NestJS, де застосовуються guards і сервіси видимості (наприклад ChatVisibilityService обмежує, з ким користувач може почати діалог).',
     ),
     p(
-      'Для розробки використовується Turborepo: паралельний запуск apps/web (порт 4200) і apps/api (порт 3000). Локально PostgreSQL піднімається через Docker Compose (infra/docker). Змінні середовища документовано в .env.example.',
+      'Для розробки використовується Turborepo: паралельний запуск apps/campus (порт 4200) і apps/api (порт 3000). Локально PostgreSQL піднімається через Docker Compose (infra/docker). Змінні середовища документовано в .env.example.',
     ),
     p('Таблиця 4. Зовнішні сервіси'),
     makeTable(['Сервіс', 'Призначення'], SERVICES),
@@ -453,10 +453,10 @@ function section2() {
       .map((d) => bullet(`${d.name} ${d.version}`)),
     h2('2.3. Порівняльна характеристика стеку'),
     p(
-      'У таблиці узагальнено роль кожної технології в SoEnglish — корисно для усного захисту курсової, коли запитують «навіщо саме цей інструмент».',
+      'У таблиці узагальнено роль кожної технології в Arvilio — корисно для усного захисту курсової, коли запитують «навіщо саме цей інструмент».',
     ),
     makeTable(
-      ['Технологія', 'Роль у SoEnglish', 'Альтернатива'],
+      ['Технологія', 'Роль у Arvilio', 'Альтернатива'],
       [
         ['PostgreSQL', 'Персистентність', 'MySQL, MongoDB'],
         ['Prisma', 'ORM + міграції', 'TypeORM, Drizzle'],
@@ -519,7 +519,7 @@ function section3() {
     codeBlock(CODE_CHAT_GATEWAY),
     h2('3.3. Створення інтерфейсу'),
     h3('3.3.1. Розробка макету'),
-    p('UI спирається на макети materials/figma_design; production-компоненти — apps/web/src/components/ui.'),
+    p('UI спирається на макети materials/figma_design; production-компоненти — apps/campus/src/components/ui.'),
     h3('3.3.2. Маршрути Next.js'),
     p('Основні сторінки: /dashboard, /calendar, /lessons, /vocabulary, /practice, /quiz, /chat, /students, /admin, /profile, /login.'),
     ...figure(9, 'Сторінка входу', FIGURES[8][2]),
@@ -537,7 +537,7 @@ function section3() {
       'Патерн AsyncSlice (idle | loading | success | error) уніфікує відображення спінерів і помилок. Dashboard викликає fetchDashboard(), який паралельно завантажує summary, goals, streak, wordOfDay, lessons і vocabulary для ролі student.',
     ),
     p(
-      'Компоненти UI (Button, Field, SurfaceCard, PageHeader) винесено в apps/web/src/components/ui для узгодженого вигляду. Підтвердження небезпечних дій реалізовано через confirmDialog замість window.confirm.',
+      'Компоненти UI (Button, Field, SurfaceCard, PageHeader) винесено в apps/campus/src/components/ui для узгодженого вигляду. Підтвердження небезпечних дій реалізовано через confirmDialog замість window.confirm.',
     ),
     h2('3.4. Підключення клієнтської сторони'),
     p('Rewrite у next.config.mjs:'),
@@ -551,7 +551,7 @@ function section3() {
     ...figure(21, 'Sidebar за ролями', FIGURES[20][2]),
     h2('3.6. React і Next.js: хуки та організація клієнтського коду'),
     p(
-      'Клієнтська частина SoEnglish — React 19 у режимі клієнтських компонентів (use client) для сторінок із мережею та станом. Нижче — хуки React і Next.js, які фактично використовуються в репозиторії apps/web.',
+      'Клієнтська частина Arvilio — React 19 у режимі клієнтських компонентів (use client) для сторінок із мережею та станом. Нижче — хуки React і Next.js, які фактично використовуються в репозиторії apps/campus.',
     ),
     h3('3.6.1. Стандартні хуки React'),
     makeTable(['Хук', 'Призначення', 'Приклад у проєкті'], REACT_HOOKS_TABLE),
@@ -738,8 +738,8 @@ function buildDocument() {
 async function main() {
   const doc = buildDocument();
   const buf = await Packer.toBuffer(doc);
-  fs.writeFileSync(path.join(OUT_DIR, 'Курсова_SoEnglish.docx'), buf);
-  console.log('Written:', path.join(OUT_DIR, 'Курсова_SoEnglish.docx'));
+  fs.writeFileSync(path.join(OUT_DIR, 'Курсова_Arvilio.docx'), buf);
+  console.log('Written:', path.join(OUT_DIR, 'Курсова_Arvilio.docx'));
   console.log('Markdown: run node scripts/export-coursework-md.mjs');
 }
 

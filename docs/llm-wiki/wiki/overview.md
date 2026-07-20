@@ -1,9 +1,9 @@
 ---
 tags: [overview]
-updated: 2026-05-20
+updated: 2026-07-11
 ---
 
-# SoEnglish overview
+# Arvilio overview
 
 English learning platform monorepo. **Code is authoritative** for behavior; this wiki compiles domain knowledge and decisions.
 
@@ -15,7 +15,10 @@ See [[synthesis/product]] — 1:1 lessons (Meet), vocabulary, quizzes, curriculu
 
 | Area | Path | Role |
 |------|------|------|
-| Web app | `apps/web` | Next.js — student/teacher/admin UI |
+| Campus app | `apps/campus` | Next.js — Arvilio Campus (tenant product UI) |
+| Platform console | `apps/platform` | Next.js — Control Plane (:4300) |
+| Marketing site | `apps/hub` | Next.js :4400 — public `arvilio.app` (reads CMS over HTTP) |
+| Company CMS | `apps/cms` | Payload :4410 — brand-kit, products, pages (`payload_www`) — [[concepts/payload-cms]] |
 | API | `apps/api` | NestJS + GraphQL + REST auth |
 | Backend modules | `packages/backend/modules/module-*` | Domain services |
 | Database | `packages/backend/data-access/data-access-prisma` | Prisma / PostgreSQL |
@@ -27,11 +30,15 @@ See [[synthesis/product]] — 1:1 lessons (Meet), vocabulary, quizzes, curriculu
 ## Build & dev
 
 - **Tooling:** npm workspaces + **Turborepo**
-- `npm run dev` — `@app/web` (:4200) + `@app/api` (:3000) via Turbo TUI (`turbo.json` `"ui": "tui"`, filtered to both apps)
-- `npm run dev:web` / `dev:api` — single app
+- `npm run dev` — from a **Cursor** terminal: triggers **Cmd+Shift+B** → separate **IDE** panels per app
+- `npm run dev:external` — macOS **Terminal.app** windows (outside Cursor)
+- `Cmd+Shift+B` anytime — same split panels inside Cursor
+- `npm run dev:turbo` — one interleaved stream (hard to read)
+- `npm run dev:core` — Campus + API only (same Cursor-task behavior)
 - `npm run prisma:generate` / `prisma:migrate:dev`
-- **Editor:** `.vscode/settings.json` — project-wide TS diagnostics + ESLint monorepo roots; tasks **SoEnglish: typecheck (all)** / **lint (all)** in Command Palette → Tasks: Run Task
-- **`@app/web` typecheck:** `npm run typecheck` runs `tsconfig.json` (app) + `tsconfig.spec.json` (unit tests + `src/testing/fixtures.ts`); shared mocks in `apps/web/src/testing/fixtures.ts`
+- **Env:** single repo-root `.env` (copy from `.env.example`). API: `load-env.ts`; Campus/Platform: `scripts/load-root-env.mjs` in `next.config`. No `apps/*/.env`.
+- **Editor:** `.vscode/settings.json` — project-wide TS diagnostics + ESLint monorepo roots; tasks **Arvilio: typecheck (all)** / **lint (all)** in Command Palette → Tasks: Run Task
+- **`@app/campus` typecheck:** `npm run typecheck` runs `tsconfig.json` (app) + `tsconfig.spec.json` (unit tests + `src/testing/fixtures.ts`); shared mocks in `apps/campus/src/testing/fixtures.ts`
 
 ## Domain modules
 

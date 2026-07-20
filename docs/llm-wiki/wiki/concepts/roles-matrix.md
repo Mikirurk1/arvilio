@@ -60,7 +60,7 @@ Additional helpers in `roles.ts`:
 - `isTeacherAdminOrSuper` — teacher, admin, super-admin
 - `isAdminOrSuper` — admin, super-admin
 
-Source: `apps/web/src/mocks/roles.ts`.
+Source: `apps/campus/src/lib/roles.ts` (re-exported from `lib/auth/role-matrix.ts`; `mocks/roles.ts` is deprecated shim).
 
 ## Admin UI specifics (`/admin`)
 

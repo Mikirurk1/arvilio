@@ -63,7 +63,7 @@ export class LiveKitService {
       process.env['PAYMENT_SECRETS_ENCRYPTION_KEY']?.trim();
     if (!key) throw new Error('PLATFORM_SECRETS_ENCRYPTION_KEY is required for room name generation');
     const hash = createHmac('sha256', key).update(lessonId).digest('hex');
-    return `soenglish-${lessonId.slice(0, 8)}-${hash.slice(0, 10)}`;
+    return `arvilio-${lessonId.slice(0, 8)}-${hash.slice(0, 10)}`;
   }
 
   async createAccessToken(

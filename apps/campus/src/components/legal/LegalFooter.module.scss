@@ -1,0 +1,19 @@
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  justify-content: center;
+  padding: 24px 16px 40px;
+  font-size: var(--fs-13, 13px);
+}
+
+.link {
+  color: var(--text-secondary);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--accent-primary, var(--green));
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}

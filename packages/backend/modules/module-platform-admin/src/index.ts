@@ -14,6 +14,14 @@ export {
   type PlatformSchoolRowDto,
   type PlatformSchoolDetailDto,
 } from './application/platform-schools.service';
+export {
+  PlatformUsersService,
+  type PlatformUserRowDto,
+  type PlatformUserStatsDto,
+  type PlatformSchoolMemberRowDto,
+  type PlatformUserBriefDto,
+} from './application/platform-users.service';
+export type { PlatformPageDto } from './application/platform-page.util';
 export { PlatformImpersonationService } from './application/platform-impersonation.service';
 export {
   PlatformPaymentMethodsService,

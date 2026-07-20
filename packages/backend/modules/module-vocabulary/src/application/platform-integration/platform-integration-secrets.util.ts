@@ -20,6 +20,8 @@ export type StoredIntegrationSecrets = {
   googleTranslateApiKey?: string;
   azureTranslatorKey?: string;
   openaiWhisperApiKey?: string;
+  llmApiKey?: string;
+  anthropicApiKey?: string;
   telegramBotToken?: string;
   googleClientSecret?: string;
   facebookAppSecret?: string;
@@ -45,6 +47,8 @@ export function normalizeIntegrationSecrets(
     googleTranslateApiKey: cleanSecret(obj['googleTranslateApiKey']),
     azureTranslatorKey: cleanSecret(obj['azureTranslatorKey']),
     openaiWhisperApiKey: cleanSecret(obj['openaiWhisperApiKey']),
+    llmApiKey: cleanSecret(obj['llmApiKey']),
+    anthropicApiKey: cleanSecret(obj['anthropicApiKey']),
     telegramBotToken: cleanSecret(obj['telegramBotToken']),
     googleClientSecret: cleanSecret(obj['googleClientSecret']),
     facebookAppSecret: cleanSecret(obj['facebookAppSecret']),
@@ -80,6 +84,8 @@ export function mergeIntegrationSecrets(
   apply('googleTranslateApiKey', updates.googleTranslateApiKey);
   apply('azureTranslatorKey', updates.azureTranslatorKey);
   apply('openaiWhisperApiKey', updates.openaiWhisperApiKey);
+  apply('llmApiKey', updates.llmApiKey);
+  apply('anthropicApiKey', updates.anthropicApiKey);
   apply('telegramBotToken', updates.telegramBotToken);
   apply('googleClientSecret', updates.googleClientSecret);
   apply('facebookAppSecret', updates.facebookAppSecret);
@@ -166,6 +172,8 @@ export function emptyIntegrationSecretStatuses(): IntegrationSecretStatusesDto {
     googleTranslateApiKey: { ...missing },
     azureTranslatorKey: { ...missing },
     openaiWhisperApiKey: { ...missing },
+    llmApiKey: { ...missing },
+    anthropicApiKey: { ...missing },
     telegramBotToken: { ...missing },
     googleClientSecret: { ...missing },
     facebookAppSecret: { ...missing },

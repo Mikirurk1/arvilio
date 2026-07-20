@@ -2,7 +2,7 @@
 
 - **Status:** proposed
 - **Date:** 2026-06-16
-- **Authors:** SoEnglish engineering
+- **Authors:** Arvilio engineering
 - **Supersedes:** —
 - **Superseded-by:** —
 - **Amends:** —

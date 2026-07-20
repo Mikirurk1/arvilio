@@ -367,7 +367,7 @@ export class LibraryFileCaptionService {
       throw new Error('ffmpeg is required to extract audio from video for captions');
     }
 
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'soenglish-captions-'));
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'arvilio-captions-'));
     const inputPath = path.join(tempDir, fileName.replace(/[^\w.\-()\s]/g, '_') || 'input.mp4');
     const outputPath = path.join(tempDir, 'audio.mp3');
     await fs.writeFile(inputPath, buffer);

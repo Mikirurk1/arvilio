@@ -11,7 +11,7 @@ export type BrandLogoProps = {
   size?: BrandLogoSize;
   /** Hide wordmark when sidebar is collapsed or on tablet (header). */
   hideTextOnCollapse?: boolean;
-  /** Show “English Platform” tag under the name. */
+  /** Show product tag under the name. */
   showTag?: boolean;
   /** Navigate on click; set `null` for static brand (e.g. decorative). */
   href?: string | null;
@@ -43,8 +43,8 @@ export function BrandLogo({
       </div>
       {variant === 'full' ? (
         <div className={styles.text}>
-          <div className={styles.name}>SoEnglish</div>
-          {showTag ? <div className={styles.tag}>English Platform</div> : null}
+          <div className={styles.name}>Arvilio</div>
+          {showTag ? <div className={styles.tag}>Campus</div> : null}
         </div>
       ) : null}
     </>
@@ -52,14 +52,14 @@ export function BrandLogo({
 
   if (href === null) {
     return (
-      <div className={rootClass} aria-label="SoEnglish">
+      <div className={rootClass} aria-label="Arvilio">
         {inner}
       </div>
     );
   }
 
   return (
-    <Link href={href} className={rootClass} aria-label="SoEnglish — go to dashboard">
+    <Link href={href} className={rootClass} aria-label="Arvilio — go to dashboard">
       {inner}
     </Link>
   );

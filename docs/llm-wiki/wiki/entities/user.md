@@ -59,8 +59,8 @@ See [[concepts/roles-matrix]].
 
 - Auth: `packages/backend/modules/module-auth/src/lib/auth.ts`
 - Students list: `users.service.ts` → GraphQL `UsersResolver.students`
-- Web session: `apps/web/src/lib/auth-context.tsx`, `lib/active-user.ts`
-- Admin UI: `apps/web/src/app/admin/page.tsx`
+- Web session: `apps/campus/src/lib/auth-context.tsx`, `lib/active-user.ts`
+- Admin UI: `apps/campus/src/app/admin/page.tsx`
 
 ## Related
 

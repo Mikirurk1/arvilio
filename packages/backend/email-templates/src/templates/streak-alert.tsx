@@ -32,7 +32,7 @@ export function StreakAlertEmail({ displayName, streakDays, appUrl }: StreakAler
           textDecoration: 'none',
         }}
       >
-        Open SoEnglish
+        Open Arvilio
       </Link>
     </EmailLayout>
   );

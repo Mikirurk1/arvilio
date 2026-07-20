@@ -10,7 +10,7 @@ export function PasswordResetEmail({
   expiresInMinutes,
 }: PasswordResetEmailProps) {
   return (
-    <EmailLayout preview="Reset your SoEnglish password">
+    <EmailLayout preview="Reset your Arvilio password">
       <Heading
         as="h1"
         style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 600, color: brand.text }}
@@ -18,7 +18,7 @@ export function PasswordResetEmail({
         Reset your password
       </Heading>
       <Text style={{ margin: '0 0 16px', fontSize: 15, lineHeight: '22px', color: brand.muted }}>
-        Hi {displayName}, we received a request to reset your SoEnglish password.
+        Hi {displayName}, we received a request to reset your Arvilio password.
       </Text>
       <DetailBox>
         <Text style={{ margin: '0 0 12px', fontSize: 14, lineHeight: '21px', color: brand.text }}>

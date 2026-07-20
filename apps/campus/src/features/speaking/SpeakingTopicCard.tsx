@@ -5,6 +5,7 @@ import type { SpeakingTopicCardDto } from '@pkg/types';
 import { MessageSquare, Mic, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui';
 import { useViewerLanguageIds } from '../../hooks/use-viewer-language-ids';
+import { useCampusT } from '../../lib/cms';
 import { pickWordDefinition } from '../../lib/word-definitions';
 import { useVocabularyStore } from '../../stores/vocabulary-store';
 import { speakingSubmissionAudioHref } from '../../lib/speaking-upload';
@@ -20,16 +21,17 @@ type Props = {
   allowRecord?: boolean;
   onDelete?: (topic: SpeakingTopicCardDto) => void;
   canDelete?: boolean;
-  studentIdForWords?: string;
 };
 
-function statusLabel(topic: SpeakingTopicCardDto): string {
+type TopicStatus = 'reviewed' | 'submitted' | 'pending';
+
+function topicStatus(topic: SpeakingTopicCardDto): TopicStatus {
   const submission = topic.latestSubmission;
-  if (submission?.status === 'reviewed') return 'Reviewed';
-  if (submission?.status === 'submitted') return 'Submitted';
-  if (topic.assignment?.status === 'reviewed') return 'Reviewed';
-  if (topic.assignment?.status === 'submitted') return 'Submitted';
-  return 'Pending';
+  if (submission?.status === 'reviewed') return 'reviewed';
+  if (submission?.status === 'submitted') return 'submitted';
+  if (topic.assignment?.status === 'reviewed') return 'reviewed';
+  if (topic.assignment?.status === 'submitted') return 'submitted';
+  return 'pending';
 }
 
 export function SpeakingTopicCard({
@@ -37,8 +39,8 @@ export function SpeakingTopicCard({
   allowRecord = false,
   onDelete,
   canDelete = false,
-  studentIdForWords,
 }: Props) {
+  const t = useCampusT();
   const fetchWordsByIds = useVocabularyStore((s) => s.fetchWordsByIds);
   const { nativeLanguageId, englishLanguageId } = useViewerLanguageIds();
   const [wordsLoaded, setWordsLoaded] = useState(false);
@@ -73,12 +75,19 @@ export function SpeakingTopicCard({
     });
   }, [englishLanguageId, fetchWordsByIds, nativeLanguageId, topic.wordIds]);
 
+  const status = topicStatus(topic);
   const badgeClass = useMemo(() => {
-    const label = statusLabel(topic);
-    if (label === 'Reviewed') return styles.badgeReviewed;
-    if (label === 'Submitted') return styles.badgeSubmitted;
+    if (status === 'reviewed') return styles.badgeReviewed;
+    if (status === 'submitted') return styles.badgeSubmitted;
     return styles.badgePending;
-  }, [topic]);
+  }, [status]);
+
+  const statusText =
+    status === 'reviewed'
+      ? t('speaking.status.reviewed')
+      : status === 'submitted'
+        ? t('speaking.status.submitted')
+        : t('speaking.status.pending');
 
   const canRecord = allowRecord && Boolean(topic.assignment);
   const feedback = topic.latestSubmission?.teacherFeedback;
@@ -88,7 +97,7 @@ export function SpeakingTopicCard({
       <div className={styles.head}>
         <div className={styles.headMain}>
           <h3 className={styles.title}>{topic.title}</h3>
-          <span className={[styles.badge, badgeClass].join(' ')}>{statusLabel(topic)}</span>
+          <span className={[styles.badge, badgeClass].join(' ')}>{statusText}</span>
         </div>
         <div className={styles.headActions}>
           {canRecord ? (
@@ -100,14 +109,20 @@ export function SpeakingTopicCard({
             >
               <Mic size={14} aria-hidden />
               {isRecording
-                ? 'Cancel'
+                ? t('speaking.cancel')
                 : topic.latestSubmission?.hasAudio
-                  ? 'Re-record'
-                  : 'Record'}
+                  ? t('speaking.reRecord')
+                  : t('speaking.record')}
             </Button>
           ) : null}
           {canDelete && onDelete ? (
-            <Button type="button" variant="ghost" className={styles.deleteBtn} onClick={() => onDelete(topic)} aria-label="Delete topic">
+            <Button
+              type="button"
+              variant="ghost"
+              className={styles.deleteBtn}
+              onClick={() => onDelete(topic)}
+              aria-label={t('speaking.delete.aria')}
+            >
               <Trash2 size={14} aria-hidden />
             </Button>
           ) : null}
@@ -142,14 +157,14 @@ export function SpeakingTopicCard({
 
           {topic.latestSubmission?.hasAudio ? (
             <div className={styles.submissionAudio}>
-              <span className={styles.submissionAudioLabel}>Your recording</span>
+              <span className={styles.submissionAudioLabel}>{t('speaking.yourRecording')}</span>
               <AudioPlayer src={speakingSubmissionAudioHref(topic.latestSubmission.id)} />
             </div>
           ) : null}
 
           {feedback ? (
             <div className={styles.feedback}>
-              <strong>Teacher feedback</strong>
+              <strong>{t('speaking.teacherFeedback')}</strong>
               <p>{feedback}</p>
             </div>
           ) : null}

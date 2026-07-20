@@ -1,10 +1,13 @@
 # Payload CMS v3 Implementation Plan
 
+> **Historical (v1 Campus embed).** **Authoritative plan:** [`docs/arvilio-marketing-site-payload-plan.md`](../../arvilio-marketing-site-payload-plan.md) (v2 — `apps/hub`, brand-kit, product registry, i18n uk/en). Do not extend Campus Payload for ecosystem brand content or multi-product landings.
+
+**Goal:** Embed Payload CMS v3 into `apps/campus` so admins can edit page text, school branding, and email templates from `/cms-admin` without a deploy.
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Embed Payload CMS v3 into `apps/web` so admins can edit page text, school branding, and email templates from `/cms-admin` without a deploy.
+**Goal:** Embed Payload CMS v3 into `apps/campus` so admins can edit page text, school branding, and email templates from `/cms-admin` without a deploy.
 
-**Architecture:** Payload v3 embeds as a Next.js route group `(payload)` inside `apps/web`. It connects to the same Postgres DB as Prisma using its own `@payloadcms/db-postgres` adapter (separate tables, same server). All product code reads content through `src/lib/cms/index.ts` — a thin abstraction that makes future migration trivial.
+**Architecture:** Payload v3 embeds as a Next.js route group `(payload)` inside `apps/campus`. It connects to the same Postgres DB as Prisma using its own `@payloadcms/db-postgres` adapter (separate tables, same server). All product code reads content through `src/lib/cms/index.ts` — a thin abstraction that makes future migration trivial.
 
 **Tech Stack:** Payload CMS v3, `@payloadcms/db-postgres`, `@payloadcms/richtext-lexical`, Next.js 16, TypeScript 5.9, PostgreSQL
 
@@ -14,20 +17,20 @@
 
 | File | Action | Responsibility |
 |------|--------|----------------|
-| `apps/web/package.json` | modify | add payload deps |
-| `apps/web/payload.config.ts` | create | Payload root config |
-| `apps/web/payload/collections/PageContent.ts` | create | page text blocks collection |
-| `apps/web/payload/collections/EmailTemplate.ts` | create | email template collection |
-| `apps/web/payload/collections/SchoolBranding.ts` | create | school branding collection |
-| `apps/web/payload/seed.ts` | create | seed initial content keys |
-| `apps/web/src/app/(payload)/admin/[[...segments]]/page.tsx` | create | Payload admin UI route |
-| `apps/web/src/app/(payload)/admin/[[...segments]]/not-found.tsx` | create | required by Payload |
-| `apps/web/src/app/(payload)/api/[...slug]/route.ts` | create | Payload REST API route |
-| `apps/web/src/app/(payload)/graphql/route.ts` | create | Payload GraphQL route |
-| `apps/web/src/lib/cms/index.ts` | create | public abstraction: getPageContent, getBranding, getEmailTemplate |
-| `apps/web/src/lib/cms/payload.ts` | create | Payload local API implementation |
-| `apps/web/next.config.mjs` | modify | wrap with withPayload() |
-| `apps/web/src/app/(auth)/login/page.tsx` | modify | read hero title/subtitle from CMS |
+| `apps/campus/package.json` | modify | add payload deps |
+| `apps/campus/payload.config.ts` | create | Payload root config |
+| `apps/campus/payload/collections/PageContent.ts` | create | page text blocks collection |
+| `apps/campus/payload/collections/EmailTemplate.ts` | create | email template collection |
+| `apps/campus/payload/collections/SchoolBranding.ts` | create | school branding collection |
+| `apps/campus/payload/seed.ts` | create | seed initial content keys |
+| `apps/campus/src/app/(payload)/admin/[[...segments]]/page.tsx` | create | Payload admin UI route |
+| `apps/campus/src/app/(payload)/admin/[[...segments]]/not-found.tsx` | create | required by Payload |
+| `apps/campus/src/app/(payload)/api/[...slug]/route.ts` | create | Payload REST API route |
+| `apps/campus/src/app/(payload)/graphql/route.ts` | create | Payload GraphQL route |
+| `apps/campus/src/lib/cms/index.ts` | create | public abstraction: getPageContent, getBranding, getEmailTemplate |
+| `apps/campus/src/lib/cms/payload.ts` | create | Payload local API implementation |
+| `apps/campus/next.config.mjs` | modify | wrap with withPayload() |
+| `apps/campus/src/app/(auth)/login/page.tsx` | modify | read hero title/subtitle from CMS |
 | `.env.example` | modify | add PAYLOAD_SECRET |
 
 ---
@@ -35,12 +38,12 @@
 ## Task 1: Install Payload CMS v3 dependencies
 
 **Files:**
-- Modify: `apps/web/package.json`
+- Modify: `apps/campus/package.json`
 
 - [ ] **Step 1: Install packages**
 
 ```bash
-cd apps/web
+cd apps/campus
 npm install payload @payloadcms/db-postgres @payloadcms/richtext-lexical @payloadcms/next
 ```
 
@@ -55,7 +58,7 @@ Expected: `payload ok`
 - [ ] **Step 3: Commit**
 
 ```bash
-git add apps/web/package.json apps/web/package-lock.json
+git add apps/campus/package.json apps/campus/package-lock.json
 git commit -m "feat(cms): install payload cms v3 dependencies"
 ```
 
@@ -64,19 +67,19 @@ git commit -m "feat(cms): install payload cms v3 dependencies"
 ## Task 2: Create Payload collections
 
 **Files:**
-- Create: `apps/web/payload/collections/PageContent.ts`
-- Create: `apps/web/payload/collections/EmailTemplate.ts`
-- Create: `apps/web/payload/collections/SchoolBranding.ts`
+- Create: `apps/campus/payload/collections/PageContent.ts`
+- Create: `apps/campus/payload/collections/EmailTemplate.ts`
+- Create: `apps/campus/payload/collections/SchoolBranding.ts`
 
 - [ ] **Step 1: Create directory**
 
 ```bash
-mkdir -p apps/web/payload/collections
+mkdir -p apps/campus/payload/collections
 ```
 
 - [ ] **Step 2: Create PageContent collection**
 
-Create `apps/web/payload/collections/PageContent.ts`:
+Create `apps/campus/payload/collections/PageContent.ts`:
 
 ```ts
 import type { CollectionConfig } from 'payload'
@@ -141,7 +144,7 @@ export const PageContent: CollectionConfig = {
 
 - [ ] **Step 3: Create EmailTemplate collection**
 
-Create `apps/web/payload/collections/EmailTemplate.ts`:
+Create `apps/campus/payload/collections/EmailTemplate.ts`:
 
 ```ts
 import type { CollectionConfig } from 'payload'
@@ -203,7 +206,7 @@ export const EmailTemplate: CollectionConfig = {
 
 - [ ] **Step 4: Create SchoolBranding collection**
 
-Create `apps/web/payload/collections/SchoolBranding.ts`:
+Create `apps/campus/payload/collections/SchoolBranding.ts`:
 
 ```ts
 import type { CollectionConfig } from 'payload'
@@ -225,7 +228,7 @@ export const SchoolBranding: CollectionConfig = {
       name: 'schoolName',
       type: 'text',
       required: true,
-      defaultValue: 'SoEnglish',
+      defaultValue: 'Arvilio',
     },
     {
       name: 'tagline',
@@ -250,7 +253,7 @@ export const SchoolBranding: CollectionConfig = {
 - [ ] **Step 5: Commit**
 
 ```bash
-git add apps/web/payload/
+git add apps/campus/payload/
 git commit -m "feat(cms): add payload cms collections (PageContent, EmailTemplate, SchoolBranding)"
 ```
 
@@ -259,7 +262,7 @@ git commit -m "feat(cms): add payload cms collections (PageContent, EmailTemplat
 ## Task 3: Create Payload config
 
 **Files:**
-- Create: `apps/web/payload.config.ts`
+- Create: `apps/campus/payload.config.ts`
 
 - [ ] **Step 1: Add PAYLOAD_SECRET to env**
 
@@ -275,7 +278,7 @@ echo "PAYLOAD_SECRET=dev-secret-change-in-production-32ch" >> .env
 
 - [ ] **Step 2: Create payload.config.ts**
 
-Create `apps/web/payload.config.ts`:
+Create `apps/campus/payload.config.ts`:
 
 ```ts
 import { buildConfig } from 'payload'
@@ -322,7 +325,7 @@ export default buildConfig({
 - [ ] **Step 3: Commit**
 
 ```bash
-git add apps/web/payload.config.ts .env.example
+git add apps/campus/payload.config.ts .env.example
 git commit -m "feat(cms): add payload.config.ts with postgres adapter"
 ```
 
@@ -331,20 +334,20 @@ git commit -m "feat(cms): add payload.config.ts with postgres adapter"
 ## Task 4: Create Next.js route handlers for Payload
 
 **Files:**
-- Create: `apps/web/src/app/(payload)/admin/[[...segments]]/page.tsx`
-- Create: `apps/web/src/app/(payload)/admin/[[...segments]]/not-found.tsx`
-- Create: `apps/web/src/app/(payload)/api/[...slug]/route.ts`
+- Create: `apps/campus/src/app/(payload)/admin/[[...segments]]/page.tsx`
+- Create: `apps/campus/src/app/(payload)/admin/[[...segments]]/not-found.tsx`
+- Create: `apps/campus/src/app/(payload)/api/[...slug]/route.ts`
 
 - [ ] **Step 1: Create directories**
 
 ```bash
-mkdir -p "apps/web/src/app/(payload)/admin/[[...segments]]"
-mkdir -p "apps/web/src/app/(payload)/api/[...slug]"
+mkdir -p "apps/campus/src/app/(payload)/admin/[[...segments]]"
+mkdir -p "apps/campus/src/app/(payload)/api/[...slug]"
 ```
 
 - [ ] **Step 2: Create admin page route**
 
-Create `apps/web/src/app/(payload)/admin/[[...segments]]/page.tsx`:
+Create `apps/campus/src/app/(payload)/admin/[[...segments]]/page.tsx`:
 
 ```tsx
 import type { Metadata } from 'next'
@@ -362,7 +365,7 @@ export default RootPage.bind(null, { config: Promise.resolve(config) })
 
 - [ ] **Step 3: Create not-found route**
 
-Create `apps/web/src/app/(payload)/admin/[[...segments]]/not-found.tsx`:
+Create `apps/campus/src/app/(payload)/admin/[[...segments]]/not-found.tsx`:
 
 ```tsx
 import { NotFoundPage } from '@payloadcms/next/views'
@@ -375,7 +378,7 @@ export default NotFoundPage.bind(null, { config: Promise.resolve(config) })
 
 - [ ] **Step 4: Create API route handler**
 
-Create `apps/web/src/app/(payload)/api/[...slug]/route.ts`:
+Create `apps/campus/src/app/(payload)/api/[...slug]/route.ts`:
 
 ```ts
 import { REST_DELETE, REST_GET, REST_OPTIONS, REST_PATCH, REST_POST, REST_PUT } from '@payloadcms/next/routes'
@@ -392,7 +395,7 @@ export const OPTIONS = REST_OPTIONS(config)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add "apps/web/src/app/(payload)/"
+git add "apps/campus/src/app/(payload)/"
 git commit -m "feat(cms): add payload next.js route handlers"
 ```
 
@@ -401,17 +404,17 @@ git commit -m "feat(cms): add payload next.js route handlers"
 ## Task 5: Wrap Next.js config with withPayload
 
 **Files:**
-- Modify: `apps/web/next.config.mjs`
+- Modify: `apps/campus/next.config.mjs`
 
 - [ ] **Step 1: Read current next.config.mjs**
 
 ```bash
-cat apps/web/next.config.mjs
+cat apps/campus/next.config.mjs
 ```
 
 - [ ] **Step 2: Add withPayload wrapper**
 
-Add at the top of `apps/web/next.config.mjs`:
+Add at the top of `apps/campus/next.config.mjs`:
 ```js
 import { withPayload } from '@payloadcms/next/withPayload'
 ```
@@ -428,7 +431,7 @@ export default withPayload(nextConfig)
 - [ ] **Step 3: Verify build compiles**
 
 ```bash
-cd apps/web && npm run build 2>&1 | tail -20
+cd apps/campus && npm run build 2>&1 | tail -20
 ```
 
 Expected: build completes (warnings OK, errors NOT OK)
@@ -436,7 +439,7 @@ Expected: build completes (warnings OK, errors NOT OK)
 - [ ] **Step 4: Commit**
 
 ```bash
-git add apps/web/next.config.mjs
+git add apps/campus/next.config.mjs
 git commit -m "feat(cms): wrap next.config with withPayload"
 ```
 
@@ -445,18 +448,18 @@ git commit -m "feat(cms): wrap next.config with withPayload"
 ## Task 6: Create CMS abstraction layer
 
 **Files:**
-- Create: `apps/web/src/lib/cms/payload.ts`
-- Create: `apps/web/src/lib/cms/index.ts`
+- Create: `apps/campus/src/lib/cms/payload.ts`
+- Create: `apps/campus/src/lib/cms/index.ts`
 
 - [ ] **Step 1: Create directory**
 
 ```bash
-mkdir -p apps/web/src/lib/cms
+mkdir -p apps/campus/src/lib/cms
 ```
 
 - [ ] **Step 2: Create payload implementation**
 
-Create `apps/web/src/lib/cms/payload.ts`:
+Create `apps/campus/src/lib/cms/payload.ts`:
 
 ```ts
 import { unstable_cache } from 'next/cache'
@@ -522,7 +525,7 @@ export const getBranding = unstable_cache(
       limit: 1,
     })
     return docs[0] ?? {
-      schoolName: 'SoEnglish',
+      schoolName: 'Arvilio',
       tagline: 'English Platform',
       logoUrl: null,
       primaryColor: '#1a1a2e',
@@ -549,7 +552,7 @@ export const getEmailTemplate = unstable_cache(
 
 - [ ] **Step 3: Create public index**
 
-Create `apps/web/src/lib/cms/index.ts`:
+Create `apps/campus/src/lib/cms/index.ts`:
 
 ```ts
 // Public abstraction layer — swap payload.ts for custom.ts here if migrating
@@ -559,7 +562,7 @@ export { getPageContent, getPageContentHtml, getBranding, getEmailTemplate } fro
 - [ ] **Step 4: Commit**
 
 ```bash
-git add apps/web/src/lib/cms/
+git add apps/campus/src/lib/cms/
 git commit -m "feat(cms): add cms abstraction layer (getPageContent, getBranding, getEmailTemplate)"
 ```
 
@@ -568,11 +571,11 @@ git commit -m "feat(cms): add cms abstraction layer (getPageContent, getBranding
 ## Task 7: Seed initial content
 
 **Files:**
-- Create: `apps/web/payload/seed.ts`
+- Create: `apps/campus/payload/seed.ts`
 
 - [ ] **Step 1: Create seed script**
 
-Create `apps/web/payload/seed.ts`:
+Create `apps/campus/payload/seed.ts`:
 
 ```ts
 import config from '../payload.config'
@@ -586,7 +589,7 @@ const INITIAL_PAGE_CONTENT = [
 ]
 
 const INITIAL_BRANDING = {
-  schoolName: 'SoEnglish',
+  schoolName: 'Arvilio',
   tagline: 'English Platform',
   primaryColor: '#1a1a2e',
 }
@@ -639,7 +642,7 @@ seed().catch((err) => { console.error(err); process.exit(1) })
 
 - [ ] **Step 2: Add seed script to package.json**
 
-In `apps/web/package.json`, add to `scripts`:
+In `apps/campus/package.json`, add to `scripts`:
 ```json
 "seed:cms": "npx tsx payload/seed.ts"
 ```
@@ -647,7 +650,7 @@ In `apps/web/package.json`, add to `scripts`:
 - [ ] **Step 3: Run seed**
 
 ```bash
-cd apps/web && npm run seed:cms
+cd apps/campus && npm run seed:cms
 ```
 
 Expected output:
@@ -662,7 +665,7 @@ Seed complete.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add apps/web/payload/seed.ts apps/web/package.json
+git add apps/campus/payload/seed.ts apps/campus/package.json
 git commit -m "feat(cms): add payload content seed script"
 ```
 
@@ -671,27 +674,27 @@ git commit -m "feat(cms): add payload content seed script"
 ## Task 8: Wire login page to CMS
 
 **Files:**
-- Modify: `apps/web/src/app/(auth)/login/page.tsx`
+- Modify: `apps/campus/src/app/(auth)/login/page.tsx`
 
 - [ ] **Step 1: Read current login page**
 
 ```bash
-cat "apps/web/src/app/(auth)/login/page.tsx"
+cat "apps/campus/src/app/(auth)/login/page.tsx"
 ```
 
 - [ ] **Step 2: Add CMS import and fetch hero text**
 
 The login page is `'use client'` — CMS fetches must happen in a Server Component wrapper. Convert to a thin server page that passes CMS values as props.
 
-At the top of `apps/web/src/app/(auth)/login/page.tsx`, the pattern is:
+At the top of `apps/campus/src/app/(auth)/login/page.tsx`, the pattern is:
 
 ```tsx
 // Keep 'use client' on the interactive component, but create a server wrapper:
 ```
 
-Create `apps/web/src/app/(auth)/login/LoginPageClient.tsx` (move all existing 'use client' code here).
+Create `apps/campus/src/app/(auth)/login/LoginPageClient.tsx` (move all existing 'use client' code here).
 
-Then update `apps/web/src/app/(auth)/login/page.tsx` to:
+Then update `apps/campus/src/app/(auth)/login/page.tsx` to:
 
 ```tsx
 import { getPageContent } from '../../../lib/cms'
@@ -723,7 +726,7 @@ Expected: page renders with CMS text
 - [ ] **Step 4: Commit**
 
 ```bash
-git add "apps/web/src/app/(auth)/login/"
+git add "apps/campus/src/app/(auth)/login/"
 git commit -m "feat(cms): wire login page hero text to payload cms"
 ```
 
@@ -755,7 +758,7 @@ After login, check that **PageContent**, **EmailTemplate**, **SchoolBranding** a
 
 - [ ] **Step 5: Edit a content block and verify cache invalidation**
 
-1. Edit `login.hero.title` → change text to `Sign in to SoEnglish`
+1. Edit `login.hero.title` → change text to `Sign in to Arvilio`
 2. Wait 5 minutes (cache TTL) OR restart dev server
 3. Check `http://localhost:4200/login` shows updated text
 

@@ -120,4 +120,16 @@ test.describe('6. system panels', () => {
     const text = (await page.locator('main').innerText()).trim();
     expect(text.length).toBeGreaterThan(20);
   });
+
+  test('6.11 media-captions panel when MATERIAL_CAPTIONS_ENABLED', async ({ page }) => {
+    await page.goto('/system');
+    await expect(page.locator('main')).toBeVisible({ timeout: 10_000 });
+    // Captions UI lives under general / connections depending on flag — soft skip if hidden
+    const captions = page.getByText(/media captions|auto captions|whisper/i).first();
+    if (!(await captions.isVisible({ timeout: 4_000 }).catch(() => false))) {
+      test.skip(true, 'MATERIAL_CAPTIONS_ENABLED off — panel hidden (expected N/A)');
+      return;
+    }
+    await expect(captions).toBeVisible();
+  });
 });

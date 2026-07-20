@@ -57,7 +57,7 @@ let cookieJar = '';
 
 async function login() {
   const email =
-    process.env.PLAYWRIGHT_SUPER_ADMIN_EMAIL ?? 'jest-super-admin@soenglish.test';
+    process.env.PLAYWRIGHT_SUPER_ADMIN_EMAIL ?? 'jest-super-admin@arvilio.test';
   const password = process.env.PLAYWRIGHT_TEST_PASSWORD ?? 'TestPass123!';
   const res = await fetch(`${API_BASE}/auth/login`, {
     method: 'POST',

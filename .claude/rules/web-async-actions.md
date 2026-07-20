@@ -1,12 +1,12 @@
 ---
 description: Async web actions must show loading, disable repeat clicks, and keep feedback near the action.
-globs: apps/web/**/*.tsx
+globs: apps/campus/**/*.tsx
 alwaysApply: false
 ---
 
 # Web Async Actions
 
-For any button or UI action in `apps/web` that triggers backend work (`graphqlRequest`, store mutations, API calls, checkout redirects, save/update/delete actions):
+For any button or UI action in `apps/campus` that triggers backend work (`graphqlRequest`, store mutations, API calls, checkout redirects, save/update/delete actions):
 
 - Use the shared `Button` `loading` state instead of only swapping text manually.
 - Disable repeat clicks while the request is pending.

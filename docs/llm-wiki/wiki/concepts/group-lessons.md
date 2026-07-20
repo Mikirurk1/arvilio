@@ -30,7 +30,7 @@ Implementation: `LessonBalanceService.syncLessonCharge` → `syncGroupLessonChar
 
 - Disabled API message (constant `@pkg/types` `GROUP_LESSONS_FEATURE_DISABLED_MESSAGE`): `Group lessons are not enabled for this school`.
 - Backend guards: `assertGroupLessonsEnabledForSchool` on `kind: GROUP` **or** `studentGroupId`; `StudentGroupsService.assertGroupLessonsFeatureEnabled()` on all group CRUD/list.
-- Web gating helpers: `apps/web/src/lib/group-lessons-feature.ts` (`resolveGroupLessonsUiSurfaces`, `stripGroupContentFromStatisticsView`, etc.) — unit-tested; toggle persisted via `GeneralPanel` → `syncGroupLessonsEnabled` + `useSchoolGroupLessons().refresh`.
+- Web gating helpers: `apps/campus/src/lib/group-lessons-feature.ts` (`resolveGroupLessonsUiSurfaces`, `stripGroupContentFromStatisticsView`, etc.) — unit-tested; toggle persisted via `GeneralPanel` → `syncGroupLessonsEnabled` + `useSchoolGroupLessons().refresh`.
 - Tests: `group-lessons-feature.test.ts`, `group-lesson.util.spec.ts`, `student-groups.service.spec.ts`, integration `graphql-group-lessons-feature.integration.spec.ts`.
 
 ## Access model (2026-06)

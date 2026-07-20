@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { isAdminOrSuper, mockUsers, USER_ROLE, type MockStudent } from '../../../mocks';
+import { isAdminOrSuper } from '../../../lib/roles';
+import { USER_ROLE } from '@pkg/types';
+import type { MockStudent } from '../../../lib/user-models';
 import { useStudentsStore } from '../../../stores/students-store';
 import type { StudentSummaryBackendDto, UserRoleId } from '@pkg/types';
 
@@ -67,17 +69,6 @@ export function useStudentProfileSave({
               ...(validColor ? { displayColor: validColor } : {}),
             });
           }
-        }
-        const target = mockUsers.find((u) => u.id === studentForm.id);
-        if (target) {
-          target.fullName = studentForm.fullName;
-          target.email = studentForm.email;
-          target.phone = studentForm.phone;
-          target.timezoneId = studentForm.timezoneId;
-          target.proficiencyLevelId = studentForm.proficiencyLevelId;
-          target.statusId = studentForm.statusId;
-          target.scheduleType = studentForm.scheduleType;
-          target.color = studentForm.color;
         }
         setSavedProfile(true);
         setTimeout(() => setSavedProfile(false), 2000);

@@ -9,7 +9,7 @@ import { Button } from '../ui';
 import { Tooltip } from '../ui/Tooltip';
 import styles from '../../app/profile/page.module.scss';
 
-const LINK_STORAGE_KEY = 'soenglish_telegram_link_pending';
+const LINK_STORAGE_KEY = 'arvilio_telegram_link_pending';
 
 const TELEGRAM_CONNECT_TOOLTIP = (
   <>

@@ -1,0 +1,13 @@
+.toolbar {
+  display: grid;
+  grid-template-columns: minmax(16rem, 1.5fr) repeat(auto-fit, minmax(10rem, 12rem));
+  gap: 12px;
+  margin: 0 0 12px;
+  align-items: end;
+}
+
+@media (max-width: 720px) {
+  .toolbar {
+    grid-template-columns: 1fr;
+  }
+}

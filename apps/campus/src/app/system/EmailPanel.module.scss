@@ -165,13 +165,9 @@
 }
 
 .checkboxRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
   grid-column: 1 / -1;
-  font-size: var(--fs-13);
-  color: var(--text-secondary);
-  cursor: pointer;
+  width: 100%;
+  max-width: none;
 }
 
 .panelFooter {

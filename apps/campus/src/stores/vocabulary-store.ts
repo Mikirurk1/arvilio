@@ -229,6 +229,6 @@ export const useVocabularyStore = create<VocabularyState>()(
         ]);
       },
     }),
-    { name: 'soenglish/vocabulary' },
+    { name: 'arvilio/vocabulary' },
   ),
 );

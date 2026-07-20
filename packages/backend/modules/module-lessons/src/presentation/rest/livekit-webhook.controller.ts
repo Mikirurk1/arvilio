@@ -76,9 +76,9 @@ export class LiveKitWebhookController {
     const egress = event.egressInfo;
     if (!egress) return;
 
-    // Room name encodes the lesson — format: `soenglish-<lessonId8>-<hash10>`
+    // Room name encodes the lesson — format: `arvilio-<lessonId8>-<hash10>`
     const roomName = egress.roomName ?? '';
-    const match = /^soenglish-([a-z0-9-]{8,})/i.exec(roomName);
+    const match = /^arvilio-([a-z0-9-]{8,})/i.exec(roomName);
     if (!match) return;
 
     // Derive file size: sum segment sizes or use direct file info

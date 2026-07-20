@@ -97,8 +97,28 @@ describe('Field', () => {
 
   it('checkbox input toggles via change handler', () => {
     const onChange = jest.fn();
-    render(<Field as="checkbox" id="agree" checked={false} onChange={onChange} />);
+    render(
+      <Field as="checkbox" id="agree" label="I agree" checked={false} onChange={onChange} />,
+    );
+    expect(screen.getByText('I agree')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('checkbox'));
+    expect(onChange).toHaveBeenCalled();
+  });
+
+  it('radio input selects via change handler', () => {
+    const onChange = jest.fn();
+    render(
+      <Field
+        as="radio"
+        id="plan-pro"
+        name="plan"
+        label="Pro"
+        checked={false}
+        onChange={onChange}
+      />,
+    );
+    expect(screen.getByText('Pro')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('radio'));
     expect(onChange).toHaveBeenCalled();
   });
 

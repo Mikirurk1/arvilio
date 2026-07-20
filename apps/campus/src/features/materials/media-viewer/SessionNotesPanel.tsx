@@ -37,13 +37,14 @@ export function SessionNotesPanel({
         <ul className={styles.notesList}>
           {notes.map((note) => (
             <li key={note.id} className={styles.noteItem}>
-              <button
+              <Button
+                variant="bare"
                 type="button"
                 className={styles.noteTimeBtn}
                 onClick={() => onSeek(note.atSec)}
               >
                 {formatSessionTime(note.atSec)}
-              </button>
+              </Button>
               <textarea
                 className={styles.noteInput}
                 value={note.text}

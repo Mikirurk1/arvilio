@@ -10,6 +10,8 @@ export type CalendarEventCardProps = {
   statusVariant?: 'blue' | 'green' | 'amber' | 'neutral' | 'rose';
   title: ReactNode;
   time: ReactNode;
+  /** When set, shown after time as `(durationLabel)`. */
+  durationLabel?: ReactNode;
   teacherName: ReactNode;
   actionLabel: ReactNode;
   onAction: () => void;
@@ -31,6 +33,7 @@ export function CalendarEventCard({
   statusVariant = 'neutral',
   title,
   time,
+  durationLabel,
   teacherName,
   actionLabel,
   onAction,
@@ -56,7 +59,8 @@ export function CalendarEventCard({
       </div>
       <div className={titleClassName}>{title}</div>
       <div className={metaClassName}>
-        <Clock3 size={14} /> {time} (55 min)
+        <Clock3 size={14} /> {time}
+        {durationLabel ? <> ({durationLabel})</> : null}
       </div>
       <div className={teacherClassName}>
         <GraduationCap size={14} /> {teacherName}

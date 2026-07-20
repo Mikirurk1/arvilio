@@ -74,7 +74,7 @@ test.describe('8.7 tenant isolation', () => {
 
   test('fresh-school admin sees no default-school data over HTTP', async ({ page }) => {
     // Реєструємо ізольовану школу через публічний signup (auto-login у context)
-    const email = `e2e-isolation-${Date.now()}@soenglish.test`;
+    const email = `e2e-isolation-${Date.now()}@arvilio.test`;
     const reg = await page.request.post('/api/auth/register-school', {
       data: { schoolName: 'Isolation Probe School', email, password: 'TestPass123!' },
     });
@@ -87,7 +87,7 @@ test.describe('8.7 tenant isolation', () => {
     expect(gql.status()).toBe(200);
     const students = (await gql.json()) as { data?: { students?: Array<{ email: string }> } };
     const emails = (students.data?.students ?? []).map((s) => s.email);
-    expect(emails, 'must not leak default-school students').not.toContain('jest-student@soenglish.test');
+    expect(emails, 'must not leak default-school students').not.toContain('jest-student@arvilio.test');
 
     // /students UI — порожній стан, а не ростер default-школи
     await page.goto('/students');
@@ -109,7 +109,7 @@ test.describe('8.7 tenant isolation', () => {
     const adminBody = (await admins.json()) as { data?: { adminUsers?: Array<{ email: string }> } };
     const adminEmails = (adminBody.data?.adminUsers ?? []).map((u) => u.email);
     expect(adminEmails, 'adminUsers must not leak cross-tenant accounts').not.toContain(
-      'jest-teacher@soenglish.test',
+      'jest-teacher@arvilio.test',
     );
     // сам admin новоствореної школи — має бути єдиним акаунтом
     expect(adminEmails).toContain(email);
@@ -117,7 +117,7 @@ test.describe('8.7 tenant isolation', () => {
 
   test('fresh-school admin cannot attach a default-school student to a lesson', async ({ page, request }) => {
     // Реєструємо ізольовану школу (page context = її admin)
-    const email = `e2e-writevec-${Date.now()}@soenglish.test`;
+    const email = `e2e-writevec-${Date.now()}@arvilio.test`;
     const reg = await page.request.post('/api/auth/register-school', {
       data: { schoolName: 'Write-Vector Probe School', email, password: 'TestPass123!' },
     });
@@ -125,7 +125,7 @@ test.describe('8.7 tenant isolation', () => {
 
     // Окремим контекстом (teacher default-школи) дізнаємось id її студента
     const teacherLogin = await request.post('/api/auth/login', {
-      data: { email: 'jest-teacher@soenglish.test', password: 'TestPass123!' },
+      data: { email: 'jest-teacher@arvilio.test', password: 'TestPass123!' },
     });
     expect(teacherLogin.status()).toBe(201);
     const studentsRes = await request.post('/api/graphql', { data: { query: '{ students { id } }' } });

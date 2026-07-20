@@ -78,7 +78,7 @@ export class MonoPayCheckoutService {
       currency: pkg.currency,
       reference: payment.id,
       destination: pkg.label,
-      comment: `${pkg.lessons} lessons for SoEnglish balance top-up`,
+      comment: `${pkg.lessons} lessons for Arvilio balance top-up`,
       redirectUrl: `${webBase}/payment?status=success`,
       webHookUrl: `${apiBase}/billing/monopay/webhook`,
     });

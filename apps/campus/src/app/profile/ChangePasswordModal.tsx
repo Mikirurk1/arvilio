@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { KeyRound, X } from 'lucide-react';
 import { BodyPortal, Button, Field } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import { useProfileStore } from '../../stores/profile-store';
 import { toast } from '../../features/notifications';
 import styles from './page.module.scss';
@@ -14,6 +15,7 @@ export function ChangePasswordModal({
   open: boolean;
   onClose: () => void;
 }) {
+  const t = useCampusT();
   const changePassword = useProfileStore((s) => s.changePassword);
   const passwordMutating = useProfileStore((s) => s.passwordMutating);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -43,15 +45,15 @@ export function ChangePasswordModal({
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setFormError(null);
-    if (!currentPassword.trim()) { setFormError('Enter your current password.'); return; }
-    if (newPassword.length < 8) { setFormError('New password must be at least 8 characters.'); return; }
-    if (newPassword !== confirmPassword) { setFormError('New passwords do not match.'); return; }
+    if (!currentPassword.trim()) { setFormError(t('profile.password.error.current')); return; }
+    if (newPassword.length < 8) { setFormError(t('profile.password.error.length')); return; }
+    if (newPassword !== confirmPassword) { setFormError(t('profile.password.error.match')); return; }
     try {
       await changePassword({ currentPassword, newPassword });
-      toast.success('Password updated', 'Use your new password next time you sign in.');
+      toast.success(t('profile.password.toastTitle'), t('profile.password.toastBody'));
       onClose();
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'Failed to change password');
+      setFormError(error instanceof Error ? error.message : t('profile.password.error.failed'));
     }
   };
 
@@ -61,11 +63,11 @@ export function ChangePasswordModal({
         <div role="dialog" aria-modal="true" aria-labelledby="change-password-title" className={styles.passwordModal} onClick={(event) => event.stopPropagation()}>
           <header className={styles.passwordModalHead}>
             <div className={styles.passwordModalHeadText}>
-              <span className={styles.passwordModalBadge}><KeyRound size={14} />Security</span>
-              <h3 id="change-password-title" className={styles.passwordModalTitle}>Change password</h3>
-              <p className={styles.passwordModalText}>Enter your current password, then choose a new one (at least 8 characters).</p>
+              <span className={styles.passwordModalBadge}><KeyRound size={14} />{t('profile.password.security')}</span>
+              <h3 id="change-password-title" className={styles.passwordModalTitle}>{t('profile.password.title')}</h3>
+              <p className={styles.passwordModalText}>{t('profile.password.hint')}</p>
             </div>
-            <Button type="button" variant="ghost" className={styles.passwordModalClose} aria-label="Close password modal" disabled={passwordMutating} onClick={onClose}>
+            <Button type="button" variant="ghost" className={styles.passwordModalClose} aria-label={t('profile.password.closeAria')} disabled={passwordMutating} onClick={onClose}>
               <X size={16} aria-hidden />
             </Button>
           </header>
@@ -73,21 +75,21 @@ export function ChangePasswordModal({
             {formError ? <p className={styles.passwordModalError}>{formError}</p> : null}
             <div className={styles.passwordModalFields}>
               <div className={styles.fieldGroup}>
-                <label className={styles.label} htmlFor="current-password">Current password</label>
+                <label className={styles.label} htmlFor="current-password">{t('profile.password.current')}</label>
                 <Field id="current-password" type="password" className={styles.input} autoComplete="current-password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} disabled={passwordMutating} />
               </div>
               <div className={styles.fieldGroup}>
-                <label className={styles.label} htmlFor="new-password">New password</label>
+                <label className={styles.label} htmlFor="new-password">{t('profile.password.new')}</label>
                 <Field id="new-password" type="password" className={styles.input} autoComplete="new-password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} disabled={passwordMutating} />
               </div>
               <div className={styles.fieldGroup}>
-                <label className={styles.label} htmlFor="confirm-password">Confirm new password</label>
+                <label className={styles.label} htmlFor="confirm-password">{t('profile.password.confirm')}</label>
                 <Field id="confirm-password" type="password" className={styles.input} autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} disabled={passwordMutating} />
               </div>
             </div>
             <footer className={styles.passwordModalActions}>
-              <Button type="button" variant="ghost" className={styles.passwordModalCancel} disabled={passwordMutating} onClick={onClose}>Cancel</Button>
-              <Button type="submit" className={styles.passwordModalSubmit} loading={passwordMutating} loadingLabel="Saving…">Update password</Button>
+              <Button type="button" variant="ghost" className={styles.passwordModalCancel} disabled={passwordMutating} onClick={onClose}>{t('profile.password.cancel')}</Button>
+              <Button type="submit" className={styles.passwordModalSubmit} loading={passwordMutating} loadingLabel={t('profile.saving')}>{t('profile.password.update')}</Button>
             </footer>
           </form>
         </div>

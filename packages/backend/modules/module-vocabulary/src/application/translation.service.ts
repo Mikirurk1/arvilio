@@ -227,7 +227,7 @@ export class TranslationService {
       url.searchParams.set('q', text);
 
       const response = await fetch(url.toString(), {
-        headers: { 'User-Agent': 'SoEnglish/1.0' },
+        headers: { 'User-Agent': 'Arvilio/1.0' },
       });
       if (!response.ok) return null;
 

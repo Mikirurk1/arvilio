@@ -8,6 +8,7 @@ import {
   filterStudentLessonsByKind,
   type LessonKindFilter,
 } from '../../../lib/group-lessons-feature';
+import { useCampusT } from '../../../lib/cms';
 import styles from './page.module.scss';
 
 export function StudentLessonsTab({
@@ -17,6 +18,7 @@ export function StudentLessonsTab({
   lessons: ScheduledLessonDto[];
   groupLessonsEnabled?: boolean;
 }) {
+  const t = useCampusT();
   const [kindFilter, setKindFilter] = useState<LessonKindFilter>('all');
 
   const filteredByKind = useMemo(
@@ -24,30 +26,45 @@ export function StudentLessonsTab({
     [groupLessonsEnabled, kindFilter, lessons],
   );
 
+  const kindFilterLabels = useMemo(
+    () => ({
+      individual: t('students.detail.lessons.filterIndividual'),
+      group: t('students.detail.lessons.filterGroup'),
+    }),
+    [t],
+  );
+
+  const emptyFilterText = useMemo(() => {
+    if (kindFilter === 'all') return t('students.detail.lessons.emptyFilter');
+    return t('students.detail.lessons.emptyFilterKind', {
+      kind: kindFilterLabels[kindFilter],
+    });
+  }, [kindFilter, kindFilterLabels, t]);
+
   if (!lessons.length) {
     return (
       <SurfaceCard className={styles.tabCard}>
-        <EmptyStateCard title="No lessons yet" description="Plan a lesson in the Schedule tab." />
+        <EmptyStateCard
+          title={t('students.detail.lessons.emptyTitle')}
+          description={t('students.detail.lessons.emptyDesc')}
+        />
       </SurfaceCard>
     );
   }
   return (
     <SurfaceCard className={styles.tabCard}>
-      <h2 className={styles.tabSectionTitle}>Lessons</h2>
-      <p className={styles.tabIntro}>
-        Browse all lessons for this student. Individual and group lessons may use different billing
-        rules.
-      </p>
+      <h2 className={styles.tabSectionTitle}>{t('students.detail.lessons.title')}</h2>
+      <p className={styles.tabIntro}>{t('students.detail.lessons.intro')}</p>
       {groupLessonsEnabled ? (
         <SegmentedControl
           className={styles.lessonsKindSwitcher}
           value={kindFilter}
           onValueChange={setKindFilter}
-          ariaLabel="Filter lessons by format"
+          ariaLabel={t('students.detail.lessons.filterAria')}
           options={[
-            { value: 'all', label: 'All' },
-            { value: 'individual', label: 'Individual' },
-            { value: 'group', label: 'Group' },
+            { value: 'all', label: t('students.detail.lessons.filterAll') },
+            { value: 'individual', label: t('students.detail.lessons.filterIndividual') },
+            { value: 'group', label: t('students.detail.lessons.filterGroup') },
           ]}
         />
       ) : null}
@@ -55,11 +72,7 @@ export function StudentLessonsTab({
         lessons={filteredByKind}
         defaultStatusFilter="all"
         showKindBadge={groupLessonsEnabled}
-        emptyText={
-          kindFilter === 'all'
-            ? 'No lessons match your filters.'
-            : `No ${kindFilter} lessons for this student.`
-        }
+        emptyText={emptyFilterText}
       />
     </SurfaceCard>
   );

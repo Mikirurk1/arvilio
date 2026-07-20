@@ -9,4 +9,17 @@ Drop the mascot model here as **`arvi.glb`** (this exact path: `public/mascot/ar
   containing `idle` / `greet` / `point` / `celebrate` are auto-played per tour step;
   with no clips, a gentle procedural idle bob is used.
 
+## SFX (Stage 3)
+
+Short stubs in `public/mascot/sfx/*.wav` (`greet`, `point`, `click`, `celebrate`,
+`encourage`, `wave`). Replace with designed audio anytime — same filenames.
+Mute preference: `localStorage['arvi.sfxMuted']` (`1`/`0`); `prefers-reduced-motion`
+defaults to muted. Tour card has Mute/Unmute. Missing files fail soft.
+
+## Voice-over (Stage 6 seam)
+
+Optional per-step `voiceSrc` on tour steps — see `voice/README.md`. No files
+shipped in v1; `useArviVoice` plays lazily when URLs are added. Mute applies to
+voice and SFX together.
+
 See the Meshy.ai prompt + settings in `docs/handoff.md` (persona: "Arvi the Speaker-puff").

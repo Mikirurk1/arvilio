@@ -20,20 +20,22 @@ import {
   Target,
   Trophy,
 } from 'lucide-react';
+import { buildProfileAchievements } from '../../../lib/achievements';
 import {
-  buildProfileAchievements,
   getProficiencyLevelById,
   getUserAccountStatusById,
   USER_ACCOUNT_STATUS,
   USER_ROLE,
-  type MockStudent,
-} from '../../../mocks';
+  type UserAccountStatusId,
+} from '@pkg/types';
+import type { MockStudent } from '../../../lib/user-models';
 import {
   formatMinor,
   headerGroupStatLabel,
   splitStudentBillingTracks,
 } from '../../../lib/billing/student-billing-tracks';
 import { getLessonFormatLabel } from '../../../lib/student-lesson-format';
+import type { TranslateFn } from '../../../lib/cms/nav-i18n';
 import type { AchievementStatsDto, StudentLessonFormat, UserRoleId } from '@pkg/types';
 
 type BillingTracks = ReturnType<typeof splitStudentBillingTracks> | null;
@@ -57,6 +59,15 @@ const achievementIconMap = {
   gem: <Gem size={20} />,
 } as const;
 
+function accountStatusLabel(statusId: UserAccountStatusId, t?: TranslateFn): string {
+  const entry = getUserAccountStatusById(statusId);
+  if (!entry) return '—';
+  if (!t) return entry.name;
+  const key = `students.status.${entry.name}`;
+  const label = t(key);
+  return label === key ? entry.name : label;
+}
+
 interface UseStudentHeroDataOptions {
   liveProfileStats: AchievementStatsDto;
   achievementsLoading: boolean;
@@ -65,6 +76,7 @@ interface UseStudentHeroDataOptions {
   activeUserRole: UserRoleId;
   studentForm: MockStudent;
   lessonFormat: StudentLessonFormat;
+  t?: TranslateFn;
 }
 
 export function useStudentHeroData({
@@ -75,6 +87,7 @@ export function useStudentHeroData({
   activeUserRole,
   studentForm,
   lessonFormat,
+  t,
 }: UseStudentHeroDataOptions) {
   const studentAchievements = useMemo(
     () =>
@@ -93,16 +106,22 @@ export function useStudentHeroData({
   );
 
   const heroStats = useMemo(() => {
+    const wordsLabel = t?.('students.card.words') ?? 'Words';
+    const lessonsLabel = t?.('students.card.lessons') ?? 'Lessons';
+    const streakLabel = t?.('students.card.streak') ?? 'Streak';
+    const debtSuffix = (isDebt: boolean) =>
+      isDebt ? ` · ${t?.('students.detail.debt') ?? 'debt'}` : '';
+
     const base = [
       {
         value: achievementsLoading ? '…' : String(liveProfileStats.wordsLearned),
-        label: 'Words',
+        label: wordsLabel,
         icon: <BookOpen size={15} aria-hidden />,
         iconTone: 'green' as const,
       },
       {
         value: achievementsLoading ? '…' : String(liveProfileStats.lessonsCompleted),
-        label: 'Lessons',
+        label: lessonsLabel,
         icon: <CalendarCheck size={15} aria-hidden />,
         iconTone: 'blue' as const,
       },
@@ -113,7 +132,7 @@ export function useStudentHeroData({
             : liveProfileStats.streakDays > 0
               ? String(liveProfileStats.streakDays)
               : '—',
-        label: 'Streak',
+        label: streakLabel,
         icon: <Flame size={15} aria-hidden />,
         iconTone: 'amber' as const,
       },
@@ -123,11 +142,13 @@ export function useStudentHeroData({
     const extra: typeof base = [];
     if (billingTracks.showIndividual && billingTracks.individual) {
       const ind = billingTracks.individual;
+      const priceLabel = formatMinor(ind.resolvedPricePerLessonMinor, ind.defaultCurrency);
       extra.push({
-        value: `${ind.balance}${ind.isDebt ? ' · debt' : ''}`,
+        value: `${ind.balance}${debtSuffix(ind.isDebt)}`,
         label: isTeacherViewer
-          ? 'Individual balance'
-          : `Individual balance · ${formatMinor(ind.resolvedPricePerLessonMinor, ind.defaultCurrency)}/lesson`,
+          ? (t?.('students.detail.balanceIndividual') ?? 'Individual balance')
+          : (t?.('students.detail.balanceIndividualRate', { price: priceLabel }) ??
+            `Individual balance · ${priceLabel}/lesson`),
         icon: <Coins size={15} aria-hidden />,
         iconTone: 'blue' as const,
       });
@@ -135,7 +156,7 @@ export function useStudentHeroData({
     if (billingTracks.showGroup && billingTracks.group) {
       extra.push({
         value: headerGroupStatLabel(billingTracks.group),
-        label: 'Group billing',
+        label: t?.('students.detail.balanceGroup') ?? 'Group billing',
         icon: <GraduationCap size={15} aria-hidden />,
         iconTone: 'green' as const,
       });
@@ -147,19 +168,24 @@ export function useStudentHeroData({
     billingTracks,
     groupLessonsEnabled,
     liveProfileStats,
+    t,
   ]);
 
   const profileBadges = useMemo(() => {
     const items: Array<{ label: string; variant?: 'green' | 'amber' | 'blue' }> = [
       { label: getProficiencyLevelById(studentForm.proficiencyLevelId)?.code ?? '—' },
       {
-        label: getUserAccountStatusById(studentForm.statusId)?.name ?? '—',
+        label: accountStatusLabel(studentForm.statusId, t),
         variant: studentForm.statusId === USER_ACCOUNT_STATUS.active.id ? 'green' : 'amber',
       },
-      { label: studentForm.scheduleType ? 'Fixed schedule' : 'Flexible schedule' },
+      {
+        label: studentForm.scheduleType
+          ? (t?.('students.detail.scheduleFixed') ?? 'Fixed schedule')
+          : (t?.('students.detail.scheduleFlexible') ?? 'Flexible schedule'),
+      },
     ];
     if (groupLessonsEnabled) {
-      items.push({ label: getLessonFormatLabel(lessonFormat), variant: 'blue' });
+      items.push({ label: getLessonFormatLabel(lessonFormat, t), variant: 'blue' });
     }
     return items;
   }, [
@@ -168,6 +194,7 @@ export function useStudentHeroData({
     studentForm.proficiencyLevelId,
     studentForm.scheduleType,
     studentForm.statusId,
+    t,
   ]);
 
   return { heroStats, profileBadges, studentAchievements, recentUnlockedAchievements };

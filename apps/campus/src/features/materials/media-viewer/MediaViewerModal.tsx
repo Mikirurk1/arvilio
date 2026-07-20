@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MaterialAttachmentMetaDto } from '@pkg/types';
-import { BodyPortal } from '../../../components/ui';
+import { BodyPortal, Button } from '../../../components/ui';
 import { useFocusTrap } from '../../../hooks/use-focus-trap';
 import { confirmDialog } from '../../../stores/confirm-dialog-store';
 import { fetchMaterialAttachmentMeta } from './material-meta-api';
@@ -114,9 +114,9 @@ export function MediaViewerModal({ attachmentId, open, onClose }: Props) {
           ) : error ? (
             <div className={styles.modalLoading}>
               <p>{error}</p>
-              <button type="button" className={styles.modalDismissBtn} onClick={() => void requestClose()}>
+              <Button variant="bare" type="button" className={styles.modalDismissBtn} onClick={() => void requestClose()}>
                 Close
-              </button>
+              </Button>
             </div>
           ) : meta ? (
             <MediaViewerShell

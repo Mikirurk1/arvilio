@@ -3,6 +3,7 @@
 import type { PaymentCurrencyCode } from '@pkg/types';
 import { Banknote } from 'lucide-react';
 import { Button, Field } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import styles from './staff-payout.module.scss';
 
 export type RecordStaffPayoutFormValues = {
@@ -36,6 +37,7 @@ export function RecordStaffPayoutForm({
   paidAtMax,
   variant = 'inline',
 }: RecordStaffPayoutFormProps) {
+  const t = useCampusT();
   const gridClass =
     variant === 'modal' ? styles.formGridModal : styles.formGrid;
 
@@ -44,7 +46,7 @@ export function RecordStaffPayoutForm({
       <div className={gridClass}>
         <div className={styles.fieldGroup}>
           <label className={styles.label} htmlFor="payout-amount">
-            Amount ({currency})
+            {t('staffPayout.form.amount', { currency })}
           </label>
           <Field
             id="payout-amount"
@@ -58,7 +60,7 @@ export function RecordStaffPayoutForm({
         </div>
         <div className={styles.fieldGroup}>
           <label className={styles.label} htmlFor="payout-date">
-            Paid on
+            {t('staffPayout.form.paidOn')}
           </label>
           <Field
             id="payout-date"
@@ -71,7 +73,7 @@ export function RecordStaffPayoutForm({
         </div>
         <div className={[styles.fieldGroup, variant === 'modal' ? styles.fieldGroupWide : ''].join(' ')}>
           <label className={styles.label} htmlFor="payout-note">
-            Note (optional)
+            {t('staffPayout.form.note')}
           </label>
           <Field
             id="payout-note"
@@ -84,16 +86,16 @@ export function RecordStaffPayoutForm({
       {error ? <p className={styles.formError}>{error}</p> : null}
       <div className={variant === 'modal' ? styles.formActionsModal : styles.formActions}>
         <Button type="button" variant="ghost" onClick={onCancel} disabled={saving}>
-          Cancel
+          {t('staffPayout.form.cancel')}
         </Button>
-        <Button type="button" onClick={onSubmit} loading={saving} loadingLabel="Saving…">
+        <Button type="button" onClick={onSubmit} loading={saving} loadingLabel={t('staffPayout.form.saving')}>
           <Banknote size={14} aria-hidden />
-          Save payout
+          {t('staffPayout.form.save')}
         </Button>
       </div>
       {variant === 'inline' ? (
         <p className={styles.formHint}>
-          Recording payout for <strong>{staffDisplayName}</strong>.
+          {t('staffPayout.form.recordingFor', { name: staffDisplayName })}
         </p>
       ) : null}
     </>

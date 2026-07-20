@@ -48,7 +48,7 @@ describe('GraphQL group lessons feature flag (integration)', () => {
 
     const outsider = await ctx.prisma.user.create({
       data: {
-        email: 'jest-group-flag-outsider@soenglish.test',
+        email: 'jest-group-flag-outsider@arvilio.test',
         displayName: 'Jest Group Flag Outsider',
         role: 'STUDENT',
         status: 'ACTIVE',

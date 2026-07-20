@@ -1,0 +1,25 @@
+{
+  "name": "@app/cms",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "NODE_OPTIONS=--max-old-space-size=4096 next dev --hostname 0.0.0.0 --port 4410",
+    "build": "next build",
+    "start": "next start -p 4410",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "seed": "node --require ./scripts/shim-next-env.cjs --import tsx payload/seed.ts",
+    "seed:campus-ui": "node --require ./scripts/shim-next-env.cjs --import tsx payload/seed-campus-ui.ts",
+    "migrate:campus-content": "node --require ./scripts/shim-next-env.cjs --import tsx payload/migrate-campus-content.ts",
+    "migrate:seo": "node --require ./scripts/shim-next-env.cjs --import tsx payload/migrate-seo-fields.ts",
+    "migrate:tour-audio": "node --require ./scripts/shim-next-env.cjs --import tsx payload/migrate-tour-audio.ts"
+  },
+  "dependencies": {
+    "@payloadcms/db-postgres": "^3.85.1",
+    "@payloadcms/next": "^3.85.1",
+    "@payloadcms/richtext-lexical": "^3.85.1",
+    "@pkg/types": "*",
+    "graphql": "^16.11.0",
+    "payload": "^3.85.1"
+  }
+}

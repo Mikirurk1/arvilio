@@ -14,6 +14,7 @@ import {
   type PaymentSettingsDto,
   type SchoolGroupLessonsSettingsDto,
 } from '@pkg/types';
+import { useCampusT } from '../../../lib/cms';
 import { formatMoney, groupBillingModeLabel, groupSplitModeLabel, syncDraftPricing } from './payment-panel-utils';
 import styles from '../page.module.scss';
 
@@ -38,6 +39,7 @@ export function PaymentsPricingSection({
   currencyIssues,
   onDraftChange,
 }: Props) {
+  const t = useCampusT();
   const [ratesTab, setRatesTab] = useState<'individual' | 'group'>('individual');
 
   const groupLessons = draft.config.groupLessons ?? DEFAULT_SCHOOL_GROUP_LESSONS_SETTINGS;
@@ -79,10 +81,8 @@ export function PaymentsPricingSection({
     <section className={styles.pricingSection}>
       <div className={styles.pricingSectionHead}>
         <div>
-          <h3 className={styles.sectionTitle}>Currencies & lesson rates</h3>
-          <p className={styles.hint}>
-            Set individual lesson prices per currency and default billing rules for new learning groups.
-          </p>
+          <h3 className={styles.sectionTitle}>{t('system.payments.pricing.title')}</h3>
+          <p className={styles.hint}>{t('system.payments.pricing.subtitle')}</p>
         </div>
       </div>
 
@@ -90,7 +90,7 @@ export function PaymentsPricingSection({
         value={ratesTab}
         onValueChange={setRatesTab}
         keepMounted
-        ariaLabel="Lesson rates"
+        ariaLabel={t('system.payments.pricing.ratesTabAria')}
         listClassName={styles.tabsList}
         triggerClassName={styles.tabsTrigger}
         activeTriggerClassName={styles.tabsTriggerActive}
@@ -98,7 +98,7 @@ export function PaymentsPricingSection({
         items={[
           {
             value: 'individual',
-            label: 'Individual lessons',
+            label: t('students.detail.billing.individualLessons'),
             panel: (
               <IndividualRatesPanel
                 draft={draft}
@@ -108,7 +108,6 @@ export function PaymentsPricingSection({
                 pricePerLessonByCurrency={pricePerLessonByCurrency}
                 minPackageLessons={minPackageLessons}
                 currencyIssues={currencyIssues}
-                lemonVariantCurrency={lemonVariantCurrency}
                 onUpdatePrice={updatePriceForCurrency}
                 onToggleCurrency={toggleAllowedCurrency}
                 onSetDefaultCurrency={setDefaultCurrency}
@@ -120,7 +119,7 @@ export function PaymentsPricingSection({
           },
           {
             value: 'group',
-            label: 'Group payments',
+            label: t('system.payments.pricing.groupTab'),
             panel: (
               <GroupRatesPanel
                 groupLessons={groupLessons}
@@ -146,7 +145,6 @@ interface IndividualRatesPanelProps {
   pricePerLessonByCurrency: LessonPriceByCurrencyDto[];
   minPackageLessons: number;
   currencyIssues: string[];
-  lemonVariantCurrency: string | null;
   onUpdatePrice: (code: PaymentCurrencyCode, value: number) => void;
   onToggleCurrency: (code: PaymentCurrencyCode) => void;
   onSetDefaultCurrency: (code: PaymentCurrencyCode) => void;
@@ -157,39 +155,56 @@ function IndividualRatesPanel({
   draft, currency, priceMinor, allowedCurrencies, pricePerLessonByCurrency, minPackageLessons,
   currencyIssues, onUpdatePrice, onToggleCurrency, onSetDefaultCurrency, onSetMinLessons,
 }: IndividualRatesPanelProps) {
+  const t = useCampusT();
+
   return (
     <div className={styles.pricingLayout}>
       <div className={styles.pricingMainCard}>
         <div className={styles.pricingHero}>
           <div>
-            <div className={styles.pricingHeroLabel}>Default student lesson rate</div>
+            <div className={styles.pricingHeroLabel}>{t('system.payments.pricing.defaultStudentRate')}</div>
             <div className={styles.pricingHeroValue}>{formatMoney(priceMinor, currency)}</div>
-            <p className={styles.hint}>This amount is used everywhere until a student gets an individual override.</p>
+            <p className={styles.hint}>{t('system.payments.pricing.defaultStudentHint')}</p>
           </div>
           <div className={styles.pricingHeroStats}>
-            <div className={styles.pricingHeroStat}><span className={styles.pricingHeroStatLabel}>Currency</span><strong>{currency}</strong></div>
-            <div className={styles.pricingHeroStat}><span className={styles.pricingHeroStatLabel}>Min package</span><strong>{minPackageLessons} lessons</strong></div>
-            <div className={styles.pricingHeroStat}><span className={styles.pricingHeroStatLabel}>Packages</span><strong>{draft.config.packages.length}</strong></div>
+            <div className={styles.pricingHeroStat}>
+              <span className={styles.pricingHeroStatLabel}>{t('students.groups.editor.currencyLabel')}</span>
+              <strong>{currency}</strong>
+            </div>
+            <div className={styles.pricingHeroStat}>
+              <span className={styles.pricingHeroStatLabel}>{t('system.payments.pricing.minPackage')}</span>
+              <strong>{t('students.detail.billing.lessonsCount', { count: minPackageLessons })}</strong>
+            </div>
+            <div className={styles.pricingHeroStat}>
+              <span className={styles.pricingHeroStatLabel}>{t('students.detail.billing.tagPackages')}</span>
+              <strong>{draft.config.packages.length}</strong>
+            </div>
           </div>
         </div>
 
         <div className={styles.pricingControlGrid}>
           <div className={styles.pricingControlCard}>
-            <div className={styles.pricingControlTop}><div><div className={styles.pricingControlEyebrow}>Pricing</div><div className={styles.pricingControlTitle}>Price per lesson by currency</div></div></div>
-            <div className={styles.pricingControlText}>Enter the lesson price in minor units. Example: `45000` = `450.00 UAH`</div>
+            <div className={styles.pricingControlTop}>
+              <div>
+                <div className={styles.pricingControlEyebrow}>{t('system.payments.pricing.eyebrow.pricing')}</div>
+                <div className={styles.pricingControlTitle}>{t('system.payments.pricing.priceByCurrency')}</div>
+              </div>
+            </div>
+            <div className={styles.pricingControlText}>{t('system.payments.pricing.priceByCurrencyHint')}</div>
             <div className={styles.currencyPriceGrid}>
               {allowedCurrencies.map((code) => (
                 <div key={code} className={styles.currencyPriceRow}>
                   <label className={styles.currencyPriceLabel} htmlFor={`price-${code}`}>
                     {code}
-                    {code === currency ? <Badge variant="green" size="sm">Default</Badge> : null}
+                    {code === currency ? <Badge variant="green" size="sm">{t('system.payments.pricing.defaultBadge')}</Badge> : null}
                   </label>
                   <Field id={`price-${code}`} type="number" className={styles.input} min={0} step={1}
                     value={String(pricePerLessonByCurrency.find((r) => r.currency === code)?.pricePerLessonMinor ?? getPricePerLessonForCurrency(draft.config, code))}
                     onChange={(e) => onUpdatePrice(code, Number.parseInt(e.target.value, 10) || 0)}
                   />
                   <span className={styles.hint}>
-                    {formatMoney(pricePerLessonByCurrency.find((r) => r.currency === code)?.pricePerLessonMinor ?? getPricePerLessonForCurrency(draft.config, code), code)} per lesson
+                    {formatMoney(pricePerLessonByCurrency.find((r) => r.currency === code)?.pricePerLessonMinor ?? getPricePerLessonForCurrency(draft.config, code), code)}{' '}
+                    {t('students.detail.billing.perLesson')}
                   </span>
                 </div>
               ))}
@@ -197,22 +212,36 @@ function IndividualRatesPanel({
           </div>
 
           <div className={styles.pricingControlCard}>
-            <div className={styles.pricingControlTop}><div><div className={styles.pricingControlEyebrow}>Currencies</div><div className={styles.pricingControlTitle}>Allowed currencies</div></div></div>
+            <div className={styles.pricingControlTop}>
+              <div>
+                <div className={styles.pricingControlEyebrow}>{t('system.payments.pricing.eyebrow.currencies')}</div>
+                <div className={styles.pricingControlTitle}>{t('system.payments.pricing.allowedCurrencies')}</div>
+              </div>
+            </div>
             <div className={styles.currencyChecks}>
               {PAYMENT_CURRENCY_OPTIONS.map((code) => (
-                <label key={code} className={styles.currencyCheck}>
-                  <input type="checkbox" checked={allowedCurrencies.includes(code)} onChange={() => onToggleCurrency(code)} />
-                  {code}
-                </label>
+                <Field
+                  key={code}
+                  as="checkbox"
+                  checked={allowedCurrencies.includes(code)}
+                  onChange={() => onToggleCurrency(code)}
+                  label={code}
+                  rootClassName={styles.currencyCheck}
+                />
               ))}
             </div>
           </div>
 
           <div className={styles.pricingControlCard}>
-            <div className={styles.pricingControlTop}><div><div className={styles.pricingControlEyebrow}>Rules</div><div className={styles.pricingControlTitle}>Package rules</div></div></div>
+            <div className={styles.pricingControlTop}>
+              <div>
+                <div className={styles.pricingControlEyebrow}>{t('system.payments.pricing.eyebrow.rules')}</div>
+                <div className={styles.pricingControlTitle}>{t('system.payments.pricing.packageRules')}</div>
+              </div>
+            </div>
             <div className={styles.pricingInlineControls}>
               <div className={styles.fieldGroup}>
-                <label className={styles.label}>Default currency</label>
+                <label className={styles.label}>{t('students.groups.editor.currencyLabel')}</label>
                 <Field as="select" className={styles.input} value={currency}
                   onChange={(e) => onSetDefaultCurrency(e.target.value as PaymentCurrencyCode)}
                 >
@@ -220,7 +249,7 @@ function IndividualRatesPanel({
                 </Field>
               </div>
               <div className={styles.fieldGroup}>
-                <label className={styles.label} htmlFor="min-package-lessons">Min lessons</label>
+                <label className={styles.label} htmlFor="min-package-lessons">{t('system.payments.pricing.minLessons')}</label>
                 <Field id="min-package-lessons" type="number" className={styles.input} min={1} value={String(minPackageLessons)}
                   onChange={(e) => onSetMinLessons(Math.max(1, Number.parseInt(e.target.value, 10) || 1))}
                 />
@@ -231,14 +260,14 @@ function IndividualRatesPanel({
       </div>
 
       <aside className={styles.pricingSidebarCard}>
-        <div className={styles.pricingSidebarTitle}>Live summary</div>
+        <div className={styles.pricingSidebarTitle}>{t('system.payments.pricing.liveSummary')}</div>
         <div className={styles.pricingSidebarBlock}>
-          <div className={styles.pricingSidebarLabel}>What students see</div>
+          <div className={styles.pricingSidebarLabel}>{t('system.payments.pricing.whatStudentsSee')}</div>
           <div className={styles.pricingSidebarValue}>{formatMoney(priceMinor, currency)}</div>
-          <p className={styles.hint}>Package totals are calculated as `lessons × lesson price`.</p>
+          <p className={styles.hint}>{t('system.payments.pricing.packageTotalsHint')}</p>
         </div>
         <div className={styles.pricingSidebarBlock}>
-          <div className={styles.pricingSidebarLabel}>Currencies</div>
+          <div className={styles.pricingSidebarLabel}>{t('system.payments.pricing.eyebrow.currencies')}</div>
           <div className={styles.pricingBadgeList}>
             {allowedCurrencies.map((code) => (
               <Badge key={code} variant={code === currency ? 'green' : 'neutral'} size="sm">
@@ -253,7 +282,7 @@ function IndividualRatesPanel({
           ) : null}
         </div>
         <div className={styles.pricingSidebarBlock}>
-          <div className={styles.pricingSidebarLabel}>Quick preview</div>
+          <div className={styles.pricingSidebarLabel}>{t('system.payments.pricing.quickPreview')}</div>
           {draft.config.packages.length > 0 ? (
             <div className={styles.pricingPreviewList}>
               {draft.config.packages.slice(0, 3).map((pkg) => {
@@ -270,7 +299,7 @@ function IndividualRatesPanel({
               })}
             </div>
           ) : (
-            <div className={styles.pricingPreviewEmpty}>Add packages to preview totals.</div>
+            <div className={styles.pricingPreviewEmpty}>{t('system.payments.pricing.previewEmpty')}</div>
           )}
         </div>
       </aside>
@@ -279,7 +308,6 @@ function IndividualRatesPanel({
 }
 
 interface GroupRatesPanelProps {
-  draft: PaymentSettingsDto;
   groupLessons: SchoolGroupLessonsSettingsDto;
   groupLessonsEnabled: boolean;
   groupDefaultCurrency: PaymentCurrencyCode;
@@ -290,31 +318,42 @@ interface GroupRatesPanelProps {
 
 function GroupRatesPanel({
   groupLessons, groupLessonsEnabled, groupDefaultCurrency, groupDefaultPriceMinor, allowedCurrencies, onPatch,
-}: Omit<GroupRatesPanelProps, 'draft'>) {
+}: GroupRatesPanelProps) {
+  const t = useCampusT();
+
   return (
     <div className={styles.pricingLayout}>
       <div className={styles.pricingMainCard}>
         <div className={styles.pricingHero}>
           <div>
-            <div className={styles.pricingHeroLabel}>Default group billing</div>
+            <div className={styles.pricingHeroLabel}>{t('system.payments.pricing.defaultGroupBilling')}</div>
             <div className={styles.pricingHeroValue}>
               {groupLessons.defaultBillingMode === 'per_member'
-                ? '1 lesson credit per member'
+                ? t('system.payments.pricing.creditPerMemberLong')
                 : formatMoney(groupDefaultPriceMinor, groupDefaultCurrency)}
             </div>
           </div>
           <div className={styles.pricingHeroStats}>
             <div className={styles.pricingHeroStat}>
-              <span className={styles.pricingHeroStatLabel}>Billing mode</span>
-              <strong>{groupBillingModeLabel(groupLessons.defaultBillingMode ?? 'per_member')}</strong>
+              <span className={styles.pricingHeroStatLabel}>{t('students.detail.billing.billingMode')}</span>
+              <strong>{groupBillingModeLabel(groupLessons.defaultBillingMode ?? 'per_member', t)}</strong>
             </div>
             {groupLessons.defaultBillingMode === 'fixed_total' ? (
               <>
-                <div className={styles.pricingHeroStat}><span className={styles.pricingHeroStatLabel}>Currency</span><strong>{groupDefaultCurrency}</strong></div>
-                <div className={styles.pricingHeroStat}><span className={styles.pricingHeroStatLabel}>Split</span><strong>{groupSplitModeLabel(groupLessons.defaultSplitMode ?? 'equal_split')}</strong></div>
+                <div className={styles.pricingHeroStat}>
+                  <span className={styles.pricingHeroStatLabel}>{t('students.groups.editor.currencyLabel')}</span>
+                  <strong>{groupDefaultCurrency}</strong>
+                </div>
+                <div className={styles.pricingHeroStat}>
+                  <span className={styles.pricingHeroStatLabel}>{t('students.groups.editor.splitLabel')}</span>
+                  <strong>{groupSplitModeLabel(groupLessons.defaultSplitMode ?? 'equal_split', t)}</strong>
+                </div>
               </>
             ) : (
-              <div className={styles.pricingHeroStat}><span className={styles.pricingHeroStatLabel}>Feature</span><strong>{groupLessonsEnabled ? 'Enabled' : 'Disabled'}</strong></div>
+              <div className={styles.pricingHeroStat}>
+                <span className={styles.pricingHeroStatLabel}>{t('system.payments.pricing.feature')}</span>
+                <strong>{groupLessonsEnabled ? t('system.payments.pricing.enabled') : t('system.payments.pricing.disabled')}</strong>
+              </div>
             )}
           </div>
         </div>
@@ -322,33 +361,45 @@ function GroupRatesPanel({
         {groupLessonsEnabled ? (
           <div className={styles.pricingControlGrid}>
             <div className={styles.pricingControlCard}>
-              <div className={styles.pricingControlTop}><div><div className={styles.pricingControlEyebrow}>Billing</div><div className={styles.pricingControlTitle}>How group lessons charge</div></div></div>
+              <div className={styles.pricingControlTop}>
+                <div>
+                  <div className={styles.pricingControlEyebrow}>{t('system.payments.pricing.eyebrow.billing')}</div>
+                  <div className={styles.pricingControlTitle}>{t('system.payments.pricing.howGroupCharges')}</div>
+                </div>
+              </div>
               <div className={styles.fieldGroup}>
-                <label className={styles.label} htmlFor="group-billing-mode">Billing mode</label>
+                <label className={styles.label} htmlFor="group-billing-mode">{t('students.detail.billing.billingMode')}</label>
                 <Field id="group-billing-mode" as="select" className={styles.input}
                   value={groupLessons.defaultBillingMode}
                   onChange={(e) => onPatch({ defaultBillingMode: e.target.value as 'per_member' | 'fixed_total' })}
                 >
-                  <option value="per_member">Per student (lesson credit each)</option>
-                  <option value="fixed_total">Fixed total per lesson</option>
+                  <option value="per_member">{t('system.payments.pricing.perStudentOption')}</option>
+                  <option value="fixed_total">{t('system.payments.pricing.fixedTotalOption')}</option>
                 </Field>
               </div>
             </div>
 
             {groupLessons.defaultBillingMode === 'fixed_total' ? (
               <div className={styles.pricingControlCard}>
-                <div className={styles.pricingControlTop}><div><div className={styles.pricingControlEyebrow}>Amount</div><div className={styles.pricingControlTitle}>Fixed lesson total</div></div></div>
+                <div className={styles.pricingControlTop}>
+                  <div>
+                    <div className={styles.pricingControlEyebrow}>{t('system.payments.pricing.eyebrow.amount')}</div>
+                    <div className={styles.pricingControlTitle}>{t('system.payments.pricing.fixedLessonTotal')}</div>
+                  </div>
+                </div>
                 <div className={styles.pricingInlineControls}>
                   <div className={styles.fieldGroup}>
-                    <label className={styles.label} htmlFor="group-price-minor">Price (minor units)</label>
+                    <label className={styles.label} htmlFor="group-price-minor">{t('students.groups.editor.amountLabel')}</label>
                     <Field id="group-price-minor" type="number" className={styles.input} min={0}
                       value={String(groupDefaultPriceMinor)}
                       onChange={(e) => onPatch({ defaultPriceMinor: Math.max(0, Number(e.target.value) || 0) })}
                     />
-                    <span className={styles.hint}>{formatMoney(groupDefaultPriceMinor, groupDefaultCurrency)} per lesson</span>
+                    <span className={styles.hint}>
+                      {formatMoney(groupDefaultPriceMinor, groupDefaultCurrency)} {t('students.detail.billing.perLesson')}
+                    </span>
                   </div>
                   <div className={styles.fieldGroup}>
-                    <label className={styles.label} htmlFor="group-currency">Currency</label>
+                    <label className={styles.label} htmlFor="group-currency">{t('students.groups.editor.currencyLabel')}</label>
                     <Field id="group-currency" as="select" className={styles.input} value={groupDefaultCurrency}
                       onChange={(e) => onPatch({ defaultCurrency: e.target.value as PaymentCurrencyCode })}
                     >
@@ -356,13 +407,13 @@ function GroupRatesPanel({
                     </Field>
                   </div>
                   <div className={styles.fieldGroup}>
-                    <label className={styles.label} htmlFor="group-split-mode">Split mode</label>
+                    <label className={styles.label} htmlFor="group-split-mode">{t('students.groups.editor.splitLabel')}</label>
                     <Field id="group-split-mode" as="select" className={styles.input}
                       value={groupLessons.defaultSplitMode}
                       onChange={(e) => onPatch({ defaultSplitMode: e.target.value as 'equal_split' | 'single_payer' })}
                     >
-                      <option value="equal_split">Split equally</option>
-                      <option value="single_payer">Single payer (set on group)</option>
+                      <option value="equal_split">{t('students.groups.editor.splitEqual')}</option>
+                      <option value="single_payer">{t('students.groups.editor.splitSinglePayer')}</option>
                     </Field>
                   </div>
                 </div>
@@ -372,35 +423,37 @@ function GroupRatesPanel({
         ) : (
           <div className={styles.pricingDisabledNotice}>
             <p className={styles.hint}>
-              Group lessons are turned off. Enable them in <Link href="/system">System → General</Link> under Group lessons.
+              {t('system.payments.pricing.groupDisabledBefore')}{' '}
+              <Link href="/system">{t('system.payments.pricing.groupDisabledLink')}</Link>{' '}
+              {t('system.payments.pricing.groupDisabledAfter')}
             </p>
           </div>
         )}
       </div>
 
       <aside className={styles.pricingSidebarCard}>
-        <div className={styles.pricingSidebarTitle}>Group summary</div>
+        <div className={styles.pricingSidebarTitle}>{t('system.payments.pricing.groupSummary')}</div>
         <div className={styles.pricingSidebarBlock}>
-          <div className={styles.pricingSidebarLabel}>Default charge</div>
+          <div className={styles.pricingSidebarLabel}>{t('system.payments.pricing.defaultCharge')}</div>
           <div className={styles.pricingSidebarValue}>
             {groupLessons.defaultBillingMode === 'per_member'
-              ? '1 credit / member'
+              ? t('students.groups.creditPerMember')
               : formatMoney(groupDefaultPriceMinor, groupDefaultCurrency)}
           </div>
         </div>
         <div className={styles.pricingSidebarBlock}>
-          <div className={styles.pricingSidebarLabel}>Billing mode</div>
-          <Badge variant="neutral" size="sm">{groupBillingModeLabel(groupLessons.defaultBillingMode ?? 'per_member')}</Badge>
+          <div className={styles.pricingSidebarLabel}>{t('students.detail.billing.billingMode')}</div>
+          <Badge variant="neutral" size="sm">{groupBillingModeLabel(groupLessons.defaultBillingMode ?? 'per_member', t)}</Badge>
           {groupLessons.defaultBillingMode === 'fixed_total' ? (
             <div className={styles.pricingBadgeList}>
-              <Badge variant="neutral" size="sm">{groupSplitModeLabel(groupLessons.defaultSplitMode ?? 'equal_split')}</Badge>
+              <Badge variant="neutral" size="sm">{groupSplitModeLabel(groupLessons.defaultSplitMode ?? 'equal_split', t)}</Badge>
             </div>
           ) : null}
         </div>
         {!groupLessonsEnabled ? (
           <div className={styles.pricingSidebarBlock}>
-            <div className={styles.pricingSidebarLabel}>Status</div>
-            <Badge variant="neutral" size="sm">Feature disabled</Badge>
+            <div className={styles.pricingSidebarLabel}>{t('system.payments.pricing.status')}</div>
+            <Badge variant="neutral" size="sm">{t('system.payments.pricing.featureDisabled')}</Badge>
           </div>
         ) : null}
       </aside>

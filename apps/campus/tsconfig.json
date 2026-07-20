@@ -45,8 +45,8 @@
     "**/*.js",
     "**/*.jsx",
 
-    "../../apps/web/.next/types/**/*.ts",
-    "../../dist/apps/web/.next/types/**/*.ts",
+    "../../apps/campus/.next/types/**/*.ts",
+    "../../dist/apps/campus/.next/types/**/*.ts",
 
     "next-env.d.ts"
   ],

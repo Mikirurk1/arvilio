@@ -97,6 +97,7 @@ export class BillingResolver {
           id: p.id,
           lessons: p.lessons,
           label: p.label,
+          description: p.description?.trim() || undefined,
           currency: p.currency ?? undefined,
         })),
         defaultPricePerLessonMinor: input.config.defaultPricePerLessonMinor,

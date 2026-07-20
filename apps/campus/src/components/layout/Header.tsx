@@ -1,13 +1,14 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useOpenCreateLesson } from '../../features/lesson-modal';
 import { useEffect, useMemo, useState } from 'react';
-import { Menu } from 'lucide-react';
-import { LESSON_STATUS } from '@pkg/types';
+import { CircleHelp, Menu } from 'lucide-react';
+import { LESSON_STATUS, stripLocalePrefix, USER_ROLE } from '@pkg/types';
 import { Button } from '../ui';
 import { getAvatarFallbackInitials } from '../../lib/avatar';
-import { canSchedule, isAdminOrSuper, USER_ROLE } from '../../mocks';
+import { canSchedule, isAdminOrSuper } from '../../lib/roles';
 import { useActiveUser } from '../../lib/active-user';
 import { useBreakpoint } from '../../hooks/use-breakpoint';
 import { formatInTimeZone } from 'date-fns-tz';
@@ -24,6 +25,13 @@ import {
 } from '../../features/lesson-modal/scheduledLessonsBackendAdapter';
 import { useViewerPartyNumericId } from '../../hooks/use-viewer-party-numeric-id';
 import { useOptionalAuth } from '../../lib/auth-context';
+import { useCampusT } from '../../lib/cms';
+import { TOUR_CONTEXTUAL_REPLAY_EVENT } from '../tour/ProductTour';
+import {
+  isLearningModeOn,
+  LEARNING_MODE_EVENT,
+  type LearningMode,
+} from '../tour/learning-mode';
 import styles from './Header.module.scss';
 
 function badgeToneClass(balance: number): string {
@@ -33,6 +41,8 @@ function badgeToneClass(balance: number): string {
 }
 
 export default function Header() {
+  const t = useCampusT();
+  const pathname = usePathname() ?? '/';
   const openCreateLesson = useOpenCreateLesson();
   const activeUser = useActiveUser();
   const auth = useOptionalAuth();
@@ -40,16 +50,32 @@ export default function Header() {
   const { isMobile, isTablet } = useBreakpoint();
   const { openMobileNav } = useShellNav();
   const [avatarUrl, setAvatarUrl] = useState(activeUser.avatar.url ?? '');
+  const [learningModeOn, setLearningModeOn] = useState(true);
   const fetchMyBalance = useBillingStore((s) => s.fetchMyBalance);
   const myBalanceSlice = useBillingStore((s) => s.myBalance);
   const fetchScheduledLessons = useLessonsStore((s) => s.fetchScheduledLessons);
   const backendLessons = useLessonsStore((s) => s.backendLessons.data);
 
   const isStudent = activeUser.role === USER_ROLE.student.id;
+  const pathWithoutLocale = stripLocalePrefix(pathname).pathname || '/';
+  const onOnboardingRoute =
+    pathWithoutLocale === '/onboarding' || pathWithoutLocale.startsWith('/onboarding/');
+  const showHelp =
+    Boolean(auth?.user) && learningModeOn && !onOnboardingRoute;
 
   useEffect(() => {
     setAvatarUrl(activeUser.avatar.url ?? '');
   }, [activeUser.avatar.url]);
+
+  useEffect(() => {
+    setLearningModeOn(isLearningModeOn());
+    const onLearningMode = (event: Event) => {
+      const mode = (event as CustomEvent<{ mode?: LearningMode }>).detail?.mode;
+      setLearningModeOn(mode === 'on' || (mode == null && isLearningModeOn()));
+    };
+    window.addEventListener(LEARNING_MODE_EVENT, onLearningMode);
+    return () => window.removeEventListener(LEARNING_MODE_EVENT, onLearningMode);
+  }, []);
 
   useEffect(() => {
     const onAvatarUpdated = (event: Event) => {
@@ -117,7 +143,7 @@ export default function Header() {
   const showCreateLesson = canSchedule('lessons', activeUser.role);
   const compactBadge = isMobile || isTablet;
   const badgeHref = isStudent ? '/payment' : '/lessons';
-  const badgeTitle = isStudent ? 'Lesson balance — go to payment' : 'Today lessons — open lessons';
+  const badgeTitle = isStudent ? t('header.badgeTitle.student') : t('header.badgeTitle.staff');
 
   return (
     <header className={styles.header}>
@@ -127,7 +153,7 @@ export default function Header() {
             type="button"
             className={styles.menuBtn}
             onClick={openMobileNav}
-            aria-label="Open navigation menu"
+            aria-label={t('header.openNav')}
           >
             <Menu size={22} aria-hidden />
           </Button>
@@ -147,8 +173,9 @@ export default function Header() {
             type="button"
             className={styles.headerCreateLesson}
             onClick={openCreateLesson}
+            data-tour-anchor="header-create-lesson"
           >
-            {isTablet ? 'Create' : 'Create lesson'}
+            {isTablet ? t('header.createShort') : t('header.createLesson')}
           </Button>
         ) : null}
         <Link
@@ -169,8 +196,10 @@ export default function Header() {
               <span className={styles.lessonsNum}>{lessonsLeft}</span>
               {!compactBadge ? (
                 <>
-                  <span className={styles.lessonsLbl}>lessons left</span>
-                  <span className={styles.lessonsPlanned}>· {plannedLessonsCount} planned</span>
+                  <span className={styles.lessonsLbl}>{t('header.lessonsLeft')}</span>
+                  <span className={styles.lessonsPlanned}>
+                    {t('header.planned', { count: plannedLessonsCount })}
+                  </span>
                 </>
               ) : null}
             </>
@@ -179,19 +208,39 @@ export default function Header() {
           ) : (
             <>
               <span className={styles.lessonsLbl}>
-                My: <span className={styles.lessonsNum}>{myTodayCount}</span> today
+                {t('header.myToday', { count: myTodayCount })}
               </span>
               <span className={styles.lessonsPlanned}>
-                · <span className={styles.lessonsNum}>{myRemainingCount}</span> left
+                {t('header.leftToday', { count: myRemainingCount })}
               </span>
               {showTotalForAdmin ? (
                 <span className={styles.lessonsPlanned}>
-                  · Total: {totalTodayCount} today / {totalRemainingCount} left
+                  {t('header.totalToday', {
+                    today: totalTodayCount,
+                    left: totalRemainingCount,
+                  })}
                 </span>
               ) : null}
             </>
           )}
         </Link>
+        {showHelp ? (
+          <Button
+            type="button"
+            className={styles.helpBtn}
+            aria-label={t('header.help')}
+            title={t('header.help')}
+            onClick={() =>
+              window.dispatchEvent(
+                new CustomEvent(TOUR_CONTEXTUAL_REPLAY_EVENT, {
+                  detail: { pathname },
+                }),
+              )
+            }
+          >
+            <CircleHelp size={20} aria-hidden />
+          </Button>
+        ) : null}
         <Link href="/profile" className={styles.avatar}>
           {avatarUrl ? (
             <Image src={avatarUrl} alt="" width={36} height={36} unoptimized />

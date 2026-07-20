@@ -14,8 +14,8 @@ import {
   type TimeZoneId,
   type UserAccountStatusId,
 } from '@pkg/types';
-import { siteContent } from '../content/site-content';
-import { activeUser, type MockUser, type UserRole } from '../session';
+import { activeUser } from '../session';
+import type { MockStudent, MockUser, ProfileViewModel, UserRole } from '../../lib/user-models';
 import {
   buildProfileAchievements,
   emptyProfileStats,
@@ -24,7 +24,6 @@ import {
 } from './achievements';
 import { getDailyGoalsForUser } from './goals';
 import { mockUsers } from './entities';
-import { getPracticeSummaryForPresetRange, getVocabularyProgressForRange, getRangeBounds } from './statistics';
 import {
   getVocabularyWordById,
   legacyStatusToVocabularyStatusId,
@@ -284,28 +283,7 @@ export type MockProfileForm = {
   bio: string;
 };
 
-export type ProfileViewModel = {
-  id: number;
-  userId: number;
-  fullName: string;
-  proficiencyLevelId: ProficiencyLevelId;
-  email: string;
-  phone: string;
-  timezoneId: TimeZoneId;
-  color?: string;
-  /** References `USER_ACCOUNT_STATUS` ids. */
-  statusId: UserAccountStatusId;
-  /** `true` fixed schedule, `false` flexible. */
-  scheduleType: boolean;
-  lessonFormat?: import('@pkg/types').StudentLessonFormat;
-  teacherId: number;
-  teacherName: string;
-  wordsLearned: number;
-  lessonsCompleted: number;
-  streakDays: number;
-};
-
-export type MockStudent = ProfileViewModel;
+export type { MockStudent, ProfileViewModel } from '../../lib/user-models';
 
 const studentRecords = (): MockUser[] => mockUsers.filter((u) => u.role === USER_ROLE.student.id);
 
@@ -412,37 +390,3 @@ export const mockProfileGoals = getDailyGoalsForUser(String(activeUser.id)).map(
   kind: g.kind,
 })) as ReadonlyArray<{ text: string; done: boolean; kind: string }>;
 
-const activeWeekRange = getRangeBounds('week');
-const activeWeekPracticeSummary = getPracticeSummaryForPresetRange(activeUser.id, 'week');
-const activeWeekVocabulary = getVocabularyProgressForRange(activeUser.id, activeWeekRange);
-const activeWeekQuizzes = Number(
-  activeWeekPracticeSummary.metrics.find((metric) => metric.id === 2)?.value ?? 0,
-);
-
-function resolvedPracticeStat(title: string, fallback?: string): string | undefined {
-  if (title === 'Vocabulary') return `${activeWeekVocabulary.addedWords} new words`;
-  if (title === 'Quiz') return `${activeWeekQuizzes} available`;
-  return fallback;
-}
-
-export const mockPracticeActivities = siteContent.practiceActivities.map((activity) => ({
-  href: activity.href,
-  title: activity.title,
-  description: activity.description,
-  icon: activity.icon,
-  tag: activity.tag,
-  tagClass: activity.tagClass,
-  stat: resolvedPracticeStat(activity.title, 'stat' in activity ? activity.stat : undefined),
-  accent: 'accent' in activity ? activity.accent : undefined,
-  disabled: 'disabled' in activity ? activity.disabled : undefined,
-})) as ReadonlyArray<{
-  href: string;
-  title: string;
-  description: string;
-  icon: string;
-  tag: string;
-  tagClass: 'tagGreen' | 'tagBlue' | 'tagAmber' | 'tagMuted';
-  stat?: string;
-  accent?: 'green' | 'blue' | 'purple' | 'amber' | 'rose';
-  disabled?: boolean;
-}>;

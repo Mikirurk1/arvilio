@@ -13,6 +13,7 @@ import {
   wordMatchesPosFilter,
 } from '../../../lib/vocabulary-ui';
 import { useVocabularyStore } from '../../../stores/vocabulary-store';
+import { useCampusT } from '../../../lib/cms';
 import { VocabularyAddWordBar, VocabularyListSection, VocabularyStatsRow } from '../../vocabulary/sections';
 import styles from './page.module.scss';
 
@@ -23,6 +24,7 @@ type Props = {
 };
 
 export function StudentVocabularyTab({ studentId, embedded = false }: Props) {
+  const t = useCampusT();
   const cardsSlice = useVocabularyStore((s) => s.cards);
   const fetchCards = useVocabularyStore((s) => s.fetchCards);
   const updateCardStatus = useVocabularyStore((s) => s.updateCardStatus);
@@ -94,10 +96,10 @@ export function StudentVocabularyTab({ studentId, embedded = false }: Props) {
       ),
     ).sort();
     return [
-      { value: 'all', label: 'All lessons' },
-      ...unique.map((id) => ({ value: id, label: `Lesson` })),
+      { value: 'all', label: t('students.detail.vocab.allLessons') },
+      ...unique.map((id) => ({ value: id, label: t('students.detail.vocab.lessonLabel') })),
     ];
-  }, [items]);
+  }, [items, t]);
 
   const onSetStatus = (cardId: string, status: VocabularyWordStatusName) => {
     void updateCardStatus(cardId, status, studentId);
@@ -110,14 +112,14 @@ export function StudentVocabularyTab({ studentId, embedded = false }: Props) {
   const onDeleteWord = async (cardId: string) => {
     if (!studentId) return;
     const ok = await confirmDialog({
-      title: 'Remove word?',
-      message: 'This word will be removed from the student vocabulary.',
-      confirmLabel: 'Remove',
+      title: t('students.detail.vocab.removeTitle'),
+      message: t('students.detail.vocab.removeMessage'),
+      confirmLabel: t('students.detail.vocab.removeConfirm'),
       variant: 'danger',
     });
     if (!ok) return;
     void deleteCard(cardId, studentId).catch((err) => {
-      toast.error(err instanceof Error ? err.message : 'Could not remove word');
+      toast.error(err instanceof Error ? err.message : t('students.detail.vocab.removeFailed'));
     });
   };
 

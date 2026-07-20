@@ -4,12 +4,12 @@ const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..');
 const TARGET_FILES = [
-  'apps/web/src/app/vocabulary/page.module.scss',
-  'apps/web/src/app/quiz/page.module.scss',
-  'apps/web/src/app/profile/page.module.scss',
-  'apps/web/src/app/students/[studentId]/page.module.scss',
-  'apps/web/src/app/calendar/page.module.scss',
-  'apps/web/src/features/materials/media-viewer/media-viewer.module.scss',
+  'apps/campus/src/app/vocabulary/page.module.scss',
+  'apps/campus/src/app/quiz/page.module.scss',
+  'apps/campus/src/app/profile/page.module.scss',
+  'apps/campus/src/app/students/[studentId]/page.module.scss',
+  'apps/campus/src/app/calendar/page.module.scss',
+  'apps/campus/src/features/materials/media-viewer/media-viewer.module.scss',
 ];
 const violations = [];
 

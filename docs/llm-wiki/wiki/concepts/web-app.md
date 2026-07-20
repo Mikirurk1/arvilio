@@ -1,11 +1,19 @@
 ---
 tags: [concept, frontend]
-updated: 2026-05-30
+updated: 2026-07-12
 ---
 
 # Web application
 
-Next.js App Router client at `apps/web` (dev port **4200**).
+Next.js App Router client at `apps/campus` (dev port **4200**).
+
+**Local dev RAM / OOM:** macOS `SIGKILL` on API (`:3000`) or Campus usually means memory pressure, not a code bug. Common triggers: `apps/campus/.next` bloating to multi‑GB (delete it), running all five apps (API+Campus+Platform+Hub+CMS) plus Docker Desktop (~2.5 GB VM) plus browsers/Cursor. Prefer **only API + Campus** for day‑to‑day; Postgres must stay up (`npm run docker:up` → `arvilio-postgres` on `:5432`). Campus `dev` uses `NODE_OPTIONS=--max-old-space-size=4096` (not 8192).
+
+**Auto-prune `.next`:** `scripts/clean-next-cache.cjs` — Campus `predev` deletes `apps/campus/.next` when ≥ **2 GB** (`CLEAN_NEXT_MAX_GB`). Manual: `npm run clean:next` / `clean:next:check` / `clean:next:force`.
+
+**Env:** one file at **repo root** `.env` (see `.env.example`). Campus/Platform load it via `scripts/load-root-env.mjs` from `next.config.mjs`. Do not put `.env` under `apps/*`.
+
+**CMS:** No Payload embed. Campus reads UI chrome over HTTP from `apps/cms` (`campus-content` / `campus-global` / nav / tours) via [[concepts/campus-i18n]] / [[concepts/payload-cms]]. Production `app/` + `components/` + `features/` do **not** import `mocks/` — demo seeds remain under `mocks/` for unit tests only; `useActiveUser` uses empty shells. Marketing Hub is `apps/hub`. UI locale ≠ learning language ([[entities/language]]).
 
 ## Routes
 
@@ -23,19 +31,25 @@ Next.js App Router client at `apps/web` (dev port **4200**).
 | `/students`, `/students/[studentId]` | Staff student list + profile (teacher+); route id is **backend UUID** |
 | `/admin` | User management (admin+) |
 | `/profile` | Profile & settings |
+| `/offer` | Public lesson package catalog (merchant compliance) |
+| `/legal/terms`, `/legal/payment-refund`, `/legal/contacts` | Public EN legal pages (platform templates + school seller overrides) |
+| `/privacy` | Privacy policy (public) |
+| `/payment` | Student checkout (auth); trust logos + legal footer |
 
 ## Auth & layout
 
 - `AppShell` wraps app routes with `LessonEditorHost` (`ScheduledLessonsProvider` + global create modal). Header/dashboard “Create lesson” calls `useOpenCreateLesson()` — opens the modal in place, no URL change and no redirect to `/lessons`.
 - `src/proxy.ts` owns request-time public/protected route redirects before render; `AppShell` reflects the route shell variant from proxy/auth headers. Anonymous public pages skip the `web-session` roundtrip; protected navigations call same-origin `/api/auth/web-session`.
+- Public routes (`route-policy.ts`): auth pages, `/privacy`, `/status`, `/offer`, `/legal/*`, mascot preview. Authenticated users may still open legal/offer pages (no forced redirect except login/signup).
+- **System tabs:** General, Email, Dictionary, Connections, Payments, Payouts, Domains, Branding, **Seller & legal** (merchant profile for payment compliance).
 - No root `app/loading.tsx` — a global segment loading boundary conflicted with persistent `AppShell` and client navigations (React Suspense cleanup warnings). Auth/shell selection is inlined in async root `app/layout.tsx` (reads proxy headers via `readRequestAuthState`); no extra layout `<Suspense>` wrapper.
-- **Post-login shell:** root layout uses client `AppShellGate` — after soft nav from `/login` to `/dashboard`, `AppShell` + `LessonEditorHost` mount when `useAuth().user` is set (server-only shell check is not enough for client navigations).
+- **Post-login shell:** root layout uses client `AppShellGate` — after soft nav from `/login` to `/dashboard`, `AppShell` + `LessonEditorHost` mount when `useAuth().user` is set (server-only shell check is not enough for client navigations). **ProductTour** mounts inside `AppShell` (not SSR-gated in root layout) so Header `?` Help works after soft login.
 
 ### Navigation perf (dev)
 
 1. Set `DEBUG_PROXY_TIMING=1` in `.env` and restart web dev server.
 2. Click `/dashboard` → `/students` → `/lessons` in the app shell.
-3. In the browser network tab for each RSC/document request, expect **one** response with `x-soenglish-proxy-ms` and a unique `x-soenglish-proxy-hit` (`/pathname@timestamp`). Two hits with the same pathname in one click → investigate matcher/prefetch.
+3. In the browser network tab for each RSC/document request, expect **one** response with `x-arvilio-proxy-ms` and a unique `x-arvilio-proxy-hit` (`/pathname@timestamp`). Two hits with the same pathname in one click → investigate matcher/prefetch.
 4. Open `/login` logged out: server log should show `skip-session` (no `web-session` roundtrip).
 5. Revisit `/dashboard` twice: second visit should reuse warm Zustand slices (no duplicate `scheduledLessons` GraphQL unless forced).
 - Local CLI baseline (unauthenticated redirects): `/students` first hit ~0.20s then ~0.01-0.03s; `/students/[id]` ~0.007-0.02s. Use this only as transport baseline; authenticated browser nav includes RSC + client hydration.
@@ -89,10 +103,10 @@ No mock lessons/vocab on this page.
 
 ## State (Zustand)
 
-`apps/web/src/stores/` — e.g. `dashboard-store`, `lessons-store`, `quizzes-store`, `vocabulary-store`, `students-store`, `notifications-store` (toasts), `ui-store` (theme/font size on `<html>`).
+`apps/campus/src/stores/` — e.g. `dashboard-store`, `lessons-store`, `quizzes-store`, `vocabulary-store`, `students-store`, `notifications-store` (toasts), `ui-store` (theme/font size on `<html>`).
 
-- `ui-store` persists appearance prefs in `localStorage` under `soenglish.ui`.
-- `app/layout.tsx` injects a tiny pre-hydration script in `<head>` that reads `soenglish.ui` and sets `data-theme`, `data-font-size`, and `color-scheme` on `<html>` before React mounts, which removes the dark-theme flash on refresh.
+- `ui-store` persists appearance prefs in `localStorage` under `arvilio.ui`.
+- `app/layout.tsx` injects a tiny pre-hydration script in `<head>` that reads `arvilio.ui` and sets `data-theme`, `data-font-size`, and `color-scheme` on `<html>` before React mounts, which removes the dark-theme flash on refresh.
 
 Per `packages/frontend/ARCHITECTURE.md`: prefer server data; Zustand for ephemeral UI only — partially followed.
 
@@ -139,7 +153,7 @@ Client-only grammar drill — not tied to `StudentWordCard`.
 
 - **Data:** curated list in `@pkg/types` / `irregular-verbs.ts` with `tier: 'common' | 'extended'`; `listIrregularVerbs(tier)` — extended returns full catalog (~131), common returns everyday subset (~63).
 - **UI:** reference table (V1 / V2 / V3), tier `SegmentedControl`, search filter, sticky **Play** CTA.
-- **Game:** Three Forms Drill — MCQ for past simple or past participle; setup chooses form focus (mixed / V2 / V3) and count (10 / 20 / all for common, 10 / 20 / 30 for extended). Question builder: `apps/web/src/lib/irregular-verbs-drill.ts`. Results are practice-only (not saved to vocabulary queue).
+- **Game:** Three Forms Drill — MCQ for past simple or past participle; setup chooses form focus (mixed / V2 / V3) and count (10 / 20 / all for common, 10 / 20 / 30 for extended). Question builder: `apps/campus/src/lib/irregular-verbs-drill.ts`. Results are practice-only (not saved to vocabulary queue).
 - **Practice time:** page-level `usePracticeSessionTracker` (`kind: games`) while drill flow is active (`setup` | `quiz` | `result`); persists to `PracticeSession` and refreshes **Practice this week → Time practicing** (min 30s, same as other practice modes).
 - **Practice hub:** dedicated **Irregular verbs** card (Grammar); **Games** tile remains coming soon.
 - **Practice hub card stats:** live counts via `usePracticePendingCounts` — student incomplete **assigned** quizzes (not staff-owned quiz list), vocab `new`/`mistakes_work`, speaking assignments with `status: pending`; zero shows **All caught up** (staff Speaking card: **Topics**).
@@ -156,21 +170,22 @@ Profile **Account** tab — **Session** row: **Log out** calls `POST /api/auth/l
 ## Role gating
 
 - Sidebar hides `/students`, `/admin`, `/system` (super-admin only)
-- Pages use `canView` / `canSchedule` from `mocks/roles.ts` (re-exported `lib/roles.ts`)
+- Pages use `canView` / `canSchedule` from `lib/roles.ts` (`lib/auth/role-matrix.ts`)
 
 ## Students list → profile (API-backed)
 
 - **List:** `students-store` → GraphQL `students` → `StudentSummaryCard` links to `/students/{id}` with backend **UUID** (`row.id`).
-- **Detail:** `apps/web/src/app/students/[studentId]/page.tsx` resolves the student via `lib/student-profile.ts` (`resolveStudentProfile`) from the same store — **not** `getProfileByUserId` mock lookup.
+- **Detail:** `apps/campus/src/app/students/[studentId]/page.tsx` resolves the student via `lib/student-profile.ts` (`resolveStudentProfile`) from the same store — **not** `getProfileByUserId` mock lookup.
 - **Perf on details mount:** `useStudentLiveStats` avoids forced refetch when warm cache exists (`fetchScheduledLessons(false)` / `fetchCards(studentId, false)`); duplicate lessons fetch was removed from page-level `useEffect`.
 - **Code-splitting:** student tabs are loaded via `next/dynamic` in `page.tsx`; route fallback in `app/students/[studentId]/loading.tsx` (hero + tab bar only).
 - **Tab switch UX:** student profile sets `keepMountedTabs={false}`; heavy tabs lazy-load on first visit (`visitedTabs`) via `createLazyPanel` (`lib/client/lazy-panel.ts`) — `import()` + `useEffect`, not `next/dynamic` / `React.lazy`, so leaving the student page does not trip Suspense cleanup on navigations like `/practice`. Loading UI: `TabPanelLoading`. `/profile` keeps `keepMountedTabs` default `true` (sync panels).
 - **Prefetch:** `StudentSummaryCard` explicitly sets `prefetch` on details links.
-- Legacy numeric mock URLs (`/students/3`) still work if that id exists in mock seed.
+- Legacy numeric mock URLs (`/students/3`) no longer resolve without API row — `resolveStudentProfile` is API-only.
 - **System → platform integrations** (super-admin): `PlatformSettings.integrationConfig` + encrypted `integrationSecrets` (`PLATFORM_SECRETS_ENCRYPTION_KEY`). Tabs: **Word dictionary** (translation source: DeepL / Google Cloud / Microsoft / Reverso / MyMemory / LibreTranslate / GTX; paid providers need API keys; **setup guides** with official links per provider), **Email**, **Connections**. Translation base URLs in `.env` (`DEEPL_API_URL`, `GOOGLE_TRANSLATE_API_URL`, `AZURE_TRANSLATOR_URL`, `TRANSLATION_API_URL`, `REVERSO_API_URL`, optional `LIBRETRANSLATE_URL`); keys via env or System UI.
 - **Practice tab** (replaces separate Vocabulary + Quiz top-level tabs): `StudentPracticeTab` with `SegmentedControl` sub-sections (Vocabulary, Quiz); local state only (no URL/query sync). Child panels use `embedded` to omit duplicate `SurfaceCard` chrome. Sub-sections lazy-mount via `visitedSections` + `hidden` panels. Badges: mistakes-work vocab count, incomplete assigned quizzes when data is loaded.
 - **Vocabulary / Quiz on student detail** pass `resolved.backendId` (UUID) into embedded `StudentVocabularyTab` / `StudentQuizTab` (GraphQL `studentVocabulary`, student quiz store).
-- Profile form save still mutates mock user row when present; **native language** is a field in `StudentProfileTab` (`tabCard` grid), saved with **Save student data** via `updateStudentLanguages`.
+- Profile form save persists via GraphQL only (no `mockUsers` mutation). **Native language** is a field in `StudentProfileTab` (`tabCard` grid), saved with **Save student data** via `updateStudentLanguages`.
+- **Calendar:** `getInitialLessons()` returns `[]`; lessons hydrate from `lessons-store` / GraphQL. Student colors from API `displayColor` via `partyNumericId` (no `getProfileByUserId` fallback).
 - **Profile → Statistics:** `useStatisticsDashboard` + GraphQL `statisticsDashboard` — students get full learner dashboard; teachers/admins/super-admins get staff layout (lesson KPIs, roster table, school metrics). See [[concepts/statistics-dashboard]].
 - **Student detail → Statistics:** same hook with `studentId`; staff access rules match `achievementStats`. Hero chat → `/chat?peer={studentUserId}`; vocabulary add on student tab. See [[concepts/statistics-dashboard]].
 - **Student hero stats:** Words / Lessons / Streak come from live `achievementStats`; chat icon sits inline next to the name (`ProfileViewShell` `heroActions`), not absolutely over the avatar.

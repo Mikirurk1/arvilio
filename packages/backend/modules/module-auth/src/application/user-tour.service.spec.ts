@@ -40,4 +40,14 @@ describe('UserTourService', () => {
     expect(prisma.user.update).not.toHaveBeenCalled();
     expect(dto.completedAt).toBe(at.toISOString());
   });
+
+  it('clears tourCompletedAt on reset', async () => {
+    prisma.user.update.mockResolvedValue({});
+    const dto = await service.reset('u1');
+    expect(prisma.user.update).toHaveBeenCalledWith({
+      where: { id: 'u1' },
+      data: { tourCompletedAt: null },
+    });
+    expect(dto).toEqual({ completed: false, completedAt: null });
+  });
 });

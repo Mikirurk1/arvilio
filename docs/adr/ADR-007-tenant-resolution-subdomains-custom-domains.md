@@ -2,7 +2,7 @@
 
 - **Status:** proposed
 - **Date:** 2026-06-16
-- **Authors:** SoEnglish engineering
+- **Authors:** Arvilio engineering
 - **Supersedes:** —
 - **Superseded-by:** —
 - **Amends:** —
@@ -10,11 +10,11 @@
 
 ## Context
 
-Each school needs its own web address: a platform subdomain (`slug.soenglish.app`) by default, and optionally a custom domain (`learn.school.com`) it owns. The app currently has **no Next.js `middleware.ts`** and no host-based tenant resolution. Custom domains require automatic TLS certificate issuance, which should not live in application code.
+Each school needs its own web address: a platform subdomain (`slug.arvilio.app`) by default, and optionally a custom domain (`learn.school.com`) it owns. The app currently has **no Next.js `middleware.ts`** and no host-based tenant resolution. Custom domains require automatic TLS certificate issuance, which should not live in application code.
 
 ## Decision
 
-1. **Subdomains:** `*.soenglish.app`. A new `SchoolDomain { schoolId, hostname, kind (SUBDOMAIN|CUSTOM), verified, verifyToken, isPrimary }` model maps hostnames to schools. The bare apex (`soenglish.app`) serves the platform marketing/landing surface.
+1. **Subdomains:** `*.arvilio.app`. A new `SchoolDomain { schoolId, hostname, kind (SUBDOMAIN|CUSTOM), verified, verifyToken, isPrimary }` model maps hostnames to schools. The bare apex (`arvilio.app`) serves the platform marketing/landing surface.
 
 2. **Custom domains:** verified by DNS challenge — the school adds a CNAME (to the platform target) plus a TXT record matching `verifyToken`; a "verify" action flips `verified=true`. Unverified domains do not resolve to tenant content.
 
@@ -40,7 +40,7 @@ Each school needs its own web address: a platform subdomain (`slug.soenglish.app
 ## Compliance
 
 ```bash
-test -f apps/web/src/middleware.ts || test -f apps/web/middleware.ts
+test -f apps/campus/src/middleware.ts || test -f apps/campus/middleware.ts
 # Authorization must not derive schoolId solely from request headers
 grep -rn "x-school-id" packages/backend --include="*.ts"
 ```

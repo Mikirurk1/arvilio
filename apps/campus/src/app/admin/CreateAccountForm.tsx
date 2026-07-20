@@ -3,7 +3,8 @@
 import { type FormEvent } from 'react';
 import { UserPlus } from 'lucide-react';
 import { Button, Field } from '../../components/ui';
-import { formatTimeZoneOptionLabel } from '../../mocks';
+import { useCampusT } from '../../lib/cms';
+import { formatTimeZoneOptionLabel } from '@pkg/types';
 import { PROFICIENCY_LEVEL, TIME_ZONE } from '@pkg/types';
 import type { AdminUserSummaryDto } from '@pkg/types';
 import styles from './page.module.scss';
@@ -11,17 +12,17 @@ import styles from './page.module.scss';
 type CreatableRole = 'student' | 'teacher' | 'admin';
 
 const ROLE_LABEL: Record<string, string> = {
-  student: 'Student',
-  teacher: 'Teacher',
-  admin: 'Admin',
-  super_admin: 'Super admin',
+  student: 'admin.role.student',
+  teacher: 'admin.role.teacher',
+  admin: 'admin.role.admin',
+  super_admin: 'admin.role.superAdmin',
 };
 
 const STATUS_LABEL: Record<string, string> = {
-  active: 'Active',
-  paused: 'Paused',
-  leaved: 'Left',
-  blocked: 'Blocked',
+  active: 'admin.status.active',
+  paused: 'admin.status.paused',
+  leaved: 'admin.status.leaved',
+  blocked: 'admin.status.blocked',
 };
 
 const ACCOUNT_STATUSES = ['active', 'paused', 'leaved', 'blocked'] as const;
@@ -56,24 +57,29 @@ export function CreateAccountForm({
   form, setForm, formError, formSuccess, mutating,
   languages, allowedCreatableRoles, assignableTeachers, onSubmit,
 }: Props) {
+  const t = useCampusT();
   return (
-    <section className={styles.createCard} aria-label="Create account">
+    <section
+      className={styles.createCard}
+      aria-label={t('admin.create.aria')}
+      data-tour-anchor="admin-create-form"
+    >
       <header className={styles.cardHeader}>
         <UserPlus size={16} />
         <div>
-          <div className={styles.cardTitle}>Create account</div>
+          <div className={styles.cardTitle}>{t('admin.create.title')}</div>
           <div className={styles.cardSub}>
-            Only email is required. Role defaults to Student. Password is generated and sent by email.
+            {t('admin.create.subtitle')}
           </div>
         </div>
       </header>
       <form onSubmit={onSubmit} noValidate>
         <fieldset className={styles.formSection}>
-          <legend className={styles.sectionTitle}>Account basics</legend>
+          <legend className={styles.sectionTitle}>{t('admin.create.basics')}</legend>
           <div className={styles.formGrid}>
             <div className={styles.fieldGroup}>
               <label className={styles.label} htmlFor="admin-create-email">
-                Email *
+                {t('admin.field.email')}
               </label>
               <Field
                 id="admin-create-email"
@@ -86,7 +92,7 @@ export function CreateAccountForm({
             </div>
             <div className={styles.fieldGroup}>
               <label className={styles.label} htmlFor="admin-create-role">
-                Role
+                {t('admin.field.role')}
               </label>
               <Field as="select"
                 id="admin-create-role"
@@ -96,14 +102,14 @@ export function CreateAccountForm({
               >
                 {allowedCreatableRoles.map((role) => (
                   <option key={role} value={role}>
-                    {ROLE_LABEL[role]}
+                    {t(ROLE_LABEL[role])}
                   </option>
                 ))}
               </Field>
             </div>
             <div className={styles.fieldGroup}>
               <label className={styles.label} htmlFor="admin-create-status">
-                Account status
+                {t('admin.field.status')}
               </label>
               <Field as="select"
                 id="admin-create-status"
@@ -118,20 +124,20 @@ export function CreateAccountForm({
               >
                 {ACCOUNT_STATUSES.map((status) => (
                   <option key={status} value={status}>
-                    {STATUS_LABEL[status]}
+                    {t(STATUS_LABEL[status])}
                   </option>
                 ))}
               </Field>
             </div>
             <div className={styles.fieldGroup}>
               <label className={styles.label} htmlFor="admin-create-name">
-                Full name
+                {t('admin.field.fullName')}
               </label>
               <Field
                 id="admin-create-name"
                 className={styles.input}
                 autoComplete="name"
-                placeholder="Optional — defaults from email"
+                placeholder={t('admin.field.fullNamePlaceholder')}
                 value={form.displayName}
                 onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))}
               />
@@ -139,7 +145,7 @@ export function CreateAccountForm({
             {form.role === 'student' ? (
               <div className={styles.fieldGroup}>
                 <label className={styles.label} htmlFor="admin-create-teacher">
-                  Assigned teacher
+                  {t('admin.field.assignedTeacher')}
                 </label>
                 <Field as="select"
                   id="admin-create-teacher"
@@ -150,7 +156,7 @@ export function CreateAccountForm({
                   <option value="">—</option>
                   {assignableTeachers.map((teacher) => (
                     <option key={teacher.id} value={teacher.id}>
-                      {teacher.displayName} ({ROLE_LABEL[teacher.role] ?? teacher.role})
+                      {teacher.displayName} ({t(ROLE_LABEL[teacher.role] ?? 'admin.role.teacher')})
                     </option>
                   ))}
                 </Field>
@@ -159,11 +165,11 @@ export function CreateAccountForm({
           </div>
         </fieldset>
         <fieldset className={styles.formSection}>
-          <legend className={styles.sectionTitle}>Profile details</legend>
+          <legend className={styles.sectionTitle}>{t('admin.create.details')}</legend>
           <div className={styles.formGrid}>
             <div className={styles.fieldGroup}>
               <label className={styles.label} htmlFor="admin-create-phone">
-                Phone
+                {t('admin.field.phone')}
               </label>
               <Field
                 id="admin-create-phone"
@@ -177,7 +183,7 @@ export function CreateAccountForm({
             </div>
             <div className={styles.fieldGroup}>
               <label className={styles.label} htmlFor="admin-create-telegram">
-                Telegram
+                {t('admin.field.telegram')}
               </label>
               <Field
                 id="admin-create-telegram"
@@ -190,7 +196,7 @@ export function CreateAccountForm({
             </div>
             <div className={styles.fieldGroup}>
               <label className={styles.label} htmlFor="admin-create-native-language">
-                Native language
+                {t('admin.field.nativeLanguage')}
               </label>
               <Field as="select"
                 id="admin-create-native-language"
@@ -208,7 +214,7 @@ export function CreateAccountForm({
             </div>
             <div className={styles.fieldGroup}>
               <label className={styles.label} htmlFor="admin-create-timezone">
-                Timezone
+                {t('admin.field.timezone')}
               </label>
               <Field as="select"
                 id="admin-create-timezone"
@@ -225,7 +231,7 @@ export function CreateAccountForm({
             </div>
             <div className={styles.fieldGroup}>
               <label className={styles.label} htmlFor="admin-create-level">
-                English level
+                {t('admin.field.englishLevel')}
               </label>
               <Field as="select"
                 id="admin-create-level"
@@ -250,7 +256,7 @@ export function CreateAccountForm({
         </fieldset>
         <div className={`${styles.fieldGroup} ${styles.fieldFull}`}>
           <label className={styles.label} htmlFor="admin-create-bio">
-            Bio
+            {t('admin.field.bio')}
           </label>
           <Field
             id="admin-create-bio"
@@ -262,8 +268,8 @@ export function CreateAccountForm({
           />
         </div>
         <div className={styles.formFooter}>
-          <Button type="submit" className={styles.submitBtn} loading={mutating} loadingLabel="Creating…">
-            Create account
+          <Button type="submit" className={styles.submitBtn} loading={mutating} loadingLabel={t('admin.create.submitting')}>
+            {t('admin.create.submit')}
           </Button>
           {formError ? <span className={styles.error}>{formError}</span> : null}
           {formSuccess ? <span className={styles.success}>{formSuccess}</span> : null}

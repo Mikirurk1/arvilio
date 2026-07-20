@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { BookOpen, Check, CircleX, ThumbsUp, Trophy } from 'lucide-react';
 import { Button } from '../../components/ui';
 import { QuizResultStats } from '../../app/quiz/sections';
+import { useCampusT } from '../../lib/cms';
 import { WordDetailsModal } from '../vocabulary/WordDetailsModal';
 import type { QuizPlayResult } from './quiz-play-types';
 import styles from './QuizResultScreen.module.scss';
@@ -15,9 +16,18 @@ type Props = {
 };
 
 export function QuizResultScreen({ result, onClose, onRetry }: Props) {
+  const t = useCampusT();
   const [detailsWordId, setDetailsWordId] = useState<string | null>(null);
   const pct = result.score;
   const mistakes = result.review.filter((item) => !item.isCorrect);
+
+  const title = result.practiceMode
+    ? t('quiz.result.practiceComplete')
+    : pct >= 80
+      ? t('quiz.result.excellent')
+      : pct >= 60
+        ? t('quiz.result.good')
+        : t('quiz.result.keep');
 
   return (
     <>
@@ -26,24 +36,18 @@ export function QuizResultScreen({ result, onClose, onRetry }: Props) {
           <div className={styles.resultEmoji}>
             {pct >= 80 ? <Trophy size={28} /> : pct >= 60 ? <ThumbsUp size={28} /> : <BookOpen size={28} />}
           </div>
-          <h2 className={styles.resultTitle}>
-            {result.practiceMode
-              ? 'Practice complete'
-              : pct >= 80
-                ? 'Excellent work!'
-                : pct >= 60
-                  ? 'Good job!'
-                  : 'Keep practicing!'}
-          </h2>
+          <h2 className={styles.resultTitle}>{title}</h2>
           <div className={styles.resultScore}>
             {result.correctCount} / {result.totalCount}
           </div>
-          <div className={styles.resultPct}>{pct}% correct</div>
+          <div className={styles.resultPct}>{t('quiz.result.pctCorrect', { pct })}</div>
           {result.practiceMode ? (
-            <p className={styles.resultHint}>Practice runs are not saved for the student.</p>
+            <p className={styles.resultHint}>{t('quiz.result.practiceHint')}</p>
           ) : mistakes.length > 0 ? (
             <p className={styles.resultHint}>
-              {mistakes.length} mistake{mistakes.length === 1 ? '' : 's'} added to your vocabulary review queue.
+              {mistakes.length === 1
+                ? t('quiz.result.mistakeHintOne', { count: mistakes.length })
+                : t('quiz.result.mistakesHint', { count: mistakes.length })}
             </p>
           ) : null}
 
@@ -51,7 +55,7 @@ export function QuizResultScreen({ result, onClose, onRetry }: Props) {
 
           {mistakes.length > 0 ? (
             <div className={styles.mistakesSection}>
-              <h3 className={styles.mistakesTitle}>Review mistakes</h3>
+              <h3 className={styles.mistakesTitle}>{t('quiz.result.reviewMistakes')}</h3>
               <ul className={styles.mistakesList}>
                 {mistakes.map((item) => (
                   <li key={item.questionId} className={styles.mistakeRow}>
@@ -63,10 +67,10 @@ export function QuizResultScreen({ result, onClose, onRetry }: Props) {
                         {item.prompt.length > 100 ? `${item.prompt.slice(0, 100)}…` : item.prompt}
                       </p>
                       <p className={styles.mistakeAnswer}>
-                        Your answer: <strong>{item.userAnswer || '—'}</strong>
+                        {t('quiz.result.yourAnswer', { answer: item.userAnswer || '—' })}
                       </p>
                       <p className={styles.mistakeAnswer}>
-                        Correct: <strong>{item.correctAnswer}</strong>
+                        {t('quiz.result.correctAnswer', { answer: item.correctAnswer })}
                       </p>
                       {item.wordId ? (
                         <Button
@@ -75,7 +79,7 @@ export function QuizResultScreen({ result, onClose, onRetry }: Props) {
                           className={styles.wordLinkBtn}
                           onClick={() => setDetailsWordId(item.wordId!)}
                         >
-                          Open word
+                          {t('quiz.result.openWord')}
                         </Button>
                       ) : null}
                     </div>
@@ -86,18 +90,18 @@ export function QuizResultScreen({ result, onClose, onRetry }: Props) {
           ) : (
             <div className={styles.allCorrect}>
               <Check size={16} aria-hidden />
-              All answers correct — great recall!
+              {t('quiz.result.allCorrect')}
             </div>
           )}
 
           <div className={styles.resultActions}>
             {onRetry ? (
               <Button type="button" className={styles.retryBtn} onClick={onRetry}>
-                Try again
+                {t('quiz.result.retry')}
               </Button>
             ) : null}
             <Button type="button" variant="primary" onClick={onClose}>
-              Back to quizzes
+              {t('quiz.result.close')}
             </Button>
           </div>
         </div>

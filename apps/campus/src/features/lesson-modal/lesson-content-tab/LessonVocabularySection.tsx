@@ -2,6 +2,7 @@
 
 import { Info } from 'lucide-react';
 import { Badge, Button } from '../../../components/ui';
+import { useCampusT } from '../../../lib/cms';
 import { vocabularyStatusLabel, type VocabularyWordStatusName, type WordCardDto } from '@pkg/types';
 import { LessonVocabularyAddPanel } from '../../vocabulary/LessonVocabularyAddPanel';
 import { WordCardAudioButton } from '../../vocabulary/WordCardAudioButton';
@@ -40,12 +41,13 @@ export function LessonVocabularySection({
   studentBackendId, lessonBackendId, nativeLanguageId, englishLanguageId,
   detailsWordId, setDetailsWordId,
 }: Props) {
+  const t = useCampusT();
   if (!canViewLessonVocabulary) return null;
 
   return (
     <>
       <div className={`${styles.fieldGroup} ${styles.fieldGroupFull} ${styles.modalSectionCard} ${styles.lessonVocabCard}`}>
-        <label className={styles.fieldLabel}>Lesson vocabulary</label>
+        <label className={styles.fieldLabel}>{t('lessonModal.vocab.title')}</label>
         {linkedWords.length > 0 ? (
           <div className={styles.lessonVocabWordGrid}>
             <div className={`${vocabStyles.wordGrid} ${styles.lessonVocabWordGridList}`}>
@@ -63,7 +65,7 @@ export function LessonVocabularySection({
                         </div>
                       </div>
                       <div className={vocabStyles.wcTopActions}>
-                        <Button type="button" variant="ghost" className={vocabStyles.wcDetailsBtn} onClick={() => setDetailsWordId(w.id)} aria-label="All information" title="All information">
+                        <Button type="button" variant="ghost" className={vocabStyles.wcDetailsBtn} onClick={() => setDetailsWordId(w.id)} aria-label={t('lessonModal.vocab.allInfo')} title={t('lessonModal.vocab.allInfo')}>
                           <Info size={16} aria-hidden />
                         </Button>
                         <Badge className={`${vocabStyles.wcStatus} ${vocabStyles[tone]}`} variant={tone}>
@@ -76,7 +78,7 @@ export function LessonVocabularySection({
                     <div className={vocabStyles.wcDef}>{pickWordDefinition(w.definitions, nativeLanguageId, englishLanguageId, w.definition)}</div>
                     {w.example ? <div className={vocabStyles.wcExample}>&quot;{w.example}&quot;</div> : null}
                     {canEditHomework ? (
-                      <Button type="button" className={styles.lessonVocabAddBtn} onClick={() => onChange({ ...form, linkedWordIds: form.linkedWordIds.filter((id) => id !== w.id) })}>Remove</Button>
+                      <Button type="button" className={styles.lessonVocabAddBtn} onClick={() => onChange({ ...form, linkedWordIds: form.linkedWordIds.filter((id) => id !== w.id) })}>{t('lessonModal.vocab.remove')}</Button>
                     ) : null}
                   </div>
                 );

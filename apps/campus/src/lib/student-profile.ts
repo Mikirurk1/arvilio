@@ -1,13 +1,10 @@
 import type { AuthUserDto, StudentLessonFormat, StudentSummaryBackendDto } from '@pkg/types';
 import {
-  getProfileByUserId,
   USER_ACCOUNT_STATUS,
   USER_ROLE,
-  type MockStudent,
-  type ProficiencyLevelId,
-  type UserAccountStatusId,
-  type UserRole,
-} from '../mocks';
+} from '@pkg/types';
+import type { ProficiencyLevelId, UserAccountStatusId } from '@pkg/types';
+import type { MockStudent, UserRole } from './user-models';
 
 const PROFICIENCY_TO_ID: Record<string, ProficiencyLevelId> = {
   A1: 1,
@@ -79,19 +76,6 @@ export function resolveStudentProfile(
       avatarUrl: fromApi.avatarUrl,
       teacherBackendId: fromApi.teacherId,
     };
-  }
-
-  const numeric = Number(routeId);
-  if (Number.isFinite(numeric)) {
-    const mock = getProfileByUserId(numeric);
-    if (mock) {
-      return {
-        profile: mock,
-        backendId: routeId,
-        avatarUrl: null,
-        teacherBackendId: null,
-      };
-    }
   }
 
   return undefined;

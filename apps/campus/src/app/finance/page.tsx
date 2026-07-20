@@ -38,6 +38,7 @@ import { useOptionalAuth } from '../../lib/auth-context';
 import { canRoleAccessPathname } from '../../lib/auth/route-policy';
 import { useActiveRoleKey } from '../../lib/active-user';
 import { staffCompensationModeLabel } from '../../lib/staff-payout-ui';
+import { useCampusT } from '../../lib/cms';
 import { useFinanceStore } from '../../stores/finance-store';
 import styles from './page.module.scss';
 
@@ -49,7 +50,14 @@ const tooltipStyle = {
   backgroundColor: 'var(--card)',
 };
 
+const ROLE_LABEL: Record<string, string> = {
+  teacher: 'staff.role.teacher',
+  admin: 'staff.role.admin',
+  super_admin: 'staff.role.superAdmin',
+};
+
 export default function FinancePage() {
+  const t = useCampusT();
   const auth = useOptionalAuth();
   const roleKey = useActiveRoleKey();
   const currentUserId = auth?.user?.id;
@@ -116,7 +124,7 @@ export default function FinancePage() {
     if (!selectedStaff) return;
     const amountMinor = majorInputToMinorPositive(amountMajor);
     if (amountMinor <= 0) {
-      setFormError('Enter a positive payout amount.');
+      setFormError(t('finance.error.positiveAmount'));
       return;
     }
     setRecording(true);
@@ -138,7 +146,7 @@ export default function FinancePage() {
       await load();
       setPayoutHistoryRefreshToken((value) => value + 1);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'Failed to record payout');
+      setFormError(error instanceof Error ? error.message : t('finance.error.recordFailed'));
     } finally {
       setRecording(false);
     }
@@ -148,8 +156,8 @@ export default function FinancePage() {
     <div className={`${styles.page} container container--page`}>
       <PageHeader
         className={styles.header}
-        title="Staff finance"
-        subtitle="Track accrued pay, record manual payouts, and monitor outstanding balances for teachers and admins."
+        title={t('finance.title')}
+        subtitle={t('finance.subtitle')}
       />
 
       <div className={styles.rangeRow}>
@@ -162,7 +170,7 @@ export default function FinancePage() {
           customDateMax={customDateMax}
           onCustomDateFromChange={handleCustomDateFromChange}
           onCustomDateToChange={handleCustomDateToChange}
-          ariaLabel="Finance period"
+          ariaLabel={t('finance.periodAria')}
         />
         <Button
           type="button"
@@ -171,40 +179,40 @@ export default function FinancePage() {
           disabled={overviewSlice.status === 'loading'}
         >
           <RefreshCw size={14} aria-hidden />
-          Refresh
+          {t('finance.refresh')}
         </Button>
       </div>
 
       {overviewSlice.status === 'error' ? (
         <EmptyStateCard
-          title="Could not load finance data"
-          description={overviewSlice.error ?? 'Unknown error'}
+          title={t('finance.loadError')}
+          description={overviewSlice.error ?? t('finance.unknownError')}
         />
       ) : null}
 
       {overview ? (
         <>
-          <div className={styles.kpiGrid}>
+          <div className={styles.kpiGrid} data-tour-anchor="finance-overview">
             <StatTile
-              label="Accrued"
+              label={t('finance.kpi.accrued')}
               value={formatMoneyMinor(overview.totalAccruedMinor, overview.currency)}
               subtext={overview.rangeLabel}
             />
             <StatTile
-              label="Paid"
+              label={t('finance.kpi.paid')}
               value={formatMoneyMinor(overview.totalPaidMinor, overview.currency)}
-              subtext="Recorded payouts in period"
+              subtext={t('finance.kpi.paidSubtext')}
             />
             <StatTile
-              label="Outstanding"
+              label={t('finance.kpi.outstanding')}
               value={formatMoneyMinor(overview.totalOutstandingMinor, overview.currency)}
-              subtext="Accrued minus paid (net)"
+              subtext={t('finance.kpi.outstandingSubtext')}
             />
           </div>
 
           <div className={styles.chartGrid}>
             <TabPanelCard>
-              <SectionHeader title="Accrued vs paid trend" />
+              <SectionHeader title={t('finance.chart.trendTitle')} />
               <div className={styles.chartBox}>
                 {trendData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
@@ -214,18 +222,18 @@ export default function FinancePage() {
                       <YAxis tick={AXIS_TICK} tickLine={false} axisLine={false} width={40} />
                       <ChartTooltip contentStyle={tooltipStyle} />
                       <Legend />
-                      <Line type="monotone" dataKey="accrued" stroke="var(--blue)" strokeWidth={2} name="Accrued" />
-                      <Line type="monotone" dataKey="paid" stroke="var(--green)" strokeWidth={2} name="Paid" />
+                      <Line type="monotone" dataKey="accrued" stroke="var(--blue)" strokeWidth={2} name={t('finance.chart.accrued')} />
+                      <Line type="monotone" dataKey="paid" stroke="var(--green)" strokeWidth={2} name={t('finance.chart.paid')} />
                     </LineChart>
                   </ResponsiveContainer>
                 ) : (
-                  <p className={styles.hint}>No trend data for this period.</p>
+                  <p className={styles.hint}>{t('finance.chart.noTrend')}</p>
                 )}
               </div>
             </TabPanelCard>
 
             <TabPanelCard>
-              <SectionHeader title="Staff breakdown (accrued)" />
+              <SectionHeader title={t('finance.chart.breakdownTitle')} />
               <div className={styles.chartBox}>
                 {staffRows.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
@@ -240,32 +248,34 @@ export default function FinancePage() {
                       <XAxis dataKey="name" tick={AXIS_TICK} tickLine={false} axisLine={false} />
                       <YAxis tick={AXIS_TICK} tickLine={false} axisLine={false} width={40} />
                       <ChartTooltip contentStyle={tooltipStyle} />
-                      <Bar dataKey="accrued" fill="var(--purple)" radius={[6, 6, 0, 0]} name="Accrued" />
+                      <Bar dataKey="accrued" fill="var(--purple)" radius={[6, 6, 0, 0]} name={t('finance.chart.accrued')} />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <p className={styles.hint}>No staff rows.</p>
+                  <p className={styles.hint}>{t('finance.chart.noStaff')}</p>
                 )}
               </div>
             </TabPanelCard>
           </div>
 
           <TabPanelCard>
-            <SectionHeader title="Staff balances" />
+            <div data-tour-anchor="finance-payout-defaults">
+              <SectionHeader title={t('finance.table.title')} />
+            </div>
             <div className={staffPayoutStyles.staffTableWrap}>
               <table className={staffPayoutStyles.staffTable}>
                 <thead>
                   <tr>
-                    <th scope="col">Name</th>
-                    <th scope="col">Role</th>
-                    <th scope="col">Mode</th>
-                    <th scope="col">Lessons</th>
-                    <th scope="col">Accrued</th>
-                    <th scope="col">Paid</th>
-                    <th scope="col">Outstanding</th>
-                    <th scope="col">Next pay</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Action</th>
+                    <th scope="col">{t('finance.table.name')}</th>
+                    <th scope="col">{t('finance.table.role')}</th>
+                    <th scope="col">{t('finance.table.mode')}</th>
+                    <th scope="col">{t('finance.table.lessons')}</th>
+                    <th scope="col">{t('finance.table.accrued')}</th>
+                    <th scope="col">{t('finance.table.paid')}</th>
+                    <th scope="col">{t('finance.table.outstanding')}</th>
+                    <th scope="col">{t('finance.table.nextPay')}</th>
+                    <th scope="col">{t('finance.table.status')}</th>
+                    <th scope="col">{t('finance.table.action')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -279,8 +289,8 @@ export default function FinancePage() {
                           {row.displayName}
                         </Link>
                       </td>
-                      <td>{row.role}</td>
-                      <td>{staffCompensationModeLabel(row.mode)}</td>
+                      <td>{t(ROLE_LABEL[row.role] ?? 'staff.role.teacher')}</td>
+                      <td>{staffCompensationModeLabel(row.mode, t)}</td>
                       <td>{row.completedLessons}</td>
                       <td>{formatMoneyMinor(row.accruedMinor, row.currency)}</td>
                       <td>{formatMoneyMinor(row.paidMinor, row.currency)}</td>
@@ -293,12 +303,13 @@ export default function FinancePage() {
                         <Button
                           type="button"
                           variant="ghost"
+                          data-tour-anchor="finance-record-payout"
                           onClick={() => {
                             setSelectedStaff(row);
                             setFormError(null);
                           }}
                         >
-                          Record payout
+                          {t('finance.table.recordPayout')}
                         </Button>
                       </td>
                     </tr>
@@ -348,7 +359,7 @@ export default function FinancePage() {
           />
         </>
       ) : overviewSlice.status === 'loading' ? (
-        <p className={styles.hint}>Loading finance overview…</p>
+        <p className={styles.hint}>{t('finance.loading')}</p>
       ) : null}
     </div>
   );

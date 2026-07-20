@@ -1,11 +1,11 @@
 ---
 tags: [concept, materials, lessons, frontend]
-updated: 2026-05-30
+updated: 2026-07-13
 ---
 
 # Materials library
 
-School-scoped content library for reusable teaching resources. Inspired by Edvibe-style materials (see [[concepts/redesign-plan]]); production UX in `apps/web/src/app/materials/`.
+School-scoped content library for reusable teaching resources. Inspired by Edvibe-style materials (see [[concepts/redesign-plan]]); production UX in `apps/campus/src/app/materials/`.
 
 ## Access
 
@@ -14,7 +14,7 @@ School-scoped content library for reusable teaching resources. Inspired by Edvib
 | Teacher, Admin, Super admin | Yes (CRUD) | Yes | Yes |
 | Student | No | No | Yes (via lesson materials) |
 
-Route policy: `apps/web/src/lib/auth/route-policy.ts` — `/materials` staff-only; `/materials/view` all authenticated school roles.
+Route policy: `apps/campus/src/lib/auth/route-policy.ts` — `/materials` staff-only; `/materials/view` all authenticated school roles.
 
 ## Data model
 
@@ -30,9 +30,10 @@ See [[entities/library-material]] and [[entities/lesson-material]].
 
 ## Web
 
-- Page: `apps/web/src/app/materials/page.tsx`
-- Feature: `apps/web/src/features/materials/`
-- Store: `apps/web/src/stores/materials-store.ts`
+- Page: `apps/campus/src/app/materials/page.tsx`
+- **i18n:** `/materials` list UI uses `useCampusT()` with keys under `materials.*` in `packages/shared/types/src/lib/campus-ui-catalog.ts` (title, stats, search, view mode, empty/loading/error, recovery banner, delete confirm). `MaterialCard` uses `materials.kind.*`, `materials.card.*`. Create/edit modal chrome and main field labels use `materials.form.*` (overview, details, assets section headers).
+- Feature: `apps/campus/src/features/materials/`
+- Store: `apps/campus/src/stores/materials-store.ts`
 - Lesson attach: `LibraryMaterialPicker` in `LessonContentTab`; linked items render in `LessonLibraryMaterialPanel` (cover, kind badge, asset chips). **Students** see only student-facing assets (`student_book`, `workbook`, `audio`, etc.) — **`teacher_book` is staff-only**. Staff see a separate **Teacher only** group. **Audio & video** are **opt-in per lesson**: `LessonMaterial.sharedLibraryAssetIds` + `libraryMediaSelectionApplied` (new attaches default to selection mode with none checked; legacy rows with `libraryMediaSelectionApplied=false` still share all optional media). Staff toggle checkboxes in the lesson materials panel. Library attach maps kind → lesson material kind (`book`, `board`, `presentation`, …). Manual material type row: Text, Photo, Book, Board, File, Presentation (no Test).
 - Create/edit modal: `MaterialFormModal` — file assets use `Field as="file-button"` (same pattern as homework/student response in `LessonContentTab`); chips + remove match lesson modal styles. Rendered via `BodyPortal` (`--z-modal`) so overlay stacks above header. Tags use shared `TagInput` (`components/ui/TagInput.tsx`): chip list + Enter/comma to add, suggestions from tags already used in the loaded library list (`tag-list.ts` helpers). **Level** is a select from `@pkg/types` `PROFICIENCY_LEVEL` (A1–C2), stored as code string; helpers in `lib/proficiency-level.ts`. File upload **`accept`** and validation follow asset **Role** via `material-asset-file-policy.ts`. **Audio / Video / Slides** allow **multiple files** per asset row (each file → one backend asset). **Link** is **URL-only** (no file delivery). **Cover image** — optional `coverAttachmentId` on `LibraryMaterial` (upload image in form). **Book PDF previews** — for `student_book`, `teacher_book`, `workbook` assets, server renders first PDF page via Ghostscript into `LibraryFileAttachment.previewStorageKey`; exposed as `previewDownloadPath` on assets. Cards prefer material cover, then student → teacher → workbook preview. **MaterialCard** — **Grid**: compact equal-size tiles with clickable file chips; **List**: horizontal rows with inline file chips. File chips and form file rows link to `/api/materials/files/{id}`.
 - Form persistence: `material-form-utils.ts` — URL-only creates in one GraphQL call; pending uploads create → REST upload → update with `fileAttachmentId`. `MaterialFormModal` shows step list + overall progress (XHR upload bytes) via `MaterialSaveProgressPanel`. After bytes are sent, a **Compressing** step reflects server-side optimization (sharp / ffmpeg / Ghostscript) before the API responds. During save, `useNavigationLock` warns on browser Back / tab close; interrupted uploads are tracked in `sessionStorage` (`material-save-recovery.ts`) and the `/materials` page shows a recovery banner. The list keeps cached data visible while refetching (no blank screen on return).

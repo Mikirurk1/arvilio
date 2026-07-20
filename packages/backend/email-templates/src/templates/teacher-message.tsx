@@ -37,7 +37,7 @@ export function TeacherMessageEmail({
           textDecoration: 'none',
         }}
       >
-        Open SoEnglish
+        Open Arvilio
       </Link>
     </EmailLayout>
   );

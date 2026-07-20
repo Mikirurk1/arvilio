@@ -8,8 +8,8 @@ import type {
   DateRange,
   StatisticsDashboardData,
   StatsRange,
-} from '../mocks/domains/statistics';
-import { getRangeBounds } from '../mocks/domains/statistics';
+} from './stats-range';
+import { getRangeBounds } from './stats-range';
 
 function previousRangeOf(range: DateRange): DateRange {
   const from = new Date(range.from).getTime();

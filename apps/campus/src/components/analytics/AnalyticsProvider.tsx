@@ -34,7 +34,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     if (user.id !== lastUserId.current) {
-      identifyUser(user.id, user.schoolId ?? '', user.role?.toString() ?? '');
+      identifyUser(user.id, '', user.role?.toString() ?? '');
       lastUserId.current = user.id;
     }
   }, [user]);

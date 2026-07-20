@@ -95,23 +95,25 @@ export function LessonPreJoin({ displayName, onSubmit }: Props) {
       </div>
 
       <div className={styles.controls}>
-        <button
+        <Button
+          variant="bare"
           type="button"
           className={`${styles.btn} ${!audioEnabled ? styles.off : ''}`}
           title={audioEnabled ? 'Mute mic' : 'Unmute mic'}
           onClick={() => setAudioEnabled((v) => !v)}
         >
           {audioEnabled ? <Mic size={18} /> : <MicOff size={18} />}
-        </button>
+        </Button>
 
-        <button
+        <Button
+          variant="bare"
           type="button"
           className={`${styles.btn} ${!videoEnabled ? styles.off : ''}`}
           title={videoEnabled ? 'Turn off camera' : 'Turn on camera'}
           onClick={() => setVideoEnabled((v) => !v)}
         >
           {videoEnabled ? <Video size={18} /> : <VideoOff size={18} />}
-        </button>
+        </Button>
       </div>
 
       <Button className={styles.join} onClick={handleJoin}>

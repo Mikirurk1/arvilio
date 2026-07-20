@@ -2,7 +2,7 @@
 
 - **Status:** proposed
 - **Date:** 2026-06-16
-- **Authors:** SoEnglish engineering
+- **Authors:** Arvilio engineering
 - **Supersedes:** —
 - **Superseded-by:** —
 - **Amends:** —
@@ -10,11 +10,11 @@
 
 ## Context
 
-The platform operators need a console to see everything happening across all schools and to manage platform-level configuration (including which payment methods/providers are available). The existing `apps/web/src/app/admin` (user management) and `app/system` (settings panels) are the *school* admin surfaces and are tenant-scoped. There is no cross-tenant operator surface today.
+The platform operators need a console to see everything happening across all schools and to manage platform-level configuration (including which payment methods/providers are available). The existing `apps/campus/src/app/admin` (user management) and `app/system` (settings panels) are the *school* admin surfaces and are tenant-scoped. There is no cross-tenant operator surface today.
 
 ## Decision
 
-1. **Separate surface** served only on the platform domain (`admin.soenglish.app` or `soenglish.app/platform`), gated by `@PlatformAdmin()` (ADR-008). It is **not** reachable from a school subdomain.
+1. **Separate surface** served only on the platform domain (`admin.arvilio.app` or `arvilio.app/platform`), gated by `@PlatformAdmin()` (ADR-008). It is **not** reachable from a school subdomain.
 
 2. **New backend module `@be/platform-admin`** with GraphQL resolvers under `@PlatformAdmin()`. This is the **only** module permitted to use the `asPlatform()` cross-tenant escape hatch of `TenantPrismaService` (ADR-005); every cross-tenant read/write is audited.
 

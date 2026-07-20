@@ -2,6 +2,7 @@
 
 import type { KeyboardEvent } from 'react';
 import { Info } from 'lucide-react';
+import { Button } from '../../components/ui';
 import { WordCardAudioButton } from '../vocabulary/WordCardAudioButton';
 import styles from './SpeakingWordChip.module.scss';
 
@@ -57,7 +58,8 @@ export function SpeakingWordChip({
           <WordCardAudioButton audioUrl={audioUrl} iconSize={14} className={styles.audioBtn} />
         ) : null}
         {onInfo ? (
-          <button
+          <Button
+            variant="bare"
             type="button"
             className={styles.infoBtn}
             aria-label={`Word info: ${word}`}
@@ -67,10 +69,11 @@ export function SpeakingWordChip({
             }}
           >
             <Info size={12} aria-hidden />
-          </button>
+          </Button>
         ) : null}
         {onRemove ? (
-          <button
+          <Button
+            variant="bare"
             type="button"
             className={styles.removeBtn}
             aria-label={`Remove ${word}`}
@@ -80,7 +83,7 @@ export function SpeakingWordChip({
             }}
           >
             ×
-          </button>
+          </Button>
         ) : null}
       </div>
       {pos ? <div className={styles.pos}>{pos}</div> : null}
@@ -90,9 +93,9 @@ export function SpeakingWordChip({
 
   if (useNativeButton) {
     return (
-      <button type="button" className={classNameStr} onClick={onClick}>
+      <Button variant="bare" type="button" className={classNameStr} onClick={onClick}>
         {content}
-      </button>
+      </Button>
     );
   }
 

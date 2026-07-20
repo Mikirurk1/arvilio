@@ -19,7 +19,7 @@ export async function verifyGoogleOAuth(
     const body = new URLSearchParams({
       client_id: google.clientId.trim(),
       client_secret: google.clientSecret.trim(),
-      code: 'soenglish-connection-verify',
+      code: 'arvilio-connection-verify',
       grant_type: 'authorization_code',
       redirect_uri: google.callbackUrl.trim(),
     });

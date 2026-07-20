@@ -6,6 +6,7 @@ import { SurfaceCard } from '../../../components/ui';
 import { LessonContentTab } from '../../../features/lesson-modal/LessonContentTab';
 import type { MaterialKind, MaterialKindOption } from '../../../features/lesson-modal/tabTypes';
 import type { ScheduledLessonDto, UserRoleId } from '@pkg/types';
+import { useCampusI18n, useCampusT } from '../../../lib/cms';
 import { formatLongDate, formatLessonTime } from './lesson-page-utils';
 import styles from './page.module.scss';
 
@@ -65,43 +66,51 @@ export function LessonWorkspacePanel({
   onUpdate, onMaterialsFilesSelected, onHomeworkFilesSelected, onStudentResponseFilesSelected,
   onSaveStudentResponse,
 }: LessonWorkspacePanelProps) {
+  const t = useCampusT();
+  const { locale } = useCampusI18n();
   const { previousHomeworkText, previousHomeworkFilesCount, previousResponseSubmitted, previousVocabularyWords, hasPreviousLesson } = previous;
 
   return (
     <SurfaceCard className={styles.contentCard} padding="none">
       <div className={styles.content}>
-        <span className={styles.contentBadge}>Content workspace</span>
+        <span className={styles.contentBadge}>{t('lessonDetail.workspace.badge')}</span>
         <p className={styles.contentLead}>
           {canManageLessons
-            ? 'Plan, materials, homework, and student response for this lesson.'
-            : 'Review materials and submit your homework when the lesson is complete.'}
+            ? t('lessonDetail.workspace.leadStaff')
+            : t('lessonDetail.workspace.leadStudent')}
         </p>
 
         <section className={styles.workspaceHeroGrid}>
           <article className={styles.workspaceHeroCard}>
-            <h3 className={styles.workspaceHeroTitle}>Lesson snapshot</h3>
+            <h3 className={styles.workspaceHeroTitle}>{t('lessonDetail.snapshot')}</h3>
             <div className={styles.workspaceMetaList}>
-              <span>{formatLongDate(draft.date)}</span>
-              <span>{formatLessonTime(draft.startTime, draft.duration)}</span>
+              <span>{formatLongDate(draft.date, locale)}</span>
+              <span>{formatLessonTime(draft.startTime, draft.duration, locale)}</span>
               <span>{teacherDisplayName} · {studentDisplayName}</span>
             </div>
           </article>
           <article className={styles.workspaceHeroCard}>
-            <h3 className={styles.workspaceHeroTitle}>Previous lesson context</h3>
+            <h3 className={styles.workspaceHeroTitle}>{t('lessonDetail.prevContext')}</h3>
             {hasPreviousLesson ? (
               <div className={styles.previousGrid}>
                 <article className={styles.previousCard}>
-                  <h4 className={styles.previousTitle}>Homework</h4>
+                  <h4 className={styles.previousTitle}>{t('lessonModal.field.homework')}</h4>
                   <p className={styles.previousText}>
-                    {previousHomeworkText.length > 0 ? previousHomeworkText : 'No homework notes in previous lesson.'}
+                    {previousHomeworkText.length > 0
+                      ? previousHomeworkText
+                      : t('lessonDetail.prevHomeworkEmpty')}
                   </p>
                   <div className={styles.previousMeta}>
-                    <span>{previousResponseSubmitted ? 'Response submitted' : 'Response pending'}</span>
-                    <span>Files: {previousHomeworkFilesCount}</span>
+                    <span>
+                      {previousResponseSubmitted
+                        ? t('lessonDetail.prevResponseSubmitted')
+                        : t('lessonDetail.prevResponsePending')}
+                    </span>
+                    <span>{t('lessonDetail.prevFiles', { count: previousHomeworkFilesCount })}</span>
                   </div>
                 </article>
                 <article className={styles.previousCard}>
-                  <h4 className={styles.previousTitle}>Vocabulary</h4>
+                  <h4 className={styles.previousTitle}>{t('nav.vocabulary')}</h4>
                   {previousVocabularyWords.length > 0 ? (
                     <div className={styles.vocabularyChips}>
                       {previousVocabularyWords.map((word) => (
@@ -109,12 +118,12 @@ export function LessonWorkspacePanel({
                       ))}
                     </div>
                   ) : (
-                    <p className={styles.previousText}>No linked vocabulary in previous lesson.</p>
+                    <p className={styles.previousText}>{t('lessonDetail.prevVocabEmpty')}</p>
                   )}
                 </article>
               </div>
             ) : (
-              <div className={styles.previousEmpty}>No previous lesson found for this student.</div>
+              <div className={styles.previousEmpty}>{t('lessonDetail.prevEmpty')}</div>
             )}
           </article>
         </section>

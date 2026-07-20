@@ -22,7 +22,7 @@
 
 ### P0 знахідка (2026-07-04): крос-тенантний витік студентів
 
-`students` / `studentsPage` / `assignableTeachers` GraphQL-запити для ADMIN/SUPER_ADMIN робили `{ role: 'STUDENT' }` **без фільтра по школі** — admin новоствореної школи бачив усіх студентів платформи (і `jest-student@soenglish.test` зі school_default). `User` — глобальна ідентичність (не row-scoped по schoolId), тож ізоляція має йти через `SchoolMembership`.
+`students` / `studentsPage` / `assignableTeachers` GraphQL-запити для ADMIN/SUPER_ADMIN робили `{ role: 'STUDENT' }` **без фільтра по школі** — admin новоствореної школи бачив усіх студентів платформи (і `jest-student@arvilio.test` зі school_default). `User` — глобальна ідентичність (не row-scoped по schoolId), тож ізоляція має йти через `SchoolMembership`.
 
 **Фікс** (`users.service.ts`): інжектовано `TenantContextService`, доданий `tenantStudentFilter()` → `{ schoolMemberships: { some: { schoolId, status: 'ACTIVE' } } }`, застосований у всіх трьох запитах. Юніт-тест на admin-ізоляцію + E2E 8.7 (реєстрація свіжої школи через API → перевірка, що її admin не бачить даних school_default через GraphQL і UI).
 

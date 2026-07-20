@@ -1,6 +1,6 @@
 # Group lessons — implementation roadmap
 
-Living checklist for SoEnglish group lessons. **Do not treat `materials/` as product truth** — update `docs/llm-wiki/wiki/` when behavior ships.
+Living checklist for Arvilio group lessons. **Do not treat `materials/` as product truth** — update `docs/llm-wiki/wiki/` when behavior ships.
 
 ## Product decisions (locked)
 
@@ -99,11 +99,11 @@ Living checklist for SoEnglish group lessons. **Do not treat `materials/` as pro
 
 ### Files
 
-- `apps/web/src/features/lesson-modal/LessonSetupTab.tsx`
-- `apps/web/src/features/lesson-modal/tabTypes.ts`
-- `apps/web/src/features/lesson-modal/lessonPersistence.ts`
-- `apps/web/src/features/lesson-modal/scheduledLessonsBackendAdapter.ts`
-- `apps/web/src/graphql/operations.ts`
+- `apps/campus/src/features/lesson-modal/LessonSetupTab.tsx`
+- `apps/campus/src/features/lesson-modal/tabTypes.ts`
+- `apps/campus/src/features/lesson-modal/lessonPersistence.ts`
+- `apps/campus/src/features/lesson-modal/scheduledLessonsBackendAdapter.ts`
+- `apps/campus/src/graphql/operations.ts`
 
 ### Acceptance criteria
 
@@ -123,10 +123,10 @@ Living checklist for SoEnglish group lessons. **Do not treat `materials/` as pro
 
 ### Files
 
-- `apps/web/src/app/calendar/page.tsx`, `apps/web/src/features/calendar/**`
-- `apps/web/src/app/lessons/**`
-- `apps/web/src/app/students/[studentId]/sections.tsx`
-- `apps/web/src/features/lesson-modal/scheduledLessonsBackendAdapter.ts`
+- `apps/campus/src/app/calendar/page.tsx`, `apps/campus/src/features/calendar/**`
+- `apps/campus/src/app/lessons/**`
+- `apps/campus/src/app/students/[studentId]/sections.tsx`
+- `apps/campus/src/features/lesson-modal/scheduledLessonsBackendAdapter.ts`
 
 ### Acceptance criteria
 
@@ -148,7 +148,7 @@ Living checklist for SoEnglish group lessons. **Do not treat `materials/` as pro
 
 - `packages/shared/types/src/lib/statistics-dashboard.ts`
 - `packages/backend/modules/module-auth/src/application/statistics-dashboard.service.ts`
-- `apps/web/src/components/statistics/StatisticsDashboard.tsx`
+- `apps/campus/src/components/statistics/StatisticsDashboard.tsx`
 
 ### Acceptance criteria
 

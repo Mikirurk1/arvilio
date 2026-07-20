@@ -1,3 +1,6 @@
+'use client';
+
+import { useCampusT } from '../../../lib/cms';
 import styles from './tab-panel-loading.module.scss';
 
 export type TabPanelLoadingVariant =
@@ -14,11 +17,13 @@ type TabPanelLoadingProps = {
 };
 
 export function TabPanelLoading({ variant = 'default', rows = 4 }: TabPanelLoadingProps) {
+  const t = useCampusT();
+
   return (
     <div
       className={styles.wrap}
       aria-busy="true"
-      aria-label="Loading tab content"
+      aria-label={t('students.detail.loadingTab')}
     >
       {variant === 'form' ? (
         <div className={styles.formGrid}>

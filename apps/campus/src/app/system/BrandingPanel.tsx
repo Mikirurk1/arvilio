@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Palette } from 'lucide-react';
 import { Button, Field, SurfaceCard } from '../../components/ui';
 import { apiClient } from '../../lib/api';
+import { useCampusT } from '../../lib/cms';
 import styles from './page.module.scss';
 
 interface BrandingDto {
@@ -14,6 +15,7 @@ interface BrandingDto {
 const HEX_RE = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
 
 export function BrandingPanel() {
+  const t = useCampusT();
   const [draft, setDraft] = useState<BrandingDto>({ brandColor: null, logoUrl: null });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -29,7 +31,7 @@ export function BrandingPanel() {
 
   const colorError =
     draft.brandColor && !HEX_RE.test(draft.brandColor)
-      ? 'Must be a hex color like #159970 or #1a9'
+      ? t('system.branding.brandColor.error')
       : null;
 
   const handleSave = useCallback(async () => {
@@ -54,31 +56,29 @@ export function BrandingPanel() {
         root.style.removeProperty('--accent-primary');
       }
     } catch {
-      setError('Failed to save branding settings');
+      setError(t('system.branding.error.save'));
     } finally {
       setSaving(false);
     }
-  }, [draft, colorError]);
+  }, [draft, colorError, t]);
 
   return (
     <SurfaceCard className={styles.card}>
       <header className={styles.panelHeader}>
         <Palette size={18} aria-hidden />
         <div>
-          <div className={styles.panelTitle}>Branding</div>
-          <p className={styles.hint}>
-            Override the accent color and logo for this school. Leave blank to use platform defaults.
-          </p>
+          <div className={styles.panelTitle}>{t('system.branding.title')}</div>
+          <p className={styles.hint}>{t('system.branding.hint')}</p>
         </div>
       </header>
 
       {loading ? (
-        <p className={styles.hint}>Loading…</p>
+        <p className={styles.hint}>{t('common.loading')}</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 400 }}>
           <Field
-            label="Brand color"
-            hint="Hex value, e.g. #159970. Controls buttons, links, and highlights."
+            label={t('system.branding.brandColor.label')}
+            hint={t('system.branding.brandColor.hint')}
             error={colorError ?? undefined}
             placeholder="#159970"
             value={draft.brandColor ?? ''}
@@ -98,13 +98,15 @@ export function BrandingPanel() {
               aria-hidden
             />
             <span className={styles.hint} style={{ fontSize: 12 }}>
-              {draft.brandColor && !colorError ? 'Preview' : 'Enter a valid hex color to preview'}
+              {draft.brandColor && !colorError
+                ? t('system.branding.preview')
+                : t('system.branding.previewEmpty')}
             </span>
           </div>
 
           <Field
-            label="Logo URL"
-            hint="Absolute URL to a PNG/SVG logo (recommended: 200×48 px)."
+            label={t('system.branding.logoUrl.label')}
+            hint={t('system.branding.logoUrl.hint')}
             placeholder="https://example.com/logo.png"
             value={draft.logoUrl ?? ''}
             onChange={(e) => setDraft((d) => ({ ...d, logoUrl: (e.target as HTMLInputElement).value || null }))}
@@ -112,17 +114,17 @@ export function BrandingPanel() {
 
           <div className={styles.generalStatusSlot} aria-live="polite">
             {error ? <p className={styles.actionStatusError}>{error}</p> : null}
-            {success ? <p className={styles.actionStatusSuccess}>Saved.</p> : null}
+            {success ? <p className={styles.actionStatusSuccess}>{t('common.saved')}</p> : null}
           </div>
 
           <Button
             loading={saving}
-            loadingLabel="Saving…"
+            loadingLabel={t('common.saving')}
             disabled={saving || !!colorError}
             onClick={() => void handleSave()}
             style={{ alignSelf: 'flex-start' }}
           >
-            Save branding
+            {t('system.branding.save')}
           </Button>
         </div>
       )}

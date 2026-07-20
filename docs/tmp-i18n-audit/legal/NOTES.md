@@ -1,0 +1,1 @@
+P1.5–P1.10 public legal (2026-07-16): Chrome wired to `campus-ui-catalog` — `privacy.*` (heading + lastUpdated), `offer.*`, `status.*`, `legal.loading`, `legal.contacts.*`. Terms + payment-refund bodies stay CMS markdown via `LegalDocumentClient` (seller vars interpolated server-side). Seller field values (legal name, address, email, etc.) remain API data, not Payload.

@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
+  DEFAULT_LOCALE,
+  LOCALE_COOKIE,
+  isLocale,
+  normalizeLocale,
+  stripLocalePrefix,
+  withLocalePrefix,
+  type Locale,
+} from '@pkg/types';
+import {
   applyRequestAuthHeaders,
   classifyRouteAccess,
   fetchWebRequestSession,
@@ -13,19 +22,10 @@ import {
 } from './lib/auth/route-policy';
 import { classifyTenantHost } from './lib/tenant-host';
 
-const PROXY_TIMING_HEADER = 'x-soenglish-proxy-ms';
-const PROXY_HIT_HEADER = 'x-soenglish-proxy-hit';
+const PROXY_TIMING_HEADER = 'x-arvilio-proxy-ms';
+const PROXY_HIT_HEADER = 'x-arvilio-proxy-hit';
+const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
-function redirectTo(pathname: string, request: NextRequest): NextResponse {
-  return NextResponse.redirect(new URL(pathname, request.url));
-}
-
-/**
- * Phase 2 tenant routing: classify the Host and forward a tenant hint
- * (`x-school-slug` / `x-school-host`) to the API. The backend stays source of
- * truth (verified `SchoolDomain` + auth membership); this is only a hint.
- * Non-disruptive today (single-school): no redirects/blocks.
- */
 function withTenantHint(requestHeaders: Headers, host: string | null): Headers {
   const tenant = classifyTenantHost(host);
   const headers = new Headers(requestHeaders);
@@ -36,7 +36,35 @@ function withTenantHint(requestHeaders: Headers, host: string | null): Headers {
   return headers;
 }
 
-function anonymousAuthState(route: RequestAuthState['route']): RequestAuthState {
+function readLocaleCookie(request: NextRequest): Locale | null {
+  return normalizeLocale(request.cookies.get(LOCALE_COOKIE)?.value);
+}
+
+function setLocaleCookie(response: NextResponse, locale: Locale): void {
+  response.cookies.set(LOCALE_COOKIE, locale, {
+    path: '/',
+    maxAge: LOCALE_COOKIE_MAX_AGE,
+    sameSite: 'lax',
+  });
+}
+
+function localizedRedirect(
+  path: string,
+  locale: Locale,
+  request: NextRequest,
+  search?: string,
+): NextResponse {
+  const dest = new URL(withLocalePrefix(path, locale), request.url);
+  dest.search = search ?? request.nextUrl.search;
+  const res = NextResponse.redirect(dest);
+  setLocaleCookie(res, locale);
+  return res;
+}
+
+function anonymousAuthState(
+  route: RequestAuthState['route'],
+  locale: Locale,
+): RequestAuthState {
   return {
     route,
     authenticated: false,
@@ -46,6 +74,7 @@ function anonymousAuthState(route: RequestAuthState['route']): RequestAuthState 
     tenantKey: null,
     impersonation: null,
     trial: null,
+    locale,
     user: null,
   };
 }
@@ -67,20 +96,66 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const host = request.headers.get('host');
 
-  // API-proxy routes: only forward the tenant hint to the backend — no session
-  // resolution or route gating (those are for rendered app routes).
-  if (pathname.startsWith('/api') || pathname.startsWith('/payload-api')) {
+  if (
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/cms-proxy') ||
+    pathname === '/robots.txt' ||
+    pathname === '/sitemap.xml'
+  ) {
     return NextResponse.next({ request: { headers: withTenantHint(request.headers, host) } });
   }
 
-  const route = classifyRouteAccess(request.nextUrl.pathname);
+  const { locale: pathLocale, pathname: strippedPath } = stripLocalePrefix(pathname);
+
+  // `/en/…` is not canonical — default locale is unprefixed.
+  if (pathLocale === DEFAULT_LOCALE) {
+    return localizedRedirect(strippedPath === '/' ? '/' : strippedPath, DEFAULT_LOCALE, request);
+  }
+
+  let locale: Locale;
+  let appPath: string;
+  let needsRewrite: boolean;
+
+  const localeCookie = readLocaleCookie(request);
+
+  if (!pathLocale) {
+    const preferred = localeCookie ?? DEFAULT_LOCALE;
+    // Cookie says uk but URL is bare → send to /uk/…
+    if (preferred !== DEFAULT_LOCALE) {
+      return localizedRedirect(strippedPath === '/' ? '/' : strippedPath, preferred, request);
+    }
+    locale = DEFAULT_LOCALE;
+    appPath = strippedPath;
+    needsRewrite = false;
+  } else {
+    locale = isLocale(pathLocale) ? pathLocale : DEFAULT_LOCALE;
+    appPath = strippedPath;
+    needsRewrite = true;
+  }
+
+  const route = classifyRouteAccess(appPath);
   const skipSession = !shouldResolveWebRequestSession(route, request.headers);
 
-  let state: RequestAuthState = anonymousAuthState(route);
+  let state: RequestAuthState = anonymousAuthState(route, locale);
 
   if (!skipSession) {
     try {
       const session = await fetchWebRequestSession(request.headers, request.url);
+      // Bare URL + no explicit cookie: honor the user's/school's explicit locale
+      // preference (User.locale → School.defaultLocale, clamped to enabledLocales).
+      // Accept-Language is intentionally excluded so browser language never rewrites
+      // a typed canonical URL.
+      if (!pathLocale && !localeCookie && session.authenticated) {
+        const preferredLocale = normalizeLocale(session.preferredLocale);
+        if (preferredLocale && preferredLocale !== DEFAULT_LOCALE) {
+          maybeLogProxyTiming(appPath, startedAt, false);
+          return localizedRedirect(
+            strippedPath === '/' ? '/' : strippedPath,
+            preferredLocale,
+            request,
+          );
+        }
+      }
       state = {
         route,
         authenticated: session.authenticated,
@@ -90,6 +165,8 @@ export async function proxy(request: NextRequest) {
         tenantKey: session.tenantKey,
         impersonation: session.impersonation,
         trial: session.trial,
+        // URL (or bare=default) wins over session preference for display.
+        locale,
         user: session.user,
       };
     } catch (error) {
@@ -100,24 +177,29 @@ export async function proxy(request: NextRequest) {
         error.code.startsWith('account_') &&
         !route.isPublic
       ) {
-        maybeLogProxyTiming(request.nextUrl.pathname, startedAt, false);
-        return redirectTo(`/login?error=${encodeURIComponent(error.code)}`, request);
+        maybeLogProxyTiming(appPath, startedAt, false);
+        return localizedRedirect(
+          '/login',
+          locale,
+          request,
+          `?error=${encodeURIComponent(error.code)}`,
+        );
       }
       if (!route.isPublic) {
-        maybeLogProxyTiming(request.nextUrl.pathname, startedAt, false);
-        return redirectTo('/login', request);
+        maybeLogProxyTiming(appPath, startedAt, false);
+        return localizedRedirect('/login', locale, request);
       }
     }
   }
 
   if (!state.authenticated && !route.isPublic) {
-    maybeLogProxyTiming(request.nextUrl.pathname, startedAt, skipSession);
-    return redirectTo('/login', request);
+    maybeLogProxyTiming(appPath, startedAt, skipSession);
+    return localizedRedirect('/login', locale, request);
   }
 
   if (state.authenticated && route.redirectAuthenticatedTo) {
-    maybeLogProxyTiming(request.nextUrl.pathname, startedAt, skipSession);
-    return redirectTo(route.redirectAuthenticatedTo, request);
+    maybeLogProxyTiming(appPath, startedAt, skipSession);
+    return localizedRedirect(route.redirectAuthenticatedTo, locale, request);
   }
 
   if (
@@ -126,24 +208,36 @@ export async function proxy(request: NextRequest) {
     (!canRoleAccessRoute(route, state.user.role) ||
       !canScopeAccessRoute(route, state.availableScopes))
   ) {
-    maybeLogProxyTiming(request.nextUrl.pathname, startedAt, skipSession);
-    return redirectTo(route.deniedRedirectTo, request);
+    maybeLogProxyTiming(appPath, startedAt, skipSession);
+    return localizedRedirect(route.deniedRedirectTo, locale, request);
   }
 
-  maybeLogProxyTiming(request.nextUrl.pathname, startedAt, skipSession);
+  // No root page — `/` and `/uk` → login or dashboard.
+  if (appPath === '/') {
+    maybeLogProxyTiming(appPath, startedAt, skipSession);
+    return localizedRedirect(state.authenticated ? '/dashboard' : '/login', locale, request);
+  }
 
-  const response = NextResponse.next({
-    request: {
-      headers: applyRequestAuthHeaders(withTenantHint(request.headers, host), state),
-    },
-  });
+  maybeLogProxyTiming(appPath, startedAt, skipSession);
+
+  const requestHeaders = applyRequestAuthHeaders(withTenantHint(request.headers, host), state);
+
+  const response = needsRewrite
+    ? (() => {
+        const rewriteUrl = request.nextUrl.clone();
+        rewriteUrl.pathname = appPath;
+        return NextResponse.rewrite(rewriteUrl, { request: { headers: requestHeaders } });
+      })()
+    : NextResponse.next({ request: { headers: requestHeaders } });
+
+  setLocaleCookie(response, locale);
 
   if (process.env.DEBUG_PROXY_TIMING === '1') {
     const durationMs = Math.round(performance.now() - startedAt);
     response.headers.set(PROXY_TIMING_HEADER, String(durationMs));
     response.headers.set(
       PROXY_HIT_HEADER,
-      `${request.nextUrl.pathname}@${startedAt.toFixed(2)}${skipSession ? '' : '+session'}`,
+      `${pathname}->${appPath}@${startedAt.toFixed(2)}${skipSession ? '' : '+session'}`,
     );
   }
 
@@ -151,9 +245,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Runs on app routes (full session/route logic) AND on /api + /payload-api
-  // (tenant-hint forwarding only, branched at the top of `proxy`). Skips Next
-  // internals and static assets.
   matcher: [
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|ico|webp|woff2?)$).*)',
   ],

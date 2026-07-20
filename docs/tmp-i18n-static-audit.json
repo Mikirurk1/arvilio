@@ -1,0 +1,2815 @@
+[
+  {
+    "file": "app/system/payment/PaymentsPricingSection.tsx",
+    "wired": false,
+    "count": 42,
+    "samples": [
+      "Add packages to preview totals.",
+      "Allowed currencies",
+      "Amount",
+      "Billing",
+      "Billing mode",
+      "Currencies",
+      "Currencies & lesson rates",
+      "Currency",
+      "Default",
+      "Default charge",
+      "Default currency",
+      "Default group billing",
+      "Default student lesson rate",
+      "Enter the lesson price in minor units. Example: `45000` = `450.00 UAH`",
+      "Feature",
+      "Feature disabled",
+      "Fixed lesson total",
+      "Fixed total per lesson",
+      "Group payments",
+      "Group summary",
+      "How group lessons charge",
+      "Individual lessons",
+      "Lesson rates",
+      "Live summary",
+      "Min lessons",
+      "Min package",
+      "Package rules",
+      "Package totals are calculated as `lessons × lesson price`.",
+      "Packages",
+      "Per student (lesson credit each)"
+    ]
+  },
+  {
+    "file": "app/system/payment/ProviderConfigSection.tsx",
+    "wired": false,
+    "count": 35,
+    "samples": [
+      "Live API key",
+      "Live client ID",
+      "Live client secret",
+      "Live merchant account",
+      "Live merchant domain",
+      "Live merchant secret",
+      "Live merchant token",
+      "Live private key",
+      "Live public key",
+      "Live publishable key",
+      "Live secret key",
+      "Live store ID",
+      "Live variant ID",
+      "Live variant currency",
+      "Live webhook ID",
+      "Live webhook secret",
+      "School merchant details",
+      "School secure secrets",
+      "Select currency",
+      "Test API key",
+      "Test client ID",
+      "Test client secret",
+      "Test merchant account",
+      "Test merchant domain",
+      "Test merchant secret",
+      "Test merchant token",
+      "Test private key",
+      "Test public key",
+      "Test publishable key",
+      "Test secret key"
+    ]
+  },
+  {
+    "file": "app/students/[studentId]/StudentBillingTab.tsx",
+    "wired": false,
+    "count": 26,
+    "samples": [
+      "Adjust failed",
+      "Billing mode",
+      "Billing rules saved.",
+      "Billing workspace",
+      "Custom student rate",
+      "Enter a valid price per lesson or leave the field empty.",
+      "Failed to load billing",
+      "Group lessons",
+      "Individual lessons",
+      "Lesson balance",
+      "Lessons credited.",
+      "Loading billing…",
+      "Manual credits",
+      "Manual credits and lesson consumption change this number.",
+      "Packages",
+      "Platform default rate",
+      "Prepaid credits consumed per completed individual lesson.",
+      "Price per lesson",
+      "Pricing",
+      "Pricing saved.",
+      "Rules",
+      "Save billing rules failed",
+      "Save pricing failed",
+      "Select at least one manual invoice template for Manual invoice.",
+      "Self-serve packages",
+      "Student details → Billing"
+    ]
+  },
+  {
+    "file": "app/system/payment/ManualInvoiceMethodConfig.tsx",
+    "wired": false,
+    "count": 24,
+    "samples": [
+      "Account number",
+      "Add SWIFT",
+      "Add card transfer",
+      "Bank address (optional)",
+      "Bank country (optional)",
+      "Bank name",
+      "Bank name (optional)",
+      "Beneficiary address (optional)",
+      "Beneficiary name",
+      "Card number",
+      "Cardholder name",
+      "Description",
+      "IBAN (optional)",
+      "Important notes (one per line)",
+      "Instructions",
+      "Intermediary SWIFT (optional)",
+      "Intermediary bank (optional)",
+      "Label",
+      "Manual invoice",
+      "No manual invoice methods configured yet.",
+      "Payment purpose",
+      "Payment reference hint",
+      "Receipt hint (UK)",
+      "Ukraine, Germany, Poland..."
+    ]
+  },
+  {
+    "file": "components/statistics/StatisticsDashboardCharts.tsx",
+    "wired": false,
+    "count": 24,
+    "samples": [
+      "About this section",
+      "Accrued",
+      "Accrued pay, recorded payouts, and outstanding balance for this period.",
+      "Completed lessons",
+      "Completion %",
+      "Daily goal data unavailable.",
+      "Daily goals",
+      "Daily goals slot completion",
+      "Daily goals trend",
+      "Deck status mix",
+      "Lesson status mix",
+      "Lessons trend",
+      "My earnings",
+      "No daily goal history in selected range.",
+      "No earnings trend in selected range.",
+      "No lesson data in selected range.",
+      "No lesson status data in selected range.",
+      "No practice sessions in selected range.",
+      "No vocabulary activity in selected range.",
+      "No vocabulary cards yet.",
+      "Outstanding (net)",
+      "Paid",
+      "Practice by type",
+      "Vocabulary activity"
+    ]
+  },
+  {
+    "file": "app/students/[studentId]/billing/BillingPackagesSection.tsx",
+    "wired": false,
+    "count": 23,
+    "samples": [
+      "Available",
+      "Available packages",
+      "Checkout packages",
+      "Current lesson rate",
+      "Fixed for student",
+      "Fixed package",
+      "Fixed size",
+      "Flexible package",
+      "Lessons in package",
+      "Locked packages",
+      "Min size",
+      "No platform packages configured. Add them in System → Payments first.",
+      "Package rules for this student",
+      "Popular choice",
+      "Recommended",
+      "Size rule",
+      "Starting from",
+      "Student can buy this exact package size.",
+      "This package can be offered as a flexible checkout option.",
+      "This package size is fixed for the student.",
+      "Visibility",
+      "Visible packages",
+      "Visible to student"
+    ]
+  },
+  {
+    "file": "app/system/EmailPanel.tsx",
+    "wired": false,
+    "count": 22,
+    "samples": [
+      "Configure SMTP before sending a test message.",
+      "Custom SMTP",
+      "Email (SMTP)",
+      "Example-Temp-Pass1",
+      "Failed to load email settings",
+      "Failed to load mail status",
+      "Failed to send test email",
+      "Loading email settings…",
+      "No SMTP host",
+      "Not configured",
+      "Ready to send",
+      "Refreshing…",
+      "SMTP_*",
+      "Save SMTP so the runtime banner matches your settings.",
+      "Save failed",
+      "Saving…",
+      "Send a test message to your inbox or Mailtrap.",
+      "Sending…",
+      "Server default",
+      "Verification failed",
+      "Verify connection with the values in the form (does not send mail).",
+      "Verifying…"
+    ]
+  },
+  {
+    "file": "components/statistics/StatisticsDashboard.tsx",
+    "wired": false,
+    "count": 22,
+    "samples": [
+      "Aggregate counts across your student roster.",
+      "All students",
+      "Consecutive active days.",
+      "Could not load statistics",
+      "Daily goal slot completion.",
+      "From",
+      "Learning activity",
+      "Lesson counts and hours for the selected period.",
+      "Loading statistics from the server…",
+      "My students",
+      "No statistics",
+      "Payments and billable lesson totals.",
+      "Practice minutes across vocabulary, quizzes, and speaking.",
+      "Quiz attempts and scores in this period.",
+      "Select a period to load your dashboard.",
+      "Speaking submissions and reviews.",
+      "Statistics filters",
+      "Statistics overview",
+      "Statistics range",
+      "Student roster view",
+      "Student scope",
+      "Words added, reviewed, and marked learned."
+    ]
+  },
+  {
+    "file": "app/system/payment/PaymentsPanel.tsx",
+    "wired": false,
+    "count": 19,
+    "samples": [
+      "Add at least one package template for online checkout.",
+      "Allowed currencies",
+      "Applied unless a student has an override.",
+      "Checkout packages",
+      "Configuration looks good for student checkout.",
+      "Default lesson price",
+      "Keep providers disabled until credentials and webhook endpoints are verified.",
+      "Loading…",
+      "Operations mode",
+      "Payment methods",
+      "Payment settings saved.",
+      "Payments control summary",
+      "Pricing consistency",
+      "Ready for students",
+      "Resolve currency compatibility warnings before saving.",
+      "Review package templates and fix currency issues before saving.",
+      "Save failed",
+      "Saving…",
+      "System → Seller &amp; legal"
+    ]
+  },
+  {
+    "file": "app/chat/ChatThread.tsx",
+    "wired": false,
+    "count": 18,
+    "samples": [
+      "Attach file",
+      "Back to conversations",
+      "Beginning of conversation",
+      "Choose a conversation from the inbox to continue.",
+      "Choose file",
+      "Conversation",
+      "Could not send message",
+      "Could not upload file",
+      "Insert emoji",
+      "Loading messages…",
+      "Loading older messages…",
+      "Message",
+      "Send message",
+      "Sending…",
+      "Some files were rejected",
+      "Try again",
+      "Type a message...",
+      "Your messages"
+    ]
+  },
+  {
+    "file": "app/system/payment/PaymentsPackagesSection.tsx",
+    "wired": false,
+    "count": 18,
+    "samples": [
+      "Credits bucket",
+      "Currency",
+      "Default checkout rate",
+      "Description (optional)",
+      "Group lessons (per-member)",
+      "Individual lessons",
+      "Label",
+      "Lessons in package",
+      "Live total",
+      "Minimum size",
+      "Must stay at or above the platform minimum.",
+      "No packages yet. Add at least one for online checkout.",
+      "Package label",
+      "Package templates",
+      "Popular choice",
+      "Recommended",
+      "Remove package",
+      "e.g. Prepaid credit for individual lessons — no physical delivery"
+    ]
+  },
+  {
+    "file": "app/students/[studentId]/billing/BillingPricingSection.tsx",
+    "wired": false,
+    "count": 17,
+    "samples": [
+      "After payment arrives",
+      "Best used for manual invoice payments",
+      "Credit balance",
+      "Crediting…",
+      "Current resolved lesson price",
+      "Custom student rate",
+      "Group lesson credits",
+      "Group per-member price override",
+      "Individual lesson credits",
+      "Individual price override",
+      "Lesson rate",
+      "Manual credit after invoice payment",
+      "Note",
+      "Paid lessons",
+      "Per-lesson pricing",
+      "Saving…",
+      "Using platform default"
+    ]
+  },
+  {
+    "file": "app/system/SellerLegalPanel.tsx",
+    "wired": false,
+    "count": 17,
+    "samples": [
+      "1 Example St, Kyiv, Ukraine",
+      "Acme Language School LLC",
+      "Country",
+      "Failed to load seller profile",
+      "Failed to save seller profile",
+      "Legal address",
+      "Legal name",
+      "Loading…",
+      "Optional phone number.",
+      "Payment & refund override (markdown)",
+      "Registered business or sole proprietor name shown to buyers.",
+      "Saved.",
+      "Saving…",
+      "Seller &amp; legal",
+      "Support email",
+      "Support phone",
+      "Terms override (markdown)"
+    ]
+  },
+  {
+    "file": "app/system/word-dictionary/TranslationProviderConfig.tsx",
+    "wired": false,
+    "count": 17,
+    "samples": [
+      "API URL",
+      "API key (optional)",
+      "Azure subscription key",
+      "Context target (ISO)",
+      "DeepL Auth Key",
+      "Google Cloud API key",
+      "Google Cloud Translation",
+      "Include contextual example sentences",
+      "LibreTranslate API key",
+      "LibreTranslate URL",
+      "Microsoft Translator",
+      "MyMemory URL",
+      "MyMemory email",
+      "Provider configuration",
+      "Raises free quota",
+      "Save language settings",
+      "Saving…"
+    ]
+  },
+  {
+    "file": "app/students/GroupEditorCard.tsx",
+    "wired": false,
+    "count": 15,
+    "samples": [
+      "Basics",
+      "Billing defaults",
+      "Create group",
+      "Edit learning group",
+      "Fixed amount per lesson",
+      "Members",
+      "New learning group",
+      "No students added yet.",
+      "Payer",
+      "Save changes",
+      "Search and select a student…",
+      "Select payer",
+      "Single payer",
+      "Split equally",
+      "e.g. B1 Evening cohort"
+    ]
+  },
+  {
+    "file": "app/system/payment/payment-config-primitives.tsx",
+    "wired": false,
+    "count": 15,
+    "samples": [
+      "Card transfer",
+      "Environment",
+      "International wire transfer",
+      "Leave blank to keep current value",
+      "Live mode",
+      "Manual invoice",
+      "Official docs",
+      "Pay by SWIFT wire transfer using the bank details below.",
+      "Pay by card transfer using the bank and card details below.",
+      "Saved in this school",
+      "Select payment environment",
+      "Student name or invoice number",
+      "Test mode",
+      "Using legacy env fallback",
+      "What you need to connect"
+    ]
+  },
+  {
+    "file": "components/quiz/CreateQuizCard.tsx",
+    "wired": false,
+    "count": 15,
+    "samples": [
+      "All words from the vocabulary list.",
+      "Create quiz",
+      "Difficulty",
+      "Easy",
+      "Generate quiz",
+      "Hard",
+      "How difficulty affects generated questions",
+      "Medium",
+      "My vocabulary",
+      "Only words linked to this lesson.",
+      "Only words marked for mistakes work",
+      "Questions",
+      "Select a lesson context to use lesson or mixed sources.",
+      "Source",
+      "Words from this lesson first, then other vocabulary."
+    ]
+  },
+  {
+    "file": "components/statistics/StatisticsRosterTable.tsx",
+    "wired": false,
+    "count": 15,
+    "samples": [
+      "All students",
+      "Billable",
+      "Done",
+      "HW✓",
+      "Hours",
+      "Learned",
+      "Lessons +",
+      "My students",
+      "No students in this scope.",
+      "Paid",
+      "Plan",
+      "Speak",
+      "Streak",
+      "Type",
+      "Words+"
+    ]
+  },
+  {
+    "file": "app/lessons/[lessonId]/LessonSidebar.tsx",
+    "wired": false,
+    "count": 14,
+    "samples": [
+      "Actions",
+      "Lesson brief",
+      "Lesson identity",
+      "Lesson room",
+      "Lesson title",
+      "Saving lesson",
+      "Schedule & people",
+      "Short summary for this lesson hub…",
+      "Student requested cancel",
+      "Submit homework",
+      "Submitting response",
+      "Teacher",
+      "Time",
+      "Yes"
+    ]
+  },
+  {
+    "file": "app/system/DomainsPanel.tsx",
+    "wired": false,
+    "count": 14,
+    "samples": [
+      "Adding…",
+      "Could not load domains",
+      "Custom Domains",
+      "Custom domains require the Pro plan.",
+      "Failed to add domain",
+      "Failed to remove domain",
+      "Hostname",
+      "No custom domains yet",
+      "Please try again.",
+      "Primary",
+      "Removing…",
+      "Verification failed",
+      "Verify",
+      "Verifying…"
+    ]
+  },
+  {
+    "file": "app/dashboard/sections.tsx",
+    "wired": false,
+    "count": 13,
+    "samples": [
+      "Add vocabulary cards to get a word of the day.",
+      "Already saved",
+      "Could not save word', 'Try again",
+      "Daily goals",
+      "In progress",
+      "Irregular verb of the day",
+      "Loading…",
+      "No goals for today",
+      "Past participle",
+      "Past simple",
+      "Start your streak today",
+      "Word of the day",
+      "Word saved', 'Added to your vocabulary"
+    ]
+  },
+  {
+    "file": "app/staff/[userId]/page.tsx",
+    "wired": false,
+    "count": 13,
+    "samples": [
+      "Back to staff",
+      "Compensation profile saved.",
+      "Missing user id in URL.",
+      "Not a staff member",
+      "Payout status",
+      "Profile saved.",
+      "Profile, compensation, earnings, and teaching statistics",
+      "Save failed",
+      "Staff member",
+      "Staff member not found",
+      "Staff profile",
+      "Super admin",
+      "This user is not a teacher or admin."
+    ]
+  },
+  {
+    "file": "app/system/MediaCaptionsPanel.tsx",
+    "wired": false,
+    "count": 13,
+    "samples": [
+      "Disabled",
+      "Enable auto captions",
+      "Failed to save media captions settings",
+      "Leave empty for auto-detect",
+      "Local Whisper",
+      "Local Whisper (whisper.cpp)",
+      "Media captions settings saved.",
+      "OpenAI Whisper API",
+      "OpenAI Whisper API key",
+      "STT provider",
+      "Save media captions",
+      "Source language (optional)",
+      "Target languages (comma-separated ISO codes)"
+    ]
+  },
+  {
+    "file": "features/materials/MaterialAssetsSection.tsx",
+    "wired": false,
+    "count": 13,
+    "samples": [
+      "Add more files",
+      "Choose file",
+      "Choose files",
+      "Delivery",
+      "File compression",
+      "File upload",
+      "Label (optional)",
+      "Paste an external link or upload a file.",
+      "Remove asset",
+      "Replace file",
+      "Role",
+      "URL link",
+      "URL only for Link assets"
+    ]
+  },
+  {
+    "file": "features/staff-payout/StaffMemberEarningsPanel.tsx",
+    "wired": false,
+    "count": 13,
+    "samples": [
+      "Accrued",
+      "Accrued vs paid trend",
+      "Completed lessons",
+      "Earnings period",
+      "Enter a positive payout amount.",
+      "Failed to record payout",
+      "Loading earnings…",
+      "No earnings data.",
+      "No trend data for this period.",
+      "Outstanding",
+      "Paid",
+      "Payout history",
+      "Recorded payouts"
+    ]
+  },
+  {
+    "file": "app/privacy/page.tsx",
+    "wired": false,
+    "count": 12,
+    "samples": [
+      "Account data",
+      "Analytics",
+      "Cloud hosting provider",
+      "PostHog",
+      "Profile → Account → Delete my account",
+      "Profile → Account → Export my data",
+      "Stripe",
+      "Technical data",
+      "To comply with legal obligations (tax, financial records — retained 7 years).",
+      "To provide and improve the platform.",
+      "To send lesson reminders and school notifications (opt-out in profile settings).",
+      "Usage data"
+    ]
+  },
+  {
+    "file": "app/profile/AvatarCropModal.tsx",
+    "wired": false,
+    "count": 12,
+    "samples": [
+      "Apply crop",
+      "Avatar conversion failed",
+      "Avatar crop workspace",
+      "Choose an image, move and scale square crop area, then apply compressed avatar.",
+      "Choose image",
+      "Close avatar modal",
+      "Drag",
+      "Processing…",
+      "Profile avatar",
+      "Profile media",
+      "Remove",
+      "Resize crop square"
+    ]
+  },
+  {
+    "file": "app/profile/ChangePasswordModal.tsx",
+    "wired": false,
+    "count": 12,
+    "samples": [
+      "Change password",
+      "Close password modal",
+      "Confirm new password",
+      "Current password",
+      "Enter your current password, then choose a new one (at least 8 characters).",
+      "Enter your current password.",
+      "Failed to change password",
+      "New password must be at least 8 characters.",
+      "New passwords do not match.",
+      "Password updated', 'Use your new password next time you sign in.",
+      "Saving…",
+      "Security"
+    ]
+  },
+  {
+    "file": "app/profile/LinkedAccountsPanel.tsx",
+    "wired": false,
+    "count": 12,
+    "samples": [
+      "Calendar &amp; Meet enabled",
+      "Calendar access missing — connect again",
+      "Connect Facebook",
+      "Connect Google",
+      "Connect Zoom",
+      "Connected",
+      "Connected accounts",
+      "Not connected",
+      "Reconnect Facebook",
+      "Reconnect Google",
+      "Reconnect Zoom",
+      "Verified"
+    ]
+  },
+  {
+    "file": "app/students/[studentId]/StudentDetailsPage.tsx",
+    "wired": false,
+    "count": 12,
+    "samples": [
+      "Back to students",
+      "Billing unavailable",
+      "Check the student link and try again.",
+      "Link this student to a backend account first.",
+      "No permission",
+      "Open chat",
+      "Overview, progress, billing, and lesson history",
+      "Practice unavailable",
+      "Statistics unavailable",
+      "Student not found",
+      "Student profile",
+      "You cannot manage this student."
+    ]
+  },
+  {
+    "file": "app/students/[studentId]/billing/BillingRulesSection.tsx",
+    "wired": false,
+    "count": 12,
+    "samples": [
+      "Allowed payment methods",
+      "Available for this student at checkout when enabled.",
+      "Billing rules",
+      "Core setup",
+      "How the student is billed",
+      "Incomplete",
+      "No payment methods are enabled yet in System → Payments.",
+      "No recommended template",
+      "No templates configured",
+      "Recommended",
+      "Recommended template",
+      "Saving…"
+    ]
+  },
+  {
+    "file": "features/vocabulary/WordDetailsModal.tsx",
+    "wired": false,
+    "count": 12,
+    "samples": [
+      "Additional senses from the English dictionary",
+      "Close",
+      "Dictionary (English)",
+      "English",
+      "Failed to load word details",
+      "Loading…",
+      "Main definition",
+      "Origin",
+      "Pronunciation variants",
+      "Related words",
+      "Translation",
+      "Word details"
+    ]
+  },
+  {
+    "file": "components/profile/TelegramConnectButton.tsx",
+    "wired": false,
+    "count": 11,
+    "samples": [
+      "Configure Telegram in System → Connections (super-admin), then restart the API",
+      "Connect via Telegram",
+      "Could not connect Telegram",
+      "Could not start Telegram link",
+      "Link expired', 'Click Connect again to get a new link.",
+      "Loading Telegram…",
+      "Open Telegram again",
+      "Start",
+      "Telegram connected",
+      "Telegram connected', 'Check Telegram for a welcome message.",
+      "Інструкція підключення Telegram"
+    ]
+  },
+  {
+    "file": "components/statistics/ProfileLiveStatistics.tsx",
+    "wired": false,
+    "count": 11,
+    "samples": [
+      "All figures below come from the database (GraphQL), not demo mocks.",
+      "Check that the API is running and try again.",
+      "Complete a lesson or add vocabulary to see activity here.",
+      "Could not load statistics",
+      "Lesson hours",
+      "Lessons completed",
+      "Lessons today",
+      "Loading statistics from the server…",
+      "No statistics yet",
+      "Sum of completed lesson durations",
+      "Vocabulary cards"
+    ]
+  },
+  {
+    "file": "components/statistics/StudentLiveStatistics.tsx",
+    "wired": false,
+    "count": 11,
+    "samples": [
+      "Check that the API is running and try again.",
+      "Complete a lesson or add vocabulary to see activity here.",
+      "Could not load statistics",
+      "Figures below are loaded from the database for this student.",
+      "Lesson hours",
+      "Lessons completed",
+      "Lessons today",
+      "Loading statistics from the server…",
+      "No statistics yet",
+      "Sum of completed lesson durations",
+      "Vocabulary cards"
+    ]
+  },
+  {
+    "file": "features/materials/MaterialFormModal.tsx",
+    "wired": false,
+    "count": 11,
+    "samples": [
+      "Add material",
+      "Close",
+      "Could not save material",
+      "Could not update material",
+      "Create material",
+      "Edit material",
+      "Editing",
+      "New entry",
+      "Save changes",
+      "Saving…",
+      "Title is required"
+    ]
+  },
+  {
+    "file": "app/calendar/CalendarDialogs.tsx",
+    "wired": false,
+    "count": 10,
+    "samples": [
+      "Are you sure you want to delete this lesson? This action cannot be undone.",
+      "Could not delete lesson",
+      "Could not delete series",
+      "Could not unlink lesson",
+      "Delete lesson?",
+      "Delete planned lessons in series?",
+      "Deleting…",
+      "Only this lesson will be detached. Other lessons in series will remain unchanged.",
+      "Unlink this lesson from series?",
+      "Unlinking…"
+    ]
+  },
+  {
+    "file": "app/calendar/sections.tsx",
+    "wired": false,
+    "count": 10,
+    "samples": [
+      "All teachers",
+      "Calendar audience",
+      "Calendar view",
+      "Filter by teacher",
+      "My students",
+      "Next period",
+      "No lessons scheduled",
+      "Open lesson",
+      "Previous period",
+      "Select a date"
+    ]
+  },
+  {
+    "file": "app/vocabulary/VocabularyFlashcardSection.tsx",
+    "wired": false,
+    "count": 10,
+    "samples": [
+      "All done!",
+      "All information",
+      "Fetching your words.",
+      "Got it",
+      "Loading…",
+      "No words match filters",
+      "Still learning",
+      "Synonyms",
+      "Tap to reveal",
+      "Try a different lesson, part of speech, or clear search."
+    ]
+  },
+  {
+    "file": "components/backend/LessonVideoRoom.tsx",
+    "wired": false,
+    "count": 10,
+    "samples": [
+      "Exit fullscreen",
+      "Exit picture-in-picture",
+      "Leave",
+      "Mute mic",
+      "Reconnecting…",
+      "Share screen",
+      "Stop sharing",
+      "Turn off camera",
+      "Turn on camera",
+      "Unmute mic"
+    ]
+  },
+  {
+    "file": "features/materials/MaterialDetailsSection.tsx",
+    "wired": false,
+    "count": 10,
+    "samples": [
+      "Add tag and press Enter",
+      "Choose cover image",
+      "Cover must be a JPEG, PNG, or WebP image",
+      "Level",
+      "Optional — helps teachers filter and find resources faster.",
+      "Oxford, Cambridge…",
+      "Press Enter or comma. Pick from suggestions below.",
+      "Publisher",
+      "Replace cover",
+      "Tags"
+    ]
+  },
+  {
+    "file": "features/staff-payout/StaffPayoutDefaultsPanel.tsx",
+    "wired": false,
+    "count": 10,
+    "samples": [
+      "Currency",
+      "Grace period",
+      "Lesson rate",
+      "Loading payout defaults…",
+      "Mode",
+      "Pay day",
+      "Salary",
+      "Saving…",
+      "School payout defaults preview",
+      "Staff payout defaults"
+    ]
+  },
+  {
+    "file": "app/admin/UsersTable.tsx",
+    "wired": false,
+    "count": 9,
+    "samples": [
+      "Created",
+      "Existing accounts",
+      "Loading…",
+      "Name",
+      "No accounts yet.",
+      "Refreshing…",
+      "Role",
+      "Super admin",
+      "Users"
+    ]
+  },
+  {
+    "file": "app/lessons/[lessonId]/LessonWorkspacePanel.tsx",
+    "wired": false,
+    "count": 9,
+    "samples": [
+      "Content workspace",
+      "Lesson snapshot",
+      "No homework notes in previous lesson.",
+      "No linked vocabulary in previous lesson.",
+      "No previous lesson found for this student.",
+      "Previous lesson context",
+      "Response pending",
+      "Response submitted",
+      "Review materials and submit your homework when the lesson is complete."
+    ]
+  },
+  {
+    "file": "app/practice/speaking/page.tsx",
+    "wired": false,
+    "count": 9,
+    "samples": [
+      "Assigned topics",
+      "Back to practice",
+      "Create discussion topics, use vocabulary prompts, record your voice, and get teacher feedback.",
+      "Loading submissions…",
+      "Loading topics…",
+      "No speaking topics yet",
+      "No submissions yet",
+      "Speaking practice",
+      "This topic and its submissions will be removed."
+    ]
+  },
+  {
+    "file": "app/students/StudentsGroupsPanel.tsx",
+    "wired": false,
+    "count": 9,
+    "samples": [
+      "Delete failed",
+      "Failed to load groups",
+      "Groups are managed by admins",
+      "Loading groups…",
+      "No groups yet",
+      "No teacher assigned",
+      "Save failed",
+      "Unknown student",
+      "Your administrator configures learning groups, members, and group payment rules."
+    ]
+  },
+  {
+    "file": "app/vocabulary/VocabularyPlaySection.tsx",
+    "wired": false,
+    "count": 9,
+    "samples": [
+      "By lesson",
+      "Finish game now?",
+      "Last lesson",
+      "Play source",
+      "Ready to play",
+      "Round complete",
+      "Select lesson",
+      "Without lesson",
+      "Word source"
+    ]
+  },
+  {
+    "file": "features/speaking/CreateSpeakingTopicCard.tsx",
+    "wired": false,
+    "count": 9,
+    "samples": [
+      "Create speaking topic",
+      "Create topic",
+      "Discussion prompt",
+      "Due date (optional)",
+      "New practice topic",
+      "New speaking topic for student",
+      "Personal note (optional)",
+      "Talk for one minute about how you usually spend your weekends.",
+      "Weekend plans"
+    ]
+  },
+  {
+    "file": "features/staff-payout/StaffCompensationPanel.tsx",
+    "wired": false,
+    "count": 9,
+    "samples": [
+      "Currency",
+      "Effective compensation",
+      "Grace period",
+      "Lesson rate",
+      "Loading compensation profile…",
+      "Mode",
+      "Pay day",
+      "Salary",
+      "Saving…"
+    ]
+  },
+  {
+    "file": "features/student-import/StudentImportPanel.tsx",
+    "wired": false,
+    "count": 9,
+    "samples": [
+      "CSV format example",
+      "Choose CSV file",
+      "Fix the errors and upload again.",
+      "Import failed",
+      "Import students from CSV",
+      "Name",
+      "No valid rows",
+      "Parsing…",
+      "Preview failed"
+    ]
+  },
+  {
+    "file": "app/dashboard/dashboard-widgets.tsx",
+    "wired": false,
+    "count": 8,
+    "samples": [
+      "Coming up this week",
+      "Homework to review",
+      "Lessons this month",
+      "Loading…",
+      "My students",
+      "New lesson",
+      "No students assigned yet.",
+      "No submitted homework waiting for review."
+    ]
+  },
+  {
+    "file": "app/payment/payment-ui.tsx",
+    "wired": false,
+    "count": 8,
+    "samples": [
+      "Account number",
+      "Bank",
+      "Card number",
+      "Cardholder",
+      "Country",
+      "Intermediary SWIFT",
+      "Payment purpose",
+      "Receiver"
+    ]
+  },
+  {
+    "file": "app/students/[studentId]/StudentSpeakingTab.tsx",
+    "wired": false,
+    "count": 8,
+    "samples": [
+      "Assigned topics",
+      "Create a discussion topic with optional vocabulary words for this student.",
+      "Loading submissions…",
+      "Loading topics…",
+      "No speaking topics",
+      "No submissions yet",
+      "Recordings to review",
+      "This topic will be removed for this student."
+    ]
+  },
+  {
+    "file": "app/system/BrandingPanel.tsx",
+    "wired": false,
+    "count": 8,
+    "samples": [
+      "Brand color",
+      "Branding",
+      "Enter a valid hex color to preview",
+      "Failed to save branding settings",
+      "Loading…",
+      "Logo URL",
+      "Saved.",
+      "Saving…"
+    ]
+  },
+  {
+    "file": "app/system/GeneralPanel.tsx",
+    "wired": false,
+    "count": 8,
+    "samples": [
+      "Enable group lessons for this school",
+      "Failed to save settings",
+      "Features",
+      "General",
+      "Group lessons",
+      "Loading…",
+      "Off",
+      "Video meetings"
+    ]
+  },
+  {
+    "file": "app/system/WordDictionaryPanel.tsx",
+    "wired": false,
+    "count": 8,
+    "samples": [
+      "Dictionary provider updated. New lookups use this source.",
+      "Failed to load dictionary settings",
+      "Language settings saved.",
+      "Loading dictionary settings…",
+      "Refreshing…",
+      "Save failed",
+      "Translation provider updated. New translations try this source first.",
+      "Word dictionary"
+    ]
+  },
+  {
+    "file": "app/system/connections/ConnectionsPanel.tsx",
+    "wired": false,
+    "count": 8,
+    "samples": [
+      "Connections",
+      "Failed to load connection settings",
+      "Loading…",
+      "Redirect URLs (optional)",
+      "Save failed",
+      "Saving…",
+      "Verification failed",
+      "my_school_bot"
+    ]
+  },
+  {
+    "file": "features/quiz/QuizPlaySession.tsx",
+    "wired": false,
+    "count": 8,
+    "samples": [
+      "Failed to load quiz",
+      "Failed to submit quiz",
+      "Finish practice",
+      "Listen",
+      "Loading quiz…",
+      "Submit quiz",
+      "This quiz has no questions.",
+      "Type your answer here..."
+    ]
+  },
+  {
+    "file": "components/lessons/LessonsListPanel.tsx",
+    "wired": false,
+    "count": 7,
+    "samples": [
+      "All lessons loaded",
+      "Filter by status",
+      "Loading lessons…",
+      "Loading more lessons…",
+      "No lessons match your filters.",
+      "Search lessons",
+      "Search title, teacher, or student..."
+    ]
+  },
+  {
+    "file": "components/profile/SchoolSection.tsx",
+    "wired": false,
+    "count": 7,
+    "samples": [
+      "Fixed schedule",
+      "Flexible schedule",
+      "How this student participates in individual and group lessons.",
+      "Lesson format",
+      "School settings",
+      "User color",
+      "Which lesson types this student can take."
+    ]
+  },
+  {
+    "file": "components/quiz/QuizAssignmentCards.tsx",
+    "wired": false,
+    "count": 7,
+    "samples": [
+      "Delete quiz",
+      "No quizzes yet.",
+      "Not completed yet",
+      "Start Quiz",
+      "Student score",
+      "Try again",
+      "Your score"
+    ]
+  },
+  {
+    "file": "features/materials/LessonLibraryMaterialPanel.tsx",
+    "wired": false,
+    "count": 7,
+    "samples": [
+      "Audio & video",
+      "Audio & video for student",
+      "Clear all",
+      "Play",
+      "Share all",
+      "Share with student · Play to preview",
+      "Teacher only"
+    ]
+  },
+  {
+    "file": "features/materials/LibraryMaterialPicker.tsx",
+    "wired": false,
+    "count": 7,
+    "samples": [
+      "Attach reusable school materials to this lesson.",
+      "Close",
+      "Loading library…",
+      "Material type",
+      "No matching materials in the library.",
+      "Search library",
+      "Search materials…"
+    ]
+  },
+  {
+    "file": "features/materials/book-viewer/BookViewerPage.tsx",
+    "wired": false,
+    "count": 7,
+    "samples": [
+      "Could not load book",
+      "Next page",
+      "Previous page",
+      "Save failed",
+      "View only",
+      "Zoom in",
+      "Zoom out"
+    ]
+  },
+  {
+    "file": "features/staff-payout/StaffPayoutHistoryPanel.tsx",
+    "wired": false,
+    "count": 7,
+    "samples": [
+      "All staff",
+      "Failed to load more payouts",
+      "Failed to load payouts",
+      "Loading more…",
+      "Loading payout history…",
+      "No payouts recorded for this filter.",
+      "Recent payouts"
+    ]
+  },
+  {
+    "file": "features/vocabulary/LessonVocabularyAddPanel.tsx",
+    "wired": false,
+    "count": 7,
+    "samples": [
+      "Add to lesson",
+      "English word or phrase, e.g. touch base",
+      "Failed to add word",
+      "In dictionary",
+      "Looking up…",
+      "Lookup failed",
+      "This word is already linked to the lesson."
+    ]
+  },
+  {
+    "file": "features/vocabulary/word-details/WordDetailsProvenance.tsx",
+    "wired": false,
+    "count": 7,
+    "samples": [
+      "Data sources",
+      "Dictionary",
+      "How this entry was looked up and translated",
+      "Not stored for this entry yet. Updates on the next enrichment.",
+      "Related words",
+      "Translation",
+      "Word data sources"
+    ]
+  },
+  {
+    "file": "app/students/[studentId]/StudentQuizTab.tsx",
+    "wired": false,
+    "count": 6,
+    "samples": [
+      "Assigned quizzes",
+      "Complete assigned quizzes and review your scores.",
+      "Loading quizzes…",
+      "No quizzes assigned yet.",
+      "This quiz will be permanently deleted for this student.",
+      "Your quizzes"
+    ]
+  },
+  {
+    "file": "app/system/VideoMeetingsPanel.tsx",
+    "wired": false,
+    "count": 6,
+    "samples": [
+      "Connections",
+      "Failed to load settings",
+      "Failed to save",
+      "Google Meet",
+      "Loading video meetings…",
+      "Video meeting provider"
+    ]
+  },
+  {
+    "file": "app/vocabulary/VocabularyListSection.tsx",
+    "wired": false,
+    "count": 6,
+    "samples": [
+      "Add your first word using the form above.",
+      "Fetching your words.",
+      "Loading vocabulary…",
+      "No words match filters",
+      "No words yet",
+      "Try a different filter or clear search."
+    ]
+  },
+  {
+    "file": "features/irregular-verbs/IrregularVerbsPlaySetup.tsx",
+    "wired": false,
+    "count": 6,
+    "samples": [
+      "Form focus",
+      "Past participle",
+      "Past simple",
+      "Question count",
+      "Questions",
+      "Three Forms Drill"
+    ]
+  },
+  {
+    "file": "features/lesson-modal/lesson-content-tab/LessonStudentResponseSection.tsx",
+    "wired": false,
+    "count": 6,
+    "samples": [
+      "Accepted",
+      "Not submitted",
+      "Opens after the lesson is completed",
+      "Reopen (needs rework)",
+      "Save",
+      "Submitted"
+    ]
+  },
+  {
+    "file": "features/speaking/SpeakingSubmissionReviewPanel.tsx",
+    "wired": false,
+    "count": 6,
+    "samples": [
+      "Failed to save feedback",
+      "No audio uploaded yet.",
+      "Save feedback",
+      "Share pronunciation notes, grammar tips, or encouragement…",
+      "Teacher comment",
+      "Update feedback"
+    ]
+  },
+  {
+    "file": "app/admin/CreateAccountForm.tsx",
+    "wired": false,
+    "count": 5,
+    "samples": [
+      "Account basics",
+      "Create account",
+      "Optional — defaults from email",
+      "Profile details",
+      "Super admin"
+    ]
+  },
+  {
+    "file": "app/practice/irregular-verbs/page.tsx",
+    "wired": false,
+    "count": 5,
+    "samples": [
+      "Back to practice",
+      "Ready to practice?",
+      "Search base or past forms…",
+      "Search verbs",
+      "Verb list scope"
+    ]
+  },
+  {
+    "file": "app/students/[studentId]/TeacherMessageCompose.tsx",
+    "wired": false,
+    "count": 5,
+    "samples": [
+      "Failed to send message",
+      "Message sent",
+      "Send message",
+      "The student receives an email when teacher messages are enabled.",
+      "Write your message…"
+    ]
+  },
+  {
+    "file": "app/system/word-dictionary/DictionarySourceSection.tsx",
+    "wired": false,
+    "count": 5,
+    "samples": [
+      "Active",
+      "Dictionary source",
+      "Save provider",
+      "Saving…",
+      "Structured English entry for phonetics, part of speech, and definitions."
+    ]
+  },
+  {
+    "file": "app/vocabulary/VocabularyStatsRow.tsx",
+    "wired": false,
+    "count": 5,
+    "samples": [
+      "Filter words by status",
+      "Learned",
+      "New",
+      "Repeated",
+      "Total"
+    ]
+  },
+  {
+    "file": "components/backend/LessonMeetButton.tsx",
+    "wired": false,
+    "count": 5,
+    "samples": [
+      "Join Google Meet",
+      "Join Zoom",
+      "Join meeting",
+      "Open meeting",
+      "The meeting is created when the lesson is saved."
+    ]
+  },
+  {
+    "file": "components/backend/LessonPreJoin.tsx",
+    "wired": false,
+    "count": 5,
+    "samples": [
+      "Mute mic",
+      "Starting camera…",
+      "Turn off camera",
+      "Turn on camera",
+      "Unmute mic"
+    ]
+  },
+  {
+    "file": "components/profile/UnifiedProfilePanel.tsx",
+    "wired": false,
+    "count": 5,
+    "samples": [
+      "Loading profile…",
+      "Profile overview",
+      "Save profile",
+      "Saved",
+      "Saving…"
+    ]
+  },
+  {
+    "file": "features/materials/MaterialOverviewSection.tsx",
+    "wired": false,
+    "count": 5,
+    "samples": [
+      "Choose a type and give the material a clear title.",
+      "Description",
+      "Material type",
+      "What is this resource for? Who should use it?",
+      "e.g. B1 Grammar board, Oxford Workbook…"
+    ]
+  },
+  {
+    "file": "features/materials/book-viewer/AnnotationToolbar.tsx",
+    "wired": false,
+    "count": 5,
+    "samples": [
+      "Colors",
+      "Drawing tools",
+      "Remove my additions",
+      "Stroke",
+      "Undo"
+    ]
+  },
+  {
+    "file": "features/speaking/SpeakingRecordSession.tsx",
+    "wired": false,
+    "count": 5,
+    "samples": [
+      "Microphone access denied",
+      "Playback position",
+      "Ready to record",
+      "Upload failed",
+      "Uploading…"
+    ]
+  },
+  {
+    "file": "features/speaking/SpeakingTopicWordPicker.tsx",
+    "wired": false,
+    "count": 5,
+    "samples": [
+      "Add word via lookup…",
+      "Adding…",
+      "Failed to add word",
+      "No vocabulary cards yet — add words below or from the student deck.",
+      "Words to use (optional)"
+    ]
+  },
+  {
+    "file": "features/students/StudentLearningLanguagesField.tsx",
+    "wired": false,
+    "count": 5,
+    "samples": [
+      "Failed to save",
+      "Languages learning",
+      "Languages saved.",
+      "Native language",
+      "Save languages"
+    ]
+  },
+  {
+    "file": "app/students/[studentId]/StudentLessonsTab.tsx",
+    "wired": false,
+    "count": 4,
+    "samples": [
+      "Filter lessons by format",
+      "No lessons match your filters.",
+      "No lessons yet",
+      "Plan a lesson in the Schedule tab."
+    ]
+  },
+  {
+    "file": "app/students/[studentId]/useStudentHeroData.tsx",
+    "wired": false,
+    "count": 4,
+    "samples": [
+      "Fixed schedule",
+      "Flexible schedule",
+      "Group billing",
+      "Individual balance"
+    ]
+  },
+  {
+    "file": "app/system/word-dictionary/TranslationSourceSection.tsx",
+    "wired": false,
+    "count": 4,
+    "samples": [
+      "Active",
+      "Save translation provider",
+      "Saving…",
+      "Translation source"
+    ]
+  },
+  {
+    "file": "components/layout/HeaderSearch.tsx",
+    "wired": false,
+    "count": 4,
+    "samples": [
+      "Ctrl K",
+      "No matches. Press Enter to search vocabulary.",
+      "Search",
+      "Search lessons, words, students…"
+    ]
+  },
+  {
+    "file": "components/profile/profile-form-sections.tsx",
+    "wired": false,
+    "count": 4,
+    "samples": [
+      "Account & bio",
+      "Contact & timezone",
+      "Identity",
+      "Learning"
+    ]
+  },
+  {
+    "file": "features/irregular-verbs/IrregularVerbsTable.tsx",
+    "wired": false,
+    "count": 4,
+    "samples": [
+      "Base form",
+      "No verbs match your search.",
+      "Past participle",
+      "Past simple"
+    ]
+  },
+  {
+    "file": "features/materials/MaterialViewerRouter.tsx",
+    "wired": false,
+    "count": 4,
+    "samples": [
+      "Failed to load file",
+      "Loading…",
+      "Opening player…",
+      "This file type cannot be opened in the viewer."
+    ]
+  },
+  {
+    "file": "features/materials/media-viewer/SessionNotesPanel.tsx",
+    "wired": false,
+    "count": 4,
+    "samples": [
+      "Add a note at the current playback time.",
+      "Remove note",
+      "Session notes",
+      "Write a note…"
+    ]
+  },
+  {
+    "file": "features/staff-payout/StaffProfileFields.tsx",
+    "wired": false,
+    "count": 4,
+    "samples": [
+      "Account & bio",
+      "Contact & timezone",
+      "Identity",
+      "Short internal note about this staff member…"
+    ]
+  },
+  {
+    "file": "features/staff-payout/StaffSummaryCard.tsx",
+    "wired": false,
+    "count": 4,
+    "samples": [
+      "Accrued",
+      "Compensation snapshot",
+      "Next pay",
+      "Super admin"
+    ]
+  },
+  {
+    "file": "app/chat/NewDirectModal.tsx",
+    "wired": false,
+    "count": 3,
+    "samples": [
+      "No people match your search.",
+      "Search people",
+      "Search people..."
+    ]
+  },
+  {
+    "file": "app/quiz/sections.tsx",
+    "wired": false,
+    "count": 3,
+    "samples": [
+      "Accuracy",
+      "Correct",
+      "Wrong"
+    ]
+  },
+  {
+    "file": "app/students/[studentId]/StudentVocabularyTab.tsx",
+    "wired": false,
+    "count": 3,
+    "samples": [
+      "All lessons",
+      "Could not remove word",
+      "This word will be removed from the student vocabulary."
+    ]
+  },
+  {
+    "file": "app/system/connections/integration-ui.tsx",
+    "wired": false,
+    "count": 3,
+    "samples": [
+      "Enter value to change",
+      "Not set",
+      "Saved in platform settings"
+    ]
+  },
+  {
+    "file": "app/system/payment/PaymentMethodCard.tsx",
+    "wired": false,
+    "count": 3,
+    "samples": [
+      "Live mode",
+      "Not configured",
+      "Test mode"
+    ]
+  },
+  {
+    "file": "app/system/payment/PaymentsMethodSection.tsx",
+    "wired": false,
+    "count": 3,
+    "samples": [
+      "Checkout currency support",
+      "Payment methods",
+      "Set variant currency in method config"
+    ]
+  },
+  {
+    "file": "app/system/payment/ProviderSetupGuide.tsx",
+    "wired": false,
+    "count": 3,
+    "samples": [
+      "Environment variables",
+      "Pricing:",
+      "Provider setup instructions"
+    ]
+  },
+  {
+    "file": "app/vocabulary/VocabularyAddWordBar.tsx",
+    "wired": false,
+    "count": 3,
+    "samples": [
+      "Add a word or phrase (English), e.g. touch base",
+      "Add word",
+      "Failed to add word"
+    ]
+  },
+  {
+    "file": "components/brand/BrandLogo.tsx",
+    "wired": false,
+    "count": 3,
+    "samples": [
+      "Arvilio",
+      "Arvilio — go to dashboard",
+      "Campus"
+    ]
+  },
+  {
+    "file": "components/layout/Sidebar.tsx",
+    "wired": false,
+    "count": 3,
+    "samples": [
+      "Collapse sidebar",
+      "Expand sidebar",
+      "Expanded sidebar on tablet is not available"
+    ]
+  },
+  {
+    "file": "components/payments/PaymentMethodLogos.tsx",
+    "wired": false,
+    "count": 3,
+    "samples": [
+      "Accepted payment methods",
+      "Lemon Squeezy",
+      "Secure checkout via your school’s payment provider"
+    ]
+  },
+  {
+    "file": "features/lesson-modal/LessonModalHeader.tsx",
+    "wired": false,
+    "count": 3,
+    "samples": [
+      "Create lesson",
+      "Lesson details",
+      "View lesson details, homework and your response."
+    ]
+  },
+  {
+    "file": "features/lesson-modal/lesson-content-tab/LessonVocabularySection.tsx",
+    "wired": false,
+    "count": 3,
+    "samples": [
+      "All information",
+      "Lesson vocabulary",
+      "Remove"
+    ]
+  },
+  {
+    "file": "features/materials/book-viewer/PageNavigator.tsx",
+    "wired": false,
+    "count": 3,
+    "samples": [
+      "First page",
+      "Last page",
+      "Page number"
+    ]
+  },
+  {
+    "file": "features/materials/media-viewer/MediaViewerModal.tsx",
+    "wired": false,
+    "count": 3,
+    "samples": [
+      "Failed to load media",
+      "Loading player…",
+      "This file cannot be played in the media viewer."
+    ]
+  },
+  {
+    "file": "features/materials/media-viewer/MediaViewerShell.tsx",
+    "wired": false,
+    "count": 3,
+    "samples": [
+      "Close player",
+      "Failed to start caption generation.",
+      "Starting…"
+    ]
+  },
+  {
+    "file": "features/quiz/QuizResultScreen.tsx",
+    "wired": false,
+    "count": 3,
+    "samples": [
+      "Practice complete",
+      "Practice runs are not saved for the student.",
+      "Review mistakes"
+    ]
+  },
+  {
+    "file": "features/staff-payout/StaffCompensationProfileFields.tsx",
+    "wired": false,
+    "count": 3,
+    "samples": [
+      "Overdue rules",
+      "Pay schedule",
+      "Pay structure"
+    ]
+  },
+  {
+    "file": "features/staff-payout/StaffPayoutDefaultsFields.tsx",
+    "wired": false,
+    "count": 3,
+    "samples": [
+      "Default pay schedule",
+      "Default pay structure",
+      "Overdue rules"
+    ]
+  },
+  {
+    "file": "features/staff-payout/StaffProfilePanel.tsx",
+    "wired": false,
+    "count": 3,
+    "samples": [
+      "Could not load profile",
+      "Save profile",
+      "Try refreshing the page."
+    ]
+  },
+  {
+    "file": "app/chat/CreateGroupModal.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "No contacts available for a group yet.",
+      "e.g. Study group"
+    ]
+  },
+  {
+    "file": "app/chat/page.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "Create group",
+      "New message"
+    ]
+  },
+  {
+    "file": "app/students/[studentId]/StudentPracticeTab.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "Practice areas",
+      "Your vocabulary and assigned quizzes in one place."
+    ]
+  },
+  {
+    "file": "app/system/payment/PaymentMethodConfigModal.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "Close payment method settings",
+      "Saving…"
+    ]
+  },
+  {
+    "file": "app/system/payment/PayoutsDefaultsPanel.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "Payout defaults saved.",
+      "Save failed"
+    ]
+  },
+  {
+    "file": "app/vocabulary/VocabularyFiltersBar.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "Part of speech",
+      "Search words..."
+    ]
+  },
+  {
+    "file": "app/vocabulary/VocabularyWordCards.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "All information",
+      "Remove word"
+    ]
+  },
+  {
+    "file": "components/backend/LessonVideoEmbed.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "Connecting to lesson room…",
+      "Connection failed"
+    ]
+  },
+  {
+    "file": "components/layout/Header.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "Create lesson",
+      "Open navigation menu"
+    ]
+  },
+  {
+    "file": "components/lessons/LessonPartyScheduleTimes.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "Lesson time",
+      "Your time"
+    ]
+  },
+  {
+    "file": "components/statistics/StatsRangeFilter.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "From",
+      "Statistics range"
+    ]
+  },
+  {
+    "file": "components/students/StudentSummaryCard.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "Learning snapshot",
+      "Streak"
+    ]
+  },
+  {
+    "file": "components/ui/TagInput.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "Suggested tags",
+      "Type and press Enter"
+    ]
+  },
+  {
+    "file": "features/irregular-verbs/IrregularVerbsPlaySession.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "Choose the correct form",
+      "Not enough verbs to build a drill. Try another set."
+    ]
+  },
+  {
+    "file": "features/irregular-verbs/IrregularVerbsResult.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "Practice runs are not saved to your vocabulary queue.",
+      "Review mistakes"
+    ]
+  },
+  {
+    "file": "features/materials/book-viewer/BookViewerLoadingOverlay.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "Loading notes…",
+      "Preparing…"
+    ]
+  },
+  {
+    "file": "features/materials/book-viewer/PdfPageCanvas.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "Failed to load PDF",
+      "Failed to render PDF page"
+    ]
+  },
+  {
+    "file": "features/speaking/SpeakingTopicCard.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "Delete topic",
+      "Your recording"
+    ]
+  },
+  {
+    "file": "features/vocabulary/word-details/WordDetailsEnglishSenses.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "Antonyms:",
+      "Synonyms:"
+    ]
+  },
+  {
+    "file": "features/vocabulary/word-details/WordDetailsRelatedWords.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "Antonyms",
+      "Synonyms"
+    ]
+  },
+  {
+    "file": "features/vocabulary/word-details/WordDetailsTranslations.tsx",
+    "wired": false,
+    "count": 2,
+    "samples": [
+      "Definition",
+      "Word"
+    ]
+  },
+  {
+    "file": "app/(auth)/auth-loading.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Loading"
+    ]
+  },
+  {
+    "file": "app/calendar/CalendarMonthView.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Drop lesson here"
+    ]
+  },
+  {
+    "file": "app/calendar/CalendarWeekView.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Week schedule"
+    ]
+  },
+  {
+    "file": "app/chat/ChatEmojiPicker.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Emoji"
+    ]
+  },
+  {
+    "file": "app/not-found.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Page not found"
+    ]
+  },
+  {
+    "file": "app/payment/PackageSelector.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Total to pay"
+    ]
+  },
+  {
+    "file": "app/students/[studentId]/StudentPageSkeleton.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Loading student page"
+    ]
+  },
+  {
+    "file": "app/students/[studentId]/StudentProfileTab.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Save student data"
+    ]
+  },
+  {
+    "file": "app/students/[studentId]/TabPanelLoading.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Loading tab content"
+    ]
+  },
+  {
+    "file": "app/system/connections/ConnectionProviderSection.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Documentation"
+    ]
+  },
+  {
+    "file": "app/system/word-dictionary/word-dictionary-ui.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Requires a paid service subscription"
+    ]
+  },
+  {
+    "file": "app/vocabulary/VocabularyModeToggle.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Vocabulary mode"
+    ]
+  },
+  {
+    "file": "components/billing/LessonBalanceLedgerActivity.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "No balance changes yet. Top up or complete a lesson to see activity here."
+    ]
+  },
+  {
+    "file": "components/layout/ImpersonationBanner.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Stopping…"
+    ]
+  },
+  {
+    "file": "components/layout/MobileNavDrawer.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Close menu"
+    ]
+  },
+  {
+    "file": "components/legal/LegalFooter.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Legal"
+    ]
+  },
+  {
+    "file": "components/legal/LegalPageShell.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Loading…"
+    ]
+  },
+  {
+    "file": "components/profile/LessonFormatField.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Lesson format"
+    ]
+  },
+  {
+    "file": "components/profile/ProfileAchievementsPanel.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Achievements"
+    ]
+  },
+  {
+    "file": "components/profile/ProfileViewShell.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Profile tabs"
+    ]
+  },
+  {
+    "file": "components/statistics/StatisticsKpiGrid.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Statistics metric for selected period."
+    ]
+  },
+  {
+    "file": "components/students/StudentSelectField.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Select student"
+    ]
+  },
+  {
+    "file": "components/ui/CookieConsentBanner.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Cookie consent"
+    ]
+  },
+  {
+    "file": "components/ui/EntitlementsWidget.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Storage"
+    ]
+  },
+  {
+    "file": "components/ui/UpgradePrompt.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Storage quota exceeded."
+    ]
+  },
+  {
+    "file": "features/confirm/ConfirmDialogHost.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Danger action"
+    ]
+  },
+  {
+    "file": "features/lesson-modal/ImagePreviewOverlay.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Press Esc or click outside to close"
+    ]
+  },
+  {
+    "file": "features/lesson-modal/LessonSetupTab.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Teacher"
+    ]
+  },
+  {
+    "file": "features/lesson-modal/lesson-content-tab/LessonMaterialsSection.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Add from library"
+    ]
+  },
+  {
+    "file": "features/materials/MaterialCard.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Deleting…"
+    ]
+  },
+  {
+    "file": "features/materials/MaterialSaveProgressPanel.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Material saved"
+    ]
+  },
+  {
+    "file": "features/materials/book-viewer/AnnotationLayer.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Type here…"
+    ]
+  },
+  {
+    "file": "features/notifications/ToastViewport.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Close notification"
+    ]
+  },
+  {
+    "file": "features/speaking/AudioPlayer.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Playback position"
+    ]
+  },
+  {
+    "file": "features/staff-payout/RecordStaffPayoutForm.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Saving…"
+    ]
+  },
+  {
+    "file": "features/staff-payout/RecordStaffPayoutModal.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Close"
+    ]
+  },
+  {
+    "file": "features/vocabulary/WordCardAudioButton.tsx",
+    "wired": false,
+    "count": 1,
+    "samples": [
+      "Play pronunciation"
+    ]
+  },
+  {
+    "file": "app/profile/panels.tsx",
+    "wired": true,
+    "count": 35,
+    "samples": [
+      "Account actions",
+      "Change",
+      "Change password",
+      "Daily word of the day notification",
+      "Delete my account",
+      "Deleting…",
+      "End your current session on this device",
+      "Export my data",
+      "Exporting…",
+      "Font size",
+      "Font size selector",
+      "Get notified 30 minutes before each lesson",
+      "Lesson reminders",
+      "Lessons and speaking reviews for your students.",
+      "Log out",
+      "Logging out…",
+      "New vocabulary",
+      "Notifications",
+      "Notifications when your teacher sends a message",
+      "Password sign-in is not enabled for this account.",
+      "Reminder to keep your daily streak alive",
+      "Replay product tour",
+      "Save changes",
+      "Sensitive changes for your sign-in credentials.",
+      "Session",
+      "Starting…",
+      "Streak alerts",
+      "Summary of your progress every Monday",
+      "Teacher messages",
+      "Theme"
+    ]
+  },
+  {
+    "file": "app/payment/page.tsx",
+    "wired": true,
+    "count": 24,
+    "samples": [
+      "Add the payment reference shown below (usually your name).",
+      "Card transfer",
+      "Checkout failed",
+      "Checkout summary",
+      "Choose a package, pay securely online, or transfer to your school’s bank account.",
+      "Confirm the package below, then complete checkout on the right.",
+      "Group lessons",
+      "Group rate",
+      "Important",
+      "Individual lessons",
+      "Individual rate",
+      "Lessons remaining on your prepaid balance.",
+      "Loading payment options…",
+      "Manual invoice",
+      "No bank transfer templates are available for your account.",
+      "No payment options yet",
+      "Order summary",
+      "Pay online",
+      "Payment reference",
+      "Redirecting…",
+      "Select a package to see your total.",
+      "Send the receipt to your school — lessons are credited after confirmation.",
+      "Transfer the package amount using the details for your region.",
+      "Your balance"
+    ]
+  },
+  {
+    "file": "app/finance/page.tsx",
+    "wired": true,
+    "count": 21,
+    "samples": [
+      "Accrued",
+      "Accrued vs paid trend",
+      "Action",
+      "Could not load finance data",
+      "Enter a positive payout amount.",
+      "Failed to record payout",
+      "Finance period",
+      "Loading finance overview…",
+      "Mode",
+      "Name",
+      "Next pay",
+      "No staff rows.",
+      "No trend data for this period.",
+      "Outstanding",
+      "Paid",
+      "Recorded payouts in period",
+      "Role",
+      "Staff balances",
+      "Staff breakdown (accrued)",
+      "Track accrued pay, record manual payouts, and monitor outstanding balances for teachers and admins.",
+      "Unknown error"
+    ]
+  },
+  {
+    "file": "app/lessons/page.tsx",
+    "wired": true,
+    "count": 20,
+    "samples": [
+      "Highlights",
+      "Homework status:",
+      "Lesson highlights",
+      "Lesson workspace overview",
+      "Materials:",
+      "Needs rework",
+      "Next and previous checkpoints",
+      "No homework",
+      "No homework assigned",
+      "No lesson notes yet.",
+      "No lessons yet",
+      "No upcoming lessons",
+      "Not submitted",
+      "Opens after the lesson",
+      "Schedule the next lesson to keep the momentum going.",
+      "Your course schedule — upcoming and past lessons in one place.",
+      "Your first completed lesson will appear here.",
+      "Your next lesson",
+      "Your previous lesson",
+      "Your teacher hasn&apos;t scheduled the next lesson yet. Check back soon."
+    ]
+  },
+  {
+    "file": "app/onboarding/page.tsx",
+    "wired": true,
+    "count": 19,
+    "samples": [
+      "Accent color",
+      "Could not save",
+      "Default language",
+      "Default lesson format",
+      "English",
+      "Hybrid",
+      "In person",
+      "Languages you teach",
+      "Lemon Squeezy",
+      "Loading payment options…",
+      "Loading…",
+      "Manual invoice",
+      "No thanks",
+      "Online",
+      "Saving…",
+      "Seed demo lessons & materials?",
+      "Timezone",
+      "Ukrainian",
+      "Yes, add sample content"
+    ]
+  },
+  {
+    "file": "app/billing/page.tsx",
+    "wired": true,
+    "count": 18,
+    "samples": [
+      "Applying…",
+      "Checkout cancelled — no changes were made.",
+      "Could not apply promo code",
+      "Could not open billing portal",
+      "Could not start checkout",
+      "Current plan",
+      "Enter a trial-extension code to add more days to your free trial.",
+      "Failed to load billing",
+      "Have a promo code?",
+      "Loading…",
+      "Opening…",
+      "Promo code",
+      "Redirecting…",
+      "Storage",
+      "Subscription updated — thank you!",
+      "Trial extension code",
+      "e.g. LAUNCH20",
+      "e.g. PARTNER30"
+    ]
+  },
+  {
+    "file": "app/dashboard/page.tsx",
+    "wired": true,
+    "count": 17,
+    "samples": [
+      "Backend offline",
+      "Fetching your schedule.",
+      "Go to practice",
+      "Homework to review",
+      "Lessons completed",
+      "Lessons today",
+      "Loading lessons…",
+      "Next on your schedule",
+      "No words due for review right now.",
+      "On your roster",
+      "Open lesson",
+      "Quick action",
+      "Scheduled lesson",
+      "Today in your learning",
+      "Vocabulary cards",
+      "Vocabulary focus",
+      "Your calendar is clear for today."
+    ]
+  },
+  {
+    "file": "app/quiz/page.tsx",
+    "wired": true,
+    "count": 15,
+    "samples": [
+      "Back to practice",
+      "Back to quiz overview",
+      "Complete assigned quizzes and review your scores",
+      "Create a quiz in the grid below, then press Start Quiz.",
+      "Generate a quiz from your vocabulary to get started.",
+      "Manage quizzes",
+      "Minutes",
+      "No available quizzes yet",
+      "No quizzes assigned yet. Check back after your next lesson.",
+      "Questions",
+      "Quiz not found or has no questions.",
+      "Quizzes",
+      "This quiz has no questions.",
+      "This quiz will be permanently deleted.",
+      "Your quizzes"
+    ]
+  },
+  {
+    "file": "app/legal/contacts/page.tsx",
+    "wired": true,
+    "count": 11,
+    "samples": [
+      "Address:",
+      "Country:",
+      "Email:",
+      "Legal entity",
+      "Legal name:",
+      "MCC:",
+      "Not published yet",
+      "Phone:",
+      "School",
+      "School name unavailable for this host.",
+      "Support"
+    ]
+  },
+  {
+    "file": "app/materials/page.tsx",
+    "wired": true,
+    "count": 11,
+    "samples": [
+      "Could not load materials",
+      "Interrupted upload",
+      "Loading materials…",
+      "Loading…",
+      "No materials yet",
+      "Refreshing library…",
+      "School library of boards, presentations, books, and reusable lesson resources.",
+      "Search materials",
+      "Search materials…",
+      "Unknown error",
+      "View mode"
+    ]
+  },
+  {
+    "file": "app/admin/page.tsx",
+    "wired": true,
+    "count": 9,
+    "samples": [
+      "Accounts overview",
+      "Active accounts",
+      "All accounts",
+      "Could not delete user",
+      "Create student accounts. Login credentials are emailed to the user.",
+      "Delete account",
+      "Failed to create user",
+      "Failed to delete user",
+      "Super admin"
+    ]
+  },
+  {
+    "file": "app/lessons/[lessonId]/page.tsx",
+    "wired": true,
+    "count": 9,
+    "samples": [
+      "Back to lessons",
+      "Could not save lesson",
+      "Could not save lesson',",
+      "Could not save response",
+      "Could not save response',",
+      "Failed to save lesson",
+      "Failed to save response",
+      "Lesson saved",
+      "Response submitted"
+    ]
+  },
+  {
+    "file": "app/calendar/page.tsx",
+    "wired": true,
+    "count": 8,
+    "samples": [
+      "Another lesson already exists for this time.",
+      "Cannot resize into past time",
+      "Completed or cancelled lessons in this series are kept.",
+      "Lesson duration cannot be changed into a past time slot.",
+      "Month and week views of your upcoming lessons",
+      "No planned lessons",
+      "This teacher already has a lesson in this time slot.",
+      "Time slot is busy"
+    ]
+  },
+  {
+    "file": "app/practice/page.tsx",
+    "wired": true,
+    "count": 7,
+    "samples": [
+      "Could not load practice stats.",
+      "Due for review",
+      "Loading",
+      "Quizzes open",
+      "Ready to finish",
+      "Stats",
+      "Vocabulary queue"
+    ]
+  },
+  {
+    "file": "app/staff/page.tsx",
+    "wired": true,
+    "count": 7,
+    "samples": [
+      "Could not load staff roster",
+      "Loading staff…",
+      "No other teachers or admins in this period.",
+      "No staff members found",
+      "Staff period",
+      "Teachers and admins — open a profile to adjust compensation, review earnings, and view lesson statistics.",
+      "Unknown error"
+    ]
+  },
+  {
+    "file": "app/students/page.tsx",
+    "wired": true,
+    "count": 7,
+    "samples": [
+      "Could not load students",
+      "Loading students…",
+      "No students are currently assigned to you.",
+      "No students found.",
+      "No students in this scope",
+      "Students page view",
+      "Unknown error"
+    ]
+  },
+  {
+    "file": "app/(auth)/reset-password/page.tsx",
+    "wired": true,
+    "count": 6,
+    "samples": [
+      "Could not reset password",
+      "New password must be at least 8 characters.",
+      "Password reset link is missing or invalid.",
+      "Passwords do not match.",
+      "This reset link is incomplete. Request a fresh one below.",
+      "Updating…"
+    ]
+  },
+  {
+    "file": "features/lesson-modal/LessonModal.tsx",
+    "wired": true,
+    "count": 6,
+    "samples": [
+      "Changes are applied immediately after saving.",
+      "Date is required",
+      "Saving…",
+      "Start time is required",
+      "Title is required",
+      "You can review lesson details and submit your response."
+    ]
+  },
+  {
+    "file": "app/profile/page.tsx",
+    "wired": true,
+    "count": 4,
+    "samples": [
+      "Active learner",
+      "Change avatar",
+      "Left program",
+      "Super admin"
+    ]
+  },
+  {
+    "file": "app/system/page.tsx",
+    "wired": true,
+    "count": 4,
+    "samples": [
+      "Diagnostics first",
+      "Super-admin scope",
+      "System overview",
+      "System sections"
+    ]
+  },
+  {
+    "file": "app/vocabulary/page.tsx",
+    "wired": true,
+    "count": 4,
+    "samples": [
+      "All lessons",
+      "Back to practice",
+      "Could not remove word",
+      "This word will be removed from your vocabulary list."
+    ]
+  },
+  {
+    "file": "app/(auth)/forgot-password/page.tsx",
+    "wired": true,
+    "count": 3,
+    "samples": [
+      "Check your inbox",
+      "Could not send reset email",
+      "Sending…"
+    ]
+  },
+  {
+    "file": "app/chat/ChatInbox.tsx",
+    "wired": true,
+    "count": 3,
+    "samples": [
+      "No messages yet",
+      "Search conversations",
+      "Search conversations..."
+    ]
+  },
+  {
+    "file": "components/tour/ProductTour.tsx",
+    "wired": true,
+    "count": 3,
+    "samples": [
+      "Mute tour sounds",
+      "Product tour",
+      "Unmute tour sounds"
+    ]
+  },
+  {
+    "file": "app/(auth)/signup/page.tsx",
+    "wired": true,
+    "count": 2,
+    "samples": [
+      "Please complete the security check.",
+      "Sign up failed"
+    ]
+  },
+  {
+    "file": "app/offer/page.tsx",
+    "wired": true,
+    "count": 2,
+    "samples": [
+      "Loading packages…",
+      "Public offer"
+    ]
+  },
+  {
+    "file": "app/mascot-preview/page.tsx",
+    "wired": true,
+    "count": 1,
+    "samples": [
+      "Sizes (idle)"
+    ]
+  },
+  {
+    "file": "app/status/page.tsx",
+    "wired": true,
+    "count": 1,
+    "samples": [
+      "Database"
+    ]
+  }
+]

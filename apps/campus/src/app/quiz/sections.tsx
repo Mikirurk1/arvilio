@@ -2,7 +2,7 @@
 
 import { BriefcaseBusiness, FileText, RefreshCw, Scale } from 'lucide-react';
 import { FeatureCard, ProgressHeader, StatTile } from '../../components/ui';
-import type { MockQuizTopic } from '../../mocks';
+import { useCampusT } from '../../lib/cms';
 import styles from './page.module.scss';
 
 function topicIcon(tag: string) {
@@ -13,7 +13,15 @@ function topicIcon(tag: string) {
   return <FileText size={18} />;
 }
 
-export function QuizTopicsGrid({ topics }: { topics: MockQuizTopic[] }) {
+type QuizTopic = {
+  id: string;
+  title: string;
+  desc: string;
+  tag: string;
+};
+
+export function QuizTopicsGrid({ topics }: { topics: QuizTopic[] }) {
+  const t = useCampusT();
   return (
     <div className={styles.topicsGrid}>
       {topics.map((topic) => (
@@ -27,7 +35,7 @@ export function QuizTopicsGrid({ topics }: { topics: MockQuizTopic[] }) {
           title={topic.title}
           description={topic.desc}
           icon={topicIcon(topic.tag)}
-          tag="Quiz"
+          tag={t('quiz.topic.tag')}
           tagVariant="blue"
         />
       ))}
@@ -36,15 +44,43 @@ export function QuizTopicsGrid({ topics }: { topics: MockQuizTopic[] }) {
 }
 
 export function QuizResultStats({ score, total }: { score: number; total: number }) {
+  const t = useCampusT();
   return (
     <div className={styles.resultStats}>
-      <StatTile className={styles.resultStat} label="Correct" labelClassName={styles.resultStatLbl} value={score} valueClassName={`${styles.resultStatVal} ${styles.green}`} />
-      <StatTile className={styles.resultStat} label="Wrong" labelClassName={styles.resultStatLbl} value={total - score} valueClassName={`${styles.resultStatVal} ${styles.rose}`} />
-      <StatTile className={styles.resultStat} label="Accuracy" labelClassName={styles.resultStatLbl} value={`${total ? Math.round((score / total) * 100) : 0}%`} valueClassName={`${styles.resultStatVal} ${styles.amber}`} />
+      <StatTile
+        className={styles.resultStat}
+        label={t('quiz.result.correct')}
+        labelClassName={styles.resultStatLbl}
+        value={score}
+        valueClassName={`${styles.resultStatVal} ${styles.green}`}
+      />
+      <StatTile
+        className={styles.resultStat}
+        label={t('quiz.result.wrong')}
+        labelClassName={styles.resultStatLbl}
+        value={total - score}
+        valueClassName={`${styles.resultStatVal} ${styles.rose}`}
+      />
+      <StatTile
+        className={styles.resultStat}
+        label={t('quiz.result.accuracy')}
+        labelClassName={styles.resultStatLbl}
+        value={`${total ? Math.round((score / total) * 100) : 0}%`}
+        valueClassName={`${styles.resultStatVal} ${styles.amber}`}
+      />
     </div>
   );
 }
 
 export function QuizProgress({ current, total }: { current: number; total: number }) {
-  return <ProgressHeader className={styles.qProgress} barClassName={styles.qProgressBar} fillClassName={styles.qProgressFill} labelClassName={styles.qProgressLbl} current={current} total={total} />;
+  return (
+    <ProgressHeader
+      className={styles.qProgress}
+      barClassName={styles.qProgressBar}
+      fillClassName={styles.qProgressFill}
+      labelClassName={styles.qProgressLbl}
+      current={current}
+      total={total}
+    />
+  );
 }

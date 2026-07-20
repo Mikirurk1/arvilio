@@ -1,0 +1,92 @@
+.shell {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, color-mix(in srgb, var(--green) 12%, transparent), transparent),
+    var(--surface);
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 32px 28px 28px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.brand {
+  text-align: center;
+}
+
+.brandMark {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: var(--fs-22);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+}
+
+.brandSub {
+  margin: 4px 0 0;
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: var(--fs-26);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
+  text-align: center;
+}
+
+.titleIcon {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: var(--fs-15);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--rose) 10%, var(--card));
+  color: var(--rose);
+  font-size: var(--fs-14);
+}
+
+.footerNote {
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+  text-align: center;
+  line-height: 1.45;
+}

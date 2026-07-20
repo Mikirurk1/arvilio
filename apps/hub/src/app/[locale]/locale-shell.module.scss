@@ -1,0 +1,91 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: var(--www-max);
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem 0.5rem;
+}
+
+.brand {
+  font-family: var(--www-font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: -0.04em;
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.85rem 1.1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.nav a {
+  text-decoration: none;
+  opacity: 0.82;
+}
+
+.nav a:hover {
+  opacity: 1;
+}
+
+.locales {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.localeLink {
+  text-decoration: none;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  opacity: 0.55;
+}
+
+.localeLinkActive {
+  opacity: 1;
+  background: var(--www-ink);
+  color: #f7f2e8;
+}
+
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: var(--www-max);
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 3rem;
+}
+
+.footer {
+  max-width: var(--www-max);
+  width: 100%;
+  margin: 0 auto;
+  padding: 1rem 1.5rem 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  font-size: 0.875rem;
+  color: var(--www-muted);
+}
+
+.footer a {
+  text-decoration: none;
+}
+
+.footer a:hover {
+  color: var(--www-ink);
+}

@@ -6,6 +6,7 @@ import {
 } from '@pkg/types';
 import type { StatisticsDashboardViewModel } from './map-statistics-dashboard';
 import { getStudentsNavLabel } from './nav/students-nav-label';
+import type { TranslateFn } from './cms/nav-i18n';
 
 export type GroupLessonsUiSurfaces = {
   studentsNavLabel: string;
@@ -69,7 +70,14 @@ export function resolveStudentsPageView(
 export function resolveStudentsPageSubtitle(
   groupLessonsEnabled: boolean,
   isTeacher: boolean,
+  t?: TranslateFn,
 ): string {
+  const key = isTeacher
+    ? 'students.subtitleTeacher'
+    : groupLessonsEnabled
+      ? 'students.subtitleAdminGroups'
+      : 'students.subtitleAdmin';
+  if (t) return t(key);
   if (isTeacher) return 'Only students assigned to you';
   return groupLessonsEnabled
     ? 'Manage students and learning groups for your school'

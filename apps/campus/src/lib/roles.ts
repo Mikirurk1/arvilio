@@ -1,11 +1,6 @@
 /**
- * Public role/permission matrices.
- *
- * These are pure functions over numeric `UserRoleId` values from
- * `@pkg/types`. They have no dependency on mock entities and
- * are the only piece of the legacy `mocks/` tree we want surviving the
- * mocks→backend migration. Prefer importing from this file over `mocks/`
- * in new code.
+ * Public role/permission matrices (pure functions over UserRoleId).
+ * Prefer this module over `mocks/`.
  */
 export {
   canEdit,
@@ -16,4 +11,4 @@ export {
   isAdminOrSuper,
   isTeacherAdminOrSuper,
   roleMatrix,
-} from '../mocks/roles';
+} from './auth/role-matrix';

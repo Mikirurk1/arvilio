@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { EmptyStateCard, PageHeader, SegmentedControl } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import { StudentSummaryCard } from '../../components/students';
-import { USER_ROLE } from '../../mocks';
+import { USER_ROLE } from '@pkg/types';
 import { useSchoolGroupLessons } from '../../hooks/use-school-group-lessons';
 import {
   resolveStudentsPageSubtitle,
@@ -19,6 +20,7 @@ import styles from './page.module.scss';
 type StudentsView = 'students' | 'groups';
 
 export default function StudentsPage() {
+  const t = useCampusT();
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeUser = useActiveUser();
@@ -45,19 +47,25 @@ export default function StudentsPage() {
   const isLoading = list.status === 'loading' || list.status === 'idle';
   const isError = list.status === 'error';
 
-  const pageTitle = groupLessonsEnabled ? 'Students & Groups' : 'Students';
-  const pageSubtitle = resolveStudentsPageSubtitle(
-    groupLessonsEnabled,
-    activeUser.role === USER_ROLE.teacher.id,
-  );
+  const pageTitle = groupLessonsEnabled ? t('nav.studentsGroups') : t('students.title');
+  const pageSubtitle =
+    resolveStudentsPageSubtitle(
+      groupLessonsEnabled,
+      activeUser.role === USER_ROLE.teacher.id,
+      t,
+    ) || t('students.subtitle');
 
   const switcherOptions = useMemo(
     () =>
       [
-        { value: 'students' as const, label: 'Students' },
-        { value: 'groups' as const, label: 'Groups' },
+        { value: 'students' as const, label: t('students.tab.students') },
+        {
+          value: 'groups' as const,
+          label: t('students.tab.groups'),
+          dataAttrs: { 'data-tour-anchor': 'students-groups-tab' },
+        },
       ] as const,
-    [],
+    [t],
   );
 
   return (
@@ -81,30 +89,33 @@ export default function StudentsPage() {
             });
           }}
           options={switcherOptions}
-          ariaLabel="Students page view"
+          ariaLabel={t('students.viewAria')}
         />
       ) : null}
 
       <div className={styles.viewShell}>
         <div className={styles.viewPane} hidden={view !== 'students'}>
-          {isLoading ? <p className={styles.loadingHint}>Loading students…</p> : null}
+          {isLoading ? <p className={styles.loadingHint}>{t('students.loading')}</p> : null}
           {isError ? (
-            <EmptyStateCard title="Could not load students" description={list.error ?? 'Unknown error'} />
+            <EmptyStateCard
+              title={t('students.loadError')}
+              description={list.error ?? t('students.unknownError')}
+            />
           ) : null}
 
           {!isLoading && !isError && students.length === 0 ? (
             <EmptyStateCard
-              title="No students in this scope"
+              title={t('students.emptyTitle')}
               description={
                 activeUser.role === USER_ROLE.teacher.id
-                  ? 'No students are currently assigned to you.'
-                  : 'No students found.'
+                  ? t('students.emptyTeacher')
+                  : t('students.emptyAdmin')
               }
             />
           ) : null}
 
           {students.length > 0 ? (
-            <div className={styles.grid}>
+            <div className={styles.grid} data-tour-anchor="students-list">
               {rows.map((row, index) => (
                 <StudentSummaryCard
                   key={row.id}
@@ -119,7 +130,11 @@ export default function StudentsPage() {
         </div>
 
         {groupLessonsEnabled ? (
-          <div className={styles.viewPane} hidden={view !== 'groups'}>
+          <div
+            className={styles.viewPane}
+            hidden={view !== 'groups'}
+            data-tour-anchor={view === 'groups' ? 'students-groups-panel' : undefined}
+          >
             <StudentsGroupsPanel />
           </div>
         ) : null}

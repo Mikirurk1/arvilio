@@ -349,10 +349,23 @@ export type WebRequestSessionDto = {
    */
   trial: { trialEndsAt: string; daysLeft: number } | null;
   /**
-   * Resolved UI locale for this session (G33).
-   * Derived: user.locale → school.defaultLocale → Accept-Language → 'uk'.
+   * Resolved UI locale for this session (G33), clamped to the school's enabled set.
+   * Derived: user.locale → school.defaultLocale → Accept-Language → platform default ('en'),
+   * then constrained to `enabledLocales`.
    */
   locale: string;
+  /**
+   * Explicit locale preference (G33): user.locale → school.defaultLocale (clamped to
+   * `enabledLocales`), excluding Accept-Language. `null` when neither is set. Drives the
+   * bare-URL auto-redirect so browser language never rewrites a typed canonical URL.
+   */
+  preferredLocale: string | null;
+  /**
+   * UI locales this school offers (G33), subset of platform SUPPORTED_LOCALES.
+   * Drives the locale switcher. Falls back to the shipped set for anonymous /
+   * tenant-less sessions.
+   */
+  enabledLocales: string[];
 };
 
 export type LoginRequestDto = {
@@ -413,6 +426,8 @@ export type LessonPackageDto = {
   id: string;
   lessons: number;
   label: string;
+  /** Optional buyer-facing description for catalog / checkout. */
+  description?: string;
   /** Per-package currency override; falls back to platform defaultCurrency. */
   currency?: string;
   /** Which prepaid balance purchases top up. Defaults to individual. */
@@ -961,9 +976,221 @@ export type PlatformMediaCaptionsConfigDto = {
   targetLanguages: string[];
 };
 
+/** LLM chat provider for Arvi assistant (OpenAI-compatible covers local/NVIDIA/Groq/etc.). */
+export type LlmProviderId = 'openai_compat' | 'anthropic';
+
+export type PlatformLlmConfigDto = {
+  /** When false, Arvi chat returns 503 even if keys exist. */
+  enabled: boolean;
+  provider: LlmProviderId;
+  /**
+   * API base URL. Examples:
+   * - OpenAI: `https://api.openai.com/v1`
+   * - Ollama: `http://localhost:11434/v1`
+   * - NVIDIA NIM / OpenRouter / Azure OpenAI-compatible gateways
+   * - Anthropic: ignored (uses `https://api.anthropic.com`)
+   */
+  baseUrl: string | null;
+  /** Model id (e.g. `gpt-4.1-mini`, `claude-sonnet-4-20250514`, `llama3.1:8b`). */
+  model: string | null;
+  /** Hard cap on completion tokens (default 384). */
+  maxTokens: number;
+  temperature: number;
+};
+
+export type SchoolLlmOverrideConfigDto = PlatformLlmConfigDto & {
+  overrideEnabled: boolean;
+};
+
+export type LlmSecretStatusesDto = {
+  llmApiKey: { configured: boolean; source: 'stored' | 'env' | 'missing' };
+  anthropicApiKey: { configured: boolean; source: 'stored' | 'env' | 'missing' };
+};
+
+/** Control Plane default LLM snapshot. */
+export type PlatformLlmSettingsDto = {
+  config: PlatformLlmConfigDto;
+  secrets: {
+    llmApiKey?: string | null;
+    anthropicApiKey?: string | null;
+  };
+  secretStatuses: LlmSecretStatusesDto;
+  secretsStorageAvailable: boolean;
+};
+
+/** Control Plane transactional email (SMTP) snapshot. */
+export type PlatformSmtpSettingsDto = {
+  config: PlatformSmtpConfigDto;
+  secrets: {
+    smtpPass?: string | null;
+  };
+  secretStatuses: {
+    smtpPass: IntegrationSecretFieldStatusDto;
+  };
+  secretsStorageAvailable: boolean;
+  /** Effective runtime after mode + env merge. */
+  runtime: {
+    configured: boolean;
+    host: string | null;
+    port: number | null;
+    mailFrom: string;
+    source: SmtpConfigModeDto;
+  };
+};
+
+export type VerifySmtpConnectionRequestDto = {
+  config: { smtp: Partial<PlatformSmtpConfigDto> };
+  secrets?: { smtpPass?: string | null };
+};
+
+export type TestSmtpEmailRequestDto = {
+  to: string;
+};
+
+export type TestSmtpEmailResultDto = {
+  sent: boolean;
+  error?: string;
+};
+
+/** SMTP provider presets (host/port/secure only — credentials stay operator-entered). */
+export type SmtpProviderPresetId =
+  | 'custom'
+  | 'resend'
+  | 'brevo'
+  | 'amazon_ses'
+  | 'mailtrap';
+
+export type SmtpProviderPreset = {
+  id: SmtpProviderPresetId;
+  label: string;
+  host: string;
+  port: number;
+  secure: boolean;
+  /** Suggested SMTP username when applicable (e.g. Resend uses `resend`). */
+  suggestedUser?: string;
+  hint?: string;
+};
+
+export const SMTP_PROVIDER_PRESETS: readonly SmtpProviderPreset[] = [
+  {
+    id: 'custom',
+    label: 'Custom',
+    host: '',
+    port: 587,
+    secure: false,
+    hint: 'Enter any SMTP host (your ISP, self-hosted, etc.)',
+  },
+  {
+    id: 'resend',
+    label: 'Resend',
+    host: 'smtp.resend.com',
+    port: 465,
+    secure: true,
+    suggestedUser: 'resend',
+    hint: 'Username is usually `resend`; password = API key. Verify your domain for production.',
+  },
+  {
+    id: 'brevo',
+    label: 'Brevo',
+    host: 'smtp-relay.brevo.com',
+    port: 587,
+    secure: false,
+    hint: 'Use the SMTP key from Brevo → Settings → SMTP & API.',
+  },
+  {
+    id: 'amazon_ses',
+    label: 'Amazon SES',
+    host: 'email-smtp.us-east-1.amazonaws.com',
+    port: 587,
+    secure: false,
+    hint: 'Replace region in host if needed (e.g. eu-west-1). Use IAM SMTP credentials.',
+  },
+  {
+    id: 'mailtrap',
+    label: 'Mailtrap',
+    host: 'sandbox.smtp.mailtrap.io',
+    port: 2525,
+    secure: false,
+    hint: 'Sandbox for capturing mail in dev — not for real delivery.',
+  },
+] as const;
+
+export function matchSmtpProviderPreset(
+  host: string | null | undefined,
+  port: number | null | undefined,
+): SmtpProviderPresetId {
+  const h = (host ?? '').trim().toLowerCase();
+  const p = port ?? null;
+  if (!h) return 'custom';
+  for (const preset of SMTP_PROVIDER_PRESETS) {
+    if (preset.id === 'custom') continue;
+    if (preset.host.toLowerCase() === h && (p == null || p === preset.port)) {
+      return preset.id;
+    }
+  }
+  if (h.includes('amazonaws.com') && h.includes('email-smtp')) return 'amazon_ses';
+  if (h.includes('mailtrap')) return 'mailtrap';
+  return 'custom';
+}
+
+/** Draft-aware LLM connectivity probe (settings Test button). */
+export type TestLlmConnectionRequestDto = {
+  /** When omitted, uses saved settings (platform or school effective). */
+  config?: Partial<PlatformLlmConfigDto>;
+  secrets?: {
+    llmApiKey?: string | null;
+    anthropicApiKey?: string | null;
+  };
+  /** School only: whether to apply override draft (default: saved overrideEnabled). */
+  overrideEnabled?: boolean;
+};
+
+export type TestLlmConnectionResultDto = {
+  ok: boolean;
+  message: string;
+  latencyMs: number;
+  model: string;
+  provider: LlmProviderId;
+};
+
+export type SchoolLlmSettingsDto = {
+  /** What runtime will use after school → platform → env merge. */
+  effective: PlatformLlmConfigDto & {
+    source: 'school' | 'platform' | 'env';
+    apiKeyConfigured: boolean;
+  };
+  /** Read-only platform defaults (Control Plane). */
+  platformDefaults: PlatformLlmConfigDto & {
+    secretStatuses: LlmSecretStatusesDto;
+  };
+  /** Stored school override (Pro BYOK). */
+  override: {
+    overrideEnabled: boolean;
+    config: PlatformLlmConfigDto;
+    secrets: {
+      llmApiKey?: string | null;
+      anthropicApiKey?: string | null;
+    };
+    secretStatuses: LlmSecretStatusesDto;
+  };
+  /** True when school plan includes `aiAssist` (Pro). */
+  canOverride: boolean;
+  secretsStorageAvailable: boolean;
+};
+
+export type UpdateSchoolLlmSettingsRequestDto = {
+  overrideEnabled?: boolean;
+  config?: Partial<PlatformLlmConfigDto>;
+  secrets?: {
+    llmApiKey?: string | null;
+    anthropicApiKey?: string | null;
+  };
+};
+
 export type PlatformIntegrationConfigDto = {
   translation: PlatformTranslationConfigDto;
   mediaCaptions: PlatformMediaCaptionsConfigDto;
+  llm: PlatformLlmConfigDto;
   smtp: PlatformSmtpConfigDto;
   telegram: PlatformTelegramConfigDto;
   google: PlatformGoogleConfigDto;
@@ -980,6 +1207,10 @@ export type PlatformIntegrationSecretsDto = {
   googleTranslateApiKey?: string | null;
   azureTranslatorKey?: string | null;
   openaiWhisperApiKey?: string | null;
+  /** API key for OpenAI-compatible chat (ChatGPT, Ollama cloud, NVIDIA NIM, etc.). */
+  llmApiKey?: string | null;
+  /** API key for Anthropic Messages API. */
+  anthropicApiKey?: string | null;
   telegramBotToken?: string | null;
   googleClientSecret?: string | null;
   facebookAppSecret?: string | null;
@@ -1001,6 +1232,8 @@ export type IntegrationSecretStatusesDto = {
   googleTranslateApiKey: IntegrationSecretFieldStatusDto;
   azureTranslatorKey: IntegrationSecretFieldStatusDto;
   openaiWhisperApiKey: IntegrationSecretFieldStatusDto;
+  llmApiKey: IntegrationSecretFieldStatusDto;
+  anthropicApiKey: IntegrationSecretFieldStatusDto;
   telegramBotToken: IntegrationSecretFieldStatusDto;
   googleClientSecret: IntegrationSecretFieldStatusDto;
   facebookAppSecret: IntegrationSecretFieldStatusDto;
@@ -1022,6 +1255,7 @@ export type PlatformIntegrationSettingsDto = {
 export type PlatformIntegrationConfigPatchDto = {
   translation?: Partial<PlatformTranslationConfigDto>;
   mediaCaptions?: Partial<PlatformMediaCaptionsConfigDto>;
+  llm?: Partial<PlatformLlmConfigDto>;
   smtp?: Partial<PlatformSmtpConfigDto>;
   telegram?: Partial<PlatformTelegramConfigDto>;
   google?: Partial<PlatformGoogleConfigDto>;

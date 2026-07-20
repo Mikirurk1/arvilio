@@ -2,6 +2,7 @@
 
 import type { StaffPayoutStatusDto } from '@pkg/types';
 import { Badge } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import { staffPayoutStatusBadgeVariant, staffPayoutStatusLabel } from '../../lib/staff-payout-ui';
 
 type StaffPayoutStatusBadgeProps = {
@@ -10,9 +11,10 @@ type StaffPayoutStatusBadgeProps = {
 };
 
 export function StaffPayoutStatusBadge({ status, size = 'sm' }: StaffPayoutStatusBadgeProps) {
+  const t = useCampusT();
   return (
     <Badge variant={staffPayoutStatusBadgeVariant(status)} size={size}>
-      {staffPayoutStatusLabel(status)}
+      {staffPayoutStatusLabel(status, t)}
     </Badge>
   );
 }

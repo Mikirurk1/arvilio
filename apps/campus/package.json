@@ -1,23 +1,20 @@
 {
-  "name": "@app/web",
+  "name": "@app/campus",
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/copy-pdf-worker.cjs",
+    "predev": "node ../../scripts/clean-next-cache.cjs --app campus && node scripts/copy-pdf-worker.cjs",
     "prebuild": "node scripts/copy-pdf-worker.cjs",
-    "dev": "NODE_OPTIONS=--max-old-space-size=8192 next dev --hostname 0.0.0.0 --port 4200",
+    "dev": "NODE_OPTIONS=--max-old-space-size=4096 next dev --hostname 0.0.0.0 --port 4200",
     "build": "next build",
     "start": "next start -p 4200",
     "lint": "eslint .",
-    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.spec.json --noEmit",
-    "seed:cms": "npx tsx payload/seed.ts"
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.spec.json --noEmit"
   },
   "dependencies": {
+    "@fe/ui": "*",
     "@livekit/components-react": "^2.9.21",
     "@livekit/components-styles": "^1.2.0",
-    "@payloadcms/db-postgres": "^3.85.1",
-    "@payloadcms/next": "^3.85.1",
-    "@payloadcms/richtext-lexical": "^3.85.1",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "graphql-request": "^7.4.0",
@@ -25,7 +22,6 @@
     "konva": "^10.3.0",
     "livekit-client": "^2.19.2",
     "lucide-react": "^1.8.0",
-    "payload": "^3.85.1",
     "pdfjs-dist": "^6.0.227",
     "plyr": "^3.8.4",
     "posthog-js": "^1.395.0",

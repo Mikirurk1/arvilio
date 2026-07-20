@@ -4,33 +4,14 @@ import Link from 'next/link';
 import { useEffect, useMemo } from 'react';
 import { countIrregularVerbs } from '@pkg/types';
 import { PageHeader, StatTile } from '../../components/ui';
-import { mockPracticeActivities, siteContent } from '../../mocks';
+import { CAMPUS_PRACTICE_ACTIVITIES } from '@pkg/types';
 import { usePracticePendingCounts } from '../../hooks/use-practice-nav-badge';
 import { useActiveRoleKey } from '../../lib/active-user';
+import { useCampusT } from '../../lib/cms';
 import { PRACTICE_SESSION_LOGGED_EVENT } from '../../lib/practice-session-tracker';
 import { usePracticeStore } from '../../stores/practice-store';
 import { PracticeActivitiesGrid, type PracticeActivity, type PracticeActivityTagVariant } from './sections';
 import styles from './page.module.scss';
-
-function vocabStatLabel(count: number): string {
-  if (count === 0) return 'All caught up';
-  return count === 1 ? '1 to review' : `${count} to review`;
-}
-
-function quizStatLabel(count: number): string {
-  if (count === 0) return 'All caught up';
-  return count === 1 ? '1 quiz left' : `${count} quizzes left`;
-}
-
-function speakingStatLabel(count: number): string {
-  if (count === 0) return 'All caught up';
-  return count === 1 ? '1 topic due' : `${count} topics due`;
-}
-
-function irregularVerbsStatLabel(): string {
-  const common = countIrregularVerbs('common');
-  return `${common} common verbs`;
-}
 
 function tagVariantFromClass(tagClass: string): PracticeActivityTagVariant {
   if (tagClass === 'tagGreen') return 'green';
@@ -40,6 +21,7 @@ function tagVariantFromClass(tagClass: string): PracticeActivityTagVariant {
 }
 
 export default function PracticePage() {
+  const t = useCampusT();
   const weekSummary = usePracticeStore((s) => s.weekSummary);
   const pending = usePracticePendingCounts();
   const roleKey = useActiveRoleKey();
@@ -47,36 +29,62 @@ export default function PracticePage() {
   const fetchWeekSummary = usePracticeStore((s) => s.fetchWeekSummary);
 
   const activities = useMemo((): ReadonlyArray<PracticeActivity> => {
-    return mockPracticeActivities.map((activity) => {
+    return CAMPUS_PRACTICE_ACTIVITIES.map((activity) => {
+      const key = activity.id;
       const base: PracticeActivity = {
+        id: key,
         href: activity.href,
-        title: activity.title,
-        description: activity.description,
+        title: t(`practice.activity.${key}.title`),
+        description: t(`practice.activity.${key}.description`),
         icon: activity.icon,
-        tag: activity.tag,
+        tag: t(`practice.activity.${key}.tag`),
         tagVariant: tagVariantFromClass(activity.tagClass),
         accent: activity.accent,
-        disabled: activity.disabled,
-        stat: activity.stat,
+        disabled: 'disabled' in activity ? activity.disabled : undefined,
       };
-      if (activity.title === 'Vocabulary') {
-        return { ...base, stat: vocabStatLabel(pending.vocabPending) };
+      if (key === 'vocab') {
+        const count = pending.vocabPending;
+        const stat =
+          count === 0
+            ? t('practice.stat.allCaughtUp')
+            : count === 1
+              ? t('practice.stat.reviewOne')
+              : t('practice.stat.reviewMany', { count });
+        return { ...base, stat };
       }
-      if (activity.title === 'Quiz') {
-        return { ...base, stat: quizStatLabel(pending.incompleteQuizzes) };
+      if (key === 'quiz') {
+        const count = pending.incompleteQuizzes;
+        const stat =
+          count === 0
+            ? t('practice.stat.allCaughtUp')
+            : count === 1
+              ? t('practice.stat.quizOne')
+              : t('practice.stat.quizMany', { count });
+        return { ...base, stat };
       }
-      if (activity.title === 'Speaking') {
+      if (key === 'speaking') {
+        const count = pending.speakingPending;
+        const stat = isStudent
+          ? count === 0
+            ? t('practice.stat.allCaughtUp')
+            : count === 1
+              ? t('practice.stat.topicOne')
+              : t('practice.stat.topicMany', { count })
+          : t('practice.stat.topics');
+        return { ...base, stat };
+      }
+      if (key === 'irregular') {
         return {
           ...base,
-          stat: isStudent ? speakingStatLabel(pending.speakingPending) : 'Topics',
+          stat: t('practice.stat.commonVerbs', { count: countIrregularVerbs('common') }),
         };
       }
-      if (activity.title === 'Irregular verbs') {
-        return { ...base, stat: irregularVerbsStatLabel() };
+      if (key === 'games' || key === 'challenges') {
+        return { ...base, stat: t(`practice.activity.${key}.stat`) };
       }
       return base;
     });
-  }, [isStudent, pending.incompleteQuizzes, pending.speakingPending, pending.vocabPending]);
+  }, [isStudent, pending.incompleteQuizzes, pending.speakingPending, pending.vocabPending, t]);
 
   useEffect(() => {
     void fetchWeekSummary();
@@ -94,17 +102,44 @@ export default function PracticePage() {
   const practiceFocusMetrics = [
     {
       id: 'review',
-      label: 'Due for review',
+      label: t('practice.focus.dueReview'),
       value: String(pending.vocabPending),
-      subtext: 'Vocabulary queue',
+      subtext: t('practice.focus.vocabQueue'),
     },
     {
       id: 'quizzes',
-      label: 'Quizzes open',
+      label: t('practice.focus.quizzesOpen'),
       value: String(pending.incompleteQuizzes),
-      subtext: 'Ready to finish',
+      subtext: t('practice.focus.readyFinish'),
     },
   ];
+
+  const weekMinutes = weekSummary.data?.practiceMinutes ?? 0;
+  const localizedMetrics = metrics.map((metric) => {
+    const labelKey =
+      metric.id === '1'
+        ? 'practice.metric.newWords'
+        : metric.id === '2'
+          ? 'practice.metric.quizzesCompleted'
+          : metric.id === '3'
+            ? 'practice.metric.speakingSessions'
+            : metric.id === '4'
+              ? 'practice.metric.timePracticing'
+              : null;
+    const value =
+      metric.id === '4'
+        ? weekMinutes >= 60
+          ? t('practice.metric.hours', { h: (weekMinutes / 60).toFixed(1) })
+          : weekMinutes > 0
+            ? t('practice.metric.minutesShort', { m: weekMinutes })
+            : t('practice.metric.hours', { h: '0' })
+        : metric.value;
+    return {
+      ...metric,
+      label: labelKey ? t(labelKey) : metric.label,
+      value,
+    };
+  });
 
   return (
     <div className={`${styles.page} container container--page`}>
@@ -113,22 +148,28 @@ export default function PracticePage() {
           className={styles.pageHeader}
           titleClassName={styles.pageTitle}
           subtitleClassName={styles.pageSub}
-          title={siteContent.practice.title}
-          subtitle={siteContent.practice.subtitle}
+          title={t('practice.title')}
+          subtitle={t('practice.subtitle')}
         />
 
         <PracticeActivitiesGrid activities={activities} />
 
-        <section className={styles.statsSection} aria-labelledby="practice-stats-heading">
+        <section
+          className={styles.statsSection}
+          aria-labelledby="practice-stats-heading"
+          data-tour-anchor="practice-stats"
+        >
           <div className={styles.statsHead}>
-            <h2 id="practice-stats-heading" className={styles.statsTitle}>Stats</h2>
+            <h2 id="practice-stats-heading" className={styles.statsTitle}>
+              {t('practice.statsTitle')}
+            </h2>
             <Link href="/dashboard" className={styles.statsLink}>
-              Full dashboard →
+              {t('practice.fullDashboard')}
             </Link>
           </div>
 
           {weekSummary.status === 'error' ? (
-            <p className={styles.summaryError}>Could not load practice stats.</p>
+            <p className={styles.summaryError}>{t('practice.loadError')}</p>
           ) : null}
 
           <div className={styles.statsGrid}>
@@ -143,9 +184,14 @@ export default function PracticePage() {
             ))}
             {weekLoading
               ? Array.from({ length: 4 }).map((_, i) => (
-                  <StatTile key={`sk-${i}`} className={styles.statTile} label="Loading" value="…" />
+                  <StatTile
+                    key={`sk-${i}`}
+                    className={styles.statTile}
+                    label={t('common.loading')}
+                    value="…"
+                  />
                 ))
-              : metrics.map((metric) => (
+              : localizedMetrics.map((metric) => (
                   <StatTile
                     key={metric.id}
                     className={styles.statTile}

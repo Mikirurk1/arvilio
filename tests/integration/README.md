@@ -4,7 +4,7 @@ Requires PostgreSQL with migrations applied.
 
 ```bash
 # Create test database (once)
-createdb soenglish_test  # or via psql
+createdb arvilio_test  # or via psql
 
 export DATABASE_URL=postgresql://soenglish:soenglish@localhost:5432/soenglish_test?schema=public
 npm run prisma:migrate:deploy
@@ -16,7 +16,7 @@ npm run seed:test-users
 npm run test:integration
 ```
 
-Seeded emails: `jest-student@soenglish.test`, `jest-teacher@soenglish.test`, `jest-admin@soenglish.test` — password `TestPass123!` (see `tests/integration/seed.ts`).
+Seeded emails: `jest-student@arvilio.test`, `jest-teacher@arvilio.test`, `jest-admin@arvilio.test` — password `TestPass123!` (see `tests/integration/seed.ts`).
 
 Playwright can use the same users via `.env.test.example`.
 

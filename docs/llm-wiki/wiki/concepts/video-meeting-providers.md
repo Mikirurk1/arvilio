@@ -5,7 +5,7 @@ updated: 2026-06-09
 
 # Video Meeting Providers
 
-SoEnglish lets the platform admin pick which video provider creates the meeting link for new scheduled lessons. The choice is **platform-wide** (single-school today; resolver accepts an optional `schoolId` as a seam for future per-tenant override).
+Arvilio lets the platform admin pick which video provider creates the meeting link for new scheduled lessons. The choice is **platform-wide** (single-school today; resolver accepts an optional `schoolId` as a seam for future per-tenant override).
 
 ## Active provider config
 
@@ -49,14 +49,14 @@ Secrets (`zoomClientSecret`, `zoomWebhookSecret`, `livekitApiSecret`) live in th
 
 ### Built-in (LiveKit)
 - `LiveKitService` signs short-lived JWT access tokens with `livekit-server-sdk`. No HTTP call to LiveKit at create-time — rooms are created lazily by the SFU on the first publisher join, keyed by room name.
-- Room name = `soenglish-<lessonId8>-<hmacShort>`, keyed off `PLATFORM_SECRETS_ENCRYPTION_KEY` (prevents room-id enumeration).
+- Room name = `arvilio-<lessonId8>-<hmacShort>`, keyed off `PLATFORM_SECRETS_ENCRYPTION_KEY` (prevents room-id enumeration).
 - Token endpoint: `GET /api/lessons/scheduled/:id/livekit-token` — auth-guarded + lesson-membership check; returns `{ wsUrl, token, roomName }`. Token TTL: 4h. Teacher identity gets `metadata.role = 'host'`.
 - Frontend embed: `LessonVideoEmbed` uses `@livekit/components-react` (`<LiveKitRoom>` + `<VideoConference>`) — inline classroom UI on the lesson page; no external tab.
-- Deployment: **self-hosted only** — run `docker compose -f infra/docker/docker-compose.yml up -d` — LiveKit is a service in the main compose file. Keys live in `infra/docker/livekit.yaml`. Credentials go into **System → Connections → LiveKit (built-in video)**. TURN is built into LiveKit via `use_external_ip: true`; no separate coturn needed for typical deployments.
+- Deployment: **self-hosted only** — `docker compose -f infra/docker/docker-compose.yml up -d livekit` (or full compose). Keys in `infra/docker/livekit.yaml` must match `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET` (and System → Connections → LiveKit). Secret must be **≥ 32 characters** or LiveKit logs `secret is too short` and JWT auth fails against mismatched Cloud keys (`API…`). Local defaults: `devkey` + `arvilio-local-livekit-dev-secret-do-not-use-in-prod`, URL `ws://localhost:7880`. TURN via `use_external_ip: true`; no separate coturn for typical setups.
 
 ## Frontend
 
-- Lesson page (`apps/web/src/app/lessons/[lessonId]/page.tsx`):
+- Lesson page (`apps/campus/src/app/lessons/[lessonId]/page.tsx`):
   - LiveKit → inline `<LessonVideoEmbed>` (fetches token, connects).
   - Google / Zoom → external `<LessonVideoButton>` (provider-aware label).
 - DTO fallback: `videoMeetingUrl ?? googleMeetUrl` everywhere.

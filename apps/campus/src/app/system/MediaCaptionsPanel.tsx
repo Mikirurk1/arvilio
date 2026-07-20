@@ -9,6 +9,7 @@ import type {
   PlatformIntegrationSecretsDto,
   PlatformIntegrationSettingsDto,
 } from '@pkg/types';
+import { useCampusT } from '../../lib/cms';
 import { IntegrationSecretField } from './connections/integration-ui';
 import styles from './WordDictionaryPanel.module.scss';
 
@@ -24,9 +25,10 @@ export function MediaCaptionsPanel({
   config,
   secrets,
   secretStatuses,
-  secretsStorageAvailable,
+  secretsStorageAvailable: _secretsStorageAvailable,
   onSaved,
 }: Props) {
+  const t = useCampusT();
   const [draft, setDraft] = useState(config);
   const [draftSecrets, setDraftSecrets] = useState(secrets);
   const [saving, setSaving] = useState(false);
@@ -54,11 +56,11 @@ export function MediaCaptionsPanel({
         },
       });
       onSaved(data.updatePlatformIntegrationSettings);
-      setFeedback({ type: 'success', text: 'Media captions settings saved.' });
+      setFeedback({ type: 'success', text: t('system.dictionary.captions.saveSuccess') });
     } catch (error) {
       setFeedback({
         type: 'error',
-        text: error instanceof Error ? error.message : 'Failed to save media captions settings',
+        text: error instanceof Error ? error.message : t('system.dictionary.captions.saveFailed'),
       });
     } finally {
       setSaving(false);
@@ -67,26 +69,22 @@ export function MediaCaptionsPanel({
 
   return (
     <SurfaceCard className={styles.sectionCard}>
-      <h3 className={styles.sectionTitle}>Media captions (audio / video)</h3>
-      <p className={styles.sectionHint}>
-        Auto-generate subtitles after library audio/video upload. Use <strong>Local Whisper</strong>{' '}
-        (whisper.cpp on the server, no API key) or OpenAI Whisper API. Translated tracks use the
-        active translation provider above.
-      </p>
+      <h3 className={styles.sectionTitle}>{t('system.dictionary.captions.title')}</h3>
+      <p className={styles.sectionHint}>{t('system.dictionary.captions.hint')}</p>
       <div className={styles.fieldGrid}>
-        <label className={styles.checkboxRow}>
-          <input
-            type="checkbox"
-            checked={draft.enabled}
-            onChange={(event) =>
-              setDraft((current) => ({ ...current, enabled: event.target.checked }))
-            }
-          />
-          <span>Enable auto captions</span>
-        </label>
+        <Field
+          as="checkbox"
+          checked={draft.enabled}
+          onChange={(event) =>
+            setDraft((current) => ({ ...current, enabled: event.target.checked }))
+          }
+          label={t('system.dictionary.captions.enable')}
+          rootClassName={styles.checkboxRow}
+        />
         <div className={styles.fieldGroup}>
-          <span className={styles.label}>STT provider</span>
-          <select
+          <span className={styles.label}>{t('system.dictionary.captions.sttProvider')}</span>
+          <Field
+            as="select"
             className={styles.select}
             value={draft.sttProvider}
             onChange={(event) =>
@@ -96,15 +94,15 @@ export function MediaCaptionsPanel({
               }))
             }
           >
-            <option value="local_whisper">Local Whisper (whisper.cpp)</option>
-            <option value="openai_whisper">OpenAI Whisper API</option>
-            <option value="disabled">Disabled</option>
-          </select>
+            <option value="local_whisper">{t('system.dictionary.captions.stt.localWhisper')}</option>
+            <option value="openai_whisper">{t('system.dictionary.captions.stt.openaiWhisper')}</option>
+            <option value="disabled">{t('system.dictionary.captions.stt.disabled')}</option>
+          </Field>
         </div>
         {draft.sttProvider === 'openai_whisper' ? (
           <IntegrationSecretField
             id="media-captions-whisper-key"
-            label="OpenAI Whisper API key"
+            label={t('system.dictionary.captions.whisperKey')}
             status={secretStatuses.openaiWhisperApiKey}
             value={draftSecrets.openaiWhisperApiKey ?? ''}
             onChange={(value) =>
@@ -112,14 +110,11 @@ export function MediaCaptionsPanel({
             }
           />
         ) : draft.sttProvider === 'local_whisper' ? (
-          <p className={styles.sectionHint}>
-            Requires <code>whisper-cli</code> and <code>MATERIAL_WHISPER_MODEL</code> in server .env
-            (see .env.example). No API key needed.
-          </p>
+          <p className={styles.sectionHint}>{t('system.dictionary.captions.localWhisperHint')}</p>
         ) : null}
         <Field
-          label="Source language (optional)"
-          hint="Leave empty for auto-detect"
+          label={t('system.dictionary.captions.sourceLanguage')}
+          hint={t('system.dictionary.captions.sourceLanguageHint')}
           value={draft.sourceLanguage ?? ''}
           onChange={(event) =>
             setDraft((current) => ({
@@ -129,7 +124,7 @@ export function MediaCaptionsPanel({
           }
         />
         <Field
-          label="Target languages (comma-separated ISO codes)"
+          label={t('system.dictionary.captions.targetLanguages')}
           value={draft.targetLanguages.join(', ')}
           onChange={(event) =>
             setDraft((current) => ({
@@ -147,8 +142,8 @@ export function MediaCaptionsPanel({
           {feedback.text}
         </p>
       ) : null}
-      <Button type="button" variant="primary" disabled={saving} onClick={() => void save()}>
-        {saving ? 'Saving…' : 'Save media captions'}
+      <Button type="button" variant="primary" loading={saving} loadingLabel={t('system.dictionary.captions.saving')} onClick={() => void save()}>
+        {t('system.dictionary.captions.save')}
       </Button>
     </SurfaceCard>
   );

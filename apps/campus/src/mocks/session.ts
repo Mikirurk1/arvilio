@@ -2,10 +2,10 @@ import { USER_ROLE, USER_ROLE_ID_LIST } from '@pkg/types';
 import {
   mockUsers as mockUsersEntity,
   type MockUser as MockUserRecord,
-  type UserRole,
 } from './domains/entities';
+import type { UserRole } from '../lib/user-models';
 
-export type { UserRole } from './domains/entities';
+export type { UserRole } from '../lib/user-models';
 export type MockUser = MockUserRecord;
 export type SessionRecord = {
   id: string;

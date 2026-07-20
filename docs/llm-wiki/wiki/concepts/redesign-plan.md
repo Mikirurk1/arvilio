@@ -14,13 +14,13 @@ Living execution plan for a **premium edtech** UI: clear for learning, modern, t
 ## Source of truth
 
 - **Plan + step IDs:** [`docs/redesign/plan.md`](../../../redesign/plan.md)
-- **Agent skill:** `.cursor/skills/soenglish-redesign/SKILL.md`
+- **Agent skill:** `.cursor/skills/arvilio-redesign/SKILL.md`
 - **Generic redesign patterns:** `.agents/skills/redesign-existing-projects/SKILL.md`
 - **Current primitives:** [[concepts/ui-design-system]]
 
 ## Constraints (unchanged stack)
 
-- `apps/web`: SCSS modules + `components/ui` — no Tailwind/shadcn in production.
+- `apps/campus`: SCSS modules + `components/ui` — no Tailwind/shadcn in production.
 - One brand for one school today; `/system` is platform-scoped but shares the same theme/shell.
 - **SCSS:** `&` nesting, `$breakpoint-*` + `respond-to` mixin; colors via `var(--*)` from shared theme.
 - **Motion:** CSS first; **GSAP** if needed; **Three.js** rare accents only — learning clarity over spectacle (`plan.md` §1.3).

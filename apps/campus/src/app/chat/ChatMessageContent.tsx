@@ -1,9 +1,11 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { FileText } from 'lucide-react';
 import type { ChatMessageDto } from '@pkg/types';
 import { chatAttachmentHref } from '../../lib/chat-upload';
+import { useCampusI18n, useCampusT } from '../../lib/cms';
 import styles from './page.module.scss';
 
 function formatBytes(bytes: number): string {
@@ -13,19 +15,20 @@ function formatBytes(bytes: number): string {
 }
 
 export function ChatMessageContent({ message }: { message: ChatMessageDto }) {
+  const t = useCampusT();
+  const { locale } = useCampusI18n();
   const attachment = message.attachment;
   const hasBody = Boolean(message.body.trim());
+  const dateLocale = locale === 'uk' ? 'uk-UA' : 'en-US';
 
   return (
     <>
       {attachment ? (
         <div className={styles.attachmentBlock}>
           {attachment.expired ? (
-            <p className={styles.attachmentExpired}>
-              File expired — chat files are deleted after 24 hours.
-            </p>
+            <p className={styles.attachmentExpired}>{t('chat.attachment.expired')}</p>
           ) : attachment.mimeType.startsWith('image/') ? (
-            <a
+            <Link
               href={chatAttachmentHref(attachment.url)}
               target="_blank"
               rel="noopener noreferrer"
@@ -40,9 +43,9 @@ export function ChatMessageContent({ message }: { message: ChatMessageDto }) {
                 style={{ width: '100%', height: 'auto' }}
                 unoptimized
               />
-            </a>
+            </Link>
           ) : (
-            <a
+            <Link
               href={chatAttachmentHref(attachment.url)}
               target="_blank"
               rel="noopener noreferrer"
@@ -53,16 +56,17 @@ export function ChatMessageContent({ message }: { message: ChatMessageDto }) {
                 <span className={styles.attachmentFileName}>{attachment.fileName}</span>
                 <span className={styles.attachmentFileMeta}>{formatBytes(attachment.sizeBytes)}</span>
               </span>
-            </a>
+            </Link>
           )}
           {!attachment.expired ? (
             <p className={styles.attachmentExpiryHint}>
-              Available until{' '}
-              {new Date(attachment.expiresAt).toLocaleString(undefined, {
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
+              {t('chat.attachment.availableUntil', {
+                when: new Date(attachment.expiresAt).toLocaleString(dateLocale, {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }),
               })}
             </p>
           ) : null}

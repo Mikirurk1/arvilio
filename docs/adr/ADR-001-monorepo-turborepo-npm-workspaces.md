@@ -2,7 +2,7 @@
 
 - **Status:** accepted
 - **Date:** 2026-06-15
-- **Authors:** SoEnglish engineering
+- **Authors:** Arvilio engineering
 - **Supersedes:** —
 - **Superseded-by:** —
 - **Amends:** —
@@ -10,7 +10,7 @@
 
 ## Context
 
-SoEnglish consists of a Next.js frontend (`apps/web`), a NestJS API gateway (`apps/api`), and a set of backend domain modules under `packages/backend/modules/`. These layers share TypeScript types, Prisma-generated types, and GraphQL contracts. Managing them as separate repositories would require versioning and publishing for each internal package on every change, slowing iteration. A monorepo eliminates the cross-repo dependency problem and gives a single place to run lint, typecheck, build, and test.
+Arvilio consists of a Next.js frontend (`apps/campus`), a NestJS API gateway (`apps/api`), and a set of backend domain modules under `packages/backend/modules/`. These layers share TypeScript types, Prisma-generated types, and GraphQL contracts. Managing them as separate repositories would require versioning and publishing for each internal package on every change, slowing iteration. A monorepo eliminates the cross-repo dependency problem and gives a single place to run lint, typecheck, build, and test.
 
 npm workspaces was chosen over Yarn or pnpm because the project already uses npm and no advanced hoisting or peer-dep features that require Yarn/pnpm were identified. Turborepo was added on top as the task runner to provide caching, parallelism, and dependency-aware task ordering across workspace packages.
 
@@ -19,7 +19,7 @@ npm workspaces was chosen over Yarn or pnpm because the project already uses npm
 The project is structured as a single **npm workspaces** monorepo with **Turborepo** as the task runner.
 
 Package scopes:
-- `@app/*` — runnable applications (`apps/web`, `apps/api`)
+- `@app/*` — runnable applications (`apps/campus`, `apps/api`)
 - `@be/*` — backend domain modules (`packages/backend/modules/module-*`) and shared backend packages
 - `@fe/*` — frontend-only shared packages
 - `@pkg/*` — packages shared across web and API

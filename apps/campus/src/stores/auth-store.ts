@@ -7,7 +7,7 @@ import { apiClient, ApiError, GOOGLE_SIGN_IN_URL } from '../lib/api';
 
 declare global {
   interface Window {
-    __SOENGLISH_AUTH__?: {
+    __ARVILIO_AUTH__?: {
       user: AuthUserDto | null;
     };
   }
@@ -28,11 +28,11 @@ function readBootstrappedSession(): { user: AuthUserDto | null; initialized: boo
   if (typeof window === 'undefined') {
     return { user: null, initialized: false };
   }
-  if (!('__SOENGLISH_AUTH__' in window)) {
+  if (!('__ARVILIO_AUTH__' in window)) {
     return { user: null, initialized: false };
   }
   return {
-    user: window.__SOENGLISH_AUTH__?.user ?? null,
+    user: window.__ARVILIO_AUTH__?.user ?? null,
     initialized: true,
   };
 }
@@ -104,6 +104,6 @@ export const useAuthStore = create<AuthState>()(
         set({ user: null, initialized: true, loading: false }, false, 'auth/logout');
       },
     }),
-    { name: 'soenglish/auth' },
+    { name: 'arvilio/auth' },
   ),
 );

@@ -2,7 +2,7 @@
 
 - **Status:** superseded by [ADR-005](ADR-005-multi-tenant-data-isolation.md)
 - **Date:** 2026-06-15
-- **Authors:** SoEnglish engineering
+- **Authors:** Arvilio engineering
 - **Supersedes:** —
 - **Superseded-by:** ADR-005
 - **Amends:** —
@@ -10,7 +10,7 @@
 
 ## Context
 
-SoEnglish currently serves one school. The product roadmap targets a multi-tenant SaaS platform where multiple schools can operate independently, and eventually a marketplace layer where the platform routes learners to partner schools and earns a commission.
+Arvilio currently serves one school. The product roadmap targets a multi-tenant SaaS platform where multiple schools can operate independently, and eventually a marketplace layer where the platform routes learners to partner schools and earns a commission.
 
 Building full multi-tenancy now would triple the implementation effort with no immediate user-facing value. However, designing without awareness of the future shape risks an irreversible architecture (e.g., auth assumptions, data ownership, billing structure) that would require a ground-up rewrite when the second school onboards.
 

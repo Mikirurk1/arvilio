@@ -37,6 +37,12 @@ import { InvitationsController } from './presentation/rest/invitations.controlle
 import { DomainsController } from './presentation/rest/domains.controller';
 import { SchoolBrandingController } from './presentation/rest/school-branding.controller';
 import { SchoolBrandingService } from './application/school-branding.service';
+import { SchoolLocaleController } from './presentation/rest/school-locale.controller';
+import { SchoolLocaleService } from './application/school-locale.service';
+import { SchoolTeachingPrefsController } from './presentation/rest/school-teaching-prefs.controller';
+import { SchoolTeachingPrefsService } from './application/school-teaching-prefs.service';
+import { SchoolSellerProfileController } from './presentation/rest/school-seller-profile.controller';
+import { SchoolSellerProfileService } from './application/school-seller-profile.service';
 import { ImportStudentsController } from './presentation/rest/import-students.controller';
 import { GdprController, PlatformGdprController } from './presentation/rest/gdpr.controller';
 import { GdprService } from './application/gdpr.service';
@@ -65,6 +71,9 @@ import { UsersResolver } from './presentation/graphql/users.resolver';
     InvitationsController,
     DomainsController,
     SchoolBrandingController,
+    SchoolLocaleController,
+    SchoolTeachingPrefsController,
+    SchoolSellerProfileController,
     ImportStudentsController,
     GdprController,
     PlatformGdprController,
@@ -90,6 +99,9 @@ import { UsersResolver } from './presentation/graphql/users.resolver';
     InvitationsService,
     DomainsService,
     SchoolBrandingService,
+    SchoolLocaleService,
+    SchoolTeachingPrefsService,
+    SchoolSellerProfileService,
     ImportStudentsService,
     GdprService,
     SampleContentService,

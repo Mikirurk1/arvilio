@@ -1,6 +1,43 @@
 import type Stripe from 'stripe';
 import type { PrismaService } from '@be/prisma';
 import { PlatformSubscriptionService } from './platform-subscription.service';
+import type { PlatformBillingRailsService } from './platform-billing-rails.service';
+
+function mockBillingRails(
+  overrides: Partial<{
+    secretKey: string | null;
+    webhookSecret: string | null;
+    priceStarter: string | null;
+    pricePro: string | null;
+    enabled: boolean;
+  }> = {},
+): PlatformBillingRailsService {
+  return {
+    resolvePlatformStripe: jest.fn(async () => ({
+      enabled: overrides.enabled ?? true,
+      secretKey: overrides.secretKey ?? null,
+      webhookSecret: overrides.webhookSecret ?? null,
+      priceStarter: overrides.priceStarter ?? process.env.STRIPE_PRICE_STARTER ?? null,
+      pricePro: overrides.pricePro ?? process.env.STRIPE_PRICE_PRO ?? null,
+    })),
+    resolveCampusSubscriptionOffer: jest.fn(async () => ({
+      billingCountry: null,
+      railId: 'stripe_platform',
+      currency: 'EUR',
+      source: 'default' as const,
+      prices: {
+        STARTER: {
+          stripePriceId: overrides.priceStarter ?? process.env.STRIPE_PRICE_STARTER ?? null,
+          amountMinor: null,
+        },
+        PRO: {
+          stripePriceId: overrides.pricePro ?? process.env.STRIPE_PRICE_PRO ?? null,
+          amountMinor: null,
+        },
+      },
+    })),
+  } as unknown as PlatformBillingRailsService;
+}
 
 describe('PlatformSubscriptionService.applySubscriptionEvent', () => {
   const tx = {
@@ -11,7 +48,10 @@ describe('PlatformSubscriptionService.applySubscriptionEvent', () => {
     schoolSubscription: { findFirst: jest.fn() },
     $transaction: jest.fn(async (fn: (t: typeof tx) => unknown) => fn(tx)),
   };
-  const service = new PlatformSubscriptionService(prisma as unknown as PrismaService);
+  const service = new PlatformSubscriptionService(
+    prisma as unknown as PrismaService,
+    mockBillingRails(),
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -99,7 +139,10 @@ describe('PlatformSubscriptionService.createPortalSession', () => {
   it('throws when no Stripe customer exists yet (no key needed — guard is first)', async () => {
     delete process.env.STRIPE_PLATFORM_SECRET_KEY;
     prisma.schoolSubscription.findUnique.mockResolvedValue(null);
-    const service = new PlatformSubscriptionService(prisma as unknown as import('@be/prisma').PrismaService);
+    const service = new PlatformSubscriptionService(
+      prisma as unknown as import('@be/prisma').PrismaService,
+      mockBillingRails(),
+    );
     await expect(service.createPortalSession('school_1')).rejects.toThrow('No active subscription');
   });
 
@@ -107,7 +150,10 @@ describe('PlatformSubscriptionService.createPortalSession', () => {
     delete process.env.STRIPE_PLATFORM_SECRET_KEY;
     // Return a customer so the DB check passes — should then fail on missing Stripe key
     prisma.schoolSubscription.findUnique.mockResolvedValue({ stripeCustomerId: 'cus_abc' });
-    const service = new PlatformSubscriptionService(prisma as unknown as import('@be/prisma').PrismaService);
+    const service = new PlatformSubscriptionService(
+      prisma as unknown as import('@be/prisma').PrismaService,
+      mockBillingRails({ secretKey: null }),
+    );
     await expect(service.createPortalSession('school_1')).rejects.toThrow('Platform billing is not configured');
   });
 });
@@ -143,7 +189,13 @@ describe('PlatformSubscriptionService.redeemTrialExtension', () => {
         return fn(tx);
       }),
     };
-    return { service: new PlatformSubscriptionService(prisma as unknown as import('@be/prisma').PrismaService), tx };
+    return {
+      service: new PlatformSubscriptionService(
+        prisma as unknown as import('@be/prisma').PrismaService,
+        mockBillingRails(),
+      ),
+      tx,
+    };
   }
 
   beforeEach(() => jest.useFakeTimers().setSystemTime(now));

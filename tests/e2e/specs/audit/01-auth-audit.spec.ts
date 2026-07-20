@@ -30,7 +30,7 @@ test.describe('1A. /login', () => {
   test('1A.2 wrong password → alert stays on /login', async ({ page }) => {
     await page.goto('/login');
     await expect(page.locator('#login-email')).toBeVisible({ timeout: 8_000 });
-    await page.locator('#login-email').fill('jest-student@soenglish.test');
+    await page.locator('#login-email').fill('jest-student@arvilio.test');
     await page.locator('#login-password').fill('WrongPassword999!');
     await page.getByRole('button', { name: /sign in/i }).click();
     await expect(page.getByRole('alert')).toBeVisible({ timeout: 8_000 });
@@ -68,7 +68,7 @@ test.describe('1A. /login', () => {
   test('1A.5 student login → /dashboard', async ({ page }) => {
     await page.goto('/login');
     await expect(page.locator('#login-email')).toBeVisible({ timeout: 8_000 });
-    await page.locator('#login-email').fill('jest-student@soenglish.test');
+    await page.locator('#login-email').fill('jest-student@arvilio.test');
     await page.locator('#login-password').fill('TestPass123!');
     await page.getByRole('button', { name: /sign in/i }).click();
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 12_000 });
@@ -94,7 +94,7 @@ test.describe('1A. /login', () => {
   test('1A.8 teacher login → /dashboard', async ({ page }) => {
     await page.goto('/login');
     await expect(page.locator('#login-email')).toBeVisible({ timeout: 8_000 });
-    await page.locator('#login-email').fill('jest-teacher@soenglish.test');
+    await page.locator('#login-email').fill('jest-teacher@arvilio.test');
     await page.locator('#login-password').fill('TestPass123!');
     await page.getByRole('button', { name: /sign in/i }).click();
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 12_000 });
@@ -104,7 +104,7 @@ test.describe('1A. /login', () => {
   test('1A.8 admin login → /dashboard', async ({ page }) => {
     await page.goto('/login');
     await expect(page.locator('#login-email')).toBeVisible({ timeout: 8_000 });
-    await page.locator('#login-email').fill('jest-admin@soenglish.test');
+    await page.locator('#login-email').fill('jest-admin@arvilio.test');
     await page.locator('#login-password').fill('TestPass123!');
     await page.getByRole('button', { name: /sign in/i }).click();
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 12_000 });
@@ -141,7 +141,7 @@ test.describe('1B. /signup', () => {
     const emailField = page.getByLabel(/email/i).first().or(page.locator('input[type=email]').first());
     const hasField = await emailField.isVisible({ timeout: 3_000 }).catch(() => false);
     if (!hasField) { test.skip(true, 'No email field visible'); return; }
-    await emailField.fill('jest-student@soenglish.test');
+    await emailField.fill('jest-student@arvilio.test');
     const pwField = page.locator('input[type=password]').first();
     if (await pwField.isVisible().catch(() => false)) await pwField.fill('TestPass123!');
     const submit = page.getByRole('button', { name: /sign up|create|register/i });
@@ -163,7 +163,7 @@ test.describe('1C. /forgot-password', () => {
     await page.waitForLoadState('domcontentloaded');
     await shot(page, `${DIR}/forgot-password`);
     await expectNoA11yViolations(page);
-    await page.getByRole('textbox').fill('jest-student@soenglish.test');
+    await page.getByRole('textbox').fill('jest-student@arvilio.test');
     await page.getByRole('button', { name: /send|reset|submit/i }).click();
     await expect(
       page.getByText(/check your inbox|email sent|sent/i)

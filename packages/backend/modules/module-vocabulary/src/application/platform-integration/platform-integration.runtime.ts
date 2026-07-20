@@ -51,6 +51,11 @@ export function getPlatformIntegrationRuntime(): ResolvedPlatformIntegration {
     const perSchool = cache.get(schoolId);
     if (perSchool) return perSchool;
   }
+  return getPlatformGlobalIntegrationRuntime();
+}
+
+/** Always the Control Plane / PlatformSettings singleton (never school overlay). */
+export function getPlatformGlobalIntegrationRuntime(): ResolvedPlatformIntegration {
   return cache.get(PLATFORM_KEY) ?? resolveFromEnvOnly();
 }
 

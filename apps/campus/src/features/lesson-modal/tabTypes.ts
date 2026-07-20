@@ -1,7 +1,8 @@
 import type { ComponentType } from 'react';
 import type { LessonFormState } from './types';
-import type { UserRole } from '../../mocks';
+import type { UserRoleId } from '@pkg/types';
 import type { LessonPartyOption } from '../../hooks/use-lesson-party-options';
+import type { buildLessonModalCopy } from '../../lib/cms/lesson-modal-copy';
 
 export type { MaterialKind, MaterialKindOption } from './lesson-material-kinds';
 export {
@@ -11,14 +12,14 @@ export {
 
 export type FileMeta = { name: string; previewUrl: string | null; file?: File };
 
-export type LessonModalText = typeof import('../../mocks').siteContent.calendar.lessonModal;
+export type LessonModalText = ReturnType<typeof buildLessonModalCopy>;
 
 export type LessonFieldErrors = Partial<Record<'title' | 'date' | 'startTime' | 'studentId' | 'teacherId', string>>;
 
 export type SetupTabProps = {
   text: LessonModalText;
   canEdit: boolean;
-  role: UserRole;
+  role: UserRoleId;
   form: LessonFormState;
   students: LessonPartyOption[];
   teachers: LessonPartyOption[];

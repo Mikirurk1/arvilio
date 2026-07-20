@@ -1,4 +1,4 @@
-import type { AuthUserDto, WebRequestSessionDto } from '@pkg/types';
+import { DEFAULT_LOCALE, type AuthUserDto, type WebRequestSessionDto } from '@pkg/types';
 import {
   buildWebSessionCacheKey,
   readCachedWebSession,
@@ -14,8 +14,8 @@ import {
 export { classifyRouteAccess };
 
 /** Must match backend `ACCESS_COOKIE` / `REFRESH_COOKIE`. */
-export const ACCESS_COOKIE = 'soenglish_at';
-export const REFRESH_COOKIE = 'soenglish_rt';
+export const ACCESS_COOKIE = 'arvilio_at';
+export const REFRESH_COOKIE = 'arvilio_rt';
 
 const API_BASE_URL = (process.env.API_URL ?? 'http://127.0.0.1:3000/api').replace(/\/$/, '');
 
@@ -30,16 +30,17 @@ export class WebSessionError extends Error {
 }
 
 export const REQUEST_AUTH_HEADERS = {
-  routeSurface: 'x-soenglish-route-surface',
-  shellVariant: 'x-soenglish-shell-variant',
-  authenticated: 'x-soenglish-authenticated',
-  authStrategy: 'x-soenglish-auth-strategy',
-  authUser: 'x-soenglish-auth-user',
-  authScope: 'x-soenglish-auth-scope',
-  availableScopes: 'x-soenglish-available-scopes',
-  tenantKey: 'x-soenglish-tenant-key',
-  impersonation: 'x-soenglish-impersonation',
-  trial: 'x-soenglish-trial',
+  routeSurface: 'x-arvilio-route-surface',
+  shellVariant: 'x-arvilio-shell-variant',
+  authenticated: 'x-arvilio-authenticated',
+  authStrategy: 'x-arvilio-auth-strategy',
+  authUser: 'x-arvilio-auth-user',
+  authScope: 'x-arvilio-auth-scope',
+  availableScopes: 'x-arvilio-available-scopes',
+  tenantKey: 'x-arvilio-tenant-key',
+  impersonation: 'x-arvilio-impersonation',
+  trial: 'x-arvilio-trial',
+  locale: 'x-arvilio-locale',
 } as const;
 
 export type RequestAuthState = {
@@ -51,6 +52,8 @@ export type RequestAuthState = {
   tenantKey: string | null;
   impersonation: WebRequestSessionDto['impersonation'];
   trial: WebRequestSessionDto['trial'];
+  /** Resolved UI locale (URL → user → school → Accept-Language → en). */
+  locale: string;
   user: AuthUserDto | null;
 };
 
@@ -147,6 +150,7 @@ export function applyRequestAuthHeaders(
   } else {
     headers.delete(REQUEST_AUTH_HEADERS.trial);
   }
+  headers.set(REQUEST_AUTH_HEADERS.locale, state.locale || DEFAULT_LOCALE);
   if (state.user) {
     headers.set(REQUEST_AUTH_HEADERS.authUser, encodeUserHeader(state.user));
   } else {
@@ -183,6 +187,7 @@ export function readRequestAuthState(headers: Headers): RequestAuthState {
     tenantKey: headers.get(REQUEST_AUTH_HEADERS.tenantKey) || null,
     impersonation: parseImpersonationHeader(headers.get(REQUEST_AUTH_HEADERS.impersonation)),
     trial: parseTrialHeader(headers.get(REQUEST_AUTH_HEADERS.trial)),
+    locale: headers.get(REQUEST_AUTH_HEADERS.locale) || DEFAULT_LOCALE,
     user,
   };
 }

@@ -1,6 +1,6 @@
 # Production-style stack using images from GHCR (after CD workflow).
 # Usage on server:
-#   export GHCR_OWNER=your-org/soenglish
+#   export GHCR_OWNER=your-org/arvilio
 #   export IMAGE_TAG=main
 #   docker compose -f infra/docker/docker-compose.prod.yml pull
 #   docker compose -f infra/docker/docker-compose.prod.yml up -d
@@ -8,20 +8,20 @@
 # Run migrations once per release:
 #   docker compose -f infra/docker/docker-compose.prod.yml run --rm migrate
 
-name: soenglish-prod
+name: arvilio-prod
 
 services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-soenglish}
-      POSTGRES_USER: ${POSTGRES_USER:-soenglish}
+      POSTGRES_DB: ${POSTGRES_DB:-arvilio}
+      POSTGRES_USER: ${POSTGRES_USER:-arvilio}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
     volumes:
-      - soenglish-postgres-data:/var/lib/postgresql/data
+      - arvilio-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-soenglish} -d ${POSTGRES_DB:-soenglish}']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-arvilio} -d ${POSTGRES_DB:-arvilio}']
       interval: 5s
       timeout: 5s
       retries: 20
@@ -52,8 +52,8 @@ services:
       postgres:
         condition: service_healthy
 
-  web:
-    image: ${GHCR_REGISTRY:-ghcr.io}/${GHCR_OWNER}/web:${IMAGE_TAG:-main}
+  campus:
+    image: ${GHCR_REGISTRY:-ghcr.io}/${GHCR_OWNER}/campus:${IMAGE_TAG:-main}
     restart: unless-stopped
     environment:
       PORT: 4200
@@ -66,4 +66,5 @@ services:
       - api
 
 volumes:
-  soenglish-postgres-data:
+  arvilio-postgres-data:
+    name: arvilio-postgres-data

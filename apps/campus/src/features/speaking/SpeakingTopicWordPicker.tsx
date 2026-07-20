@@ -5,6 +5,7 @@ import type { WordCardDto } from '@pkg/types';
 import { Button, Field } from '../../components/ui';
 import { WordDetailsModal } from '../vocabulary/WordDetailsModal';
 import { useViewerLanguageIds } from '../../hooks/use-viewer-language-ids';
+import { useCampusT } from '../../lib/cms';
 import { pickWordDefinition } from '../../lib/word-definitions';
 import {
   normalizeEnglishVocabularyInput,
@@ -41,6 +42,7 @@ export function SpeakingTopicWordPicker({
   onChange,
   disabled = false,
 }: Props) {
+  const t = useCampusT();
   const fetchCards = useVocabularyStore((s) => s.fetchCards);
   const cards = useVocabularyStore((s) => s.cards);
   const lookupWord = useVocabularyStore((s) => s.lookupWord);
@@ -125,7 +127,7 @@ export function SpeakingTopicWordPicker({
           .sort()[0];
         return {
           lessonId,
-          label: earliest ? formatShortDate(earliest) : 'Lesson',
+          label: earliest ? formatShortDate(earliest) : t('vocabulary.filter.lesson'),
           items,
         };
       })
@@ -134,7 +136,7 @@ export function SpeakingTopicWordPicker({
         const bDate = b.items.map((i) => i.card.firstSeenAt).filter(Boolean).sort().reverse()[0] ?? '';
         return bDate.localeCompare(aDate);
       });
-  }, [deckItems]);
+  }, [deckItems, t]);
 
   const filteredItems = useMemo(() => {
     if (lessonFilter === 'all') return deckItems;
@@ -190,7 +192,7 @@ export function SpeakingTopicWordPicker({
       }
       setAddText('');
     } catch (err) {
-      setAddError(err instanceof Error ? err.message : 'Failed to add word');
+      setAddError(err instanceof Error ? err.message : t('vocabulary.add.failed'));
     } finally {
       setAdding(false);
     }
@@ -205,37 +207,40 @@ export function SpeakingTopicWordPicker({
 
   return (
     <div>
-      <div className={styles.sectionLabel}>Words to use (optional)</div>
+      <div className={styles.sectionLabel}>{t('speaking.words.label')}</div>
       {deckItems.length === 0 ? (
-        <p className={styles.emptyHint}>No vocabulary cards yet — add words below or from the student deck.</p>
+        <p className={styles.emptyHint}>{t('speaking.words.empty')}</p>
       ) : (
         <>
           <div className={styles.filterRow}>
-            <button
+            <Button
+              variant="bare"
               type="button"
               className={`${styles.filterPill} ${lessonFilter === 'all' ? styles.filterPillActive : ''}`}
               onClick={() => setLessonFilter('all')}
             >
-              All
-            </button>
+              {t('vocabulary.filter.all')}
+            </Button>
             {lessonGroups.length > 0 ? (
               <>
-                <button
+                <Button
+                  variant="bare"
                   type="button"
                   className={`${styles.filterPill} ${lessonFilter === '__last' ? styles.filterPillActive : ''}`}
                   onClick={() => setLessonFilter('__last')}
                 >
-                  Last lesson
-                </button>
+                  {t('speaking.words.lastLesson')}
+                </Button>
                 {lessonGroups.slice(0, 6).map((g) => (
-                  <button
+                  <Button
                     key={g.lessonId}
+                    variant="bare"
                     type="button"
                     className={`${styles.filterPill} ${lessonFilter === g.lessonId ? styles.filterPillActive : ''}`}
                     onClick={() => setLessonFilter(g.lessonId)}
                   >
                     {g.label}
-                  </button>
+                  </Button>
                 ))}
               </>
             ) : null}
@@ -282,7 +287,7 @@ export function SpeakingTopicWordPicker({
         <Field
           className={styles.addInput}
           type="text"
-          placeholder="Add word via lookup…"
+          placeholder={t('speaking.words.addPlaceholder')}
           value={addText}
           onChange={(event) => setAddText(event.target.value)}
           onKeyDown={onAddInputKeyDown}
@@ -293,10 +298,10 @@ export function SpeakingTopicWordPicker({
           variant="default"
           disabled={disabled || adding || !addText.trim()}
           loading={adding}
-          loadingLabel="Adding…"
+          loadingLabel={t('vocabulary.add.adding')}
           onClick={() => void runAddWord()}
         >
-          Add
+          {t('speaking.words.add')}
         </Button>
       </div>
       {addError ? <div className={styles.addError}>{addError}</div> : null}

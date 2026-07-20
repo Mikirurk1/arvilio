@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'soenglish:material-pending-save';
+const STORAGE_KEY = 'arvilio:material-pending-save';
 
 export type MaterialPendingSave = {
   materialId: string;

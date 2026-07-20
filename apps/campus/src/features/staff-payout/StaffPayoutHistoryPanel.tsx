@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { StaffPayoutDto } from '@pkg/types';
 import { Field, SectionHeader, TabPanelCard } from '../../components/ui';
 import { useInfiniteScrollSentinel } from '../../hooks/use-infinite-scroll-sentinel';
+import { useCampusT } from '../../lib/cms';
 import { formatMoneyMinor } from '../../lib/format-money';
 import { fetchStaffPayoutHistoryPage } from '../../stores/finance-store';
 import { DEFAULT_PAGE_SIZE, createIdlePaginatedSlice, type PaginatedSlice } from '../../stores/lib/paginated-slice';
@@ -33,11 +34,13 @@ export function StaffPayoutHistoryPanel({
   staffOptions = [],
   fixedUserId,
   refreshToken = 0,
-  title = 'Recent payouts',
+  title,
   periodLabel,
   action,
   wrapInCard = true,
 }: StaffPayoutHistoryPanelProps) {
+  const t = useCampusT();
+  const panelTitle = title ?? t('staffPayout.history.recentTitle');
   const [staffFilter, setStaffFilter] = useState('');
   const [page, setPage] = useState<PaginatedSlice<StaffPayoutDto>>(() =>
     createIdlePaginatedSlice<StaffPayoutDto>(),
@@ -69,7 +72,7 @@ export function StaffPayoutHistoryPanel({
       setPage({
         ...createIdlePaginatedSlice<StaffPayoutDto>(),
         status: 'error',
-        error: error instanceof Error ? error.message : 'Failed to load payouts',
+        error: error instanceof Error ? error.message : t('staffPayout.history.loadError'),
         loadingMore: false,
       });
     }
@@ -107,7 +110,7 @@ export function StaffPayoutHistoryPanel({
       setPage((current) => ({
         ...current,
         loadingMore: false,
-        error: error instanceof Error ? error.message : 'Failed to load more payouts',
+        error: error instanceof Error ? error.message : t('staffPayout.history.loadMoreError'),
       }));
     }
   }, [effectiveUserId, page.nextCursor, page.hasMore, page.loadingMore, page.status, rangeFrom, rangeTo]);
@@ -128,13 +131,13 @@ export function StaffPayoutHistoryPanel({
 
   const content = (
     <>
-      <SectionHeader title={title} action={action} />
+      <SectionHeader title={panelTitle} action={action} />
       <div className={styles.payoutHistoryPanel}>
         <div className={styles.payoutHistoryFilters}>
           {showStaffFilter ? (
             <div className={styles.payoutHistoryFilterField}>
               <label className={styles.label} htmlFor="payout-history-staff">
-                Staff member
+                {t('staffPayout.history.staffMember')}
               </label>
               <Field
                 as="select"
@@ -143,7 +146,7 @@ export function StaffPayoutHistoryPanel({
                 value={staffFilter}
                 onChange={(event) => setStaffFilter(event.target.value)}
               >
-                <option value="">All staff</option>
+                <option value="">{t('staffPayout.history.allStaff')}</option>
                 {staffOptions.map((staff) => (
                   <option key={staff.userId} value={staff.userId}>
                     {staff.displayName}
@@ -154,7 +157,7 @@ export function StaffPayoutHistoryPanel({
           ) : null}
           {periodLabel ? (
             <p className={styles.payoutHistoryPeriodHint}>
-              Period: <strong>{periodLabel}</strong>
+              {t('staffPayout.history.period', { label: periodLabel })}
             </p>
           ) : null}
         </div>
@@ -163,7 +166,7 @@ export function StaffPayoutHistoryPanel({
 
         <div ref={scrollRef} className={styles.payoutHistoryScroll}>
           {page.status === 'loading' && page.items.length === 0 ? (
-            <p className={styles.formHint}>Loading payout history…</p>
+            <p className={styles.formHint}>{t('staffPayout.history.loading')}</p>
           ) : page.items.length > 0 ? (
             <div className={styles.historyList}>
               {page.items.map((payout) => (
@@ -182,19 +185,19 @@ export function StaffPayoutHistoryPanel({
                     )}
                   </span>
                   <span>
-                    {new Date(payout.paidAt).toLocaleDateString()} · by{' '}
-                    {payout.createdByDisplayName}
+                    {new Date(payout.paidAt).toLocaleDateString()} ·{' '}
+                    {t('staffPayout.history.by', { name: payout.createdByDisplayName })}
                     {payout.note ? ` · ${payout.note}` : ''}
                   </span>
                 </div>
               ))}
             </div>
           ) : page.status === 'success' ? (
-            <p className={styles.formHint}>No payouts recorded for this filter.</p>
+            <p className={styles.formHint}>{t('staffPayout.history.empty')}</p>
           ) : null}
 
           {page.loadingMore ? (
-            <p className={styles.payoutHistoryLoadingMore}>Loading more…</p>
+            <p className={styles.payoutHistoryLoadingMore}>{t('staffPayout.history.loadingMore')}</p>
           ) : null}
           <div ref={sentinelRef} className={styles.payoutHistorySentinel} aria-hidden />
         </div>

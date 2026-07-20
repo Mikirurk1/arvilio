@@ -10,6 +10,7 @@ export type DashboardLessonCardProps = {
   duration: ReactNode;
   difficulty: ReactNode;
   locked?: boolean;
+  lockLabel?: ReactNode;
   className?: string;
   lockedClassName?: string;
   style?: CSSProperties;
@@ -30,6 +31,7 @@ export function DashboardLessonCard({
   duration,
   difficulty,
   locked = false,
+  lockLabel = 'Locked',
   className,
   lockedClassName,
   style,
@@ -49,14 +51,14 @@ export function DashboardLessonCard({
       <div className={footerClassName}>
         <div className={metaClassName}>
           <span className={metaItemClassName}>
-            <Clock3 size={13} /> {duration} min
+            <Clock3 size={13} /> {duration}
           </span>
           <span className={metaItemClassName}>{difficulty}</span>
         </div>
       </div>
       {locked ? (
         <div className={lockOverlayClassName}>
-          <Lock size={14} /> Locked
+          <Lock size={14} /> {lockLabel}
         </div>
       ) : null}
     </div>

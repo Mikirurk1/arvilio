@@ -1,11 +1,11 @@
 # Wiki index
 
-Catalog of all wiki pages. Updated: 2026-05-16 (full project bootstrap).
+Catalog of all wiki pages. Updated: 2026-07-11.
 
 ## Overview & synthesis
 
 - [[overview]] — monorepo map and quick links
-- [[synthesis/product]] — what SoEnglish is, product areas
+- [[synthesis/product]] — Arvilio ecosystem: Campus (now) + Connect (later) + Control Plane
 - [[synthesis/tech-stack]] — Turborepo, Next, Nest, Prisma, integrations
 - [[synthesis/architecture]] — layers, data flow, module boundaries
 
@@ -41,7 +41,7 @@ Catalog of all wiki pages. Updated: 2026-05-16 (full project bootstrap).
 - [[concepts/backend-modules]] — `@be/*` folder layout, layers, GraphQL ownership, tests
 - [[concepts/auth-rbac]] — cookies, JWT, API vs UI auth, known gaps
 - [[concepts/testing]] — Jest unit/integration, Playwright E2E, commands
-- [[concepts/transactional-email]] — welcome email, Mailtrap, templates
+- [[concepts/transactional-email]] — welcome email, SMTP (Resend/Brevo/SES/Mailtrap), Platform Settings
 - [[concepts/profile-notifications]] — profile toggles, cron delivery, teacher messages
 - [[concepts/unified-profile-form]] — shared profile tab UI (`UnifiedProfilePanel`) for self, student, staff
 - [[concepts/roles-matrix]] — STUDENT / TEACHER / ADMIN / SUPER_ADMIN tables
@@ -59,6 +59,11 @@ Catalog of all wiki pages. Updated: 2026-05-16 (full project bootstrap).
 - [[concepts/statistics-dashboard]] — period statistics API + profile/student UI
 - [[concepts/staff-payouts]] — staff compensation accrual, payouts, finance UI
 - [[concepts/web-app]] — Next routes, stores, API clients
+- [[concepts/payload-cms]] — Company CMS (`apps/cms`); Campus + Hub read over HTTP; SEO catalog + [roadmap](../../../arvilio-seo-roadmap.md)
+- [[concepts/campus-i18n]] — Campus UI chrome uk/en via CMS + code fallbacks
+- [[concepts/arvi]] — Arvi mascot poses, `useArvi` / `ArviSlot`, presence map (B7); Tour v3 chapter hub + soft scenarios
+- [[concepts/arvi-assistant]] — clickable Arvi help chat, LLM providers, role-scoped corpus, academic refusal
+- [[concepts/onboarding]] — school wizard (`/onboarding`) + product tour seam; profile/invite/sample side-effects
 - [[concepts/ui-design-system]] — `components/ui` primitives, SCSS tokens
 - [[concepts/redesign-plan]] — Preply/Edvibe-style UI refresh; `docs/redesign/plan.md` step IDs
 - [[concepts/frontend-packages]] — planned `packages/frontend` migration

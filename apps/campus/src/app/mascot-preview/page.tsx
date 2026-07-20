@@ -1,25 +1,24 @@
 'use client';
 
 import { Mascot } from '../../components/mascot/Mascot';
-import type { MascotPose } from '../../lib/mascot-capability';
+import { MASCOT_POSES, type MascotPose } from '../../lib/mascot-capability';
+import { useCampusT } from '../../lib/cms';
 
 /**
- * Dev preview for the Arvi mascot (Phase 4.5.4). Renders every pose at a few
+ * Dev preview for the Arvi mascot (Phase 4.5.4 / B7). Renders every pose at a few
  * sizes so the GLB can be checked without going through the first-login tour.
  * Drop `public/mascot/arvi.glb` to see the 3D model; otherwise the 2D fallback.
  */
-const POSES: MascotPose[] = ['idle', 'greet', 'point', 'celebrate'];
+const POSES: MascotPose[] = [...MASCOT_POSES];
 
 export default function MascotPreviewPage() {
+  const t = useCampusT();
   return (
     <div style={{ padding: 40, fontFamily: 'system-ui, sans-serif' }}>
-      <h1 style={{ marginTop: 0 }}>Arvi — mascot preview</h1>
-      <p style={{ color: '#667' }}>
-        Drop <code>public/mascot/arvi.glb</code> to see the 3D model. Without it (or with
-        reduced-motion / no WebGL) the 2D fallback shows.
-      </p>
+      <h1 style={{ marginTop: 0 }}>{t('mascot.preview.title')}</h1>
+      <p style={{ color: '#667' }}>{t('mascot.preview.intro')}</p>
 
-      <h2 style={{ fontSize: '1rem' }}>Poses @ 140px</h2>
+      <h2 style={{ fontSize: '1rem' }}>{t('mascot.preview.posesHeading')}</h2>
       <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
         {POSES.map((pose) => (
           <figure key={pose} style={{ margin: 0, textAlign: 'center' }}>
@@ -42,7 +41,7 @@ export default function MascotPreviewPage() {
         ))}
       </div>
 
-      <h2 style={{ fontSize: '1rem', marginTop: 32 }}>Sizes (idle)</h2>
+      <h2 style={{ fontSize: '1rem', marginTop: 32 }}>{t('mascot.preview.sizesHeading')}</h2>
       <div style={{ display: 'flex', gap: 24, alignItems: 'flex-end' }}>
         {[40, 56, 72, 120].map((size) => (
           <div key={size} style={{ textAlign: 'center' }}>

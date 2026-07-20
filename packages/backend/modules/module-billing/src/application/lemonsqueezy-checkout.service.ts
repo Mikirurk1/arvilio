@@ -86,7 +86,7 @@ export class LemonSqueezyCheckoutService {
       variantId,
       amountMinor: pkg.amountMinor,
       checkoutName: pkg.label,
-      checkoutDescription: `${pkg.lessons} lessons for SoEnglish balance top-up`,
+      checkoutDescription: `${pkg.lessons} lessons for Arvilio balance top-up`,
       redirectUrl: `${webBase}/payment?status=success`,
       customData: {
         paymentId: payment.id,

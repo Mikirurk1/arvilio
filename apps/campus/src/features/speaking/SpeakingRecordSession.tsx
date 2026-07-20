@@ -5,6 +5,7 @@ import type { SpeakingTopicCardDto } from '@pkg/types';
 import { Mic, PauseCircle, PlayCircle, RotateCcw, Square, Upload } from 'lucide-react';
 import { Button, SurfaceCard } from '../../components/ui';
 import { useAuth } from '../../lib/auth-context';
+import { useCampusT } from '../../lib/cms';
 import { usePracticeSessionTracker } from '../../lib/practice-session-tracker';
 import { speakingSubmissionAudioHref, uploadSpeakingSubmissionAudio } from '../../lib/speaking-upload';
 import { useSpeakingStore } from '../../stores/speaking-store';
@@ -27,6 +28,7 @@ function formatTime(seconds: number): string {
 }
 
 export function SpeakingRecordSession({ topic, onDone, onCancel, embedded = false }: Props) {
+  const t = useCampusT();
   const { user } = useAuth();
   const submitRecording = useSpeakingStore((s) => s.submitRecording);
   const fetchMyTopics = useSpeakingStore((s) => s.fetchMyTopics);
@@ -75,7 +77,6 @@ export function SpeakingRecordSession({ topic, onDone, onCancel, embedded = fals
       stopSpectrogram();
       audioCtxRef.current?.close().catch(() => {});
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ─── Spectrogram ───────────────────────────────────────────────────
@@ -182,7 +183,7 @@ export function SpeakingRecordSession({ topic, onDone, onCancel, embedded = fals
       setElapsedSec(0);
       setPhase('recording');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Microphone access denied');
+      setError(err instanceof Error ? err.message : t('speaking.session.micDenied'));
     }
   };
 
@@ -221,7 +222,7 @@ export function SpeakingRecordSession({ topic, onDone, onCancel, embedded = fals
       setPhase('done');
       onDone?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
+      setError(err instanceof Error ? err.message : t('speaking.session.uploadFailed'));
       setPhase('preview');
     }
   };
@@ -263,11 +264,11 @@ export function SpeakingRecordSession({ topic, onDone, onCancel, embedded = fals
         </div>
         <div className={styles.headText}>
           <span className={styles.title}>
-            {phase === 'idle' && 'Ready to record'}
-            {phase === 'recording' && 'Recording…'}
-            {phase === 'preview' && 'Preview'}
-            {phase === 'uploading' && 'Uploading…'}
-            {phase === 'done' && 'Submitted'}
+            {phase === 'idle' && t('speaking.session.ready')}
+            {phase === 'recording' && t('speaking.session.recording')}
+            {phase === 'preview' && t('speaking.session.preview')}
+            {phase === 'uploading' && t('speaking.session.uploading')}
+            {phase === 'done' && t('speaking.session.submitted')}
           </span>
           <span className={styles.timer} aria-live="polite">{formatTime(elapsedSec)}</span>
         </div>
@@ -300,16 +301,17 @@ export function SpeakingRecordSession({ topic, onDone, onCancel, embedded = fals
           </audio>
 
           <div className={styles.playerControls}>
-            <button
+            <Button
+              variant="bare"
               type="button"
               className={styles.playerBtn}
               onClick={togglePlay}
-              aria-label={playerPlaying ? 'Pause' : 'Play'}
+              aria-label={playerPlaying ? t('speaking.session.pause') : t('speaking.session.play')}
             >
               {playerPlaying
                 ? <PauseCircle size={22} aria-hidden />
                 : <PlayCircle size={22} aria-hidden />}
-            </button>
+            </Button>
             <div className={styles.playerTrack}>
               <input
                 type="range"
@@ -319,7 +321,7 @@ export function SpeakingRecordSession({ topic, onDone, onCancel, embedded = fals
                 step={0.01}
                 value={playerTime}
                 onChange={handleSeek}
-                aria-label="Playback position"
+                aria-label={t('speaking.session.playbackPosition')}
               />
             </div>
             <span className={styles.playerTime} aria-live="polite">
@@ -336,11 +338,11 @@ export function SpeakingRecordSession({ topic, onDone, onCancel, embedded = fals
           <>
             <Button type="button" onClick={() => void startRecording()}>
               <Mic size={16} aria-hidden />
-              Start recording
+              {t('speaking.session.start')}
             </Button>
             {onCancel ? (
               <Button type="button" variant="ghost" onClick={onCancel}>
-                Cancel
+                {t('speaking.cancel')}
               </Button>
             ) : null}
           </>
@@ -349,7 +351,7 @@ export function SpeakingRecordSession({ topic, onDone, onCancel, embedded = fals
         {phase === 'recording' ? (
           <Button type="button" variant="default" onClick={stopRecording}>
             <Square size={14} aria-hidden />
-            Stop
+            {t('speaking.session.stop')}
           </Button>
         ) : null}
 
@@ -362,20 +364,22 @@ export function SpeakingRecordSession({ topic, onDone, onCancel, embedded = fals
               disabled={elapsedSec < 1}
             >
               <Upload size={16} aria-hidden />
-              Submit
+              {t('speaking.session.submit')}
             </Button>
             <Button type="button" variant="ghost" onClick={resetRecording}>
               <RotateCcw size={14} aria-hidden />
-              Re-record
+              {t('speaking.reRecord')}
             </Button>
           </>
         ) : null}
 
-        {phase === 'uploading' ? <Button disabled>Uploading…</Button> : null}
+        {phase === 'uploading' ? (
+          <Button disabled>{t('speaking.session.uploading')}</Button>
+        ) : null}
 
         {phase === 'done' ? (
           <Button type="button" variant="default" onClick={onCancel ?? onDone}>
-            Done
+            {t('speaking.session.done')}
           </Button>
         ) : null}
       </div>

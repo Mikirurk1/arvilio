@@ -22,9 +22,9 @@ env:
   NODE_ENV: test
   JWT_SECRET: e2e-jwt-secret-minimum-thirty-two-chars-long
   DATABASE_URL: postgresql://soenglish:soenglish@localhost:5432/soenglish?schema=public
-  PLAYWRIGHT_TEST_EMAIL: jest-student@soenglish.test
+  PLAYWRIGHT_TEST_EMAIL: jest-student@arvilio.test
   PLAYWRIGHT_TEST_PASSWORD: TestPass123!
-  PLAYWRIGHT_TEACHER_EMAIL: jest-teacher@soenglish.test
+  PLAYWRIGHT_TEACHER_EMAIL: jest-teacher@arvilio.test
   PLAYWRIGHT_TEACHER_PASSWORD: TestPass123!
   WEB_ORIGIN: http://localhost:4200
   API_PROXY_TARGET: http://127.0.0.1:3000

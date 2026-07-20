@@ -1,0 +1,55 @@
+.slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+.interactive {
+  pointer-events: auto;
+  cursor: pointer;
+  border-radius: 999px;
+}
+
+.interactive:focus-visible {
+  outline: 2px solid var(--color-primary, #3b6ef5);
+  outline-offset: 3px;
+}
+
+.inline {
+  flex-shrink: 0;
+}
+
+.corner {
+  position: fixed;
+  z-index: 40;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  width: 80px;
+  height: 80px;
+  /* Stay off critical path: no layout shift for main content */
+  contain: layout style;
+}
+
+/* Chat open or product tour: stay mounted (keep WebGL + pose timers warm) but invisible */
+.parked {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .corner {
+    width: 64px;
+    height: 64px;
+    right: max(8px, env(safe-area-inset-right));
+    bottom: max(8px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slot {
+    transition: none;
+  }
+}

@@ -11,7 +11,7 @@ export function WelcomeAccountEmail({
   loginUrl,
 }: WelcomeAccountEmailProps) {
   return (
-    <EmailLayout preview={`Welcome to SoEnglish, ${displayName}`}>
+    <EmailLayout preview={`Welcome to Arvilio, ${displayName}`}>
       <Heading
         as="h1"
         style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 600, color: brand.text }}
@@ -19,7 +19,7 @@ export function WelcomeAccountEmail({
         Welcome, {displayName}!
       </Heading>
       <Text style={{ margin: '0 0 16px', fontSize: 15, lineHeight: '22px', color: brand.muted }}>
-        Your administrator created an account for you on the SoEnglish platform.
+        Your administrator created an account for you on the Arvilio platform.
       </Text>
       <DetailBox>
         <strong style={{ color: brand.text }}>Sign in</strong>

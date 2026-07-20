@@ -1,7 +1,8 @@
 'use client';
 
 import type { LibraryMaterialKindName } from '@pkg/types';
-import { Field } from '../../components/ui';
+import { Button, Field } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import uiStyles from '../../components/ui/ui.module.scss';
 import { LIBRARY_KIND_OPTIONS } from './material-kind-meta';
 import type { MaterialKindTone } from './material-kind-meta';
@@ -31,6 +32,12 @@ interface MaterialOverviewSectionProps {
 export function MaterialOverviewSection({
   kind, title, description, isBusy, titleError, onKindChange, setTitle, setDescription,
 }: MaterialOverviewSectionProps) {
+  const t = useCampusT();
+  const kindLabel = (value: LibraryMaterialKindName) => {
+    const key = `materials.kind.${value}` as const;
+    return t(key);
+  };
+
   return (
     <section className={styles.formSection} aria-labelledby="material-overview-heading">
       <div className={styles.sectionHead}>
@@ -39,19 +46,20 @@ export function MaterialOverviewSection({
         </span>
         <div className={styles.sectionHeadText}>
           <h3 id="material-overview-heading" className={styles.sectionTitle}>
-            Overview
+            {t('materials.form.overviewTitle')}
           </h3>
-          <p className={styles.sectionHint}>Choose a type and give the material a clear title.</p>
+          <p className={styles.sectionHint}>{t('materials.form.overviewHint')}</p>
         </div>
       </div>
 
-      <div className={styles.kindGrid} role="radiogroup" aria-label="Material type">
+      <div className={styles.kindGrid} role="radiogroup" aria-label={t('materials.form.materialTypeAria')}>
         {LIBRARY_KIND_OPTIONS.map((option) => {
           const active = kind === option.value;
           const OptionIcon = option.Icon;
           return (
-            <button
+            <Button
               key={option.value}
+              variant="bare"
               type="button"
               role="radio"
               aria-checked={active}
@@ -66,16 +74,16 @@ export function MaterialOverviewSection({
               <span className={styles.kindOptionIcon}>
                 <OptionIcon size={18} aria-hidden />
               </span>
-              <span className={styles.kindOptionLabel}>{option.label}</span>
+              <span className={styles.kindOptionLabel}>{kindLabel(option.value)}</span>
               <span className={styles.kindOptionHint}>{option.shortHint}</span>
-            </button>
+            </Button>
           );
         })}
       </div>
 
       <Field
         className={fieldClass}
-        label="Title"
+        label={t('materials.form.titleLabel')}
         value={title}
         onChange={(event) => setTitle(event.target.value)}
         placeholder="e.g. B1 Grammar board, Oxford Workbook…"
@@ -86,7 +94,7 @@ export function MaterialOverviewSection({
 
       <Field
         className={fieldClass}
-        label="Description"
+        label={t('materials.form.descriptionLabel')}
         as="textarea"
         rows={3}
         value={description}

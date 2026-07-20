@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Link2 } from 'lucide-react';
-import { Button, SurfaceCard } from '../../../components/ui';
+import { Button, Field, SurfaceCard } from '../../../components/ui';
 import { graphqlRequest } from '../../../lib/graphql-client';
 import {
   PLATFORM_INTEGRATION_SETTINGS,
@@ -17,6 +17,7 @@ import type {
   VerifyPlatformConnectionResultDto,
 } from '@pkg/types';
 import { ApiError } from '../../../lib/api';
+import { useCampusT } from '../../../lib/cms';
 import { getConnectionMeta } from './connection-provider-meta';
 import { ConnectionProviderSection } from './ConnectionProviderSection';
 import {
@@ -38,6 +39,7 @@ const telegramMeta = getConnectionMeta('telegram');
 const zoomMeta = getConnectionMeta('zoom');
 
 export function ConnectionsPanel() {
+  const t = useCampusT();
   const [settings, setSettings] = useState<PlatformIntegrationSettingsDto | null>(null);
   const [config, setConfig] = useState<PlatformIntegrationConfigDto | null>(null);
   const [secrets, setSecrets] = useState<PlatformIntegrationSecretsDto>({});
@@ -60,7 +62,7 @@ export function ConnectionsPanel() {
       setSecrets(secretsFromIntegrationSettings(data.platformIntegrationSettings));
       setVerifyResults({});
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load connection settings');
+      setError(err instanceof Error ? err.message : t('system.connections.loadError'));
     } finally {
       setLoading(false);
     }
@@ -97,7 +99,7 @@ export function ConnectionsPanel() {
       setVerifyResults((prev) => ({ ...prev, [provider]: data.verifyPlatformConnection }));
     } catch (err) {
       const message =
-        err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Verification failed';
+        err instanceof ApiError ? err.message : err instanceof Error ? err.message : t('system.connections.verifyFailed');
       setVerifyResults((prev) => ({ ...prev, [provider]: { ok: false, message } }));
     } finally {
       setVerifying(null);
@@ -122,10 +124,10 @@ export function ConnectionsPanel() {
       setSettings(data.updatePlatformIntegrationSettings);
       setConfig(data.updatePlatformIntegrationSettings.config);
       setSecrets(secretsFromIntegrationSettings(data.updatePlatformIntegrationSettings));
-      setSuccess('Saved. New credentials apply immediately.');
+      setSuccess(t('system.connections.saveSuccess'));
     } catch (err) {
       const message =
-        err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Save failed';
+        err instanceof ApiError ? err.message : err instanceof Error ? err.message : t('common.saveFailed');
       setError(message);
     } finally {
       setSaving(false);
@@ -135,7 +137,7 @@ export function ConnectionsPanel() {
   if (!config) {
     return (
       <SurfaceCard className={pageStyles.card}>
-        {loading ? <p className={pageStyles.muted}>Loading…</p> : null}
+        {loading ? <p className={pageStyles.muted}>{t('common.loading')}</p> : null}
         {error ? <span className={pageStyles.error}>{error}</span> : null}
       </SurfaceCard>
     );
@@ -144,7 +146,7 @@ export function ConnectionsPanel() {
   const g = googleMeta.fields;
   const gAdv = googleMeta.advancedFields;
   const f = facebookMeta.fields;
-  const t = telegramMeta.fields;
+  const tg = telegramMeta.fields;
   const z = zoomMeta.fields;
 
   return (
@@ -152,11 +154,8 @@ export function ConnectionsPanel() {
       <header className={pageStyles.panelHeader}>
         <Link2 size={18} />
         <div>
-          <div className={pageStyles.panelTitle}>Connections</div>
-          <p className={styles.panelIntro}>
-            Platform OAuth and Telegram bot. Hover the <strong>?</strong> next to each label for where
-            to find the value. Verify before saving when you change secrets.
-          </p>
+          <div className={pageStyles.panelTitle}>{t('system.connections.title')}</div>
+          <p className={styles.panelIntro}>{t('system.connections.intro')}</p>
         </div>
       </header>
 
@@ -165,19 +164,19 @@ export function ConnectionsPanel() {
           type="button"
           className={pageStyles.submitBtn}
           loading={saving}
-          loadingLabel="Saving…"
+          loadingLabel={t('common.saving')}
           onClick={() => void onSave()}
         >
-          Save
+          {t('common.save')}
         </Button>
         <Button
           type="button"
           className={pageStyles.verifyBtn}
           loading={verifying !== null}
-          loadingLabel="Checking…"
+          loadingLabel={t('system.connections.checking')}
           onClick={() => void onVerifyAll()}
         >
-          Verify all
+          {t('system.connections.verifyAll')}
         </Button>
         <Button
           type="button"
@@ -186,7 +185,7 @@ export function ConnectionsPanel() {
           loading={loading}
           loadingLabel="…"
         >
-          Refresh
+          {t('common.refresh')}
         </Button>
         {error ? <p className={styles.feedbackError}>{error}</p> : null}
         {success ? <p className={styles.feedbackSuccess}>{success}</p> : null}
@@ -201,7 +200,7 @@ export function ConnectionsPanel() {
         >
           <ConnectionTextField
             id="google-client-id"
-            label={g.googleClientId.label}
+            label={t(g.googleClientId.labelKey)}
             tooltip={g.googleClientId.tooltip}
             value={config.google.clientId ?? ''}
             onChange={(value) =>
@@ -213,7 +212,7 @@ export function ConnectionsPanel() {
           />
           <ConnectionSecretField
             id="google-client-secret"
-            label={g.googleClientSecret.label}
+            label={t(g.googleClientSecret.labelKey)}
             tooltip={g.googleClientSecret.tooltip}
             status={settings?.secretStatuses.googleClientSecret}
             value={secrets.googleClientSecret ?? ''}
@@ -221,7 +220,7 @@ export function ConnectionsPanel() {
           />
           <ConnectionTextField
             id="google-callback"
-            label={g.googleCallbackUrl.label}
+            label={t(g.googleCallbackUrl.labelKey)}
             tooltip={g.googleCallbackUrl.tooltip}
             wide
             value={config.google.callbackUrl}
@@ -231,11 +230,11 @@ export function ConnectionsPanel() {
           />
           {gAdv ? (
             <details className={styles.advanced}>
-              <summary className={styles.advancedSummary}>Redirect URLs (optional)</summary>
+              <summary className={styles.advancedSummary}>{t('system.connections.advanced.redirectUrls')}</summary>
               <div className={styles.advancedFields}>
                 <ConnectionTextField
                   id="google-success"
-                  label={gAdv.googleSuccessRedirect.label}
+                  label={t(gAdv.googleSuccessRedirect.labelKey)}
                   tooltip={gAdv.googleSuccessRedirect.tooltip}
                   wide
                   value={config.google.successRedirect}
@@ -259,7 +258,7 @@ export function ConnectionsPanel() {
         >
           <ConnectionTextField
             id="facebook-app-id"
-            label={f.facebookAppId.label}
+            label={t(f.facebookAppId.labelKey)}
             tooltip={f.facebookAppId.tooltip}
             value={config.facebook.appId ?? ''}
             onChange={(value) =>
@@ -271,7 +270,7 @@ export function ConnectionsPanel() {
           />
           <ConnectionSecretField
             id="facebook-app-secret"
-            label={f.facebookAppSecret.label}
+            label={t(f.facebookAppSecret.labelKey)}
             tooltip={f.facebookAppSecret.tooltip}
             status={settings?.secretStatuses.facebookAppSecret}
             value={secrets.facebookAppSecret ?? ''}
@@ -279,7 +278,7 @@ export function ConnectionsPanel() {
           />
           <ConnectionTextField
             id="facebook-callback"
-            label={f.facebookCallbackUrl.label}
+            label={t(f.facebookCallbackUrl.labelKey)}
             tooltip={f.facebookCallbackUrl.tooltip}
             wide
             value={config.facebook.callbackUrl}
@@ -300,17 +299,17 @@ export function ConnectionsPanel() {
         >
           <ConnectionSecretField
             id="telegram-bot-token"
-            label={t.telegramBotToken.label}
-            tooltip={t.telegramBotToken.tooltip}
+            label={t(tg.telegramBotToken.labelKey)}
+            tooltip={tg.telegramBotToken.tooltip}
             status={settings?.secretStatuses.telegramBotToken}
             value={secrets.telegramBotToken ?? ''}
             onChange={(v) => setSecrets((s) => ({ ...s, telegramBotToken: v }))}
           />
           <ConnectionTextField
             id="telegram-username"
-            label={t.telegramBotUsername.label}
-            tooltip={t.telegramBotUsername.tooltip}
-            placeholder="my_school_bot"
+            label={t(tg.telegramBotUsername.labelKey)}
+            tooltip={tg.telegramBotUsername.tooltip}
+            placeholder={t('system.connections.placeholder.telegramBotUsername')}
             value={config.telegram.botUsername ?? ''}
             onChange={(value) =>
               setConfig({
@@ -320,27 +319,23 @@ export function ConnectionsPanel() {
             }
           />
           <div className={`${styles.field} ${styles.fieldWide}`}>
-            <div className={styles.checkboxField}>
-              <input
-                id="telegram-dev-polling"
-                type="checkbox"
-                aria-label={t.telegramDevPolling.label}
-                className={styles.checkboxControl}
-                checked={config.telegram.devPolling}
-                onChange={(e) =>
-                  setConfig({
-                    ...config,
-                    telegram: { ...config.telegram, devPolling: e.target.checked },
-                  })
-                }
-              />
-              <div className={styles.checkboxCopy}>
+            <Field
+              as="checkbox"
+              id="telegram-dev-polling"
+              checked={config.telegram.devPolling}
+              onChange={(e) =>
+                setConfig({
+                  ...config,
+                  telegram: { ...config.telegram, devPolling: e.target.checked },
+                })
+              }
+              label={
                 <FieldLabelHint
-                  label={t.telegramDevPolling.label}
-                  tooltip={t.telegramDevPolling.tooltip}
+                  label={t(tg.telegramDevPolling.labelKey)}
+                  tooltip={tg.telegramDevPolling.tooltip}
                 />
-              </div>
-            </div>
+              }
+            />
           </div>
         </ConnectionProviderSection>
 
@@ -352,7 +347,7 @@ export function ConnectionsPanel() {
         >
           <ConnectionTextField
             id="zoom-client-id"
-            label={z.zoomClientId.label}
+            label={t(z.zoomClientId.labelKey)}
             tooltip={z.zoomClientId.tooltip}
             value={config.videoMeeting.zoom.clientId ?? ''}
             onChange={(value) =>
@@ -367,7 +362,7 @@ export function ConnectionsPanel() {
           />
           <ConnectionSecretField
             id="zoom-client-secret"
-            label={z.zoomClientSecret.label}
+            label={t(z.zoomClientSecret.labelKey)}
             tooltip={z.zoomClientSecret.tooltip}
             status={settings?.secretStatuses.zoomClientSecret}
             value={secrets.zoomClientSecret ?? ''}
@@ -375,7 +370,7 @@ export function ConnectionsPanel() {
           />
           <ConnectionSecretField
             id="zoom-webhook-secret"
-            label={z.zoomWebhookSecret.label}
+            label={t(z.zoomWebhookSecret.labelKey)}
             tooltip={z.zoomWebhookSecret.tooltip}
             status={settings?.secretStatuses.zoomWebhookSecret}
             value={secrets.zoomWebhookSecret ?? ''}
@@ -383,7 +378,7 @@ export function ConnectionsPanel() {
           />
           <ConnectionTextField
             id="zoom-callback"
-            label={z.zoomCallbackUrl.label}
+            label={t(z.zoomCallbackUrl.labelKey)}
             tooltip={z.zoomCallbackUrl.tooltip}
             wide
             value={config.videoMeeting.zoom.callbackUrl}
@@ -398,33 +393,29 @@ export function ConnectionsPanel() {
             }
           />
           <div className={`${styles.field} ${styles.fieldWide}`}>
-            <div className={styles.checkboxField}>
-              <input
-                id="zoom-server-to-server"
-                type="checkbox"
-                aria-label={z.zoomUseServerToServer.label}
-                className={styles.checkboxControl}
-                checked={config.videoMeeting.zoom.useServerToServer}
-                onChange={(e) =>
-                  setConfig({
-                    ...config,
-                    videoMeeting: {
-                      ...config.videoMeeting,
-                      zoom: {
-                        ...config.videoMeeting.zoom,
-                        useServerToServer: e.target.checked,
-                      },
+            <Field
+              as="checkbox"
+              id="zoom-server-to-server"
+              checked={config.videoMeeting.zoom.useServerToServer}
+              onChange={(e) =>
+                setConfig({
+                  ...config,
+                  videoMeeting: {
+                    ...config.videoMeeting,
+                    zoom: {
+                      ...config.videoMeeting.zoom,
+                      useServerToServer: e.target.checked,
                     },
-                  })
-                }
-              />
-              <div className={styles.checkboxCopy}>
+                  },
+                })
+              }
+              label={
                 <FieldLabelHint
-                  label={z.zoomUseServerToServer.label}
+                  label={t(z.zoomUseServerToServer.labelKey)}
                   tooltip={z.zoomUseServerToServer.tooltip}
                 />
-              </div>
-            </div>
+              }
+            />
           </div>
         </ConnectionProviderSection>
 

@@ -1,6 +1,6 @@
 ---
 tags: [concept, testing, dev]
-updated: 2026-05-26
+updated: 2026-07-10
 ---
 
 # Testing
@@ -15,7 +15,7 @@ updated: 2026-05-26
 | `npm run test:coverage:integration` | Integration + coverage |
 | `npm run test:integration` | Postgres + `AppModule` (`ts-jest`) |
 | `npm run test:e2e` | Playwright (`tests/e2e/playwright.config.ts`) |
-| `npm run seed:test-users` | Upsert jest-*@soenglish.test users |
+| `npm run seed:test-users` | Upsert jest-*@arvilio.test users |
 
 ## Config layout
 
@@ -23,17 +23,17 @@ updated: 2026-05-26
 - [`jest.config.base.cjs`](../../../../jest.config.base.cjs) + [`jest.paths.cjs`](../../../../jest.paths.cjs) — aliases, `@swc/jest`
 - [`packages/backend/modules/create-module-jest-config.cjs`](../../../../packages/backend/modules/create-module-jest-config.cjs) — per-module Jest factory
 - Per-module: `packages/backend/modules/module-*/jest.config.cjs`
-- [`apps/web/jest.config.cjs`](../../../../apps/web/jest.config.cjs) — `next/jest`, jsdom, coverage on `lib/`, `stores/`, `components/ui/`, `features/`
+- [`apps/campus/jest.config.cjs`](../../../../apps/campus/jest.config.cjs) — `next/jest`, jsdom, coverage on `lib/`, `stores/`, `components/ui/`, `features/`
 - [`jest.integration.config.cjs`](../../../../jest.integration.config.cjs) — `ts-jest`, **`maxWorkers: 1`** (shared DB seed; avoids cross-suite cleanup races); see [`tests/integration/README.md`](../../../../tests/integration/README.md)
 - Shared helpers: [`tests/shared/`](../../../../tests/shared/) (`createMockPrisma`, `gqlAs` via integration re-export)
 
 ## Integration DB
 
-Copy `.env.test.example`. Apply migrations to `soenglish_test`. Run `npm run seed:test-users` before integration/E2E.
+Copy `.env.test.example`. Apply migrations to `arvilio_test`. Run `npm run seed:test-users` before integration/E2E.
 
 Bootstrap: [`tests/integration/bootstrap.ts`](../../../../tests/integration/bootstrap.ts) (`createIntegrationApp`, `gqlAs` in [`helpers.ts`](../../../../tests/integration/helpers.ts)). Module specs import shared code as `@tests/integration/seed`, `@tests/integration/bootstrap`, etc. (`tsconfig.base.json` paths).
 
-**Seeded users** (`tests/integration/seed.ts`): `student`, `teacher`, `admin`, **`superAdmin`** (`jest-super-admin@soenglish.test`) — password `TestPass123!`. `superAdmin` is for integration only (e.g. `systemMailStatus`); production SUPER_ADMIN remains CLI-only.
+**Seeded users** (`tests/integration/seed.ts`): `student`, `teacher`, `admin`, **`superAdmin`** (`jest-super-admin@arvilio.test`), plus E2E fixtures `studentEmpty`, `teacherEmpty`, `resetProbe` — password `TestPass123!`. Also: DIRECT chat teacher↔student, homework on completed lesson, `E2E_RESET_PASSWORD_RAW_TOKEN` for 1D.3. `superAdmin` is for integration only (e.g. `systemMailStatus`); production SUPER_ADMIN remains CLI-only.
 
 **Vocabulary integration:** pre-upsert `Word` rows in `beforeAll` — `addStudentWordCard` calls dictionary enrichment when the lemma is missing; CI has no external dictionary API.
 
@@ -42,9 +42,13 @@ Bootstrap: [`tests/integration/bootstrap.ts`](../../../../tests/integration/boot
 - Page objects: [`tests/e2e/pages/`](../../../../tests/e2e/pages/) (`LoginPage`, `SidebarNav`, `ChatPage`, `CalendarPage`)
 - `SidebarNav` targets `navigation` with `aria-label="Main navigation"` only (dashboard quick actions can share link labels).
 - `LoginPage.login` waits for `POST /api/auth/login` and `/dashboard` redirect before assertions.
-- **E2E dev server** (`scripts/e2e-web-server.sh`): Playwright `webServer` command — starts `npm run dev`, waits for `:3000/api` + `:4200`, verifies seeded login, then keeps dev running.
+- **E2E dev server** (`scripts/e2e-web-server.sh`): Playwright `webServer` command — starts `npm run dev`, waits for `:3000/api` + `:4200`, verifies seeded login, then keeps dev running. Local reuse: `PLAYWRIGHT_SKIP_WEBSERVER=1` against already-running `dev:campus` / `dev:api`.
+- Projects (`tests/e2e/playwright.config.ts`): `setup` → `student` / `teacher` / `admin` / `mobile-student` (storageState) + `public` (no cookies). Specs that need a guest session must clear storage (`test.use({ storageState: { cookies: [], origins: [] } })`) or they fail on authenticated projects (e.g. `/login` → dashboard).
 - Route specs: [`tests/e2e/specs/pages/`](../../../../tests/e2e/specs/pages/) + legacy [`specs/login.spec.ts`](../../../../tests/e2e/specs/login.spec.ts), `navigation`, `product-pages`
 - Env: `PLAYWRIGHT_TEST_EMAIL`, `PLAYWRIGHT_TEST_PASSWORD`, `PLAYWRIGHT_TEACHER_EMAIL`, `PLAYWRIGHT_ADMIN_EMAIL`
+- **Full suite status (2026-07-10 local):** 1658 passed / 160 failed / 135 skipped (~15m). CI verify still open — see `docs/e2e-journey-test-plan.md` backlog.
+- **Arvi (B7):** `expectArvi(page, pose?)` anchors on `[data-mascot]`; product presence via `useArvi` / `ArviSlot` — see [[concepts/arvi]].
+- **Role product tour (Stage 5):** [`tests/e2e/specs/tour/`](../../../../tests/e2e/specs/tour/) — `tour-student.spec.ts`, `tour-teacher.spec.ts`, `tour-admin.spec.ts`; helpers in [`tests/e2e/helpers/tour.ts`](../../../../tests/e2e/helpers/tour.ts) (`resetTour`, `openTourOnDashboard`, `skipTour`, `replayTourFromProfile`). Run: `PLAYWRIGHT_SKIP_WEBSERVER=1 npx playwright test specs/tour --project=student --project=teacher --project=admin` (from `tests/e2e/`).
 
 ## Agent-browser smoke tour (manual / AI)
 
@@ -57,7 +61,7 @@ bash scripts/agent-browser-all-pages.sh
 # report: tmp/agent-browser-tour/report.md (+ screenshots/, gitignored)
 ```
 
-Visits public auth routes, then student / teacher / admin / super-admin app paths (dynamic `/students/:id` when a list link exists). Uses the same jest-*@soenglish.test users as Playwright (`TestPass123!`).
+Visits public auth routes, then student / teacher / admin / super-admin app paths (dynamic `/students/:id` when a list link exists). Uses the same jest-*@arvilio.test users as Playwright (`TestPass123!`).
 
 ## Current scale (2026-05-20)
 

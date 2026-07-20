@@ -33,7 +33,7 @@ describe('GraphQL vocabulary (integration)', () => {
     });
     const outsider = await ctx.prisma.user.create({
       data: {
-        email: 'jest-outsider-vocab@soenglish.test',
+        email: 'jest-outsider-vocab@arvilio.test',
         displayName: 'Jest Outsider Vocab',
         role: 'STUDENT',
         status: 'ACTIVE',

@@ -2,7 +2,7 @@
 
 - **Status:** proposed
 - **Date:** 2026-06-16
-- **Authors:** SoEnglish engineering
+- **Authors:** Arvilio engineering
 - **Supersedes:** ADR-004
 - **Superseded-by:** —
 - **Amends:** —
@@ -10,7 +10,7 @@
 
 ## Context
 
-SoEnglish is moving from a single-school product to a commercial multi-tenant SaaS where many schools operate independently, with subdomains and custom domains, plus a platform admin console and (later) a student marketplace with commission. ADR-004 committed to "build for one school today, leave seams"; this ADR activates the transition and supersedes that posture.
+Arvilio is moving from a single-school product to a commercial multi-tenant SaaS where many schools operate independently, with subdomains and custom domains, plus a platform admin console and (later) a student marketplace with commission. ADR-004 committed to "build for one school today, leave seams"; this ADR activates the transition and supersedes that posture.
 
 Today the schema has **no tenant boundary**: there is no `School` model (only one stray optional `schoolId` on `LibraryMaterial`), and `PlatformSettings` is a singleton (`id @default("default")`) that mixes genuinely platform-wide config with per-school config (payment methods/secrets, SMTP, integrations, staff payout defaults).
 

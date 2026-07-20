@@ -1,89 +1,106 @@
 ---
 tags: [architecture, multi-tenant, saas, planning]
-updated: 2026-06-16
+updated: 2026-07-11
 ---
 
 # Multi-Tenancy (SaaS transition plan)
 
-> Status: **planned** (ADR-005…009 `proposed`). No tenant code shipped yet — this page records the agreed target architecture. Code wins on conflict; update here as phases land.
+> Status: **shipped in code** for Phases 0–5, 4.5 (core), and 7 (code). **Phase 6 marketplace/recruiting deferred post-launch** (schema seams + console nav stubs only). Code wins on conflict; this page tracks live architecture.
 >
-> **Working platform name: `arvilio`** (domains `.com/.io/.org/.app/.ai` free, fixed 2026-06-16). Current `SoEnglish` codebase = first school/tenant on arvilio.
+> **Working platform name: `arvilio`** (domains `.com/.io/.org/.app/.ai` free, fixed 2026-06-16). Current `Arvilio` codebase = first school/tenant on arvilio.
 > Plan execution applies four senior lenses (Architect / UI-UX / FullStack / Security) — see `docs/multi-tenant-execution-plan.md` Part 0.
+> **Ecosystem / Control Plane strategy:** [`docs/arvilio-ecosystem-control-plane.md`](../../../arvilio-ecosystem-control-plane.md) — modular monolith, evolve `apps/platform` into Arvilio Control Plane, products as Nest modules.
 
-SoEnglish is transitioning from a single-school product to a multi-tenant SaaS with per-school subdomains/custom domains, a platform admin console, and three-layer billing. See ADRs [[../../../adr/ADR-005-multi-tenant-data-isolation]] … ADR-009.
+Arvilio has transitioned from a single-school product to a multi-tenant SaaS foundation with per-school subdomains/custom domains, a platform admin console, and three-layer billing. See ADRs [[../../../adr/ADR-005-multi-tenant-data-isolation]] … ADR-009.
 
-## Current state (pre-transition)
+## Current state (2026-07-09)
 
-- **No `School`/tenant model** — only a stray optional `schoolId` on `LibraryMaterial`.
-- `PlatformSettings` is a singleton (`id @default("default")`) mixing platform-wide and per-school config.
-- JWT payload = `{ sub: userId }` — no tenant context.
-- No Next.js `middleware.ts` (no host-based tenant resolution).
-- Roles `STUDENT/TEACHER/ADMIN/SUPER_ADMIN` on `User`; no platform-operator axis.
+- **`School` + tenant models** — `School`, `SchoolDomain`, `SchoolMembership`, `PlatformOperator`, `SchoolSubscription` in Prisma; `schoolId` on all tenant-scoped models via `TENANT_SCOPED_MODELS` + `TenantPrismaService`.
+- **Parent-scoped children** — `QuizQuestion`, `ChatMessage`, `StudentGroupMember`, etc. carry **no** `schoolId`; isolation is via scoped parent FK (documented in `tenant-scope.ts`).
+- **CLS tenant context** — `@be/tenant` (`TenantContextService`) seeds `schoolId`/`membershipRole` from JWT + membership on every authenticated request.
+- **JWT** — `{ sub, schoolId?, membershipRole?, platformRole? }`; host JWT cross-check (ADR-007).
+- **Routing** — Next `middleware.ts` + `TenantResolutionMiddleware` (subdomain slug + custom domain).
+- **Platform admin** — `apps/platform` Control Plane: Campuses (API `/schools`), Users (`/users`), suspend/activate, impersonation, audit log, promo codes, payment-method allowlist. Campuses/Users/members/audit lists use cursor pages + infinite scroll (`PlatformPageDto`). Campus detail shows owner (earliest active ADMIN), admins, member stats, and filtered members table; **subscription country editor lives inside the Campus panel**. **Full-bleed shell**; Lucide nav; `PageStack` / `PageGrid`. Session cookies: **`arvilio_pat` / `arvilio_prt`**. Dark theme + Light/Dark/System toggle. **Dashboard** (`GET /platform/dashboard`) returns KPIs plus `mrrMinor` (ACTIVE subs × plan `amountMinor`), `userStats`, `billingHealth`, `trialsEndingSoon`, `recentCampuses`, `recentAudit`.
+- **Activation** — self-serve signup, 7/14-day trial + promo codes, onboarding wizard, element-anchored product tour (`navHref` + `data-tour-nav` spotlight).
+- **Billing** — entitlements, storage/seat meters, `@RequiresFeature`, Stripe subscription checkout + promo codes.
+- **Isolation gate** — `tests/integration/tenant-isolation.integration.spec.ts` (17/17) required in CI.
 
 ## Target decisions
 
 | Concern | Decision | ADR |
 |---------|----------|-----|
 | Data isolation | Shared DB + shared schema + row-level `schoolId`; `TenantPrismaService` auto-scopes queries; `asPlatform()` audited escape hatch | ADR-005 |
-| Tenant config | Move per-school config (payments, integrations, payout, methods) off `PlatformSettings` onto `School` | ADR-005 |
+| Tenant config | Per-school config (payments, integrations, payout, methods) on `School` | ADR-005 |
 | Identity | **One global `User`** (email globally unique) + `SchoolMembership { userId, schoolId, role }`; role moves off `User` | ADR-006 |
 | Dictionary | **Shared platform-wide** — `Language`/`Word`/`WordDefinition` stay unscoped | ADR-006 |
-| Routing | `slug.soenglish.app` + custom domains via `SchoolDomain`; Next **`proxy.ts`** (formerly `middleware.ts`) classifies host→tenant hint (`x-school-slug`/`x-school-host`) | ADR-007 |
+| Routing | `slug.arvilio.app` + custom domains via `SchoolDomain`; Next middleware classifies host→tenant hint | ADR-007 |
 | Custom-domain TLS | **Cloudflare for SaaS** (app stores hostname→schoolId + verify state only) | ADR-007 |
 | Sessions | JWT `{ sub, schoolId, membershipRole, platformRole? }`; auth never trusts host alone | ADR-008 |
 | Operators | `PlatformOperator { userId, role }` axis separate from membership; `@PlatformAdmin()` guard | ADR-008 |
 | Billing | 3 layers: A student→school, B school→platform subscription, C platform commission | ADR-008 |
 | Admin console | `@be/platform-admin` module, platform domain only, cross-tenant + impersonation + audited | ADR-009 |
-| Activation | 7-day trial (no card) → promo code extends to 14 days; post-signup config wizard; first-login tour led by a **3D animated mascot** (glTF/GLB via react-three-fiber; SVG/static fallback) | ADR-008, plan Phase 4.5 |
+| Activation | 7-day trial (no card) → promo code extends to 14 days; post-signup config wizard; first-login tour with Arvi mascot + sidebar spotlight | ADR-008, plan Phase 4.5 |
 
 ## Implementation status
 
-- **Phase 0 ✅ shipped** — `@be/tenant` (`packages/backend/shared/tenant/`): per-request CLS context via `nestjs-cls`. `TenantContextService` is the typed accessor (`requireSchoolId()` fails loud) that Phase 1's `TenantPrismaService` reads to auto-scope queries. `TenantModule` (global) is wired in `apps/api`.
-- **Phase 1 ◐ in progress** — tenant models in `schema.prisma`; **migration `add_tenancy_models` applied** to the dev DB; **idempotent identity backfill** (`backfill-tenancy.ts`): `school_default` = tenant #1, memberships per user, SUPER_ADMIN→PlatformOperator. `TenantPrismaService` in `@be/prisma` (`scopeArgs` + `makeTenantExtension` `$extends` + `asPlatform()`), registered in `PrismaModule`. **Gate 1 mechanism PROVEN** by `tests/integration/tenant-isolation.integration.spec.ts` (5/5, real Postgres) on registered models (`SchoolMembership`/`SchoolDomain`/`SchoolSubscription`). Remaining: `schoolId` on legacy data tables + register them, migrate resolvers to `TenantPrismaService`, per-school integration runtime (1.4), ESLint bans, full Gate 1 in CI.
-  - ⚠️ ALS gotcha: lazy Prisma queries must be awaited inside the `cls.run`/request context or the tenant scope is lost.
-- **Phase 4 (admin console MVP) ✅** — `@be/platform-admin` (ADR-009): dashboard + cross-tenant schools read/detail via `asPlatform()`; suspend/activate (`School.status`) with `PlatformAuditService`; suspended-school enforcement in `AuthGuard` (members 403, operators bypass). **4C.2 impersonation ✅ (Gate 4 closed):** `POST /api/platform/schools/:id/impersonate` → `PlatformImpersonationService.mint`s a 15-min access token with an `imp` claim (`act`=operator, `sid`=school) set as the **access cookie only** (operator's refresh stays → auto-returns at expiry); `WebRequestSessionDto.impersonation` carries the banner claim; `POST /api/auth/impersonate/stop` (AuthGuard only) clears it + audits `school.impersonate.stop`. **4D (in progress):** impersonation **banner UI** renders in `apps/web` root layout (claim threaded `WebRequestSessionDto.impersonation`→`proxy.ts`→`x-soenglish-impersonation` header→layout; "Stop impersonating"→`/api/auth/impersonate/stop`). Platform **console app** `apps/platform` scaffolded (Next, port 4300): `ConsoleShell` (nav-IA stubs for Phase-6 Leads/Marketplace/Recruiting) + Dashboard, Schools (list→detail), School detail (`/schools/[id]`, role counts + `SchoolActions` suspend/activate), Audit log (`/audit-log`) — SSR `platformGet`, cookie-forwarding, 401/403→Unauthorized. Payment-method allowlist (`PlatformSettings.allowedPaymentMethods`, console Settings; enforced in `@be/billing`). **Cross-app SSO seam done:** `cookieOptions()` applies an optional cookie `Domain` from `AUTH_COOKIE_DOMAIN` (e.g. `.arvilio.app`) so one session works across sibling subdomains; unset = host-only (dev, shared across ports). Console **Impersonate admin** button → `/impersonate` → redirect to `NEXT_PUBLIC_SCHOOL_APP_URL` (banner shows in school app). **Phase 4 / Gate 4 complete.**
-- **Phase 4.5.1 (signup + trial) ◐** — self-serve `POST /api/auth/register-school` (`SchoolSignupService`, `@be/auth`) atomically provisions `School(TRIAL)` + admin + `SchoolMembership(ADMIN)` + `SchoolSubscription(TRIALING, +7d)`, auto-login; web `/(auth)/signup`. **Trial auto-expiry (G4 job):** `TrialLifecycleService.expireTrials` (`@be/platform-admin`) suspends trials past `trialEndsAt + 3d` grace, daily `@Cron`; the reference for G4 explicit-schoolId jobs. **Promo codes (4.5.2):** `PromoCode`/`PromoRedemption` models; redemption at signup (`SchoolSignupService.redeemPromo`, atomic, `trialDays = max(7, promo.trialDays)`); admin CRUD `GET/POST /api/platform/promo-codes` + `PATCH /:id`. **Onboarding wizard (4.5.3):** `SchoolOnboardingService` (`@be/auth`) persists `School.onboardingState` JSON; REST `GET /api/onboarding`, `PATCH /api/onboarding/step` (ADMIN, idempotent per-step), `POST /api/onboarding/complete`. **Trial banner (4.5.1):** `WebRequestSessionDto.trial` (`AuthSessionService.resolveTrialInfo`) → SSR `x-soenglish-trial` header → `TrialBanner` countdown. Web wizard UI (`apps/web/app/onboarding`) consumes the API (resumable 5-step, signup → `/onboarding`). Promo console page (`apps/platform/promo-codes`). **Tour state (4.5.4):** `User.tourCompletedAt` + `UserTourService` + `GET/POST /api/onboarding/tour[/complete]` (user-scoped). Data-driven tour UI (`apps/web/components/tour`: `TOUR_STEPS` + `ProductTour` overlay, gated by the tour-state API, 2D placeholder mascot). 3D mascot **«Arvi»** render island done (`apps/web/components/mascot`: lazy R3F `<Mascot>`, loads `public/mascot/arvi.glb`, asset-agnostic, 2D SVG fallback, wired into tour). Remaining: the rigged Arvi GLB (Meshy), wizard step side-effects, element-anchoring.
+- **Phase 0 ✅** — `@be/tenant` CLS, runbooks scaffold, ADR-005…009.
+- **Phase 1 ✅** — `TenantPrismaService`, 8 data verticals scoped, Gate 1 green in CI, ESLint guardrails, per-school integration runtime cache.
+- **Phase 2 ✅** — web middleware, backend host resolution, JWT/host cross-check, custom domains (DNS verify), i18n foundation.
+- **Phase 3 ✅** — JWT reshape, invitations, tenant-aware webhooks/jobs, object storage + storage accounting, notifications (email; Telegram/push deferred Phase 6).
+- **Phase 4 ✅** — platform admin console MVP + impersonation banner.
+- **Phase 4.5 ✅** — signup/trial/promo, wizard, product tour, anti-abuse, CSV import, PostHog funnel, **Arvi B7** (`useArvi` / `ArviSlot`). See [[concepts/arvi]].
+- **Execution plan CLOSED (2026-07-10):** Phases 0–5 + 7 done; Phase 6 marketplace/recruiting deferred post-launch by design. Remaining `[~]` = legal/pen-test/staging/CWV/optional GLB polish — not open phase checklist.
+- **Phase 5 ✅** — entitlements, feature gating, Stripe subscription + promo checkout. **[~] deferred:** tax/invoices (G45 legal).
+- **Phase 6 [~] deferred post-launch** — `StudentAcquisitionLead` + `PlatformLedger` schema seams only; marketplace/recruiting/payouts/trust-and-safety not built.
+- **Phase 7 ✅ (code)** — observability, rate limits, GDPR export/erasure, status page, backup runbook. **[~] deferred:** pen-test, scale (replicas/partitioning), first restore drill.
 
-## G15 — GDPR data export + erasure ✅ (2026-06-27)
+## Parent-scoped child models
 
-- **`GdprService`** (`@be/auth`): `exportUserData` (DSAR — all PII as JSON, strips `passwordHash`); `eraseUser` (anonymize: email/displayName/avatarUrl/phone/telegram/bio replaced, tokens + OAuth deleted, status→LEAVED; financial/audit rows kept for retention).
-- REST: `GET /api/gdpr/export` + `DELETE /api/gdpr/me` (user-scoped). `GET /api/platform/gdpr/export/:userId` + `DELETE /api/platform/gdpr/erase/:userId` (platform admin).
-- Remaining for full GDPR: cookie-consent banner, DPA agreement flow, audit-log retention policy (max N years), automated export-as-ZIP (email delivery), data-retention cron for expired anonymous accounts.
+These tables intentionally have **no** `schoolId` column. Isolation flows through the tenant-scoped parent:
 
-## G14 — Tenant-tagged observability ✅ (2026-06-27)
+| Child | Parent scope |
+|-------|----------------|
+| `QuizQuestion`, `QuizAnswer` | `Quiz.schoolId` |
+| `ChatParticipant`, `ChatMessage`, `ChatMessageAttachment` | `ChatConversation.schoolId` |
+| `StudentGroupMember` | `StudentGroup.schoolId` |
+| `SpeakingTopicAssignment` | `SpeakingTopic.schoolId` |
+| Attachment children | `LibraryMaterial.schoolId` |
 
-- **`TenantLoggerService`** (`@be/tenant`) — injectable logger that appends `{schoolId, userId, requestId}` from CLS to every log line as a JSON suffix. Drop-in for `new Logger(...)` in any tenant-scoped service. Global provider in `TenantModule`, exported.
-- **`TenantLoggingInterceptor`** (`apps/api`) — global `APP_INTERCEPTOR`; logs every HTTP + GraphQL request with method/path/status/ms + tenant tags. 5xx→`error`, 4xx→`warn`, 2xx→`log`.
-- Sentry: deferred until `SENTRY_DSN` + `@sentry/nestjs` are added (wire `setTag('schoolId', ...)` in `SentryInterceptor` at that point).
+Source: `packages/backend/data-access/data-access-prisma/src/lib/tenant-scope.ts`.
 
-## Migration order
+## G15 — GDPR data export + erasure ✅
 
-1. **Phase 1** — `School`/`SchoolDomain` models, `schoolId` backfill (`school_default`), `TenantPrismaService`. *(highest risk; do first)*
-2. **Phase 2/3** (parallel) — Next middleware + subdomains; tenant-aware JWT + global identity/memberships.
-3. **Phase 4** — platform admin console MVP (schools, impersonate, payment methods).
-   **Phase 4.5** — activation: self-serve signup + 7/14-day trial + promo codes, config wizard, virtual assistant tour.
-4. **Phase 4** — billing Layer B subscriptions; custom domains + TLS.
-5. **Phase 4 (C) + Phase 6** — commission/marketplace leads; full per-tenant observability.
+- **`GdprService`** (`@be/auth`): export + anonymize erasure; REST user + platform-admin endpoints.
+- Cookie consent banner, `/privacy` page, audit-log retention cron (7 years).
+- **[~] deferred:** DPA (legal), erasure email confirmation.
+
+## G14 — Tenant-tagged observability ✅
+
+- **`TenantLoggerService`** + **`TenantLoggingInterceptor`** — structured logs with `schoolId`/`userId`/`requestId`.
+- Sentry wired when `SENTRY_DSN` set.
+- **[~] deferred:** per-tenant dashboards + SLA alerts (external monitoring).
 
 ## Critical invariant
 
-Cross-tenant data leakage = data breach between schools. An **isolation e2e test** (token of school A cannot read school B) is a mandatory release gate. The only legitimate cross-tenant access is `@be/platform-admin` via the audited `asPlatform()` hatch.
+Cross-tenant data leakage = data breach between schools. An **isolation e2e test** (token of school A cannot read school B) is a mandatory release gate (Gate 1 in CI). The only legitimate cross-tenant access is `@be/platform-admin` via the audited `asPlatform()` hatch.
 
-> **⚠️ Isolation gap fixed 2026-07-04:** `UsersService.listStudents/listStudentsPage/listAssignableTeachers` (GraphQL `students`/`studentsPage`/`assignableTeachers`) queried `{ role: 'STUDENT' }` with **no tenant filter** — any school admin saw every student on the platform. `User` is a global identity (not row-scoped by `schoolId`), so these queries must scope via `SchoolMembership`. Fix: `tenantStudentFilter()` = `{ schoolMemberships: { some: { schoolId: tenant.schoolId, status: 'ACTIVE' } } }` (uses `TenantContextService`). Lesson: **base `PrismaService` on the `User` model does not auto-scope** — resolvers that list global-identity rows must add the membership filter explicitly. Covered by `08-rbac-audit.spec.ts` 8.7 + `users.service.spec.ts` admin-isolation case.
->
-> A follow-up sweep (2026-07-06) found **three more instances of the same class**, all fixed with the membership filter: `AdminUsersGraphqlService.listAdminUserSummaries` (GraphQL `adminUsers` / `/admin`), `StaffPayrollService` finance overview + trend (`/finance`), and `ChatVisibilityService` contact lists (`/chat`, which also *authorized* messaging any platform user). Total: 4 services / 7 queries. **Checklist when adding a resolver that lists `User` by role:** does it filter by `schoolMemberships.some({ schoolId, status: 'ACTIVE' })`? If not, it leaks across tenants. Lower-risk sibling pattern still open: services filtering `User` by explicit `id: { in: [...] }` (lessons participants, group members) — a cross-tenant *write* vector, not a list leak.
+> **⚠️ Isolation gap fixed 2026-07-04:** `UsersService` list queries on global `User` must filter via `SchoolMembership` — base Prisma does not auto-scope `User`. Checklist: any resolver listing users by role must use `schoolMemberships.some({ schoolId, status: 'ACTIVE' })`.
 
-## Business model (see `docs/business-model.md`)
+## Deferred (post-launch)
 
-Three product pillars + revenue streams:
-1. **SaaS** (school→platform, **primary revenue**) — priced **per active student + storage quota** (Edvibe-style), Ukraine-first UAH, limited Free tier, 7/14-day trial. Over-quota uploads blocked (no infinite material uploads). Admin console built with seams for the next-stage student-finding marketplace.
-2. **Student marketplace** — **one-time finder fee** on platform-sourced students (no ongoing tax, unlike Preply).
-3. **Tutor-recruiting service** — one-time placement fee + recruiting tools/premium tutor profile.
-
-Decisions resolved 2026-06-16: per-active-student pricing, limited freemium, one-time finder fee, UAH-first, recruiting pillar added.
+| Item | Notes |
+|------|-------|
+| Phase 6 marketplace | Discovery, leads, commission ledger services, Stripe Connect payouts |
+| G45 tax/fiscalization | Legal decision — UA ПДВ/РРО + Stripe Tax abroad |
+| Dedicated staging env | G40 partial — CI fixtures exist |
+| Pen-test + restore drill | Gate 7 ops exercises |
+| Core Web Vitals budgets | G44 partial — axe + keyboard E2E done |
 
 ## Related
 
 - [[security]] — fail-secure env, AES-GCM secret storage (per-school KEK acceptable)
-- [[auth-rbac]], [[roles-matrix]] — role model that gains the platform-operator axis
+- [[auth-rbac]], [[roles-matrix]] — role model with platform-operator axis
 - [[billing-payments]] — Layer A today; Layers B/C added
+- `docs/multi-tenant-execution-plan.md` — full phased checklist
+- `docs/arvilio-ecosystem-control-plane.md` — Campus / Connect naming, Control Plane, monolith
+- [[synthesis/product]] — product thesis aligned to ecosystem names

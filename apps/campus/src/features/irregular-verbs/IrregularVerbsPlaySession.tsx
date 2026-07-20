@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react';
 import { Check, ChevronRight } from 'lucide-react';
 import { Button } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import {
   buildIrregularVerbDrillResult,
   gradeIrregularVerbAnswer,
   type IrregularVerbDrillQuestion,
   type IrregularVerbDrillResult,
 } from '../../lib/irregular-verbs-drill';
+import { useArvi } from '../../components/mascot/useArvi';
 import styles from './IrregularVerbs.module.scss';
 
 type Props = {
@@ -18,6 +20,8 @@ type Props = {
 };
 
 export function IrregularVerbsPlaySession({ questions, onDone, onCancel }: Props) {
+  const t = useCampusT();
+  const { celebrate, encourage } = useArvi();
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
@@ -38,7 +42,7 @@ export function IrregularVerbsPlaySession({ questions, onDone, onCancel }: Props
   }, [questions]);
 
   if (!question) {
-    return <p className={styles.emptyTable}>Not enough verbs to build a drill. Try another set.</p>;
+    return <p className={styles.emptyTable}>{t('irregular.session.empty')}</p>;
   }
 
   const checkAnswer = () => {
@@ -47,6 +51,8 @@ export function IrregularVerbsPlaySession({ questions, onDone, onCancel }: Props
     setSelectedByQuestionId((prev) => ({ ...prev, [question.id]: selected }));
     setAnswers((prev) => [...prev, correct]);
     setShowExplanation(true);
+    if (correct) celebrate();
+    else encourage();
   };
 
   const goNext = () => {
@@ -79,7 +85,7 @@ export function IrregularVerbsPlaySession({ questions, onDone, onCancel }: Props
       </div>
 
       <div className={styles.promptCard}>
-        <p className={styles.promptHint}>Choose the correct form</p>
+        <p className={styles.promptHint}>{t('irregular.session.choose')}</p>
         <h2 className={styles.promptText}>{question.prompt}</h2>
       </div>
 
@@ -116,30 +122,32 @@ export function IrregularVerbsPlaySession({ questions, onDone, onCancel }: Props
           <div className={styles.expIcon}>
             {selected === question.correctIndex ? (
               <>
-                <Check size={15} aria-hidden /> Correct!
+                <Check size={15} aria-hidden /> {t('quiz.play.correct')}
               </>
             ) : (
               <>
-                <ChevronRight size={15} aria-hidden /> Not quite
+                <ChevronRight size={15} aria-hidden /> {t('quiz.play.notQuite')}
               </>
             )}
           </div>
-          <p className={styles.expText}>Correct answer: {question.correctAnswer}</p>
+          <p className={styles.expText}>
+            {t('irregular.session.correctAnswer', { answer: question.correctAnswer })}
+          </p>
           <p className={styles.expReveal}>{question.revealLine}</p>
         </div>
       ) : null}
 
       <div className={styles.playActions}>
         <Button type="button" variant="ghost" onClick={onCancel}>
-          Exit drill
+          {t('irregular.session.exit')}
         </Button>
         {!showExplanation ? (
           <Button type="button" disabled={selected === null} onClick={checkAnswer}>
-            Check answer
+            {t('irregular.session.check')}
           </Button>
         ) : (
           <Button type="button" onClick={goNext}>
-            {isLast ? 'See results →' : 'Next question →'}
+            {isLast ? t('irregular.session.results') : t('irregular.session.next')}
           </Button>
         )}
       </div>

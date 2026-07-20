@@ -4,6 +4,7 @@ import {
   type PaymentMethodKindDto,
   type ResolvedLessonPackageDto,
 } from '@pkg/types';
+import type { TranslateFn } from '../cms/nav-i18n';
 
 export function formatCheckoutAmount(minor: number, currency: string): string {
   return `${(minor / 100).toFixed(2)} ${currency}`;
@@ -35,17 +36,24 @@ export function getUnavailableCheckoutMethods(
 export function getUnavailableCheckoutReason(
   method: PaymentMethodKindDto,
   packageCurrency: string,
+  t?: TranslateFn,
 ): string {
-  return `${getPaymentProviderDisplayName(method)} is not available for ${packageCurrency} packages.`;
+  const provider = getPaymentProviderDisplayName(method);
+  if (t) {
+    return t('payment.unavailable.currency', { provider, currency: packageCurrency });
+  }
+  return `${provider} is not available for ${packageCurrency} packages.`;
 }
 
-export function buildOrderSummary(pkg: ResolvedLessonPackageDto) {
+export function buildOrderSummary(pkg: ResolvedLessonPackageDto, t?: TranslateFn) {
   return {
     label: pkg.label,
     lessons: pkg.lessons,
     amountLabel: formatCheckoutAmount(pkg.amountMinor, pkg.currency),
     currency: pkg.currency,
-    balanceAfterLabel: `+${pkg.lessons} lesson${pkg.lessons === 1 ? '' : 's'} on your balance`,
+    balanceAfterLabel: t
+      ? t('payment.balanceAfter', { count: pkg.lessons })
+      : `+${pkg.lessons} lesson${pkg.lessons === 1 ? '' : 's'} on your balance`,
   };
 }
 
@@ -59,7 +67,7 @@ export function groupPackagesByCurrency<T extends { currency: string }>(
       map.set(pkg.currency, []);
       order.push(pkg.currency);
     }
-    map.get(pkg.currency)?.push(pkg);
+    map.get(pkg.currency)!.push(pkg);
   }
-  return order.map((currency) => ({ currency, packages: map.get(currency) ?? [] }));
+  return order.map((currency) => ({ currency, packages: map.get(currency)! }));
 }

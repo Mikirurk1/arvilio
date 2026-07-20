@@ -72,6 +72,6 @@ export function telegramTeacherMessage(vars: {
     `💬 <b>Message from ${escapeTelegramHtml(vars.teacherName)}</b>\n\n` +
     `Hi ${escapeTelegramHtml(vars.displayName)},\n\n` +
     `${escapeTelegramHtml(vars.body)}\n\n` +
-    `<a href="${escapeTelegramHtml(vars.appUrl)}">Open SoEnglish</a>`
+    `<a href="${escapeTelegramHtml(vars.appUrl)}">Open Arvilio</a>`
   );
 }

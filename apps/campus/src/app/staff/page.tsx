@@ -6,6 +6,7 @@ import type { StatsRange } from '@pkg/types';
 import { RefreshCw } from 'lucide-react';
 import { StatsRangeFilter } from '../../components/statistics/StatsRangeFilter';
 import { Button, EmptyStateCard, PageHeader } from '../../components/ui';
+import { useCampusT } from '../../lib/cms';
 import { StaffSummaryCard } from '../../features/staff-payout';
 import { useOptionalAuth } from '../../lib/auth-context';
 import { canRoleAccessPathname } from '../../lib/auth/route-policy';
@@ -14,6 +15,7 @@ import { useFinanceStore } from '../../stores/finance-store';
 import styles from './page.module.scss';
 
 export default function StaffRosterPage() {
+  const t = useCampusT();
   const auth = useOptionalAuth();
   const roleKey = useActiveRoleKey();
   const currentUserId = auth?.user?.id;
@@ -63,8 +65,8 @@ export default function StaffRosterPage() {
     <div className={`${styles.page} container container--page`}>
       <PageHeader
         className={styles.header}
-        title="Staff"
-        subtitle="Teachers and admins — open a profile to adjust compensation, review earnings, and view lesson statistics."
+        title={t('staff.title')}
+        subtitle={t('staff.subtitle')}
       />
 
       <div className={styles.toolbar}>
@@ -77,7 +79,7 @@ export default function StaffRosterPage() {
           customDateMax={customDateMax}
           onCustomDateFromChange={handleCustomDateFromChange}
           onCustomDateToChange={handleCustomDateToChange}
-          ariaLabel="Staff period"
+          ariaLabel={t('staff.periodAria')}
         />
         <Button
           type="button"
@@ -86,35 +88,37 @@ export default function StaffRosterPage() {
           disabled={overviewSlice.status === 'loading'}
         >
           <RefreshCw size={14} aria-hidden />
-          Refresh
+          {t('staff.refresh')}
         </Button>
       </div>
 
       {overviewSlice.status === 'error' ? (
         <EmptyStateCard
-          title="Could not load staff roster"
-          description={overviewSlice.error ?? 'Unknown error'}
+          title={t('staff.loadError')}
+          description={overviewSlice.error ?? t('staff.unknownError')}
         />
       ) : null}
 
       {overviewSlice.status === 'loading' && !overview ? (
-        <p className={styles.hint}>Loading staff…</p>
+        <p className={styles.hint}>{t('staff.loading')}</p>
       ) : null}
 
       {overview && staffRows.length === 0 ? (
         <EmptyStateCard
-          title="No staff members found"
-          description="No other teachers or admins in this period."
+          title={t('staff.emptyTitle')}
+          description={t('staff.emptyDesc')}
         />
       ) : null}
 
       {staffRows.length > 0 ? (
-        <div className={styles.grid}>
+        <div className={styles.grid} data-tour-anchor="staff-roster">
           {staffRows.map((row) => (
             <StaffSummaryCard key={row.userId} row={row} />
           ))}
         </div>
-      ) : null}
+      ) : (
+        <div data-tour-anchor="staff-roster" hidden aria-hidden />
+      )}
     </div>
   );
 }
