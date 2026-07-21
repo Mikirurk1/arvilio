@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, Banknote, BarChart3, Settings2, UserRound } from 'lucide-react';
+import { ArrowLeft, Banknote, BarChart3, Settings2 } from 'lucide-react';
 import {
   DEFAULT_STAFF_PAYOUT_DEFAULTS,
   defaultCustomStatsDateKeys,

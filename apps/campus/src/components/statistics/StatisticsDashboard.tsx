@@ -12,7 +12,6 @@ import {
   GraduationCap,
   MessageSquare,
   Target,
-  TrendingUp,
   Users,
   Wallet,
 } from 'lucide-react';

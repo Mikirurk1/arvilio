@@ -298,7 +298,6 @@ export function MaterialAssetsSection({
                           return (
                             <div key={entry.clientKey} className={styles.fileChip}>
                               {previewHref ? (
-                                // eslint-disable-next-line @next/next/no-img-element
                                 <img src={previewHref} alt="" className={styles.fileChipPreview} />
                               ) : (
                                 <FileUp size={14} className={styles.fileChipIcon} aria-hidden />

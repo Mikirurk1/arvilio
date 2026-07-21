@@ -24,7 +24,6 @@ import {
   PieChart as PieChartIcon,
   Target,
   TrendingUp,
-  Users,
 } from 'lucide-react';
 import type { StatisticsDashboardViewModel } from '../../lib/map-statistics-dashboard';
 import {

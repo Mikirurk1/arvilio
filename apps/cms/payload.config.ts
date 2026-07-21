@@ -80,4 +80,5 @@ export default buildConfig({
     api: '/payload-api',
   },
   // Payload Config generics can blow TS recursion depth in monorepo tsc; runtime is fine.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Payload Config depth
 } as any);

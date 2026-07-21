@@ -29,6 +29,9 @@ const moduleNameMapper = {
   '^@be/lessons$': abs('packages/backend/modules/module-lessons/src/index.ts'),
   '^@be/progress$': abs('packages/backend/modules/module-progress/src/index.ts'),
   '^@be/assistant$': abs('packages/backend/modules/module-assistant/src/index.ts'),
+  '^@be/assistant/llm-connection-test$': abs(
+    'packages/backend/modules/module-assistant/src/application/llm-connection-test.ts',
+  ),
   '^@be/platform-admin$': abs('packages/backend/modules/module-platform-admin/src/index.ts'),
   '^@be/mail$': abs('packages/backend/modules/module-mail/src/index.ts'),
   '^@be/billing/entitlements$': abs('packages/backend/modules/module-billing/src/entitlements.ts'),

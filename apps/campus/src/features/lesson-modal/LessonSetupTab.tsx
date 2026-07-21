@@ -14,7 +14,6 @@ import { STUDENT_GROUPS } from '../../graphql/operations';
 import { graphqlRequest } from '../../lib/graphql-client';
 import { partyNumericId } from './scheduledLessonsBackendAdapter';
 import type { SetupTabProps } from './tabTypes';
-import type { LessonFormState } from './types';
 import styles from './LessonModal.module.scss';
 
 function canPickForIndividual(lessonFormat?: StudentLessonFormat): boolean {

@@ -1,4 +1,3 @@
-const path = require('node:path');
 const { baseConfig, repoRoot } = require('../../jest.config.base.cjs');
 
 /** @type {import('jest').Config} */

@@ -4,6 +4,11 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 ---
 
+## [2026-07-21] update | CI green: lint + unit/integration test fixes
+- **Trigger:** code change (CI still red after npm 11 harden)
+- **Pages:** [[concepts/package-aliases]], [[concepts/testing]]
+- **Notes:** Hub lint (unused `path`, `URL` globals). Jest map `@be/assistant/llm-connection-test`. Unit: hero i18n key, Facebook callback `:4200` + env override, calendar empty stub. Integration tour clears seeded `tourCompletedAt`. ESLint: absolute `files` paths, allow `@pkg/types` on campus, ignore `public/pdfjs`, campus unused-var cleanup.
+
 ## [2026-07-21] update | CI/CD harden: npm 11 + CD/E2E after green CI
 - **Trigger:** plan — fix red Actions + gate pipelines
 - **Pages:** docs/reference/ci-cd.md (ops)

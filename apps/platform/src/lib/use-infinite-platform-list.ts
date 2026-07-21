@@ -117,7 +117,6 @@ export function useInfiniteScrollSentinel(opts: {
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasMore, loading, loadingMore, onLoadMore, rootRef, ...(opts.deps ?? [])]);
 
   return sentinelRef;

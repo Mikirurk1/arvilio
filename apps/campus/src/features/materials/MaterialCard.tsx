@@ -76,7 +76,6 @@ function MaterialAssetChip({ asset }: { asset: LibraryMaterialAssetDto }) {
   const content = (
     <>
       {previewHref ? (
-        // eslint-disable-next-line @next/next/no-img-element
         <img src={previewHref} alt="" className={styles.assetChipThumb} />
       ) : (
         <AssetIcon asset={asset} />
@@ -114,7 +113,6 @@ function MaterialCardCover({
   if (coverHref) {
     return (
       <div className={[styles.coverWrap, tone].join(' ')}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={coverHref} alt="" className={styles.coverImage} />
       </div>
     );

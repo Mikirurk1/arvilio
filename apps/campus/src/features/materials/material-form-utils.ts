@@ -9,7 +9,6 @@ import {
   assetFileEntries,
   collectPendingMaterialUploads,
   type MaterialAssetDraft,
-  type MaterialAssetFileEntry,
   type PendingMaterialUpload,
 } from './material-asset-presets';
 import {

@@ -60,7 +60,6 @@ function AssetChip({
   const content = (
     <>
       {previewHref ? (
-        // eslint-disable-next-line @next/next/no-img-element
         <img src={previewHref} alt="" className={styles.chipThumb} />
       ) : (
         <span className={styles.chipIcon}>
@@ -312,8 +311,7 @@ export function LessonLibraryMaterialPanel({
       <div className={styles.head}>
         {coverHref ? (
           <div className={styles.coverWrap}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={coverHref} alt="" className={styles.coverImage} />
+                        <img src={coverHref} alt="" className={styles.coverImage} />
           </div>
         ) : (
           <div className={styles.iconWrap}>

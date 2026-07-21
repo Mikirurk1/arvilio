@@ -10,7 +10,6 @@ import {
   Tooltip,
 } from '../../../components/ui';
 import {
-  DEFAULT_PAYMENT_ENVIRONMENT_MODE,
   type ManualInvoiceMethodDto,
   type ManualInvoiceMethodKindDto,
   type PaymentEnvironmentModeDto,

@@ -265,7 +265,6 @@ export function VideoRoom({ containerRef }: { containerRef: React.RefObject<HTML
     } else {
       layoutContext.pin.dispatch({ msg: 'clear_pin' });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screenShareTracks.length]);
 
   const focusTrack = usePinnedTracks(layoutContext)?.[0];

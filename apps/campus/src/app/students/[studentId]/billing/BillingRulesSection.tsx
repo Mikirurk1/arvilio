@@ -40,7 +40,7 @@ interface BillingRulesSectionProps {
 
 export function BillingRulesSection({
   billingMode, enabledMethods, selectedPaymentMethodIds, platformManualInvoiceMethods,
-  manualInvoiceEnabledForStudent, selectedManualMethodIds, selectedManualMethodCount,
+  manualInvoiceEnabledForStudent: _manualInvoiceEnabledForStudent, selectedManualMethodIds, selectedManualMethodCount,
   manualMethodsForSelection, shouldShowRecommendedManualTemplate, manualInvoiceDefaultLabel,
   manualInvoiceSelection, pendingAction, isBusy, feedback,
   setBillingMode, togglePaymentMethod, toggleManualMethod, setRecommendedManualMethod, onSaveBillingRules,

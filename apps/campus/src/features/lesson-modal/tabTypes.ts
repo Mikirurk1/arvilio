@@ -1,4 +1,3 @@
-import type { ComponentType } from 'react';
 import type { LessonFormState } from './types';
 import type { UserRoleId } from '@pkg/types';
 import type { LessonPartyOption } from '../../hooks/use-lesson-party-options';

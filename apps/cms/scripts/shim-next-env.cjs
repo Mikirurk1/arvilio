@@ -5,7 +5,7 @@
 const Module = require('module');
 
 const originalLoad = Module._load;
-Module._load = function patchedLoad(request, parent, isMain) {
+Module._load = function patchedLoad(request, _parent, _isMain) {
   const exported = originalLoad.apply(this, arguments);
   if (
     exported &&

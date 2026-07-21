@@ -27,7 +27,6 @@ export function useFormState<T>(initial: T): FormState<T> {
     setFormState(initial)
     setSaved(false)
     // initial is intentionally not in deps — callers pass a stable constant
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const markSaved = useCallback(() => setSaved(true), [])

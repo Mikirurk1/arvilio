@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { CreditCard, ShieldCheck, Wallet } from 'lucide-react';
-import { Badge, Button, SurfaceCard } from '../../../components/ui';
+import { Button, SurfaceCard } from '../../../components/ui';
 import { useBillingStore } from '../../../stores/billing-store';
 import {
   DEFAULT_MIN_PACKAGE_LESSONS,

@@ -1,12 +1,28 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import importPlugin from 'eslint-plugin-import';
+
+/** Repo root — flat-config `files`/`ignores` are otherwise cwd-relative (breaks `eslint .` in workspaces). */
+const rootDir = path.dirname(fileURLToPath(import.meta.url));
+/** @param {string} rel */
+const r = (rel) => path.join(rootDir, rel).replaceAll('\\', '/');
 
 export default [
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ['**/dist', '**/.next', '**/node_modules', '**/out-tsc'],
+    ignores: [
+      '**/dist',
+      '**/.next',
+      '**/node_modules',
+      '**/out-tsc',
+      // Vendored minified assets (copied by app scripts; not source).
+      '**/public/pdfjs/**',
+      '**/*.min.js',
+      '**/*.min.mjs',
+    ],
   },
   {
     files: ['**/*.{ts,tsx,js,jsx,mts,cts,mjs,cjs}'],
@@ -58,11 +74,13 @@ export default [
     languageOptions: {
       globals: {
         process: 'readonly',
+        URL: 'readonly',
+        console: 'readonly',
       },
     },
   },
   {
-    files: ['apps/campus/**/*.{tsx,jsx}', 'apps/platform/**/*.{tsx,jsx}'],
+    files: [r('apps/campus/**/*.{tsx,jsx}'), r('apps/platform/**/*.{tsx,jsx}')],
     rules: {
       'no-restricted-syntax': [
         'error',
@@ -80,24 +98,25 @@ export default [
     },
   },
   {
-    files: ['apps/campus/**/*.{ts,tsx,js,jsx}', 'packages/frontend/**/*.{ts,tsx,js,jsx}'],
+    // Campus/FE may use @pkg/types; must not import Nest backend packages.
+    files: [r('apps/campus/**/*.{ts,tsx,js,jsx}'), r('packages/frontend/**/*.{ts,tsx,js,jsx}')],
     rules: {
       'no-restricted-imports': [
         'error',
         {
-          patterns: ['@be/*', '@pkg/*'],
+          patterns: ['@be/*'],
         },
       ],
     },
   },
   {
-    files: ['apps/campus/src/mocks/**/*.{ts,tsx,js,jsx}'],
+    files: [r('apps/campus/src/mocks/**/*.{ts,tsx,js,jsx}')],
     rules: {
       '@typescript-eslint/no-unused-vars': 'off',
     },
   },
   {
-    files: ['apps/api/**/*.{ts,tsx,js,jsx}', 'packages/backend/**/*.{ts,tsx,js,jsx}'],
+    files: [r('apps/api/**/*.{ts,tsx,js,jsx}'), r('packages/backend/**/*.{ts,tsx,js,jsx}')],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -108,7 +127,7 @@ export default [
     },
   },
   {
-    files: ['packages/backend/modules/**/src/domain/**/*.ts'],
+    files: [r('packages/backend/modules/**/src/domain/**/*.ts')],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -120,21 +139,21 @@ export default [
   },
   {
     files: [
-      'packages/backend/modules/**/src/application/**/*.ts',
-      'packages/backend/modules/**/src/presentation/**/*.ts',
+      r('packages/backend/modules/**/src/application/**/*.ts'),
+      r('packages/backend/modules/**/src/presentation/**/*.ts'),
     ],
     rules: {
       'max-lines': ['error', { max: 550, skipBlankLines: true, skipComments: true }],
     },
   },
   {
-    files: ['packages/backend/shared/graphql/src/graphql.types.ts'],
+    files: [r('packages/backend/shared/graphql/src/graphql.types.ts')],
     rules: {
       'max-lines': 'off',
     },
   },
   {
-    files: ['packages/backend/modules/**/src/domain/**/*.ts'],
+    files: [r('packages/backend/modules/**/src/domain/**/*.ts')],
     rules: {
       'import/no-restricted-paths': [
         'error',
@@ -150,7 +169,7 @@ export default [
     },
   },
   {
-    files: ['packages/backend/modules/**/src/application/**/*.ts'],
+    files: [r('packages/backend/modules/**/src/application/**/*.ts')],
     rules: {
       'import/no-restricted-paths': [
         'error',
@@ -166,7 +185,7 @@ export default [
     },
   },
   {
-    files: ['apps/api/**/*.{ts,tsx}', 'packages/backend/**/*.{ts,tsx}'],
+    files: [r('apps/api/**/*.{ts,tsx}'), r('packages/backend/**/*.{ts,tsx}')],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -188,13 +207,13 @@ export default [
   // platform-admin module lands, add its path to `ignores` (it may call
   // `asPlatform()`).
   {
-    files: ['apps/api/**/*.{ts,tsx}', 'packages/backend/**/*.{ts,tsx}'],
+    files: [r('apps/api/**/*.{ts,tsx}'), r('packages/backend/**/*.{ts,tsx}')],
     ignores: [
       '**/*.spec.ts',
       'tests/**',
-      'packages/backend/data-access/data-access-prisma/**',
+      r('packages/backend/data-access/data-access-prisma/**'),
       // platform-admin is the single authorized consumer of asPlatform() (ADR-009).
-      'packages/backend/modules/module-platform-admin/**',
+      r('packages/backend/modules/module-platform-admin/**'),
     ],
     rules: {
       'no-restricted-syntax': [

@@ -200,6 +200,12 @@ describe('Auth API (integration)', () => {
 
   it('product tour: completes once per user and is idempotent', async () => {
     try {
+      // Seeded users have tourCompletedAt set (E2E must not see first-login tour).
+      await prisma.user.updateMany({
+        where: { email: TEST_USERS.student.email },
+        data: { tourCompletedAt: null },
+      });
+
       const student = await loginAs(app, 'student');
 
       const initial = await student.get('/api/onboarding/tour').expect(200);

@@ -178,14 +178,18 @@ export function defaultPlatformIntegrationConfig(): PlatformIntegrationConfigDto
     },
     google: {
       clientId: null,
-      callbackUrl: `${oauthPublicBase}/api/auth/google/callback`,
+      callbackUrl:
+        process.env['GOOGLE_CALLBACK_URL']?.trim() ||
+        `${oauthPublicBase}/api/auth/google/callback`,
       successRedirect: `${webOrigin}/dashboard`,
       linkSuccessRedirect: `${webOrigin}/profile`,
       failureRedirect: `${webOrigin}/login?error=no_account`,
     },
     facebook: {
       appId: null,
-      callbackUrl: `${oauthPublicBase}/api/auth/facebook/callback`,
+      callbackUrl:
+        process.env['FACEBOOK_CALLBACK_URL']?.trim() ||
+        `${oauthPublicBase}/api/auth/facebook/callback`,
     },
     videoMeeting: {
       provider: 'google',
@@ -195,7 +199,9 @@ export function defaultPlatformIntegrationConfig(): PlatformIntegrationConfigDto
       },
       zoom: {
         clientId: null,
-        callbackUrl: `${oauthPublicBase}/api/auth/zoom/callback`,
+        callbackUrl:
+          process.env['ZOOM_CALLBACK_URL']?.trim() ||
+          `${oauthPublicBase}/api/auth/zoom/callback`,
         useServerToServer: false,
       },
     },

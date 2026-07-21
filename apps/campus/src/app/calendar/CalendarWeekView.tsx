@@ -8,7 +8,6 @@ import {
   lessonDateKeyInZone,
   lessonEndTimeInZone,
   lessonStartTimeInZone,
-  viewerSlotToLessonWall,
 } from '../../lib/lessonTime';
 import {
   buildWeekEventLayout,

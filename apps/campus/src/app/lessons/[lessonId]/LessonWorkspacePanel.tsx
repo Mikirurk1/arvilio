@@ -57,7 +57,7 @@ interface LessonWorkspacePanelProps {
 }
 
 export function LessonWorkspacePanel({
-  draft, lesson, canManageLessons, canStudentSubmitHomework, role, text, previous,
+  draft, lesson, canManageLessons, canStudentSubmitHomework: _canStudentSubmitHomework, role, text, previous,
   teacherDisplayName, studentDisplayName, lessonStudentBackendId,
   materialKinds, materialDraft, setMaterialDraft, materialDraftPreviews, setMaterialDraftPreviews,
   savedMaterialPreviews, setSavedMaterialPreviews, homeworkPreviews, setHomeworkPreviews,

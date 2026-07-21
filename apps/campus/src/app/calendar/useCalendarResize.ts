@@ -20,7 +20,7 @@ interface UseCalendarResizeOptions {
 }
 
 export function useCalendarResize({
-  canManage, conflictStrategy, viewerIana, setLessons, lessonsRef,
+  canManage, conflictStrategy, viewerIana, setLessons, lessonsRef: _lessonsRef,
   onConflict, onPastSlot, onSeriesScheduleConfirm, persistScheduleChange, scheduleUnchanged,
 }: UseCalendarResizeOptions) {
   const [resizeState, setResizeState] = useState<ResizeState | null>(null);

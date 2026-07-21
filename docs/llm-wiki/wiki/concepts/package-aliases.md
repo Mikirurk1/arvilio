@@ -33,8 +33,9 @@ Config: [`tsconfig.base.json`](../../../../tsconfig.base.json), [`jest.paths.cjs
 
 ## ESLint boundaries
 
-- `apps/campus` must not import `@be/*` — campus may import `@pkg/types` and `@fe/*`; **no** `@be/*`.
+- `apps/campus` / `packages/frontend` must not import `@be/*` — they **may** import `@pkg/types` and `@fe/*`.
 - `apps/api` / `packages/backend` must not import `@fe/*`.
+- Flat-config `files` globs for those rules use **absolute paths from the repo root** (`eslint.config.mjs`), because package scripts run `eslint .` with cwd = the app package.
 
 See root [`eslint.config.mjs`](../../../../eslint.config.mjs).
 

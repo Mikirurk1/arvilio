@@ -28,9 +28,7 @@ export function LessonPreJoin({ displayName, onSubmit }: Props) {
   // Camera/mic init can stall the browser for several seconds on some systems.
   useEffect(() => {
     let active = true;
-    let timer: ReturnType<typeof setTimeout>;
-
-    timer = setTimeout(() => {
+    const timer = setTimeout(() => {
       if (!active) return;
       navigator.mediaDevices
         .getUserMedia({ video: true, audio: true })

@@ -46,7 +46,7 @@ export function StudentImportPanel() {
   const [result, setResult] = useState<ImportConfirmDto | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
-  const [csvText, setCsvText] = useState('');
+  const [, setCsvText] = useState('');
 
   const handleFileChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {

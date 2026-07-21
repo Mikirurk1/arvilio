@@ -7,7 +7,7 @@ import { USER_ROLE } from '@pkg/types';
 import { useActiveUser } from '../../lib/active-user';
 import { buildCalendarSeriesCopy, useCampusT } from '../../lib/cms';
 import { moveLessonToViewerCalendarDay, viewerSlotToLessonWall } from '../../lib/lessonTime';
-import { calculateEndTime, toLessonFormState } from '../../features/calendar/adapters/lessonCalendarAdapter';
+import { toLessonFormState } from '../../features/calendar/adapters/lessonCalendarAdapter';
 import { buildLessonCandidate, resolvePartyBackendId } from '../../features/lesson-modal/lessonPersistence';
 import { syncLessonFormChange } from '../../features/lesson-modal/lesson-form-sync';
 import { getLessonBackendId } from '../../features/lesson-modal/scheduledLessonsBackendAdapter';
@@ -57,7 +57,7 @@ export function useCalendarLessonActions({
   lessons, setLessons, canManage, conflictStrategy, viewerIana, viewerTimezoneId,
   currentUserNumericId, studentOptions, assignableTeachers, defaultTeacher, defaultStudent,
   persistCreate, persistUpdate, persistScheduleUpdate, persistenceErrorMessage,
-  studentTeacherChatPeerId, showAudienceToggle, setAudience, setTeacherFilter,
+  studentTeacherChatPeerId, showAudienceToggle: _showAudienceToggle, setAudience: _setAudience, setTeacherFilter: _setTeacherFilter,
   setConflictDialog, setWarningDialog, setSeriesScheduleConfirm,
 }: UseCalendarLessonActionsOptions) {
   const router = useRouter();

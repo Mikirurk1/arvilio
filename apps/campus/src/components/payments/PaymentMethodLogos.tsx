@@ -37,7 +37,6 @@ export function PaymentMethodLogos({
       <ul className={styles.list}>
         {logos.map((logo) => (
           <li key={logo.id} className={styles.item}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={logo.src} alt={logo.label} className={styles.logo} height={28} />
           </li>
         ))}

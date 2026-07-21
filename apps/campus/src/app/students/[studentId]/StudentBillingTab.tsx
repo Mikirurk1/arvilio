@@ -16,7 +16,7 @@ import { SurfaceCard } from '../../../components/ui';
 import { useSchoolGroupLessons } from '../../../hooks/use-school-group-lessons';
 import { splitStudentBillingTracks, groupBillingModeShortLabel, summarizeGroupMembership } from '../../../lib/billing/student-billing-tracks';
 import { BanknoteArrowUp, CreditCard, PackageOpen, WalletCards } from 'lucide-react';
-import { getFeaturedPackageId, formatMinor } from './billing/billing-tab-utils';
+import { formatMinor } from './billing/billing-tab-utils';
 import { useCampusT } from '../../../lib/cms';
 import { BillingRulesSection } from './billing/BillingRulesSection';
 import { AdminPackagesSection, StudentPackagesSection } from './billing/BillingPackagesSection';

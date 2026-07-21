@@ -9,6 +9,5 @@ export function useMountFetch(fetchFn: () => unknown, enabled = true): void {
     if (!enabled) return
     void fetchFn()
     // fetchFn identity is stable from Zustand — exhaustive-deps warning here is safe to ignore
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled])
 }

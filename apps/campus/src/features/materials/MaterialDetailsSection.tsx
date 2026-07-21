@@ -91,7 +91,6 @@ export function MaterialDetailsSection({
           Optional hero image for library cards. Book PDFs also get title-page previews automatically.
         </p>
         {coverPreviewUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img src={coverPreviewUrl} alt="" className={styles.coverPreview} />
         ) : null}
         <Field

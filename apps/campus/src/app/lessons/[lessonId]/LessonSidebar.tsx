@@ -5,7 +5,6 @@ import { BookOpen, Calendar, Clock3, Save, UserRound } from 'lucide-react';
 import { Button, Field, SurfaceCard } from '../../../components/ui';
 import { StudentSelectField } from '../../../components/students';
 import { LESSON_STATUS } from '@pkg/types';
-import { USER_ROLE } from '@pkg/types';
 import type { ScheduledLessonDto } from '@pkg/types';
 import { LessonVideoButton } from '../../../components/backend/LessonMeetButton';
 import { LessonVideoEmbed } from '../../../components/backend/LessonVideoEmbed';

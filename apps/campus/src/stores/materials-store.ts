@@ -6,7 +6,6 @@ import type {
   CreateLibraryMaterialRequestDto,
   LibraryMaterialDto,
   LibraryMaterialKindCountsDto,
-  LibraryMaterialKindName,
   UpdateLibraryMaterialRequestDto,
 } from '@pkg/types';
 import {
@@ -53,14 +52,6 @@ type MaterialsState = {
   setListKind: (kind: LibraryKindFilter) => void;
   setListSearch: (search: string) => void;
 };
-
-const emptyCounts = (): LibraryMaterialKindCountsDto => ({
-  all: 0,
-  board: 0,
-  presentation: 0,
-  book: 0,
-  other: 0,
-});
 
 export const useMaterialsStore = create<MaterialsState>()(
   devtools(

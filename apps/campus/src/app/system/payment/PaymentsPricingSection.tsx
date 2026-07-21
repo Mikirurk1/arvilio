@@ -5,11 +5,9 @@ import { useState } from 'react';
 import { Badge, Field, Tabs } from '../../../components/ui';
 import {
   DEFAULT_SCHOOL_GROUP_LESSONS_SETTINGS,
-  getLemonSqueezyActiveVariantCurrency,
   getPricePerLessonForCurrency,
   PAYMENT_CURRENCY_OPTIONS,
   type LessonPriceByCurrencyDto,
-  type PaymentConfigDto,
   type PaymentCurrencyCode,
   type PaymentSettingsDto,
   type SchoolGroupLessonsSettingsDto,
@@ -46,8 +44,6 @@ export function PaymentsPricingSection({
   const groupLessonsEnabled = groupLessons.enabled;
   const groupDefaultCurrency = (groupLessons.defaultCurrency ?? currency) as PaymentCurrencyCode;
   const groupDefaultPriceMinor = groupLessons.defaultPriceMinor ?? 0;
-  const lemonVariantCurrency = getLemonSqueezyActiveVariantCurrency(draft.config.lemonsqueezy);
-
   const updatePriceForCurrency = (code: PaymentCurrencyCode, value: number) => {
     const nextRows: LessonPriceByCurrencyDto[] = allowedCurrencies.map((rowCurrency) => {
       const existing = pricePerLessonByCurrency.find((row) => row.currency === rowCurrency);

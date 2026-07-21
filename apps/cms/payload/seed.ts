@@ -335,7 +335,7 @@ async function ensureDefaultOgImage(
 
   try {
     const sharp = (await import('sharp')).default;
-    const { writeFileSync, mkdirSync } = await import('fs');
+    const { mkdirSync } = await import('fs');
     const { join } = await import('path');
     const tmpDir = join(process.cwd(), '.tmp');
     mkdirSync(tmpDir, { recursive: true });

@@ -105,7 +105,6 @@ export function CalendarMonthView({
             </div>
             <div className={styles.dayLessons}>
               {dayLessons.slice(0, 3).map((lesson) => {
-                const canDragLesson = canManage && lesson.startTime > String(Date.now());
                 return (
                   <div
                     key={lesson.id}

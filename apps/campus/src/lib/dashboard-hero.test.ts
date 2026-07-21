@@ -165,7 +165,7 @@ describe('dashboard-hero', () => {
     });
     expect(hero.kind).toBe('practice');
     if (hero.kind === 'practice') {
-      expect(hero.title).toBe('Your teaching day');
+      expect(hero.title).toBe('dashboard.hero.teachingDay');
     }
   });
 });
