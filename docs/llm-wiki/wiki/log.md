@@ -4,6 +4,11 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 ---
 
+## [2026-07-21] update | Rebase conflict: wiki log + PreToolUse JSON hook
+- **Trigger:** debug (rebase halted; Cursor Shell/Edit blocked)
+- **Pages:** (log only)
+- **Notes:** Merged both sides of `log.md` conflict (B4–B6 / tour history + PreToolUse entry). Restored `.claude/helpers/hook-handler.cjs` so `pre-bash`/`pre-edit` emit `hookSpecificOutput.permissionDecision` JSON on stdout (stderr for human logs) — non-JSON stdout had blocked all tools mid-rebase.
+
 ## [2026-07-21] update | Chapter auto-advance: mid-steps only + Strict Mode safe
 - **Trigger:** user bug (System click did not advance; Payments tab skipped last tip)
 - **Pages:** [[concepts/arvi]]
