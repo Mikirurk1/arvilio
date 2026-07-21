@@ -26,6 +26,7 @@ describe('checkout-display', () => {
       pricePerLessonMinor: 45000,
       isCustomPrice: false,
       lessonsLocked: false,
+      creditTrack: 'individual',
     });
     expect(summary.amountLabel).toBe('4500.00 UAH');
     expect(summary.balanceAfterLabel).toContain('+10 lessons');

@@ -50,7 +50,7 @@ export default function IrregularVerbsPracticePage() {
 
   const practiceSessionActive =
     playPhase === 'setup' || playPhase === 'quiz' || playPhase === 'result';
-  usePracticeSessionTracker(user?.id, 'game', practiceSessionActive);
+  usePracticeSessionTracker(user?.id, 'games', practiceSessionActive);
 
   useEffect(() => {
     setTier(readStoredTier());

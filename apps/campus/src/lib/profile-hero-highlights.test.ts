@@ -8,52 +8,13 @@ import {
   truncateEmail,
 } from './profile-hero-highlights';
 import { LESSON_STATUS } from '@pkg/types';
-
-const baseBackendLesson = {
-  id: 'lesson-1',
-  title: 'Grammar',
-  date: '2026-06-10',
-  startTime: '14:00',
-  endTime: '15:00',
-  duration: 60,
-  timezone: 'Europe/Kyiv',
-  teacherId: 'teacher-1',
-  teacherName: 'T',
-  studentId: 'student-1',
-  studentName: 'S',
-  status: 'planned' as const,
-  recurrence: 'none' as const,
-  weeklyDays: [] as number[],
-  order: 0,
-  materials: [],
-  homework: [],
-};
-
-const baseLesson = {
-  id: 1,
-  title: 'Lesson',
-  date: '2026-06-10',
-  startTime: '14:00',
-  endTime: '15:00',
-  duration: 60,
-  timezoneId: 1,
-  teacherId: 1,
-  teacherName: 'T',
-  studentId: 2,
-  studentName: 'S',
-  statusId: LESSON_STATUS.planned.id,
-  recurrence: 'none' as const,
-  weeklyDays: [],
-  order: 0,
-  materials: [],
-  homework: [],
-};
+import { mockScheduledLesson, mockScheduledLessonBackend } from '../testing/fixtures';
 
 describe('profile-hero-highlights', () => {
   it('pickNextPlannedLessonDto returns earliest upcoming planned lesson', () => {
     const lessons = [
-      { ...baseLesson, id: 1, date: '2026-06-12', startTime: '10:00' },
-      { ...baseLesson, id: 2, date: '2026-06-11', startTime: '09:00' },
+      mockScheduledLesson({ id: 1, date: '2026-06-12', startTime: '10:00' }),
+      mockScheduledLesson({ id: 2, date: '2026-06-11', startTime: '09:00' }),
     ];
     const next = pickNextPlannedLessonDto(lessons, new Date('2026-06-01').getTime());
     expect(next?.id).toBe(2);
@@ -61,8 +22,16 @@ describe('profile-hero-highlights', () => {
 
   it('pickLastCompletedLessonDto returns most recent completed lesson', () => {
     const lessons = [
-      { ...baseLesson, id: 1, statusId: LESSON_STATUS.completed.id, date: '2026-05-01' },
-      { ...baseLesson, id: 2, statusId: LESSON_STATUS.completed.id, date: '2026-05-10' },
+      mockScheduledLesson({
+        id: 1,
+        statusId: LESSON_STATUS.completed.id,
+        date: '2026-05-01',
+      }),
+      mockScheduledLesson({
+        id: 2,
+        statusId: LESSON_STATUS.completed.id,
+        date: '2026-05-10',
+      }),
     ];
     const last = pickLastCompletedLessonDto(lessons, new Date('2026-06-01').getTime());
     expect(last?.id).toBe(2);
@@ -78,7 +47,15 @@ describe('profile-hero-highlights', () => {
 
   it('buildProfileHeroAction prefers next lesson over vocabulary review', () => {
     const action = buildProfileHeroAction({
-      lessons: [baseBackendLesson],
+      lessons: [
+        mockScheduledLessonBackend({
+          id: 'lesson-1',
+          title: 'Grammar',
+          date: '2026-06-10',
+          startTime: '14:00',
+          endTime: '15:00',
+        }),
+      ],
       reviewCount: 5,
       isStudent: true,
       now: new Date('2026-06-01').getTime(),
@@ -99,7 +76,7 @@ describe('profile-hero-highlights', () => {
 
   it('buildStudentHeroAction links to next lesson', () => {
     const action = buildStudentHeroAction(
-      [{ ...baseLesson, backendId: 'lesson-1' }],
+      [mockScheduledLesson({ backendId: 'lesson-1', date: '2026-06-10' })],
       (lesson) => `/lessons/${lesson.backendId}`,
       new Date('2026-06-01').getTime(),
     );

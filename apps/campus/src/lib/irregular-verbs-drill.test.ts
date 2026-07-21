@@ -51,7 +51,7 @@ describe('irregular-verbs-drill', () => {
     const [question] = buildIrregularVerbQuestions({
       tier: 'common',
       formFocus: 'pastSimple',
-      questionCount: 1,
+      questionCount: 10,
     });
     expect(question).toBeDefined();
     expect(gradeIrregularVerbAnswer(question!, question!.correctIndex)).toBe(true);

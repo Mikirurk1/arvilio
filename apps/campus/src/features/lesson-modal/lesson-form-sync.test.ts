@@ -33,6 +33,15 @@ const form: LessonFormState = {
   recurrence: 'none',
   weeklyDays: [],
   linkedWordIds: [],
+
+  kind: 'individual',
+  participantIds: [],
+  groupBillingMode: 'per_member',
+  groupPriceMinor: 0,
+  groupCurrency: 'UAH',
+  groupSplitMode: 'equal_split',
+  groupPayerUserId: null,
+  studentGroupId: null,
 };
 
 describe('syncLessonFormChange', () => {

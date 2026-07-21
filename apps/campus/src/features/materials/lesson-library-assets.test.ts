@@ -18,6 +18,7 @@ const assets = [
     sortOrder: 0,
     downloadPath: '/f/1',
     previewDownloadPath: null,
+    fileName: null,
   },
   {
     id: '2',
@@ -29,6 +30,7 @@ const assets = [
     sortOrder: 1,
     downloadPath: '/f/2',
     previewDownloadPath: null,
+    fileName: null,
   },
   {
     id: '3',
@@ -40,6 +42,7 @@ const assets = [
     sortOrder: 2,
     downloadPath: '/f/3',
     previewDownloadPath: null,
+    fileName: null,
   },
   {
     id: '4',
@@ -51,6 +54,7 @@ const assets = [
     sortOrder: 3,
     downloadPath: '/f/4',
     previewDownloadPath: null,
+    fileName: null,
   },
 ];
 

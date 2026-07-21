@@ -14,6 +14,7 @@ import { useActiveRoleKey } from '../../lib/active-user';
 import {
   loadArviChatHistory,
   saveArviChatHistory,
+  type ArviChatStoredMessage,
 } from './arvi-chat-history';
 import styles from './ArviChatPanel.module.scss';
 
@@ -28,12 +29,7 @@ function toAssistantWelcomeRole(role: string): AssistantWelcomeRole {
   return 'student';
 }
 
-type ChatMessage = {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  navigatePath?: string;
-};
+type ChatMessage = ArviChatStoredMessage;
 
 type AssistantStatus = {
   ready: boolean;
@@ -276,8 +272,13 @@ export function ArviChatPanel() {
       content: text,
     };
     const assistantId = `a-${Date.now()}`;
+    const assistantPlaceholder: ChatMessage = {
+      id: assistantId,
+      role: 'assistant',
+      content: '',
+    };
     setMessages((prev) => {
-      const next = [...prev, userMsg, { id: assistantId, role: 'assistant', content: '' }];
+      const next = [...prev, userMsg, assistantPlaceholder];
       saveArviChatHistory(next);
       return next;
     });

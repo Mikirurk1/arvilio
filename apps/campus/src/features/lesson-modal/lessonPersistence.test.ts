@@ -124,6 +124,14 @@ describe('lessonPersistence', () => {
       recurrence: 'none',
       weeklyDays: [],
       linkedWordIds: [],
+      kind: 'individual',
+      participantIds: [],
+      groupBillingMode: 'per_member',
+      groupPriceMinor: 0,
+      groupCurrency: 'UAH',
+      groupSplitMode: 'equal_split',
+      groupPayerUserId: null,
+      studentGroupId: null,
     };
     const candidate = buildLessonCandidate(form, [lesson], null);
     expect(candidate.id).toBe(2);
@@ -156,6 +164,14 @@ describe('lessonPersistence', () => {
       recurrence: 'none',
       weeklyDays: [],
       linkedWordIds: [],
+      kind: 'individual',
+      participantIds: [],
+      groupBillingMode: 'per_member',
+      groupPriceMinor: 0,
+      groupCurrency: 'UAH',
+      groupSplitMode: 'equal_split',
+      groupPayerUserId: null,
+      studentGroupId: null,
     };
     const candidate = buildLessonCandidate(form, [lesson], lesson);
     expect(candidate.id).toBe(lesson.id);

@@ -4,6 +4,11 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 ---
 
+## [2026-07-21] update | CI: campus typecheck (Arvi chat + fixtures)
+- **Trigger:** code change (campus typecheck red)
+- **Pages:** (ops / log)
+- **Notes:** `usePracticeSessionTracker(..., 'games')`; Arvi chat messages typed as `ArviChatStoredMessage`. Spec fixtures updated for `fileName`, `creditTrack`, `LessonFormState` group fields, `credited`/backend lesson mocks.
+
 ## [2026-07-21] update | CI: FieldShell label accepts ReactNode
 - **Trigger:** code change (platform typecheck)
 - **Pages:** (ops / log)

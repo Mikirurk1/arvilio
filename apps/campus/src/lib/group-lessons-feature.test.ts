@@ -34,7 +34,7 @@ const basePaymentSettings = (): PaymentSettingsDto =>
     },
     methods: [],
     secretStatuses: {},
-  }) as PaymentSettingsDto;
+  }) as unknown as PaymentSettingsDto;
 
 const lesson = (overrides: Partial<ScheduledLessonDto>): ScheduledLessonDto =>
   ({
@@ -56,7 +56,7 @@ const lesson = (overrides: Partial<ScheduledLessonDto>): ScheduledLessonDto =>
 
 const statsView = (): StatisticsDashboardViewModel =>
   ({
-    layout: 'staff',
+    layout: 'admin',
     title: 'Stats',
     rangeLabel: 'Week',
     kpis: [
@@ -84,7 +84,7 @@ const statsView = (): StatisticsDashboardViewModel =>
     schoolOverview: undefined,
     roster: [{ id: 's1', displayName: 'Student', lessonTypeLabel: 'Group only' }],
     isStudentLayout: false,
-  }) as StatisticsDashboardViewModel;
+  }) as unknown as StatisticsDashboardViewModel;
 
 describe('group-lessons-feature', () => {
   it('isGroupLessonsEnabled only treats explicit true as enabled', () => {
@@ -172,8 +172,8 @@ describe('group-lessons-feature', () => {
 
   it('filterStudentLessonsByKind only filters when feature is on', () => {
     const lessons = [
-      lesson({ id: 'a', kind: 'individual' }),
-      lesson({ id: 'b', kind: 'group' }),
+      lesson({ id: 1, kind: 'individual' }),
+      lesson({ id: 2, kind: 'group' }),
     ];
     expect(filterStudentLessonsByKind(lessons, false, 'group')).toHaveLength(2);
     expect(filterStudentLessonsByKind(lessons, true, 'group')).toEqual([lessons[1]]);
