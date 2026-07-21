@@ -311,7 +311,7 @@ export function LessonLibraryMaterialPanel({
       <div className={styles.head}>
         {coverHref ? (
           <div className={styles.coverWrap}>
-                        <img src={coverHref} alt="" className={styles.coverImage} />
+            <img src={coverHref} alt="" className={styles.coverImage} />
           </div>
         ) : (
           <div className={styles.iconWrap}>
