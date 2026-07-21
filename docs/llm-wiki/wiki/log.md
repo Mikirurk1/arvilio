@@ -4,6 +4,11 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 ---
 
+## [2026-07-21] update | test script runs prisma:generate
+- **Trigger:** debug (local `npm run test` → 52 suites “Cannot find module .prisma/client”)
+- **Pages:** (ops / log)
+- **Notes:** Root `test` / `test:coverage` now call `prisma:generate` like `test:unit`. CI already passed on `39fdc29`; local fails were missing generated client after clean install.
+
 ## [2026-07-21] update | CI: campus typecheck (Arvi chat + fixtures)
 - **Trigger:** code change (campus typecheck red)
 - **Pages:** (ops / log)
