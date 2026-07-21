@@ -4,6 +4,11 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 ---
 
+## [2026-07-21] update | CD campus Docker + E2E webServer
+- **Trigger:** debug (CD build campus fail; Playwright webServer timeout)
+- **Pages:** [[concepts/testing]]
+- **Notes:** Campus prod image must `COPY scripts` (`next.config.mjs` → `load-root-env.mjs`). E2E: `dev:core:turbo` + health on `/api/auth/web-session`; `dev-split` resolves concurrently via package.json path (exports block). Docker Actions → v4/v6/v7; `upload-artifact@v6` (Node 20 deprecation warnings).
+
 ## [2026-07-21] update | test script runs prisma:generate
 - **Trigger:** debug (local `npm run test` → 52 suites “Cannot find module .prisma/client”)
 - **Pages:** (ops / log)

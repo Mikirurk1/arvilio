@@ -42,7 +42,7 @@ Bootstrap: [`tests/integration/bootstrap.ts`](../../../../tests/integration/boot
 - Page objects: [`tests/e2e/pages/`](../../../../tests/e2e/pages/) (`LoginPage`, `SidebarNav`, `ChatPage`, `CalendarPage`)
 - `SidebarNav` targets `navigation` with `aria-label="Main navigation"` only (dashboard quick actions can share link labels).
 - `LoginPage.login` waits for `POST /api/auth/login` and `/dashboard` redirect before assertions.
-- **E2E dev server** (`scripts/e2e-web-server.sh`): Playwright `webServer` command — starts `npm run dev`, waits for `:3000/api` + `:4200`, verifies seeded login, then keeps dev running. Local reuse: `PLAYWRIGHT_SKIP_WEBSERVER=1` against already-running `dev:campus` / `dev:api`.
+- **E2E dev server** (`scripts/e2e-web-server.sh`): Playwright `webServer` command — starts `npm run dev:core:turbo` (api + campus only), waits for `GET /api/auth/web-session` + `:4200`, verifies seeded login (`jest-student@arvilio.test`), then keeps servers running. Avoids full `npm run dev` / Cursor split on CI. Local reuse: `PLAYWRIGHT_SKIP_WEBSERVER=1` against already-running `dev:campus` / `dev:api`.
 - Projects (`tests/e2e/playwright.config.ts`): `setup` → `student` / `teacher` / `admin` / `mobile-student` (storageState) + `public` (no cookies). Specs that need a guest session must clear storage (`test.use({ storageState: { cookies: [], origins: [] } })`) or they fail on authenticated projects (e.g. `/login` → dashboard).
 - Route specs: [`tests/e2e/specs/pages/`](../../../../tests/e2e/specs/pages/) + legacy [`specs/login.spec.ts`](../../../../tests/e2e/specs/login.spec.ts), `navigation`, `product-pages`
 - Env: `PLAYWRIGHT_TEST_EMAIL`, `PLAYWRIGHT_TEST_PASSWORD`, `PLAYWRIGHT_TEACHER_EMAIL`, `PLAYWRIGHT_ADMIN_EMAIL`

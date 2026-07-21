@@ -16,6 +16,8 @@ ENV API_PROXY_TARGET=http://api:3000
 COPY package.json package-lock.json tsconfig.base.json ./
 COPY apps apps
 COPY packages packages
+# next.config.mjs imports ../../scripts/load-root-env.mjs
+COPY scripts scripts
 
 RUN npm ci
 

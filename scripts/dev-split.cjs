@@ -109,11 +109,14 @@ function runExternal() {
   }
 
   console.log('Launching with colored prefixes in this terminal…');
-  const concurrently = require.resolve('concurrently/dist/bin/concurrently.js');
+  const concurrentlyBin = require('node:path').join(
+    require('node:path').dirname(require.resolve('concurrently/package.json')),
+    'dist/bin/concurrently.js',
+  );
   const names = apps.map((a) => a.title).join(',');
   spawn(
     process.execPath,
-    [concurrently, '-k', '-n', names, '-c', 'blue,green,magenta,cyan,yellow', '--pad-prefix', ...apps.map((a) => `npm run ${a.script}`)],
+    [concurrentlyBin, '-k', '-n', names, '-c', 'blue,green,magenta,cyan,yellow', '--pad-prefix', ...apps.map((a) => `npm run ${a.script}`)],
     { stdio: 'inherit', cwd: root },
   ).on('exit', (code) => process.exit(code ?? 0));
 }
