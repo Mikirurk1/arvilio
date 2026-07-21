@@ -1,21 +1,24 @@
-# Browser E2E — heavier than unit/integration; not required on every PR by default.
-# Runs on main pushes, nightly schedule, and manual dispatch.
+# Browser E2E — heavier than unit/integration; not required on every PR.
+# Runs after green CI on main, weekly schedule, or manual dispatch.
 
 name: E2E
 
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main, master]
   schedule:
     - cron: '0 4 * * 1'
   workflow_dispatch:
 
 concurrency:
-  group: e2e-${{ github.workflow }}-${{ github.ref }}
+  group: e2e-${{ github.event.workflow_run.head_sha || github.sha }}
   cancel-in-progress: false
 
 permissions:
   contents: read
+  actions: read
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -34,6 +37,7 @@ env:
 jobs:
   playwright:
     name: Playwright
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     services:
@@ -51,7 +55,19 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     steps:
+      - name: Resolve commit SHA
+        id: rev
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "sha=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "sha=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ steps.rev.outputs.sha }}
+
       - uses: ./.github/actions/setup-monorepo
       - run: npm run build:email-templates
       - run: npm run prisma:migrate:deploy

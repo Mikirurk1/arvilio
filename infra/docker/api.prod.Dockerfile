@@ -1,8 +1,11 @@
 # Production API image (NestJS + Prisma). Build context: repository root.
 FROM node:22-alpine AS builder
 
-# Match root packageManager (npm@11.6.2) — avoids lockfile drift vs npm 10 in base image.
-RUN corepack enable && corepack prepare npm@11.6.2 --activate
+# Match root packageManager (npm@11.6.2). Base image npm 10 fails `npm ci` on this lockfile.
+RUN corepack enable \
+  && corepack prepare npm@11.6.2 --activate \
+  && npm install -g npm@11.6.2 \
+  && npm -v | grep -E '^11\.'
 
 WORKDIR /app
 

@@ -2,7 +2,10 @@
 # Hot reload: postgres in compose + `npm run dev` on the host.
 FROM node:22-alpine
 
-RUN corepack enable && corepack prepare npm@11.6.2 --activate
+RUN corepack enable \
+  && corepack prepare npm@11.6.2 --activate \
+  && npm install -g npm@11.6.2 \
+  && npm -v | grep -E '^11\.'
 
 WORKDIR /workspace
 

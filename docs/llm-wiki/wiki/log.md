@@ -4,6 +4,16 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 ---
 
+## [2026-07-21] update | CI/CD harden: npm 11 + CD/E2E after green CI
+- **Trigger:** plan — fix red Actions + gate pipelines
+- **Pages:** docs/reference/ci-cd.md (ops)
+- **Notes:** Force npm 11 in setup-monorepo + Docker. CD/E2E use `workflow_run` after successful CI on main (checkout `head_sha`). Image tags `sha-<fullsha>` aligned with deploy placeholders. Branch protection: require **CI gate**.
+
+## [2026-07-21] update | CI/CD fail: npm 10 vs lockfile npm 11
+- **Trigger:** debug (all CI/CD/E2E red after push)
+- **Pages:** (ops / log only)
+- **Notes:** Failures were not Playwright tests — `npm ci` aborted before install. Lockfile needs npm 11 (`packageManager: npm@11.6.2`); GHA `setup-node` left npm 10.9.8 despite `corepack prepare --activate` → missing `@emnapi/*`, `chokidar@4`. Fix: force `npm install -g npm@11.6.2` + assert in `setup-monorepo` and Docker prod/api images.
+
 ## [2026-07-21] update | Rebase conflict: wiki log + PreToolUse JSON hook
 - **Trigger:** debug (rebase halted; Cursor Shell/Edit blocked)
 - **Pages:** (log only)

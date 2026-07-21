@@ -71,7 +71,7 @@
     "docker:down": "docker compose -f infra/docker/docker-compose.yml down",
     "docker:logs": "docker compose -f infra/docker/docker-compose.yml logs -f",
     "docker:ps": "docker compose -f infra/docker/docker-compose.yml ps -a",
-    "lockfile:linux": "docker run --rm -v \"$PWD:/app\" -w /app node:22-bookworm-slim bash -c 'corepack enable && corepack prepare npm@11.6.2 --activate && npm install'"
+    "lockfile:linux": "docker run --rm -v \"$PWD:/app\" -w /app node:22-bookworm-slim bash -c 'corepack enable && corepack prepare npm@11.6.2 --activate && npm install -g npm@11.6.2 && npm -v | grep -E \"^11\\.\" && npm install'"
   },
   "overrides": {
     "ws": "^8.21.0",

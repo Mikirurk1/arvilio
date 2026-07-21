@@ -21,9 +21,27 @@ runs:
         cache: npm
         cache-dependency-path: package-lock.json
 
+    # package-lock.json is generated with npm 11 (packageManager: npm@11.6.2).
+    # actions/setup-node ships npm 10 first on PATH; corepack --activate alone
+    # often leaves `npm -v` at 10.x, and then `npm ci` fails with missing lock entries
+    # (@emnapi/*, chokidar@4). Force npm 11 onto PATH and assert before install.
     - name: Use npm from packageManager
       shell: bash
-      run: corepack enable && corepack prepare npm@11.6.2 --activate && node -v && npm -v
+      run: |
+        set -euo pipefail
+        corepack enable
+        corepack prepare npm@11.6.2 --activate
+        npm install -g npm@11.6.2
+        hash -r
+        node -v
+        npm -v
+        case "$(npm -v)" in
+          11.*) ;;
+          *)
+            echo "::error::Expected npm 11.x (packageManager), got $(npm -v)"
+            exit 1
+            ;;
+        esac
 
     - name: Install dependencies
       shell: bash
