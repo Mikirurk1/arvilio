@@ -4,6 +4,11 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 ---
 
+## [2026-07-21] update | CI: FieldShell label accepts ReactNode
+- **Trigger:** code change (platform typecheck)
+- **Pages:** (ops / log)
+- **Notes:** `Field` SharedProps.label is `ReactNode` but `FieldShell` typed `label?: string` → TS2322 under `@app/platform` typecheck. Align FieldShell to `ReactNode`.
+
 ## [2026-07-21] update | CI typecheck + lessons integration outsider membership
 - **Trigger:** code change (CI lint/typecheck + integration red)
 - **Pages:** (ops / log)
