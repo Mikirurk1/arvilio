@@ -15,13 +15,23 @@ describe('GraphQL lessons (integration)', () => {
 
   beforeAll(async () => {
     ctx = await createIntegrationApp();
-    ({ studentId } = await getSeededUserIds(ctx.prisma));
+    const seeded = await getSeededUserIds(ctx.prisma);
+    studentId = seeded.studentId;
+    // Same school, different teacher — tenancy must find the user, then ownership forbids.
     const outsider = await ctx.prisma.user.create({
       data: {
         email: 'jest-outsider-lessons@arvilio.test',
         displayName: 'Jest Outsider Lessons',
         role: 'STUDENT',
         status: 'ACTIVE',
+        teacherId: seeded.adminId,
+        schoolMemberships: {
+          create: {
+            schoolId: 'school_default',
+            role: 'STUDENT',
+            status: 'ACTIVE',
+          },
+        },
       },
       select: { id: true },
     });

@@ -4,6 +4,11 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 ---
 
+## [2026-07-21] update | CI typecheck + lessons integration outsider membership
+- **Trigger:** code change (CI lint/typecheck + integration red)
+- **Pages:** (ops / log)
+- **Notes:** CMS `tsconfig` excludes CLI `payload/migrate-*.ts` / seed scripts (duplicate top-level helpers). Lessons integration outsider student now has `school_default` membership + other `teacherId` so ownership check returns Forbidden “own students” instead of BadRequest “not found”.
+
 ## [2026-07-21] update | CI green: lint + unit/integration test fixes
 - **Trigger:** code change (CI still red after npm 11 harden)
 - **Pages:** [[concepts/package-aliases]], [[concepts/testing]]
