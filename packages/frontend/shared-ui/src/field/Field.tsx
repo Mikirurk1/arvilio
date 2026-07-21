@@ -301,7 +301,7 @@ function FieldShell({
   labelClassName,
   children,
 }: {
-  label?: string;
+  label?: ReactNode;
   hint?: string;
   error?: string;
   id: string;
