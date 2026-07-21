@@ -347,9 +347,9 @@
     border-left: 3px solid var(--blue);
   }
 
-  &:has(.amber) .statValue { color: var(--amber); }
+  &:has(.amber) .statValue { color: var(--accent-warning-strong); }
   &:has(.green) .statValue { color: var(--green-dark); }
-  &:has(.blue) .statValue  { color: var(--blue); }
+  &:has(.blue) .statValue  { color: var(--blue-dark); }
 
   &:hover {
     box-shadow: var(--shadow-md);

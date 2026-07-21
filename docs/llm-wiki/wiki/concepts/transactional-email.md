@@ -1,6 +1,6 @@
 ---
 tags: [concept, email, auth]
-updated: 2026-07-20
+updated: 2026-07-21
 ---
 
 # Transactional email
@@ -78,6 +78,17 @@ REST (Control Plane):
 - `GET/PUT /api/platform/smtp`
 - `POST /api/platform/smtp/verify`
 - `POST /api/platform/smtp/test` — `{ to }`
+
+## Test surface (CI / audit)
+
+Live delivery to Resend/Brevo/Mailtrap is **out of CI**. Coverage is mock-only:
+
+| Layer | Spec | What |
+|-------|------|------|
+| Unit | `smtp-provider-presets.test.ts` (`@pkg/types`) | `SMTP_PROVIDER_PRESETS`, `matchSmtpProviderPreset` |
+| Unit | `platform-smtp.service.spec.ts` | `get` / `set` / `verify` / `test` (+ audit, bad `to`, unconfigured) |
+| Campus e2e | `tests/e2e/specs/audit/06-smtp-mock.spec.ts` | GraphQL mock: verify, Resend preset, Save SMTP, Send test |
+| Platform e2e | `tests/e2e/specs/audit/07-platform-smtp-mock.spec.ts` | REST mock on `/api/platform/smtp*`; soft-skip if `:4300` down |
 
 ## Related
 

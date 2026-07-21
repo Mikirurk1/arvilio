@@ -15,13 +15,14 @@ test.describe('Admin panel — admin', () => {
 
   test('shows users / members section', async ({ page }) => {
     await page.goto('/admin');
-    // Page is titled "Account administration"; user rows appear in UsersTable
-    const section = page
-      .getByRole('heading', { name: /account.*admin|users|members|учасники/i })
+    await expect(page).toHaveURL(/\/admin/, { timeout: 10_000 });
+    // Title is "Admin"; accounts live in overview + Existing accounts table
+    const marker = page
+      .getByRole('heading', { name: /admin|account|users|members|учасники/i })
       .or(page.getByRole('table'))
-      .or(page.getByRole('row').first())
-      .or(page.getByTestId('admin-users-section'));
-    await expect(section).toBeVisible({ timeout: 8_000 });
+      .or(page.getByLabel(/accounts overview|огляд акаунтів/i))
+      .or(page.getByText(/existing accounts|наявні акаунти|create account/i));
+    await expect(marker.first()).toBeVisible({ timeout: 12_000 });
   });
 
   test('shows school settings or branding section', async ({ page }) => {

@@ -29,3 +29,13 @@
 - Закрито P0: 1 (500 на дублі назви школи — реальний продакшн-баг: друга школа з популярною назвою "English School" не могла зареєструватися).
 - Закрито P1: 1 (тур поверх wizard).
 - Результат: `02-journey-audit.spec.ts` — 4 passed (golden path: signup → 5 кроків wizard → dashboard → тур Next/Back/Finish → complete; дубль email → alert; onboarding після завершення редіректить на dashboard).
+
+
+## Доповнення 2026-07-21 — invites API
+
+- `02-invite-api.spec.ts`: invalid accept token; admin create invitation (no Campus accept page yet).
+
+
+## Доповнення 2026-07-21 — Help + offer↔payment leftovers
+
+- `02-help-and-offer-payment.spec.ts`: **2.14** Header `?` → `data-tour-mode="help"` (learning mode on); **3K.8** mocked package label parity `/offer` ↔ `/payment`.

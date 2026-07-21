@@ -317,9 +317,9 @@
   border-radius: 6px;
   flex-shrink: 0;
 }
-.blue { background: var(--blue-light); color: var(--blue); }
-.amber { background: var(--amber-light); color: var(--accent-warning); }
-.rose { background: var(--rose-light); color: var(--accent-danger); }
+.blue { background: var(--blue-light); color: var(--blue-dark); }
+.amber { background: var(--amber-light); color: var(--accent-warning-strong); }
+.rose { background: var(--rose-light); color: var(--rose-dark); }
 .green { background: var(--green-light); color: var(--green-dark); }
 .wcOrigin { font-size: var(--fs-11); color: var(--text-faint); font-style: italic; line-height: 1.4; margin-bottom: 8px; }
 .wcVerbForms { margin: 4px 0 8px; }

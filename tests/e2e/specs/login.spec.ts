@@ -6,6 +6,10 @@ import { LoginPage } from '../pages/LoginPage';
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
+test.beforeEach(({ }, testInfo) => {
+  test.skip(testInfo.project.name !== 'public', 'Login specs — public project only');
+});
+
 const email = process.env.PLAYWRIGHT_TEST_EMAIL ?? 'jest-student@arvilio.test';
 const password = process.env.PLAYWRIGHT_TEST_PASSWORD ?? 'TestPass123!';
 

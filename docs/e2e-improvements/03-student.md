@@ -50,3 +50,18 @@
 - **3L** profile: таби Statistics/Notifications/Appearance/Account, font-size контрол (SegmentedControl role=radio).
 
 **Беклог (потребує інфри/моків, не interaction-рівень):** 3B.6–11 (video/LiveKit/homework/downloads), 3D.2–4 + 3E + 3F + 3G (інтерактивні practice-флоу з Arvi-реакціями/mic), 3J.2–10 (realtime Socket.IO, пагінація, групи), 3K.4–7 (пакети/provider checkout), 3L.5 (OAuth Connections), 3M.2 (Arvi wave — feature). Порожні стани (3A.4/3H.3/3I.3) потребують окремого юзера без даних.
+
+
+## Доповнення 2026-07-21 — GDPR
+
+- `03-gdpr-mock.spec.ts`: 3L.8 export download, 3L.9 delete → `/login`.
+
+
+## Доповнення 2026-07-21 — P2 notif + DnD
+
+- `03-notifications-mock.spec.ts` (3L.10); `03-calendar-dnd-mock.spec.ts` (3I.5 soft-skip).
+
+
+## Доповнення 2026-07-21 — offer↔payment
+
+- `02-help-and-offer-payment.spec.ts`: **3K.8** same package label on `/offer` and `/payment` (route-mocked).

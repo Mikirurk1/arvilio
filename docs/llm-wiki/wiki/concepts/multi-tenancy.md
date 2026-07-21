@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multi-tenant, saas, planning]
-updated: 2026-07-11
+updated: 2026-07-21
 ---
 
 # Multi-Tenancy (SaaS transition plan)
@@ -20,7 +20,7 @@ Arvilio has transitioned from a single-school product to a multi-tenant SaaS fou
 - **CLS tenant context** — `@be/tenant` (`TenantContextService`) seeds `schoolId`/`membershipRole` from JWT + membership on every authenticated request.
 - **JWT** — `{ sub, schoolId?, membershipRole?, platformRole? }`; host JWT cross-check (ADR-007).
 - **Routing** — Next `middleware.ts` + `TenantResolutionMiddleware` (subdomain slug + custom domain).
-- **Platform admin** — `apps/platform` Control Plane: Campuses (API `/schools`), Users (`/users`), suspend/activate, impersonation, audit log, promo codes, payment-method allowlist. Campuses/Users/members/audit lists use cursor pages + infinite scroll (`PlatformPageDto`). Campus detail shows owner (earliest active ADMIN), admins, member stats, and filtered members table; **subscription country editor lives inside the Campus panel**. **Full-bleed shell**; Lucide nav; `PageStack` / `PageGrid`. Session cookies: **`arvilio_pat` / `arvilio_prt`**. Dark theme + Light/Dark/System toggle. **Dashboard** (`GET /platform/dashboard`) returns KPIs plus `mrrMinor` (ACTIVE subs × plan `amountMinor`), `userStats`, `billingHealth`, `trialsEndingSoon`, `recentCampuses`, `recentAudit`.
+- **Platform admin** — `apps/platform` Control Plane: Campuses (API `/schools`), Users (`/users`), suspend/activate, impersonation, audit log, promo codes, payment-method allowlist. Campuses/Users/members/audit lists use cursor pages + infinite scroll (`PlatformPageDto`). Campus detail shows owner (earliest active ADMIN), admins, member stats, and filtered members table; **subscription country editor lives inside the Campus panel**. **Full-bleed shell**; Lucide nav; `PageStack` / `PageGrid`. Session cookies: **`arvilio_pat` / `arvilio_prt`**. Dark theme + Light/Dark/System toggle. **Dashboard** (`GET /platform/dashboard`) returns KPIs plus `mrrMinor` (ACTIVE subs × plan `amountMinor`), `userStats`, `billingHealth`, `trialsEndingSoon`, `recentCampuses`, `recentAudit`. **E2E (mock):** `07-platform-schools-detail-mock`, `07-platform-promo-codes-mock`, `07-platform-audit-log-mock`, `07-platform-users-mock`, `07-platform-dashboard` (+ settings SMTP/LLM/payments; billing rails/campus-plans).
 - **Activation** — self-serve signup, 7/14-day trial + promo codes, onboarding wizard, element-anchored product tour (`navHref` + `data-tour-nav` spotlight).
 - **Billing** — entitlements, storage/seat meters, `@RequiresFeature`, Stripe subscription checkout + promo codes.
 - **Isolation gate** — `tests/integration/tenant-isolation.integration.spec.ts` (17/17) required in CI.

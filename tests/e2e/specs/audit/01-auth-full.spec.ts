@@ -5,8 +5,15 @@
  */
 import { test, expect } from '@playwright/test';
 import { shot, expectNoA11yViolations } from '../../helpers/a11y';
+import { LoginPage } from '../../pages/LoginPage';
 
 test.use({ storageState: { cookies: [], origins: [] } });
+
+/** Signup catalog label is "Work email", not bare "Email". */
+const signupEmail = (page: import('@playwright/test').Page) =>
+  page.locator('#signup-email');
+const signupPassword = (page: import('@playwright/test').Page) =>
+  page.locator('#signup-password');
 
 // ──────────────────────────────────────────────────────
 // 1A. /login
@@ -43,11 +50,10 @@ test.describe('1A. login', () => {
 
   for (const role of ['teacher', 'admin', 'super-admin'] as const) {
     test(`1A.8 login as ${role} → /dashboard`, async ({ page }) => {
-      await page.goto('/login');
-      await page.getByRole('textbox', { name: /email/i }).fill(`jest-${role}@arvilio.test`);
-      await page.getByLabel('Password', { exact: true }).fill('TestPass123!');
-      await page.getByRole('button', { name: /sign in/i }).click();
-      await expect(page).toHaveURL(/\/dashboard/, { timeout: 20_000 });
+      const login = new LoginPage(page);
+      await login.goto();
+      await login.login(`jest-${role}@arvilio.test`, 'TestPass123!');
+      await expect(page).toHaveURL(/\/dashboard/);
     });
   }
 });
@@ -60,8 +66,8 @@ test.describe('1B. signup', () => {
     await page.goto('/signup');
     await expect(page.getByRole('heading', { name: /create your school/i })).toBeVisible({ timeout: 10_000 });
     await expect(page.getByLabel(/school name/i)).toBeVisible();
-    await expect(page.getByLabel(/^email$/i)).toBeVisible();
-    await expect(page.getByLabel(/^password$/i)).toBeVisible();
+    await expect(page.getByLabel(/work email|email/i)).toBeVisible();
+    await expect(signupPassword(page)).toBeVisible();
     const accept = page.getByRole('button', { name: /accept/i });
     if (await accept.isVisible({ timeout: 1_500 }).catch(() => false)) await accept.click();
     await expectNoA11yViolations(page);
@@ -70,8 +76,8 @@ test.describe('1B. signup', () => {
   test('1B.2 disposable email → error', async ({ page }) => {
     await page.goto('/signup');
     await page.getByLabel(/school name/i).fill('Disposable Probe');
-    await page.getByLabel(/^email$/i).fill(`probe-${Date.now()}@mailinator.com`);
-    await page.getByLabel(/^password$/i).fill('TestPass123!');
+    await signupEmail(page).fill(`probe-${Date.now()}@mailinator.com`);
+    await signupPassword(page).fill('TestPass123!');
     await page.getByRole('button', { name: /create school/i }).click();
     await expect(page.getByRole('alert').filter({ hasText: /.+/ }).first()).toBeVisible({ timeout: 10_000 });
     await expect(page).toHaveURL(/\/signup/);
@@ -80,8 +86,8 @@ test.describe('1B. signup', () => {
   test('1B.3 weak password → error (no account created)', async ({ page }) => {
     await page.goto('/signup');
     await page.getByLabel(/school name/i).fill('Weak Pass Probe');
-    await page.getByLabel(/^email$/i).fill(`weak-${Date.now()}@arvilio.test`);
-    await page.getByLabel(/^password$/i).fill('123');
+    await signupEmail(page).fill(`weak-${Date.now()}@arvilio.test`);
+    await signupPassword(page).fill('123');
     const [resp] = await Promise.all([
       page.waitForResponse((r) => r.url().includes('register-school'), { timeout: 10_000 }).catch(() => null),
       page.getByRole('button', { name: /create school/i }).click(),
@@ -93,8 +99,8 @@ test.describe('1B. signup', () => {
   test('1B.4 duplicate email → error', async ({ page }) => {
     await page.goto('/signup');
     await page.getByLabel(/school name/i).fill('Dup Probe');
-    await page.getByLabel(/^email$/i).fill('jest-admin@arvilio.test'); // already exists
-    await page.getByLabel(/^password$/i).fill('TestPass123!');
+    await signupEmail(page).fill('jest-admin@arvilio.test'); // already exists
+    await signupPassword(page).fill('TestPass123!');
     await page.getByRole('button', { name: /create school/i }).click();
     await expect(page.getByText(/already registered|already exists/i)).toBeVisible({ timeout: 10_000 });
     await expect(page).toHaveURL(/\/signup/);
@@ -103,8 +109,8 @@ test.describe('1B. signup', () => {
   test('1B.6 success → auto-login → onboarding', async ({ page }) => {
     await page.goto('/signup');
     await page.getByLabel(/school name/i).fill('Signup Success Probe');
-    await page.getByLabel(/^email$/i).fill(`ok-${Date.now()}@arvilio.test`);
-    await page.getByLabel(/^password$/i).fill('TestPass123!');
+    await signupEmail(page).fill(`ok-${Date.now()}@arvilio.test`);
+    await signupPassword(page).fill('TestPass123!');
     await page.getByRole('button', { name: /create school/i }).click();
     await page.waitForURL(/\/onboarding/, { timeout: 20_000 });
   });

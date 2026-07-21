@@ -1,6 +1,6 @@
 ---
 tags: [concept, billing]
-updated: 2026-07-11
+updated: 2026-07-21
 ---
 
 # Billing & lesson payments
@@ -21,8 +21,19 @@ Distinct from the per-student lesson billing below (Layer A). `SchoolSubscriptio
 
 `/system` → **Payments** tab. GraphQL: `paymentSettings`, `updatePaymentSettings`.
 
+### Control Plane Layer-B test surface
+
+Live Stripe/MonoPay pings stay out of CI. Coverage:
+
+| Layer | Spec |
+|-------|------|
+| Unit | `platform-billing-rails.spec.ts` (catalog/products), `platform-billing-rails.service.spec.ts` |
+| Platform e2e | `07-platform-billing-rails-mock.spec.ts`, `07-platform-campus-plans-mock.spec.ts` |
+
+REST under mock: `PUT /api/platform/billing/rails`, `POST …/rails/:id/test`, `PUT …/campus-subscription`.
+
 - `enabledPaymentMethods`: `manual_invoice` | `stripe` | `liqpay` | `wayforpay` | `lemonsqueezy` | `paddle` | `monopay` | `paypal`
-- **Platform-wide allowlist (ADR-009, Phase 4D):** `PlatformSettings.allowedPaymentMethods` is a *separate* platform-operator-controlled gate (distinct from the school-level `enabledPaymentMethods` above). Managed in Control Plane Settings as **Learner payment methods** (brand cards; REST `GET`/`PUT /api/platform/payment-methods`, `@be/platform-admin` `PlatformPaymentMethodsService`, audited `platform.payment_methods.update`). **Empty = no restriction.** When non-empty, `PaymentSettingsService.updatePaymentSettings` rejects (400) enabling any method outside it. This is the platform→campus guardrail for learner (Layer A) checkout; docs may say Layer A — UI does not.
+- **Platform-wide allowlist (ADR-009, Phase 4D):** `PlatformSettings.allowedPaymentMethods` is a *separate* platform-operator-controlled gate (distinct from the school-level `enabledPaymentMethods` above). Managed in Control Plane Settings as **Learner payment methods** (brand cards; REST `GET`/`PUT /api/platform/payment-methods`, `@be/platform-admin` `PlatformPaymentMethodsService`, audited `platform.payment_methods.update`). **Empty = no restriction.** When non-empty, `PaymentSettingsService.updatePaymentSettings` rejects (400) enabling any method outside it. This is the platform→campus guardrail for learner (Layer A) checkout; docs may say Layer A — UI does not. **Tests:** unit `platform-payment-methods.service.spec.ts`; Platform e2e `07-platform-payment-methods-mock.spec.ts` (PUT mocked).
 - `paymentConfig` JSON: `defaultPricePerLessonMinor`, `allowedCurrencies`, `defaultCurrency`, `minPackageLessons` (default 3), packages (`lessons` + `label` + optional `description`), `manualInvoiceMethods[]`, `groupLessons` (`enabled`, default billing for new [[entities/student-group|learning groups]]), plus per-provider config blocks for Stripe / LiqPay / WayForPay / Lemon Squeezy / Paddle / MonoPay / PayPal
 - Staff (non–super-admin) read flag via GraphQL `schoolGroupLessonsSettings` (no payment secrets)
 - Provider config blocks are mode-aware:

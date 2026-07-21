@@ -8,10 +8,11 @@ export class ChatPage {
   }
 
   inboxHeading() {
-    return this.page.getByRole('heading', { name: 'Messages' });
+    return this.page.getByRole('heading', { name: /^(messages|chat|чат)$/i });
   }
 
   searchField() {
+    // Prefer inbox searchbox — header also has type=search (combobox).
     return this.page.getByRole('searchbox', { name: /search conversations/i });
   }
 

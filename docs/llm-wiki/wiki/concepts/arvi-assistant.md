@@ -1,6 +1,6 @@
 ---
 tags: [concept, ai, campus, security]
-updated: 2026-07-20
+updated: 2026-07-21
 ---
 
 # Arvi AI Assistant
@@ -56,6 +56,17 @@ REST:
 - `POST /api/platform/llm/test` — connectivity probe with optional unsaved draft (no AI credits)
 - `GET/PUT /api/system/llm` — school ADMIN; PUT requires `aiAssist`
 - `POST /api/system/llm/test` — school ADMIN probe (override draft or platform default)
+
+**Test surface (CI):** live LLM providers stay out of CI.
+
+| Layer | Specs |
+|-------|--------|
+| Chat e2e (mock SSE) | `tests/e2e/specs/audit/12-arvi-assistant-mock.spec.ts` |
+| Chat unit | `assistant.service.spec.ts`, `assistant.controller.spec.ts` |
+| Policy / corpus ACL | `role-policy.spec.ts`, `retrieve-help.spec.ts`, `academic-refusal.spec.ts` |
+| School LLM e2e | `06-school-llm-mock.spec.ts` (System → AI override) |
+| Platform LLM | `platform-llm.service.spec.ts`, `07-platform-llm-mock.spec.ts` |
+| History TTL | `arvi-chat-history.test.ts` |
 
 Chat is **fail-closed**: without a configured effective model (platform default, school Pro override, or env), the panel opens but composer is disabled and chat returns 503.
 

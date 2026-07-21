@@ -110,3 +110,21 @@ const onSubmit = async (e: React.FormEvent) => {
 | 9 | `/privacy` і `/status` **гейтились авторизацією** — гість редіректився на `/login` (не були в `PUBLIC_ROUTES`) | P1 | ☑ додано обидва в `route-policy.ts` `PUBLIC_ROUTES` |
 
 **N/A у test-env:** 1A.6/1C.3 rate-limit (харнес шле `x-e2e-skip-throttle`), 1B.5 captcha (Turnstile без `SITE_KEY`). **Беклог:** 1D.3 happy-path reset потребує валідного токена з БД.
+
+
+## Доповнення 2026-07-21 — legal / offer
+
+- `01-legal-offer-mock.spec.ts`: 1E.5–7 `/legal/*`, 1F `/offer` (packages/empty/logos/axe).
+
+
+## Доповнення 2026-07-21 — CI verify wave 1
+
+- Playwright: auth/login/journey лише `project=public` (`testMatch` + cleared `storageState`).
+- Smoke `login` + `01-auth-full` → 17✓ / 8✗: signup `getByLabel(/^email$/i)` timeouts; teacher/admin/super-admin login asserts — **unique** product/test debt (не wrong-project).
+
+
+## Доповнення 2026-07-21 — CI verify wave 2
+
+- Signup locators: `#signup-email` / `#signup-password` (label = **Work email**). Same fix in `02-journey-audit`.
+- 1A.8 role logins → `LoginPage` (cookie dismiss + 5xx retry). Was flaky Internal Server Error when API cold.
+- Re-run: `01-auth-full` public **18/18 passed** (~18s, `PLAYWRIGHT_SKIP_WEBSERVER=1`).

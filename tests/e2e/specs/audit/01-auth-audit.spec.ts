@@ -1,10 +1,16 @@
 /**
  * АУДИТ Етап 1 — Auth pages: /login, /signup, /forgot-password
  * Navigate → Screenshot → axe → console guard
+ * Guest-only — clear storage (public project).
  */
 import { test, expect } from '@playwright/test';
 import { shot, expectNoA11yViolations, consoleGuard } from '../../helpers/a11y';
-import { STATE } from '../../fixtures/auth';
+
+test.use({ storageState: { cookies: [], origins: [] } });
+
+test.beforeEach(({ }, testInfo) => {
+  test.skip(testInfo.project.name !== 'public', 'Auth audit — public project only');
+});
 
 const DIR = '01-auth';
 

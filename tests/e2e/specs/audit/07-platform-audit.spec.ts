@@ -1,7 +1,7 @@
 /**
  * АУДИТ Етап 7 — Platform console (:4300, super_admin)
  * Логін через API (cookie на host localhost діє і для :4300 — порт не входить у cookie-домен).
- * Запускати project=public.
+ * Запускати project=public. Soft-skip якщо platform не піднятий.
  */
 import { test, expect, type Page } from '@playwright/test';
 import { shot, expectNoA11yViolations } from '../../helpers/a11y';
@@ -16,7 +16,29 @@ async function loginAs(page: Page, email: string) {
   expect(res.status(), `login ${email}`).toBe(201);
 }
 
-const PAGES = ['/dashboard', '/schools', '/promo-codes', '/audit-log', '/settings'];
+test.beforeEach(async ({ page }) => {
+  // Soft-skip when Control Plane (:4300) is not part of e2e-web-server.sh
+  let probe: Awaited<ReturnType<typeof page.request.get>> | null = null;
+  try {
+    probe = await page.request.get(`${PLATFORM}/dashboard`, { timeout: 3_000 });
+  } catch {
+    probe = null;
+  }
+  if (!probe || !probe.ok()) {
+    test.skip(true, `Platform unreachable at ${PLATFORM}`);
+  }
+});
+
+const PAGES = [
+  '/dashboard',
+  '/schools',
+  '/users',
+  '/promo-codes',
+  '/audit-log',
+  '/settings',
+  '/billing/rails',
+  '/billing/campus-plans',
+];
 
 test.describe('7.x super_admin console', () => {
   for (const path of PAGES) {

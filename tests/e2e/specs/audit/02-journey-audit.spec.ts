@@ -5,11 +5,16 @@
 import { test, expect } from '@playwright/test';
 import { shot, expectNoA11yViolations, consoleGuard, expectArvi } from '../../helpers/a11y';
 
+test.use({ storageState: { cookies: [], origins: [] } });
+test.describe.configure({ mode: 'serial' });
+
+test.beforeEach(({ }, testInfo) => {
+  test.skip(testInfo.project.name !== 'public', 'Journey audit — public project only');
+});
+
 const DIR = '02-journey';
 const RUN_EMAIL = `e2e-journey-${Date.now()}@arvilio.test`;
 const PASSWORD = 'JourneyPass123!';
-
-test.describe.configure({ mode: 'serial' });
 
 test('2.0 /signup render + screenshot + axe', async ({ page }) => {
   const stop = consoleGuard(page);
@@ -27,8 +32,8 @@ test('2.11 golden path: signup → wizard → dashboard → tour', async ({ page
   await page.goto('/signup');
   await page.getByLabel(/school name/i).fill('E2E Journey School');
   await page.getByLabel(/your name/i).fill('Journey Admin');
-  await page.getByLabel(/^email$/i).fill(RUN_EMAIL);
-  await page.getByLabel(/^password$/i).fill(PASSWORD);
+  await page.locator('#signup-email').fill(RUN_EMAIL);
+  await page.locator('#signup-password').fill(PASSWORD);
   const [regResp] = await Promise.all([
     page.waitForResponse((r) => r.url().includes('register-school'), { timeout: 20_000 }),
     page.getByRole('button', { name: /create school/i }).click(),
@@ -103,8 +108,8 @@ test('2.11 golden path: signup → wizard → dashboard → tour', async ({ page
 test('2.2 duplicate email shows error', async ({ page }) => {
   await page.goto('/signup');
   await page.getByLabel(/school name/i).fill('Dup School');
-  await page.getByLabel(/^email$/i).fill(RUN_EMAIL);
-  await page.getByLabel(/^password$/i).fill(PASSWORD);
+  await page.locator('#signup-email').fill(RUN_EMAIL);
+  await page.locator('#signup-password').fill(PASSWORD);
   await page.getByRole('button', { name: /create school/i }).click();
   await expect(page.getByRole('alert').or(page.getByText(/already|registered|exists|failed/i)).first())
     .toBeVisible({ timeout: 10_000 });

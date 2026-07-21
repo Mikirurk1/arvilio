@@ -33,7 +33,7 @@ test('payment step distinguishes lesson balance from school subscription (UC7)',
   page,
 }) => {
   await openTourOnDashboard(page);
-  await advanceTourUntilCardMatches(page, /lesson balance|prepaid lessons/i);
+  expect(await advanceTourUntilCardMatches(page, /lesson balance|prepaid lessons/i)).toBe(true);
   await expect(tourDialog(page)).toContainText(/not.*subscription|saas/i);
 });
 
@@ -65,7 +65,7 @@ test('first-login from Profile redirects to dashboard and Level A soft-navs', as
   await expect(page).toHaveURL(/\/dashboard(?:\/|$|\?)/, { timeout: 15_000 });
   await expect(tourDialog(page)).toBeVisible({ timeout: 15_000 });
   await expectArvi(page, 'greet');
-  await advanceTourUntilCardMatches(page, /lessons list|highlight cards|next & previous/i);
+  expect(await advanceTourUntilCardMatches(page, /lessons list|highlight cards|next & previous/i)).toBe(true);
   await expect(page).toHaveURL(/\/lessons(?:\/|$|\?)/, { timeout: 15_000 });
   await skipTour(page);
 });

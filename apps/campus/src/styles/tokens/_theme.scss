@@ -11,7 +11,7 @@
   --text-primary: #1a1a2e;
   --text-secondary: #3d3d55;
   --text-tertiary: #656586; /* was #6e6e90 — darkened for WCAG AA 4.5:1 on tinted surfaces (#eff5fc, --surface) */
-  --text-faint: #b4b4cc;
+  --text-faint: #656586; /* AA 4.5:1+ on white for 12px body (was #75758f @ 4.47) */
 
   --fill-strong: #1a1a2e;
   --fill-strong-hover: #2e2e48;
@@ -25,6 +25,7 @@
 
   --amber: #e8942e;
   --amber-light: #fdf4e8;
+  --amber-dark: #9a5f12; /* AA text on --amber-light */
 
   --blue: #3a75b5;
   --blue-light: #e8f1fa;
@@ -200,6 +201,7 @@
 
   --amber: #f0ad4a;
   --amber-light: rgba(232, 148, 46, 0.14);
+  --amber-dark: #ffe0b0;
 
   --blue: #6ba3e0;
   --blue-light: rgba(58, 117, 181, 0.18);

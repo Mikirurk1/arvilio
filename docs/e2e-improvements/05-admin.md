@@ -38,3 +38,8 @@
 **Знахідка (не баг, а поведінка):** план-пікери Starter/Pro на `/billing` гейтяться `summary.plan === 'TRIAL'` — на ACTIVE-школі їх нема; тест адаптовано.
 
 **Беклог:** 5C.4–8 (promo/Stripe/feature-gating/seat-enforcement/білінг-стани), 5A.2/5A.6 (empty/non-staff), 5D.3 (створення акаунтів), 6.4/6.5 (domains/SMTP verify), 6.11 (media-captions за флагом).
+
+
+## Доповнення 2026-07-21 — import / payout / invites
+
+- `05-student-import-mock.spec.ts` (5D.4), `05-record-payout-mock.spec.ts` (5A.7), `02-invite-api.spec.ts` (2.13 invalid + 5D.5 create API; accept UI deferred).

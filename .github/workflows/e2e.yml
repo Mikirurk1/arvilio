@@ -33,13 +33,21 @@ env:
   API_PROXY_TARGET: http://127.0.0.1:3000
   NEXT_PUBLIC_API_URL: /api
   NEXT_PUBLIC_SOCKET_URL: http://localhost:3000
+  # Parallelism inside each shard (see playwright.config.ts workers).
+  PLAYWRIGHT_WORKERS: '2'
 
 jobs:
   playwright:
-    name: Playwright
+    name: Playwright (${{ matrix.shard }}/2)
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # Per-shard budget. Full unsharded suite historically hit the 45m job ceiling
+    # (2045 cross-project runs × 1 worker before testMatch routing).
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     services:
       postgres:
         image: postgres:16-alpine
@@ -74,14 +82,14 @@ jobs:
       - run: npm run seed:test-users
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
-      - name: Run E2E
-        run: npm run test:e2e
+      - name: Run E2E (shard ${{ matrix.shard }}/2)
+        run: npm run test:e2e -- --shard=${{ matrix.shard }}/2
       - name: Upload Playwright report
         if: failure()
         continue-on-error: true
         uses: actions/upload-artifact@v6
         with:
-          name: playwright-report
+          name: playwright-report-shard-${{ matrix.shard }}
           path: playwright-report/
           if-no-files-found: ignore
           include-hidden-files: true

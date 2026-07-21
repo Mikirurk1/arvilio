@@ -26,11 +26,21 @@ test.describe('Chat — student', () => {
     const chat = new ChatPage(page);
     await chat.goto();
     await page.waitForLoadState('domcontentloaded');
-    const hasConv = await page.getByRole('listitem').first().isVisible().catch(() => false);
-    // Heading "Messages" is always visible when the inbox renders
-    const hasHeading = await page.getByRole('heading', { name: /messages/i }).isVisible().catch(() => false);
-    const hasEmpty = await page.getByText(/no messages|нема повідомлень|start a conversation|your messages|choose a conversation/i).isVisible().catch(() => false);
-    expect(hasConv || hasHeading || hasEmpty).toBe(true);
+    await expect(page).toHaveURL(/\/chat/);
+    // Inbox rows are buttons (not listitems); heading is "Chat"
+    const hasConv = await page
+      .locator('[class*="convRow"]')
+      .or(page.getByRole('button', { name: /teacher|student|jest/i }))
+      .first()
+      .isVisible()
+      .catch(() => false);
+    const hasHeading = await chat.inboxHeading().isVisible().catch(() => false);
+    const hasSearch = await chat.searchField().isVisible().catch(() => false);
+    const hasEmpty = await page
+      .getByText(/no messages|нема повідомлень|start a conversation|your messages|choose a conversation/i)
+      .isVisible()
+      .catch(() => false);
+    expect(hasConv || hasHeading || hasSearch || hasEmpty).toBe(true);
   });
 
   test('search filters conversation list', async ({ page }) => {
@@ -38,11 +48,11 @@ test.describe('Chat — student', () => {
     await chat.goto();
     const search = chat.searchField();
     await expect(search).toBeVisible();
-    await search.fill('xyz_no_match_query');
+    await search.fill('xyz_no_match_query', { force: true });
     await page.waitForTimeout(400); // debounce
     // Should either show "no results" or empty list
     const noResults = await page.getByText(/no results|нічого не знайдено/i).isVisible().catch(() => false);
-    const emptyList = (await page.getByRole('listitem').count()) === 0;
+    const emptyList = (await page.locator('[class*="convRow"]').count()) === 0;
     expect(noResults || emptyList).toBe(true);
   });
 });

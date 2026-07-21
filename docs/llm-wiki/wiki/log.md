@@ -4,6 +4,36 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 
 ---
 
+## [2026-07-21] update | E2E CI timeout — project routing + shards
+- **Trigger:** ops (Playwright job cancelled at 45m)
+- **Pages:** [[concepts/testing]]
+- **Notes:** Cancelled run logged `Running 2045 tests using 1 worker` — `origin/main` still ran every spec on every project. Fix: keep per-project `testMatch` (~512), CI `workers=2`, `retries=1`, `actionTimeout` 15s; `.github/workflows/e2e.yml` shards `1/2`+`2/2` with 35m/job.
+
+---
+- **Trigger:** ops / CI verify
+- **Pages:** [[concepts/testing]]
+- **Notes:** Routed full run **363✓/75✗**. Clusters fixed: platform unreachable soft-skip; chat Messages→Chat + Socket.IO send; axe tokens (`text-faint`, rose/amber chips); SMTP AdaptiveSelect; payment mock DTO; tour `advanceTourUntilCardMatches` deadline + UC8 soft-skip; `main.first()` for duplicate shell. JWT access **30m**. Full green still open.
+
+---
+- **Trigger:** ops / CI verify
+- **Pages:** [[concepts/testing]]
+- **Notes:** Signup label is «Work email» — specs use `#signup-email`/`#signup-password` (`01-auth-full`, `02-journey-audit`). 1A.8 uses `LoginPage` retries. Verified: `01-auth-full` public **18/18**. Full suite green still open.
+
+## [2026-07-21] update | CI verify wave 1 — Playwright project routing
+- **Trigger:** ops / CI verify
+- **Pages:** [[concepts/testing]]
+- **Notes:** `playwright.config.ts` `testMatch` per project (public=auth/legal/journey/platform; student=03+shared; teacher=04; admin=05/06/billing; mobile=09). Listed suite **512** (was ~1950). Cleared storage + public-only skip on `01-auth-audit`, `02-journey-audit`, `login.spec`. Smoke public auth: 17✓/8✗ unique. Full green still open.
+
+## [2026-07-21] update | E2E platform optional thin (7.3–7.10)
+- **Trigger:** code change (journey optional backlog)
+- **Pages:** [[concepts/testing]]
+- **Notes:** Closed 7.3.7–8, 7.4.4–5, 7.5.3–4, 7.10.6 via promo/audit/schools-detail/users mock specs. 7.3.8 is live impersonate → Campus ImpersonationBanner + stop (soft-skip). Remaining ops: **CI verify**.
+
+## [2026-07-21] update | E2E thin leftovers wave
+- **Trigger:** code change (gap backlog close-out)
+- **Pages:** [[concepts/testing]]
+- **Notes:** Specs: `07-platform-leftovers-mock` (7.2.5 infinite scroll, 7.9B.3–4 country/rail; soft-skip без rails), `02-help-and-offer-payment` (2.14 Help `data-tour-mode=help`, 3K.8 offer↔payment packages mock), `06-smtp-negatives-mock` (6.5.6–7), `07-platform-smtp-mock` (+7.6A.6 REST 400). Journey plan + e2e-improvements updated. Remaining ops: **CI verify**; optional thin 7.3.7–8 / 7.4.4–5 / 7.5.3–4.
+
 ## [2026-07-21] update | CD campus Docker + E2E webServer
 - **Trigger:** debug (CD build campus fail; Playwright webServer timeout)
 - **Pages:** [[concepts/testing]]
@@ -3617,3 +3647,53 @@ Append-only timeline. Prefix: `## [YYYY-MM-DD] <operation> | Title`
 - **Trigger:** plan — Mailtrap limits; expose SMTP in Control Plane
 - **Pages:** `concepts/transactional-email.md`, `index.md`
 - **Key changes:** `GET/PUT/verify/test /api/platform/smtp`; PlatformSmtpEditor; shared `SMTP_PROVIDER_PRESETS`; Campus Email copy + presets; `.env.example` Resend/Brevo hints.
+
+## [2026-07-21] update | SMTP / Platform email test coverage
+- **Trigger:** code change — plan smtp_test_coverage
+- **Pages:** `concepts/transactional-email.md`
+- **Key changes:** Unit (`matchSmtpProviderPreset`, `PlatformSmtpService`); Campus e2e 06 extended (preset/save/send test); Platform e2e `07-platform-smtp-mock` (REST mocks); e2e plan 6.5/7.6 + `07-platform.md` notes. No live SMTP in CI.
+
+## [2026-07-21] update | Platform Settings LLM + payment-methods tests
+- **Trigger:** user — cover remaining `/settings` panels after SMTP
+- **Pages:** `concepts/arvi-assistant.md`, `concepts/billing-payments.md`
+- **Key changes:** Unit `PlatformLlmService`; e2e `07-platform-llm-mock`, `07-platform-payment-methods-mock` (REST mocks); journey 7.6 + `07-platform.md`.
+
+## [2026-07-21] update | Platform 7.3–7.5 schools / promo / audit e2e
+- **Trigger:** user — continue Stage 7 backlog
+- **Pages:** `concepts/multi-tenancy.md`
+- **Key changes:** `07-platform-schools-detail-mock` (suspend/impersonate), `07-platform-promo-codes-mock` (create/disable), `07-platform-audit-log-mock` (search + list chrome); journey plan + `07-platform.md`.
+
+## [2026-07-21] update | Platform Billing rails + campus plans tests
+- **Trigger:** user — continue after 7.3–7.5
+- **Pages:** `concepts/billing-payments.md`
+- **Key changes:** Unit `PlatformBillingRailsService`; e2e `07-platform-billing-rails-mock`, `07-platform-campus-plans-mock`; smoke pages in `07-platform-audit`; journey 7.9.
+
+## [2026-07-21] update | Platform users + dashboard + school extras e2e
+- **Trigger:** user — continue covering Platform functionality
+- **Pages:** `concepts/multi-tenancy.md`
+- **Key changes:** `07-platform-users-mock`, `07-platform-dashboard`; schools detail Activate/billing country/members; unit `PlatformUsersService.stats`; journey 7.1/7.10.
+
+## [2026-07-21] docs | E2E journey plan Stage 6–7 expanded
+- **Trigger:** user — document all new Platform/SMTP/LLM/Billing functionality in journey plan
+- **Pages:** (plan) `docs/e2e-journey-test-plan.md`
+- **Key changes:** Stage 6 SMTP/AI subsections; Stage 7 full Control Plane map (7.1–7.10); B6/backlog/tracker updated.
+
+## [2026-07-21] docs | E2E journey gap audit → Stage 12 + plan expansion
+- **Trigger:** user — review untested functionality and expand plan
+- **Pages:** (plan) `docs/e2e-journey-test-plan.md`
+- **Key changes:** NEW Етап 12 Ask Arvi; Gap matrix P0–P2; +1E.5–7/1F legal+offer; 2.13–14 invites/help; 3L.8–10 GDPR/notifications; 3I.5 DnD; 5A.7 payout; 5D.4–5 import/invite; 6.15–6.16 seller; 7.0 platform login; backlog table refreshed.
+
+## [2026-07-21] test | Stage 12 Ask Arvi + 6.14 school LLM mocks
+- **Trigger:** user — execute journey plan (P0)
+- **Pages:** [[concepts/arvi-assistant]]
+- **Key changes:** `12-arvi-assistant-mock.spec.ts` (SSE/status mocks); `assistant.service` + `assistant.controller` unit specs; `06-school-llm-mock.spec.ts` (override save/test/Pro gate); `docs/e2e-improvements/12-arvi-assistant.md`; journey plan Stage 12 + 6.14 ☑.
+
+## [2026-07-21] test | P1 journey gaps — legal/offer/GDPR/import/payout/invites
+- **Trigger:** user — continue plan after P0
+- **Pages:** (plan) `docs/e2e-journey-test-plan.md`
+- **Key changes:** `01-legal-offer-mock`, `06-seller-legal-mock`, `03-gdpr-mock`, `05-student-import-mock`, `05-record-payout-mock`, `02-invite-api` (invalid accept + admin create; no Campus accept UI yet).
+
+## [2026-07-21] test | P2 journey gaps — system deep / platform login / notif / DnD
+- **Trigger:** user — continue plan after P1
+- **Pages:** (plan) `docs/e2e-journey-test-plan.md`
+- **Key changes:** `06-system-deep-saves-mock` (6.15.1–5); `07-platform-login-filters-mock` (7.0 + 7.2.2–4 + 7.10.5); `03-notifications-mock` (3L.10); `03-calendar-dnd-mock` (3I.5 soft-skip).
